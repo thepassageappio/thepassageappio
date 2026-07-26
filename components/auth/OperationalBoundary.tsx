@@ -1,1 +1,94 @@
-aW1wb3J0IHR5cGUgeyBSZWFjdE5vZGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCBMaW5rIGZyb20gJ25leHQvbGluayc7CmltcG9ydCB7IGhlYWRlcnMgfSBmcm9tICduZXh0L2hlYWRlcnMnOwppbXBvcnQgeyByZWRpcmVjdCB9IGZyb20gJ25leHQvbmF2aWdhdGlvbic7CmltcG9ydCB7IGNhbk9wZW5PcGVyYXRpb25hbFBhdGgsIGxhbmRpbmdQYXRoRm9yUm9sZSwgcmVzb2x2ZU9wZXJhdGlvbmFsVmlld2VyIH0gZnJvbSAnQC9saWIvYXV0aC9hdXRob3JpemF0aW9uJzsKaW1wb3J0IHsgY2FuUmVuZGVyVmVyaWZpZWRPcGVyYXRpb25hbENoaWxkLCBESVJFQ1RPUl9JTlZJVEFUSU9OX1BBVEgsIGlzb2xhdGVkUHJldmlld0ludml0YXRpb25FbmFibGVkLCBvcGVyYXRpb25hbFJlY292ZXJ5UGF0aCwgT1BFUkFUSU9OQUxfUEFUSE5BTUVfSEVBREVSIH0gZnJvbSAnQC9saWIvYXV0aC9vcGVyYXRpb25hbC1yb3V0ZS1nYXRlJzsKaW1wb3J0IHsgbG9naW5QYXRoIH0gZnJvbSAnQC9saWIvYXV0aC9yZWRpcmVjdHMnOwppbXBvcnQgeyBnZXRSdW50aW1lQ29uZmlndXJhdGlvbiwgcHVibGljUnVudGltZUxhYmVsIH0gZnJvbSAnQC9saWIvcnVudGltZS1jb25maWcnOwppbXBvcnQgc3R5bGVzIGZyb20gJy4vT3BlcmF0aW9uYWxCb3VuZGFyeS5tb2R1bGUuY3NzJzsKCi8vIFBsYWluIEhUTUwgZm9ybSBQT1NUIHRvIGEgcm91dGUgaGFuZGxlciwgbm90IGEgU2VydmVyIEFjdGlvbiAtIHRoaXMgbXVzdAovLyBrZWVwIHdvcmtpbmcgYXMgYW4gYXV0aCBlc2NhcGUgaGF0Y2ggZXZlbiBpZiBjbGllbnQtc2lkZSBKUy9mZXRjaCBpcyBmbGFreS4KY29uc3QgU0lHTk9VVF9BQ1RJT04gPSAnL2F1dGgvc2lnbm91dCc7CgpmdW5jdGlvbiBTaWduT3V0QnV0dG9uKCkgewogIHJldHVybiA8Zm9ybSBhY3Rpb249e1NJR05PVVRfQUNUSU9OfSBtZXRob2Q9InBvc3QiPjxidXR0b24gdHlwZT0ic3VibWl0Ij5TaWduIG91dDwvYnV0dG9uPjwvZm9ybT47Cn0KCnR5cGUgT3BlcmF0aW9uYWxCb3VuZGFyeVByb3BzID0gewogIGNoaWxkcmVuOiBSZWFjdE5vZGU7CiAgcmVxdWVzdGVkUGF0aDogJy9kaXJlY3RvcicgfCAnL2RpcmVjdG9yL2ludGFrZScgfCAnL3N0YWZmJzsKICByZXF1aXJlZFdvcmtzcGFjZTogJy9kaXJlY3RvcicgfCAnL3N0YWZmJzsKfTsKCmNvbnN0IHJlYXNvbkNvcHkgPSB7CiAgJ2Vudmlyb25tZW50LXVuYXZhaWxhYmxlJzogJ1NlY3VyZSB3b3Jrc3BhY2UgYWNjZXNzIGlzIG5vdCBjb25maWd1cmVkIGZvciB0aGlzIGVudmlyb25tZW50LicsCiAgJ3NpZ25lZC1vdXQnOiAnU2lnbiBpbiBiZWZvcmUgb3BlbmluZyBhIGZ1bmVyYWwtaG9tZSB3b3Jrc3BhY2UuJywKICAnbWVtYmVyc2hpcC1yZXF1aXJlZCc6ICdUaGlzIGFjY291bnQgZG9lcyBub3QgaGF2ZSBhbiBhY3RpdmUgZnVuZXJhbC1ob21lIG1lbWJlcnNoaXAuJywKICAnbWVtYmVyc2hpcC1yZXZva2VkJzogJ1lvdXIgdGVhbSBhY2Nlc3MgaGFzIGVuZGVkLiBObyBmdW5lcmFsLWhvbWUgd29yayBpcyB2aXNpYmxlLicsCiAgJ21lbWJlcnNoaXAtc2VsZWN0aW9uLXJlcXVpcmVkJzogJ1RoaXMgYWNjb3VudCBiZWxvbmdzIHRvIG1vcmUgdGhhbiBvbmUgb3JnYW5pemF0aW9uLiBXb3Jrc3BhY2Ugc2VsZWN0aW9uIG11c3QgYmUgY29tcGxldGVkIGJlZm9yZSBhbnkgb3BlcmF0b3IgZGF0YSBjYW4gYmUgc2hvd24uJywKICAnYXV0aG9yaXR5LXVuYXZhaWxhYmxlJzogJ1Bhc3NhZ2UgY291bGQgbm90IHZlcmlmeSBhbiBhY3RpdmUgcm9sZSBhbmQgbG9jYXRpb24gZm9yIHRoaXMgYWNjb3VudC4gT3BlcmF0b3IgZGF0YSByZW1haW5zIGNsb3NlZC4nLAp9IGFzIGNvbnN0OwoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIE9wZXJhdGlvbmFsQm91bmRhcnkoeyBjaGlsZHJlbiwgcmVxdWVzdGVkUGF0aCwgcmVxdWlyZWRXb3Jrc3BhY2UgfTogT3BlcmF0aW9uYWxCb3VuZGFyeVByb3BzKSB7CiAgY29uc3QgY29uZmlndXJhdGlvbiA9IGdldFJ1bnRpbWVDb25maWd1cmF0aW9uKCk7CiAgY29uc3QgcGF0aG5hbWUgPSAoYXdhaXQgaGVhZGVycygpKS5nZXQoT1BFUkFUSU9OQUxfUEFUSE5BTUVfSEVBREVSKTsKICBjb25zdCByZWNvdmVyeVBhdGggPSBvcGVyYXRpb25hbFJlY292ZXJ5UGF0aChwYXRobmFtZSwgcmVxdWVzdGVkUGF0aCk7CiAgY29uc3QgcmVzdWx0ID0gYXdhaXQgcmVzb2x2ZU9wZXJhdGlvbmFsVmlld2VyKCk7CiAgaWYgKCFyZXN1bHQub2sgJiYgcmVzdWx0LnJlYXNvbiA9PT0gJ3NpZ25lZC1vdXQnKSByZWRpcmVjdChsb2dpblBhdGgocmVjb3ZlcnlQYXRoKSk7CgogIGlmICghcmVzdWx0Lm9rKSB7CiAgICByZXR1cm4gPEFjY2Vzc1N1cmZhY2UgdGl0bGU9IldvcmtzcGFjZSBhY2Nlc3MgcmVtYWlucyBjbG9zZWQiIG1lc3NhZ2U9e3JlYXNvbkNvcHlbcmVzdWx0LnJlYXNvbl19IHJ1bnRpbWU9e3B1YmxpY1J1bnRpbWVMYWJlbChjb25maWd1cmF0aW9uLnJ1bnRpbWUpfSAvPjsKICB9CgogIGNvbnN0IHsgdmlld2VyIH0gPSByZXN1bHQ7CiAgaWYgKCFjYW5PcGVuT3BlcmF0aW9uYWxQYXRoKHZpZXdlci5yb2xlLCByZXF1aXJlZFdvcmtzcGFjZSkpIHsKICAgIGNvbnN0IGNvcnJlY3RQYXRoID0gbGFuZGluZ1BhdGhGb3JSb2xlKHZpZXdlci5yb2xlKTsKICAgIHJldHVybiA8QWNjZXNzU3VyZmFjZSB0aXRsZT0iVGhpcyB3b3Jrc3BhY2UgaXMgb3V0c2lkZSB5b3VyIHJvbGUiIG1lc3NhZ2U9e3ZpZXdlci5yb2xlID09PSAnc3RhZmYnID8gJ1lvdXIgZnVuZXJhbC1ob21lIGVtcGxveWVlIG1lbWJlcnNoaXAgb3BlbnMgTXkgd29yaywgbm90IHRoZSBkaXJlY3RvciB3b3Jrc3BhY2UuJyA6ICdZb3VyIGRpcmVjdG9yIG1lbWJlcnNoaXAgb3BlbnMgdGhlIGRpcmVjdG9yIHdvcmtzcGFjZSwgbm90IGFuIGVtcGxveWVl4oCZcyBhc3NpZ25lZCBxdWV1ZS4nfSBydW50aW1lPXtwdWJsaWNSdW50aW1lTGFiZWwoY29uZmlndXJhdGlvbi5ydW50aW1lKX0gcmVjb3ZlcnlIcmVmPXtjb3JyZWN0UGF0aH0gcmVjb3ZlcnlMYWJlbD17Y29ycmVjdFBhdGggPT09ICcvc3RhZmYnID8gJ09wZW4gTXkgd29yaycgOiAnT3BlbiBkaXJlY3RvciB3b3Jrc3BhY2UnfSAvPjsKICB9CgogIGlmIChjb25maWd1cmF0aW9uLnJ1bnRpbWUgPT09ICdkZW1vJyAmJiBwYXRobmFtZSAhPT0gRElSRUNUT1JfSU5WSVRBVElPTl9QQVRIKSB7CiAgICByZXR1cm4gPGRpdiBjbGFzc05hbWU9e3N0eWxlcy5kZW1vQm91bmRhcnl9PjxkaXYgY2xhc3NOYW1lPXtzdHlsZXMuZGVtb05vdGljZX0gcm9sZT0ic3RhdHVzIj48c3Bhbj5TRUNVUkUgUFJFVklFVyDCtyBDSEFOR0VTIEFSRSBTQVZFRDwvc3Bhbj48cD5Zb3XigJlyZSBzaWduZWQgaW4gYXMge3ZpZXdlci5kaXNwbGF5TmFtZX0uIFRoaXMgd29ya3NwYWNlIHVzZXMgc2FtcGxlIGluZm9ybWF0aW9uLCBhbmQgbm8gcmVhbCBtZXNzYWdlcyBhcmUgc2VudC48L3A+PFNpZ25PdXRCdXR0b24gLz48L2Rpdj57Y2hpbGRyZW59PC9kaXY+OwogIH0KCiAgaWYgKGNhblJlbmRlclZlcmlmaWVkT3BlcmF0aW9uYWxDaGlsZChwYXRobmFtZSwgY29uZmlndXJhdGlvbikpIHJldHVybiBjaGlsZHJlbjsKCiAgcmV0dXJuICgKICAgIDxtYWluIGNsYXNzTmFtZT17c3R5bGVzLnNoZWxsfSBpZD0ibWFpbi1jb250ZW50Ij4KICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPXtzdHlsZXMucmVhZHl9IGFyaWEtbGFiZWxsZWRieT0id29ya3NwYWNlLXJlYWR5LXRpdGxlIj4KICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5leWVicm93fT5TRUNVUkUgUFJFVklFVzwvcD4KICAgICAgICA8aDEgaWQ9IndvcmtzcGFjZS1yZWFkeS10aXRsZSI+WW914oCZcmUgc2lnbmVkIGluLjwvaDE+CiAgICAgICAgPHA+WW91IGNhbiBtYW5hZ2UgdGVhbSBhY2Nlc3MsIGJ1dCBubyBjYXNlcyBhcmUgYXNzaWduZWQgdG8gdGhpcyBhY2NvdW50IHlldC48L3A+CiAgICAgICAgPGRsPgogICAgICAgICAgPGRpdj48ZHQ+QWNjb3VudDwvZHQ+PGRkPnt2aWV3ZXIuZGlzcGxheU5hbWV9PHNtYWxsPnt2aWV3ZXIuZW1haWx9PC9zbWFsbD48L2RkPjwvZGl2PgogICAgICAgICAgPGRpdj48ZHQ+T3JnYW5pemF0aW9uPC9kdD48ZGQ+e3ZpZXdlci5vcmdhbml6YXRpb25OYW1lfTwvZGQ+PC9kaXY+CiAgICAgICAgICA8ZGl2PjxkdD5Sb2xlPC9kdD48ZGQ+e3ZpZXdlci5yb2xlfTwvZGQ+PC9kaXY+CiAgICAgICAgICA8ZGl2PjxkdD5BdXRob3JpemVkIGxvY2F0aW9uczwvZHQ+PGRkPnt2aWV3ZXIubG9jYXRpb25zLm1hcCgobG9jYXRpb24pID0+IGxvY2F0aW9uLm5hbWUpLmpvaW4oJyDCtyAnKX08L2RkPjwvZGl2PgogICAgICAgICAgPGRpdj48ZHQ+QXNzaWduZWQgd29yazwvZHQ+PGRkPk5vIGNhc2VzIGFzc2lnbmVkIHlldDwvZGQ+PC9kaXY+CiAgICAgICAgPC9kbD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT17c3R5bGVzLnJlY292ZXJ5fT4KICAgICAgICAgIHtpc29sYXRlZFByZXZpZXdJbnZpdGF0aW9uRW5hYmxlZChjb25maWd1cmF0aW9uKSAmJiB2aWV3ZXIucm9sZSAhPT0gJ3N0YWZmJyAmJiA8TGluayBocmVmPXtESVJFQ1RPUl9JTlZJVEFUSU9OX1BBVEh9PkNyZWF0ZSBhIGNvbnRyb2xsZWQgc3RhZmYgaW52aXRhdGlvbjwvTGluaz59CiAgICAgICAgICA8U2lnbk91dEJ1dHRvbiAvPgogICAgICAgIDwvZGl2PgogICAgICA8L3NlY3Rpb24+CiAgICA8L21haW4+CiAgKTsKfQoKZnVuY3Rpb24gQWNjZXNzU3VyZmFjZSh7IHRpdGxlLCBtZXNzYWdlLCBydW50aW1lLCByZWNvdmVyeUhyZWYsIHJlY292ZXJ5TGFiZWwgfTogeyB0aXRsZTogc3RyaW5nOyBtZXNzYWdlOiBzdHJpbmc7IHJ1bnRpbWU6IHN0cmluZzsgcmVjb3ZlcnlIcmVmPzogc3RyaW5nOyByZWNvdmVyeUxhYmVsPzogc3RyaW5nIH0pIHsKICByZXR1cm4gKAogICAgPG1haW4gY2xhc3NOYW1lPXtzdHlsZXMuc2hlbGx9IGlkPSJtYWluLWNvbnRlbnQiPgogICAgICA8c2VjdGlvbiBjbGFzc05hbWU9e3N0eWxlcy5kZW5pZWR9IGFyaWEtbGFiZWxsZWRieT0iYWNjZXNzLXRpdGxlIj4KICAgICAgICA8cCBjbGFzc05hbWU9e3N0eWxlcy5leWVicm93fT57cnVudGltZX08L3A+PGgxIGlkPSJhY2Nlc3MtdGl0bGUiPnt0aXRsZX08L2gxPjxwPnttZXNzYWdlfTwvcD4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT17c3R5bGVzLnJlY292ZXJ5fT4KICAgICAgICAgIHsvKiBQbGFpbiA8YT4gdGFncywgbm90IG5leHQvbGluayBMaW5rOiB0aGVzZSBhcmUgYXV0aCBlc2NhcGUgaGF0Y2hlcyBhbmQgbXVzdCBub3QgZGVwZW5kIG9uCiAgICAgICAgICAgICAgY2xpZW50LXNpZGUgUlNDIG5hdmlnYXRpb24gc3VjY2VlZGluZyAoc2VlIFFBIHN3ZWVwIFBSICM1MCwgYnVnIDEpLiAqL30KICAgICAgICAgIHtyZWNvdmVyeUhyZWYgJiYgcmVjb3ZlcnlMYWJlbCAmJiA8YSBocmVmPXtyZWNvdmVyeUhyZWZ9PntyZWNvdmVyeUxhYmVsfTwvYT59CiAgICAgICAgICA8YSBocmVmPSIvbG9naW4iPlJldHVybiB0byBzaWduIGluPC9hPgogICAgICAgICAgPFNpZ25PdXRCdXR0b24gLz4KICAgICAgICA8L2Rpdj4KICAgICAgPC9zZWN0aW9uPgogICAgPC9tYWluPgogICk7Cn0K
+import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { canOpenOperationalPath, landingPathForRole, resolveOperationalViewer } from '@/lib/auth/authorization';
+import { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath, OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
+import { loginPath } from '@/lib/auth/redirects';
+import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
+import styles from './OperationalBoundary.module.css';
+
+// Plain HTML form POST to a route handler, not a Server Action - this must
+// keep working as an auth escape hatch even if client-side JS/fetch is flaky.
+const SIGNOUT_ACTION = '/auth/signout';
+
+function SignOutButton() {
+  return <form action={SIGNOUT_ACTION} method="post"><button type="submit">Sign out</button></form>;
+}
+
+type OperationalBoundaryProps = {
+  children: ReactNode;
+  requestedPath: '/director' | '/director/intake' | '/staff';
+  requiredWorkspace: '/director' | '/staff';
+};
+
+const reasonCopy = {
+  'environment-unavailable': 'Secure workspace access is not configured for this environment.',
+  'signed-out': 'Sign in before opening a funeral-home workspace.',
+  'membership-required': 'This account does not have an active funeral-home membership.',
+  'membership-revoked': 'Your team access has ended. No funeral-home work is visible.',
+  'membership-selection-required': 'This account belongs to more than one organization. Workspace selection must be completed before any operator data can be shown.',
+  'authority-unavailable': 'Passage could not verify an active role and location for this account. Operator data remains closed.',
+} as const;
+
+export async function OperationalBoundary({ children, requestedPath, requiredWorkspace }: OperationalBoundaryProps) {
+  const configuration = getRuntimeConfiguration();
+  const pathname = (await headers()).get(OPERATIONAL_PATHNAME_HEADER);
+  const recoveryPath = operationalRecoveryPath(pathname, requestedPath);
+  const result = await resolveOperationalViewer();
+  if (!result.ok && result.reason === 'signed-out') redirect(loginPath(recoveryPath));
+
+  if (!result.ok) {
+    return <AccessSurface title="Workspace access remains closed" message={reasonCopy[result.reason]} runtime={publicRuntimeLabel(configuration.runtime)} />;
+  }
+
+  const { viewer } = result;
+  if (!canOpenOperationalPath(viewer.role, requiredWorkspace)) {
+    const correctPath = landingPathForRole(viewer.role);
+    return <AccessSurface title="This workspace is outside your role" message={viewer.role === 'staff' ? 'Your funeral-home employee membership opens My work, not the director workspace.' : 'Your director membership opens the director workspace, not an employee’s assigned queue.'} runtime={publicRuntimeLabel(configuration.runtime)} recoveryHref={correctPath} recoveryLabel={correctPath === '/staff' ? 'Open My work' : 'Open director workspace'} />;
+  }
+
+  if (configuration.runtime === 'demo' && pathname !== DIRECTOR_INVITATION_PATH) {
+    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SECURE PREVIEW · CHANGES ARE SAVED</span><p>You’re signed in as {viewer.displayName}. This workspace uses sample information, and no real messages are sent.</p><SignOutButton /></div>{children}</div>;
+  }
+
+  if (canRenderVerifiedOperationalChild(pathname, configuration)) return children;
+
+  return (
+    <main className={styles.shell} id="main-content">
+      <section className={styles.ready} aria-labelledby="workspace-ready-title">
+        <p className={styles.eyebrow}>SECURE PREVIEW</p>
+        <h1 id="workspace-ready-title">You’re signed in.</h1>
+        <p>You can manage team access, but no cases are assigned to this account yet.</p>
+        <dl>
+          <div><dt>Account</dt><dd>{viewer.displayName}<small>{viewer.email}</small></dd></div>
+          <div><dt>Organization</dt><dd>{viewer.organizationName}</dd></div>
+          <div><dt>Role</dt><dd>{viewer.role}</dd></div>
+          <div><dt>Authorized locations</dt><dd>{viewer.locations.map((location) => location.name).join(' · ')}</dd></div>
+          <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
+        </dl>
+        <div className={styles.recovery}>
+          {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
+          <SignOutButton />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function AccessSurface({ title, message, runtime, recoveryHref, recoveryLabel }: { title: string; message: string; runtime: string; recoveryHref?: string; recoveryLabel?: string }) {
+  return (
+    <main className={styles.shell} id="main-content">
+      <section className={styles.denied} aria-labelledby="access-title">
+        <p className={styles.eyebrow}>{runtime}</p><h1 id="access-title">{title}</h1><p>{message}</p>
+        <div className={styles.recovery}>
+          {/* Plain <a> tags, not next/link Link: these are auth escape hatches and must not depend on
+              client-side RSC navigation succeeding (see QA sweep PR #50, bug 1). */}
+          {recoveryHref && recoveryLabel && <a href={recoveryHref}>{recoveryLabel}</a>}
+          <a href="/login">Return to sign in</a>
+          <SignOutButton />
+        </div>
+      </section>
+    </main>
+  );
+}
