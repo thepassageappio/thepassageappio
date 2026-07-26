@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'team' | 'activity' | 'intake' | 'staff' | 'receive' | 'partner';
+  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
   children: ReactNode;
   identity: string;
   mode?: 'demo' | 'verified';
@@ -27,6 +27,7 @@ export function AppFrame({ active, children, identity, mode = 'demo', role }: Ap
           {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
           {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
           {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
+          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
           {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
           {staffView && <Link aria-current="page" href="/staff">My work</Link>}
           {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}

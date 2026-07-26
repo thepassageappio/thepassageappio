@@ -3,10 +3,11 @@ import type { RuntimeConfiguration } from '@/lib/runtime-config';
 export const OPERATIONAL_PATHNAME_HEADER = 'x-passage-operational-pathname';
 export const DIRECTOR_INVITATION_PATH = '/director/invitations/new';
 const ISOLATED_PREVIEW_PROJECT_REF = 'uyacxqtsiwlvtmhxvoxr';
-const VERIFIED_OPERATIONAL_PATHS = new Set(['/director', '/director/team', '/director/activity', DIRECTOR_INVITATION_PATH, '/staff']);
-// Case-room and work-detail routes carry a dynamic id segment, so an exact-match
-// Set can never cover them. Match those two shapes by pattern instead.
-const VERIFIED_OPERATIONAL_PATTERNS = [/^\/director\/cases\/[^/]+$/, /^\/staff\/work\/[^/]+$/];
+const VERIFIED_OPERATIONAL_PATHS = new Set(['/director', '/director/intake', '/director/team', '/director/activity', '/director/urgent', DIRECTOR_INVITATION_PATH, '/staff']);
+// Case-room, work-detail, and urgent-request-detail routes carry a dynamic id
+// segment, so an exact-match Set can never cover them. Match those shapes by
+// pattern instead.
+const VERIFIED_OPERATIONAL_PATTERNS = [/^\/director\/cases\/[^/]+$/, /^\/staff\/work\/[^/]+$/, /^\/director\/urgent\/[^/]+$/];
 
 function isVerifiedOperationalPathname(pathname: string): boolean {
   return VERIFIED_OPERATIONAL_PATHS.has(pathname) || VERIFIED_OPERATIONAL_PATTERNS.some((pattern) => pattern.test(pathname));
