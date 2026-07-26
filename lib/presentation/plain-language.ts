@@ -16,6 +16,14 @@ const taskStatusLabels: Record<string, string> = {
   completed: 'Complete',
 };
 
+const nextStepLabels: Record<string, string> = {
+  assigned: 'Starts once you begin the work.',
+  in_progress: 'Save proof once the work is done.',
+  proof_submitted: 'Waiting on director review.',
+  blocked: 'Needs help before it can continue.',
+  completed: 'Complete. No further action needed.',
+};
+
 const proofTypeLabels: Record<string, string> = {
   confirmation: 'Confirmation',
   handoff: 'Handoff note',
@@ -45,6 +53,14 @@ const automationLabels: Record<string, string> = {
 
 export function humanTaskStatus(value: string) {
   return taskStatusLabels[value] ?? 'Status unavailable';
+}
+
+// Deliberately computed from the task's real status rather than read from
+// tasks.next_state: that column stores a single hardcoded template string
+// regardless of the row's actual status (confirmed against live data), so
+// it can't be trusted to describe any particular task's real next step.
+export function humanNextStep(status: string) {
+  return nextStepLabels[status] ?? 'Passage will show the next step here.';
 }
 
 export function humanMemberStatus(value: string) {
