@@ -27,7 +27,9 @@ export async function refreshPassageSession(request: NextRequest) {
   const protectedOperatorPath = pathname === '/director'
     || pathname.startsWith('/director/')
     || pathname === '/staff'
-    || pathname.startsWith('/staff/');
+    || pathname.startsWith('/staff/')
+    || pathname === '/partner'
+    || pathname.startsWith('/partner/');
 
   if (protectedOperatorPath && (claims.error || !claims.data?.claims?.sub)) {
     const destination = request.nextUrl.clone();
