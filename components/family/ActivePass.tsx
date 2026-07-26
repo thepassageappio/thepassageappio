@@ -121,7 +121,7 @@ export default function ActivePass() {
         <div className={styles.passLedger}>
           <div className={styles.ledgerIntro}>
             <p>VISIBLE BOUNDARY</p>
-            <h2>{included.length} categories move.<br />Everything else stays here.</h2>
+            <h2>{included.length} {included.length === 1 ? 'category moves' : 'categories move'}.<br />Everything else stays here.</h2>
           </div>
           <div className={styles.ledgerColumns}>
             <section>
