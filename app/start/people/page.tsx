@@ -8,14 +8,15 @@ import styles from '../Start.module.css';
 
 export default function StartPeoplePage() {
   const router = useRouter();
-  const { draft, update } = useStartWizard();
+  const { draft, hydrated, update } = useStartWizard();
   const [error, setError] = useState('');
   const [checkedDraft, setCheckedDraft] = useState(false);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!draft.situationCategory) router.replace('/start/situation');
     else setCheckedDraft(true);
-  }, [draft.situationCategory, router]);
+  }, [draft.situationCategory, hydrated, router]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
