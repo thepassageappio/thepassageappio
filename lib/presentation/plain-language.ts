@@ -8,6 +8,17 @@ export function humanizeSavedReason(value: string | null, fallback: string) {
   return value;
 }
 
+const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';
+const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';
+
+export function humanTaskOwnerAction(value: string | null | undefined, fallback = 'Complete the assigned work') {
+  if (!value) return fallback;
+  const normalized = value.trim();
+  if (normalized === urgentFirstCommitmentLegacyAction) return urgentFirstCommitmentOwnerAction;
+  if (containsInternalPreviewText(normalized)) return fallback;
+  return normalized;
+}
+
 const taskStatusLabels: Record<string, string> = {
   assigned: 'Assigned',
   in_progress: 'In progress',

@@ -10,6 +10,7 @@
 .status { align-self: start; padding: 9px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--human-soft); font-size: 12px; font-weight: 780; text-transform: capitalize; }
 .status[data-state="proof_submitted"] { background: var(--signal-soft); }
 .status[data-state="completed"] { background: var(--success-soft); }
+.status[data-state="unassigned"], .status[data-state="blocked"] { background: var(--human-soft); }
 .layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 18px; align-items: start; }
 .panel { min-width: 0; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-soft); }
 .panel h2 { margin: 0 0 10px; font-size: clamp(28px, 3.5vw, 40px); line-height: 1.05; }

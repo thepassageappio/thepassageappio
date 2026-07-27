@@ -162,9 +162,59 @@ const REQUIRED_CONTRACT_SOURCE_BINDINGS = {
       file: 'app/director/cases/[workflowId]/page.tsx',
       includes: [
         'if (query.task && !selectedTask) return <Closed />;',
-        'The case is open. No work has been assigned yet.',
-        'You can send a vendor request below',
+        'The first commitment could not load.',
+        'Nothing is assignable from this case yet.',
+        'Choose who owns the first commitment.',
+        '<AssignTaskForm',
+        "member.role === 'staff' && member.status === 'active'",
+        "grant.organization_location_id === workflow.organization_location_id",
+        '!grant.revoked_at',
+        "const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';",
+        "const activeStage = proofStage ? 'proof' : 'tasks';",
+        "selectedTask.status === 'blocked' ? 'This commitment is blocked.",
+        "selectedTask.status === 'assigned' ? `${ownerName} owns this commitment",
+        "selectedTask.status === 'proof_submitted' ? 'Proof waiting for review.'",
+        'Proof verified — task complete.',
+        'humanTaskOwnerAction(task.human_action',
+        'active={activeStage}',
         '<CreatePartnerRequestForm',
+      ],
+    },
+    {
+      file: 'app/director/CommandForms.tsx',
+      includes: [
+        'name="workflowId"',
+        'No eligible staff available',
+        'Review Team access',
+      ],
+    },
+    {
+      file: 'app/director/actions.ts',
+      includes: [
+        "const workflowId = String(formData.get('workflowId')",
+        '!uuid.test(workflowId)',
+        "client.rpc('assign_task_idempotent'",
+        'revalidatePath(`/director/cases/${workflowId}`)',
+      ],
+    },
+    {
+      file: 'lib/presentation/plain-language.ts',
+      includes: [
+        "const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';",
+        "const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';",
+        'export function humanTaskOwnerAction',
+      ],
+    },
+    {
+      file: 'app/staff/page.tsx',
+      includes: [
+        'humanTaskOwnerAction(task.human_action',
+      ],
+    },
+    {
+      file: 'app/staff/work/[taskId]/page.tsx',
+      includes: [
+        'humanTaskOwnerAction(task.human_action)',
       ],
     },
     {
@@ -555,6 +605,14 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   }
 }
 
+function assignmentRpcUsesWorkflowId(source) {
+  const start = source.indexOf("client.rpc('assign_task_idempotent'");
+  if (start < 0) return false;
+  const end = source.indexOf('});', start);
+  const rpcCall = source.slice(start, end < 0 ? undefined : end);
+  return /\bp_workflow_id\b|\bworkflowId\b/.test(rpcCall);
+}
+
 /**
  * @param {unknown} ledger parsed JSON contents of frontend-backend-contracts.json
  * @param {string} repoRoot absolute path used to resolve referenced repository files
@@ -579,6 +637,16 @@ function checkLedger(ledger, repoRoot, options = {}) {
   for (const requiredId of requiredContractIds) {
     if (!seenIds.has(requiredId)) {
       errors.push(`Required contract id "${requiredId}" is missing; required cycle coverage cannot be empty or partial.`);
+    }
+  }
+
+  if (seenIds.has('packet1.director.urgent_claim_and_case')) {
+    const actionPath = path.join(repoRoot, 'app', 'director', 'actions.ts');
+    if (fs.existsSync(actionPath)) {
+      const actionSource = fs.readFileSync(actionPath, 'utf8');
+      if (assignmentRpcUsesWorkflowId(actionSource)) {
+        errors.push('packet1.director.urgent_claim_and_case: workflowId may revalidate the exact Case Room only; it must never enter assign_task_idempotent authority payload.');
+      }
     }
   }
 
@@ -626,6 +694,7 @@ module.exports = {
   REQUIRED_PACKET1_URGENT_CONTRACT_IDS,
   REQUIRED_PACKET1_VENDOR_CONTRACT_IDS,
   REQUIRED_RELEASE_CONTRACT_IDS,
+  assignmentRpcUsesWorkflowId,
 };
 
 if (require.main === module) {

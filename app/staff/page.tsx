@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
-import { humanAudience, humanizePreviewIdentity, humanizePreviewLabel, humanNextStep, humanTaskStatus } from '@/lib/presentation/plain-language';
+import { humanAudience, humanizePreviewIdentity, humanizePreviewLabel, humanNextStep, humanTaskOwnerAction, humanTaskStatus } from '@/lib/presentation/plain-language';
 import { StartTaskForm } from './StartTaskForm';
 import styles from '../operations-beta.module.css';
 
@@ -44,7 +44,7 @@ export default async function StaffPage() {
                     <div><dt>Case boundary</dt><dd>{workflow?.person_name ?? 'Person withheld'} · {workflow?.family_name ?? 'Family'} family</dd></div>
                     <div><dt>Visible to</dt><dd>{humanAudience(task.audience)}</dd></div>
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>
-                    <div><dt>Human action</dt><dd>{task.human_action ?? 'Start the assigned work'}</dd></div>
+                    <div><dt>What you do</dt><dd>{humanTaskOwnerAction(task.human_action, 'Start the assigned work')}</dd></div>
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                     <div><dt>Next state</dt><dd>{humanNextStep(task.status)}</dd></div>
                   </dl>

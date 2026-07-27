@@ -1182,7 +1182,9 @@
           "app/director/urgent/[requestId]/page.tsx",
           "app/director/urgent/UrgentForms.tsx",
           "app/director/urgent/actions.ts",
-          "app/director/cases/[workflowId]/page.tsx"
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
         ],
         "files": [
           "app/director/urgent/page.tsx",
@@ -1190,9 +1192,14 @@
           "app/director/urgent/UrgentForms.tsx",
           "app/director/urgent/actions.ts",
           "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "app/staff/page.tsx",
+          "app/staff/work/[taskId]/page.tsx",
+          "lib/presentation/plain-language.ts",
           "lib/urgent/hosted.ts"
         ],
-        "note": "Queue and detail loaders filter the viewer's exact organization before rendering; Server Actions re-resolve owner/director authority and database commands enforce the same receiver boundary. A newly created authorized workflow opens its Case Room even before the first task exists, while a mismatched supplied task remains closed."
+        "note": "Queue and detail loaders filter the viewer's exact organization before rendering; Server Actions re-resolve owner/director authority and database commands enforce the same receiver boundary. A newly created first commitment opens in Tasks with exact-location eligible staff assignment; a truly missing task fails closed with reload and urgent-queue recovery, while a mismatched supplied task remains closed."
       },
       "action_status": "submitted -> claimed -> case_created, with one version increment; case creation atomically opens one unassigned first commitment and returns both durable IDs",
       "server_command": [
@@ -1204,6 +1211,7 @@
         "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
         "supabase/migrations/20260727194332_urgent_case_first_commitment.sql",
         "app/director/urgent/actions.ts",
+        "app/director/actions.ts",
         "lib/urgent/hosted.ts"
       ],
       "durable_tables": [
@@ -1241,7 +1249,8 @@
         "stale versions conflict atomically and reload returns the durable current state",
         "same-key replay returns the original claim or workflow-and-first-task receipt only when expected version and every normalized payload field match and the caller still has current organization/location authority; otherwise 22023 or 42501 with no mutation",
         "claimed organization is constrained to equal the explicit receiver",
-        "an authorized newly created workflow with zero tasks opens a truthful case-ready state; an explicitly requested task outside that workflow fails closed"
+        "an authorized newly created workflow with an unassigned first task opens assignment as the primary action; no eligible staff disables assignment and links to Team access",
+        "an authorized workflow with zero tasks fails closed before vendor loading and offers exact-case reload plus urgent-queue recovery; an explicitly requested task outside that workflow fails closed"
       ],
       "persona_projection": "Only Northstar's active owner/director sees callback requests, contact detail, claim control, and case-creation control. Self-handling remains requester-only; all staff, revoked members, other organizations, and unrelated users see zero rows.",
       "evidence_test_references": [
@@ -1263,9 +1272,59 @@
           "file": "app/director/cases/[workflowId]/page.tsx",
           "includes": [
             "if (query.task && !selectedTask) return <Closed />;",
-            "The case is open. No work has been assigned yet.",
-            "You can send a vendor request below",
+            "The first commitment could not load.",
+            "Nothing is assignable from this case yet.",
+            "Choose who owns the first commitment.",
+            "<AssignTaskForm",
+            "member.role === 'staff' && member.status === 'active'",
+            "grant.organization_location_id === workflow.organization_location_id",
+            "!grant.revoked_at",
+            "const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';",
+            "const activeStage = proofStage ? 'proof' : 'tasks';",
+            "selectedTask.status === 'blocked' ? 'This commitment is blocked.",
+            "selectedTask.status === 'assigned' ? `${ownerName} owns this commitment",
+            "selectedTask.status === 'proof_submitted' ? 'Proof waiting for review.'",
+            "Proof verified — task complete.",
+            "humanTaskOwnerAction(task.human_action",
+            "active={activeStage}",
             "<CreatePartnerRequestForm"
+          ]
+        },
+        {
+          "file": "app/director/CommandForms.tsx",
+          "includes": [
+            "name=\"workflowId\"",
+            "No eligible staff available",
+            "Review Team access"
+          ]
+        },
+        {
+          "file": "app/director/actions.ts",
+          "includes": [
+            "const workflowId = String(formData.get('workflowId')",
+            "!uuid.test(workflowId)",
+            "client.rpc('assign_task_idempotent'",
+            "revalidatePath(`/director/cases/${workflowId}`)"
+          ]
+        },
+        {
+          "file": "lib/presentation/plain-language.ts",
+          "includes": [
+            "const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';",
+            "const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';",
+            "export function humanTaskOwnerAction"
+          ]
+        },
+        {
+          "file": "app/staff/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action"
+          ]
+        },
+        {
+          "file": "app/staff/work/[taskId]/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action)"
           ]
         },
         {

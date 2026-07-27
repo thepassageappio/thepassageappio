@@ -26,6 +26,7 @@ const {
   REQUIRED_PACKET1_URGENT_CONTRACT_IDS,
   REQUIRED_PACKET1_VENDOR_CONTRACT_IDS,
   REQUIRED_RELEASE_CONTRACT_IDS,
+  assignmentRpcUsesWorkflowId,
 } = require('./check-frontend-backend-parity');
 
 let passCount = 0;
@@ -479,8 +480,104 @@ function testUrgentOrganizationBoundaryParityMutations() {
     {
       contractId: 'packet1.director.urgent_claim_and_case',
       file: 'app/director/cases/[workflowId]/page.tsx',
-      source: 'The case is open. No work has been assigned yet.',
-      name: 'authorized zero-task case state',
+      source: 'The first commitment could not load.',
+      name: 'fail-closed zero-task recovery state',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: 'Choose who owns the first commitment.',
+      name: 'unassigned first-commitment assignment state',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "member.role === 'staff' && member.status === 'active'",
+      name: 'active staff role/status candidate filter',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "grant.organization_location_id === workflow.organization_location_id",
+      name: 'exact-location assignment candidate filter',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: '!grant.revoked_at',
+      name: 'non-revoked location grant candidate filter',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';",
+      name: 'proof-submitted and completed stage mapping',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "const activeStage = proofStage ? 'proof' : 'tasks';",
+      name: 'Tasks-versus-Proof orientation mapping',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "selectedTask.status === 'blocked' ? 'This commitment is blocked.",
+      name: 'blocked task copy',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "selectedTask.status === 'assigned' ? `${ownerName} owns this commitment",
+      name: 'assigned task owner copy',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: "selectedTask.status === 'proof_submitted' ? 'Proof waiting for review.'",
+      name: 'proof-submitted review copy',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: 'Proof verified — task complete.',
+      name: 'completed verified copy',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'lib/presentation/plain-language.ts',
+      source: "const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';",
+      name: 'staff-capable urgent owner action mapping',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/staff/page.tsx',
+      source: 'humanTaskOwnerAction(task.human_action',
+      name: 'staff queue owner-action presenter',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/staff/work/[taskId]/page.tsx',
+      source: 'humanTaskOwnerAction(task.human_action)',
+      name: 'staff detail owner-action presenter',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/CommandForms.tsx',
+      source: 'Review Team access',
+      name: 'no-eligible-staff recovery link',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/actions.ts',
+      source: '!uuid.test(workflowId)',
+      name: 'workflow revalidation UUID guard',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/actions.ts',
+      source: 'revalidatePath(`/director/cases/${workflowId}`)',
+      name: 'exact Case Room assignment revalidation',
     },
     {
       contractId: 'packet1.director.urgent_claim_and_case',
@@ -673,6 +770,18 @@ function testVendorReplayParityMutations() {
       `ok=${ok} errors=${JSON.stringify(errors)}`
     );
   }
+
+  const directorActionSource = fs.readFileSync(path.join(repoRoot, 'app', 'director', 'actions.ts'), 'utf8');
+  const injectedWorkflowAuthority = directorActionSource.replace(
+    'p_task_id: taskId,',
+    'p_task_id: taskId, p_workflow_id: workflowId,'
+  );
+  report(
+    'urgent parity mutation: workflowId cannot enter assignment RPC authority payload',
+    assignmentRpcUsesWorkflowId(directorActionSource) === false
+      && assignmentRpcUsesWorkflowId(injectedWorkflowAuthority) === true,
+    'workflowId must remain a validated exact-route revalidation hint only'
+  );
 
   report(
     'vendor parity mutation: Packet 1 vendor contract ID is mandatory',
