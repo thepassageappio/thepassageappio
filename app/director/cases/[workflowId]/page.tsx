@@ -36,11 +36,12 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const latestReviewer = latestReview ? humanizePreviewIdentity(displayMember(members.find((member) => member.id === latestReview.reviewed_by_organization_member_id)), 'director') : null;
   const latestReason = humanizeSavedReason(latestReview?.reason ?? null, 'The proof needs a clearer or corrected replacement.');
 
-  // Vendor requests for this case (Batch 2 addition). Loaded separately from
-  // loadHostedOperations() since partner_requests/partner_organizations are
-  // their own table lineage, not part of the funeral-home operational data set.
   const client = await createPassageServerClient();
   const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+  const partnerOrganizationOptions = partnerContext.partnerOrganizations.map((organization) => ({
+    ...organization,
+    categoryLabel: humanPartnerCategory(organization.category),
+  }));
 
   return <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
     <Link className={styles.backLink} href="/director">← Today</Link>
@@ -70,7 +71,7 @@ export default async function DirectorCasePage({ params, searchParams }: { param
           ))}
         </ol>
       )}
-      <CreatePartnerRequestForm partnerOrganizations={partnerContext.partnerOrganizations} requestId={randomUUID()} workflowId={workflow.id} />
+      <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
     </section>
   </AppFrame>;
 }

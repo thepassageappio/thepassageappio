@@ -1,0 +1,1 @@
+-- see bot/vendor-category-specialty-fix for the authoritative copy; identical content pushed here only to trigger a real preview build for QA.

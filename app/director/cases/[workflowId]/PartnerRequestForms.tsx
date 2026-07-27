@@ -12,7 +12,7 @@ function Result({ state }: { state: PartnerCommandState }) {
   return <div className={state.status === 'saved' ? styles.receipt : styles.error} role={state.status === 'saved' ? 'status' : 'alert'}><h3>{state.status === 'saved' ? 'Saved.' : 'Nothing changed.'}</h3><p>{state.message}</p></div>;
 }
 
-export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganizations }: { workflowId: string; requestId: string; partnerOrganizations: { id: string; name: string; category: string }[] }) {
+export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganizations }: { workflowId: string; requestId: string; partnerOrganizations: { id: string; name: string; category: string; categoryLabel: string }[] }) {
   const [state, action, pending] = useActionState(createPartnerRequest, initialState);
   if (partnerOrganizations.length === 0) {
     return <p className={styles.boundary}>No active vendors are available to request from yet.</p>;
@@ -23,8 +23,8 @@ export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganiz
       <input name="requestId" type="hidden" value={requestId} />
       <fieldset disabled={pending}>
         <legend>Send a request to a vendor.</legend>
-        <label>Vendor<select name="partnerOrganizationId" required>{partnerOrganizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select></label>
-        <label>Category<select name="category" required><option value="florist">Florist</option><option value="catering">Catering</option><option value="transport">Transport</option><option value="memorial_products">Memorial products</option><option value="other">Other</option></select></label>
+        <label>Vendor<select name="partnerOrganizationId" required>{partnerOrganizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name} — {organization.categoryLabel}</option>)}</select></label>
+        <label>Category <span>Must match the chosen vendor's specialty above</span><select name="category" required><option value="florist">Florist</option><option value="catering">Catering</option><option value="transport">Transport</option><option value="memorial_products">Memorial products</option><option value="other">Other</option></select></label>
         <label>Title<input maxLength={200} name="title" required /></label>
         <label>Details<textarea maxLength={2000} name="details" required /></label>
         <label>Needed by <span>Optional</span><input name="neededBy" type="datetime-local" /></label>
