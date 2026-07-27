@@ -29,6 +29,7 @@ const STORAGE_KEY = 'passage-start-draft';
 
 type StartWizardValue = {
   draft: StartDraft;
+  hydrated: boolean;
   update: (patch: Partial<StartDraft>) => void;
   reset: () => void;
 };
@@ -71,7 +72,7 @@ export function StartWizardProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ draft, update, reset }), [draft, update, reset]);
+  const value = useMemo(() => ({ draft, hydrated, update, reset }), [draft, hydrated, update, reset]);
   return <StartWizardContextInstance.Provider value={value}>{children}</StartWizardContextInstance.Provider>;
 }
 
