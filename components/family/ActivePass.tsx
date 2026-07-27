@@ -87,7 +87,7 @@ export default function ActivePass() {
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
         <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : `Closes ${expiry.moment}`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -105,7 +105,7 @@ export default function ActivePass() {
 
         <div className={styles.passObject}>
           <div className={styles.passLight} aria-hidden="true" />
-          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'USED' : 'LIVE'}</strong></div>
+          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'RECEIVED' : 'READY'}</strong></div>
           <PassCode />
           <span className={styles.scanLabel}>SCAN TO OPEN</span>
           <div className={styles.manualCode}>

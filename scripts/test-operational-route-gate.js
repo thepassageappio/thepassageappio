@@ -18,7 +18,10 @@ assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, approve
 assert.equal(canRenderVerifiedOperationalChild('/director', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/team', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/activity', approved), true);
-assert.equal(canRenderVerifiedOperationalChild('/director/intake', approved), false);
+assert.equal(canRenderVerifiedOperationalChild('/director/intake', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/urgent', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/urgent/request-1', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/urgent/request-1/extra', approved), false);
 assert.equal(canRenderVerifiedOperationalChild('/staff', approved), true);
 assert.equal(canRenderVerifiedOperationalChild(`${DIRECTOR_INVITATION_PATH}/extra`, approved), false);
 for (const denied of [
@@ -32,6 +35,8 @@ for (const denied of [
 assert.equal(operationalRecoveryPath(DIRECTOR_INVITATION_PATH, '/director'), DIRECTOR_INVITATION_PATH);
 assert.equal(operationalRecoveryPath('/director/team', '/director'), '/director/team');
 assert.equal(operationalRecoveryPath('/director/activity', '/director'), '/director/activity');
+assert.equal(operationalRecoveryPath('/director/intake', '/director'), '/director/intake');
+assert.equal(operationalRecoveryPath('/director/urgent/request-1', '/director'), '/director/urgent/request-1');
 assert.equal(operationalRecoveryPath('/staff', '/staff'), '/staff');
 assert.equal(operationalRecoveryPath('/director', '/director'), '/director');
 assert.equal(operationalRecoveryPath('/director/invitations/new/extra', '/director'), '/director');

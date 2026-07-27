@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+
+const read = (file) => fs.readFileSync(file, 'utf8');
+const demoAction = read('app/demo/actions.ts');
+const gateway = read('app/page.tsx');
+const demoModel = read('lib/demo.ts');
+const urgentNext = read('app/start/next/UrgentNextClient.tsx');
+const partnerForm = read('app/director/cases/[workflowId]/PartnerRequestForms.tsx');
+const partnerAction = read('app/director/cases/[workflowId]/partner-actions.ts');
+const categoryMigration = read('supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql');
+const categoryTest = read('supabase/tests/partner_vendor_category_compatibility.sql');
+const rotation = read('scripts/rotate-preview-demo-credentials.mjs');
+const mobileRail = read('components/operations/ContinuityRail.module.css');
+
+for (const persona of ['FAMILY', 'DIRECTOR', 'STAFF', 'VENDOR']) {
+  assert(rotation.includes(`'${persona}'`));
+}
+assert(demoAction.includes('persona.toUpperCase()'));
+assert(demoAction.includes("export type DemoPersona = 'family' | 'director' | 'staff' | 'vendor'"));
+assert(demoAction.includes("family: '/start/next'"));
+assert(rotation.includes('PASSAGE_PREVIEW_DEMO_${persona}_EMAIL'));
+assert(rotation.includes('PASSAGE_PREVIEW_DEMO_${persona}_PASSWORD'));
+assert(demoAction.includes("process.env.VERCEL_ENV !== 'preview'"));
+assert(demoAction.includes("configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'"));
+assert(!demoAction.includes('NEXT_PUBLIC_DEMO'), 'demo credentials must never use public environment variables');
+assert(gateway.includes('startPreviewDemo') && demoModel.includes('Start without signing in'));
+assert(demoModel.includes('continue with the family demo or sign in to an existing Preview account'));
+assert(demoModel.includes('Use made-up details only'));
+assert(gateway.includes('no messages are sent'));
+assert(urgentNext.includes("import { startPreviewDemo } from '@/app/demo/actions'"));
+assert(urgentNext.includes('action={startPreviewDemo}'));
+assert(urgentNext.includes('name="persona" type="hidden" value="family"'));
+assert(urgentNext.includes('Sign in to an existing Preview account'));
+assert(urgentNext.includes('No email is sent.'));
+assert(urgentNext.includes('client.auth.signInWithPassword'));
+assert(!urgentNext.includes('auth.signUp'), 'family Preview must not expose client account creation');
+assert(!urgentNext.includes('authMode'), 'family Preview must not retain a create-account mode');
+assert(!/create account/i.test(urgentNext), 'family Preview must not offer create-account copy');
+assert(!/check your email/i.test(urgentNext), 'family Preview must not promise a confirmation email');
+assert(partnerForm.includes('humanCategory(selectedPartner.category)'));
+assert(!partnerForm.includes('name="category"'), 'the client must not post vendor category as authority');
+assert(!partnerAction.includes("formData.get('category')"), 'the Server Action must not trust posted category');
+assert(partnerAction.includes('let category = existingRequestResult.data?.category;'));
+assert(partnerAction.includes('if (!category) {'));
+assert(partnerAction.includes(".eq('status', 'active')"));
+assert(partnerAction.indexOf('if (!category) {') < partnerAction.indexOf(".from('partner_organizations')"));
+assert(partnerAction.indexOf(".from('partner_organizations')") < partnerAction.indexOf(".eq('status', 'active')"));
+assert(categoryMigration.includes('partner_requests_category_guard'));
+assert(categoryMigration.indexOf('passage_private.can_manage_location(') < categoryMigration.indexOf('pg_catalog.pg_advisory_xact_lock('));
+assert(categoryMigration.indexOf('pg_catalog.pg_advisory_xact_lock(') < categoryMigration.indexOf('select request.* into v_existing'));
+assert(categoryMigration.indexOf('select request.* into v_existing') < categoryMigration.indexOf('select organization.* into v_partner_org'));
+assert(categoryMigration.includes('v_existing.needed_by is distinct from p_needed_by'));
+assert(categoryMigration.includes("v_partner_org.category is distinct from p_category"));
+assert(categoryTest.includes('Denied category mismatch left a partial write'));
+assert(categoryTest.includes('Specialty-changed exact replay was not cardinality-stable'));
+assert(categoryTest.includes('Suspended vendor exact replay was not cardinality-stable'));
+assert(categoryTest.includes('Changed % replay did not return 22023'));
+assert(categoryTest.includes('Suspended fresh vendor was not rejected atomically'));
+assert(categoryTest.includes('Expected direct insert category denial'));
+assert(categoryTest.includes('Expected direct update category denial'));
+assert(categoryTest.includes('Expected append-only event update denial'));
+assert(categoryTest.includes('Expected append-only event delete denial'));
+assert(rotation.includes("PASSAGE_PREVIEW_DEMO_CREDENTIAL_ROTATION_APPROVED"));
+assert(rotation.includes("client.auth.admin.updateUserById"));
+assert(rotation.includes('without printing secret values'));
+assert(!rotation.includes('console.log(item.password)'));
+assert(!mobileRail.includes('.rail ol { min-width: 520px; }'), 'mobile continuity must not force nested horizontal scrolling');
+
+console.log('PASS Release Packet demo/vendor source contract');

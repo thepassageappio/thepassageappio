@@ -707,7 +707,7 @@
   .familyHeader { grid-template-columns: 1fr auto; min-height: 66px; padding: 0 20px; }
   .headerContext { display: none; }
   .familyIntro { grid-template-columns: 1fr; gap: 18px; padding: 38px 20px 30px; }
-  .familyIntro h1 { font-size: clamp(54px, 17vw, 78px); }
+  .familyIntro h1 { font-size: clamp(42px, 13vw, 60px); line-height: 1; }
   .familyEntry > p { font-size: 15px; }
   .entryPaths { max-width: 620px; }
   .journey { padding: 0 0 70px; }
@@ -766,7 +766,7 @@
   .passStatus > span:last-child { overflow: hidden; max-width: 150px; text-overflow: ellipsis; white-space: nowrap; }
   .passHero { display: flex; flex-direction: column; min-height: 0; padding: 48px 0 60px; }
   .passCopy { width: 100%; }
-  .passCopy h1 { font-size: clamp(56px, 17vw, 78px); }
+  .passCopy h1 { font-size: clamp(44px, 13vw, 62px); line-height: 1; }
   .passCopy > span { font-size: 14px; }
   .destinationLine { margin-top: 32px; }
   .passObject { order: -1; width: 100%; min-height: 580px; }
@@ -785,8 +785,8 @@
 
 @media (max-width: 420px) {
   .entryPaths { grid-template-columns: 1fr; }
-  .familyIntro h1 { font-size: 52px; }
-  .stageIntro h1 { font-size: 39px; }
+  .familyIntro h1 { font-size: 44px; }
+  .stageIntro h1 { font-size: 36px; }
   .caseLabel { gap: 7px; }
   .caseLabel span { font-size: 8px; }
   .caseLabel strong { font-size: 10px; }

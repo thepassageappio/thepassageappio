@@ -16,19 +16,22 @@ This policy prevents initiative drift, self-approval, direct-main collisions, ov
 Agents and schedules must never push directly to `main`. They work on a named branch and open or update a pull request. The repository control target is:
 
 1. Require a pull request before `main` changes.
-2. Require agents and schedules to author through the dedicated Passage GitHub App/Bot identity, never through the founder's GitHub User credentials.
-3. Require a distinct Independent Agent Review check for the exact head. It is agent QA and never founder approval.
-4. Require the founder's approving native GitHub review of the current head of every Bot-authored pull request before merge.
-5. Dismiss stale founder approvals when code changes and require conversation resolution.
-6. Restrict bypass, force-push, and branch deletion; scheduled agents and the Bot receive no bypass.
-7. Require separate founder authorization through the protected Production environment or release gate before Production promotion.
-8. Serialize Production release jobs with one repository/environment lock so two schedules cannot release concurrently.
+2. Require agents and schedules to author through the dedicated Passage GitHub App/Bot identity, never through the owner's GitHub User credentials.
+3. Require a distinct Independent QA role and a distinct Independent Agent Reviewer to verify the exact current head.
+4. Require a distinct Development Head / Release Authority to approve or reject that exact reviewed head before merge readiness. The Development Head must be separate from the author/implementer, QA, Independent Agent Reviewer, and Deploy role.
+5. Dismiss every stale agent approval when the head, base, evidence, or required-check result changes; require conversation resolution.
+6. Record a separately controlled merge-executor identity and prohibit the pull-request author identity from executing its own merge.
+7. Require a distinct Production Reviewer to authorize any later exact-head reversible Production promotion through `Passage Production Review / release-readiness`.
+8. Restrict bypass, force-push, and branch deletion; scheduled agents and the author Bot receive no bypass.
+9. Serialize Production release jobs with one repository/environment lock so two schedules cannot release concurrently.
 
-Distinct PM, UX, Engineering, QA, Deploy, and Independent Agent Reviewer roles remain mandatory and valuable. Independent Agent Review supplies technical challenge; founder review authorizes merge; founder protected-environment approval authorizes Production. None substitutes for another. An agent may not approve or merge its own implementation, and automation must not operate through a human GitHub User identity.
+Distinct PM, UX, Engineering, QA, Deploy, Independent Agent Reviewer, Development Head, merge executor, and Production Reviewer responsibilities remain mandatory. Independent QA verifies behavior and evidence; Independent Agent Review supplies technical challenge; Development Head authorizes merge readiness; Production Reviewer authorizes a reversible Production promotion. None substitutes for another. The owner is not a routine review role and must not be prompted for ordinary planning, source changes, tests, pull requests, CI, Preview work, merge readiness, or reversible Production promotion.
 
-The repository must not attempt to infer human operation or implementation independence from GitHub's `User` account type. Native branch protection enforces founder review of Bot-authored work. Custom scripts may verify release-train structure, but must not treat an arbitrary non-author `User` review as founder proof.
+The repository must not attempt to infer human operation or implementation independence from GitHub's account type. Custom scripts verify exact-head role structure and separation; repository rules and separately controlled automation enforce the author/merge boundary.
 
-One-time governance bootstrap exception: PR #25 may install these controls before the dedicated Bot identity and final rules are active. It must contain governance-only changes, pass exact-head Independent Agent Review and deterministic checks, carry `[skip deploy]`, make no product/runtime/database/Production configuration change, and receive the founder's explicit recorded bootstrap authorization. The exception expires when PR #25 is merged or closed and may never be reused. It is not independent review and grants no Production approval.
+Owner involvement is limited to irreversible or destructive Production-data work, spending or paid commitments, and material legal, privacy, or security judgment. Pricing, external communications, family/vendor access, and other consequential but reversible scope changes remain agent-chain decisions requiring explicit PM scope, applicable specialist review, Development Head disposition, and Production Reviewer authorization where Production is affected; they do not create a routine owner-review step unless they cross one of the three owner gates.
+
+Historical bootstrap record, non-executable: the one-time PR #25 exception is expired and may never be reused. It does not authorize any current merge or Production action.
 
 CI failures are owned work. The PR owner must classify a failing required check in the same release-train cycle as fix now, superseded, or explicitly blocked. A draft PR may remain unmerged, but it may not accumulate an unexplained red required check.
 
@@ -86,10 +89,10 @@ Plain-language comprehension is tested at 1440, 390, and 360 in the same slice. 
 - no horizontal overflow, hydration warning, console error, or runtime error occurs;
 - a reviewer can restate the seven answers from rendered copy alone.
 
-Automated string and parity checks support this gate but never replace distinct UX review, independent QA, Independent Agent Review, founder merge review, or founder Production authorization.
+Automated string and parity checks support this gate but never replace distinct UX review, Independent QA, Independent Agent Review, Development Head approval, or Production Review.
 
 ## Enforcement and evidence
 
-PM puts the seven-question answers and PR/review disposition in the Sprint Brief. UX rewrites ambiguous or internal copy before Engineering starts. Engineering keeps internal values behind typed translation helpers and exposes human labels. QA records the rendered answers, denial/recovery behavior, and viewport evidence. Deploy verifies the exact approved commit, required checks, founder merge review, and protected-environment founder authorization before Production promotion.
+PM puts the seven-question answers and PR/review disposition in the Sprint Brief. UX rewrites ambiguous or internal copy before Engineering starts. Engineering keeps internal values behind typed translation helpers and exposes human labels. QA records the rendered answers, denial/recovery behavior, and viewport evidence. Deploy verifies the exact approved commit and required checks. Development Head verifies merge readiness; the distinct Production Reviewer verifies the exact reversible Production candidate before promotion.
 
 A violation is release-blocking for the affected slice. Production P0/P1 defects return through their own hotfix PR; Passage Zero defects return to PM without inflating readiness scores. Unknown or PARTIAL stays explicit.

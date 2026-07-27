@@ -15,7 +15,7 @@ export default function BoundarySignal({ recipient, included, excluded, expiry, 
       <div className={styles.signalLight} aria-hidden="true" />
       <div className={styles.signalHeader}>
         <span>FAMILY CONTROL</span>
-        <strong>{active ? 'LIVE' : 'BUILDING'}</strong>
+        <strong>{active ? 'OPEN' : 'NOT OPEN YET'}</strong>
       </div>
 
       <div className={styles.signalRoute} aria-hidden="true">

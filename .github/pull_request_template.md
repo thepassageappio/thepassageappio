@@ -16,12 +16,15 @@
 ## Development Handoff
 
 - [ ] Development handoff completed
+- Author/Implementer: UNASSIGNED
+- PR Author Identity: UNASSIGNED
 - Files and contracts changed:
 - Known gaps returned to Product Manager:
 
 ## QA Handoff
 
 - [ ] Independent QA handoff completed
+- QA Agent: UNASSIGNED
 - QA Status: NOT RUN
 - Functional, authority, recovery, responsive, accessibility, hydration, and runtime evidence:
 
@@ -29,21 +32,26 @@
 
 - [ ] Independent agent review completed
 - Agent Reviewer: UNASSIGNED
-- Reviewed Head: UNASSIGNED
+- Agent Reviewed Head: UNASSIGNED
 - Independent Agent Review Status: NOT RUN
 - Findings and disposition:
 
-## Founder Review
+## Development Head / Release Authority
 
-- [ ] Founder review requested
-- Founder Reviewer: @thepassageappio
-- Founder Review: NOT APPROVED
-- Bootstrap Exception: NONE
+- [ ] Development Head review completed
+- Development Head: UNASSIGNED
+- Development Head Reviewed Head: UNASSIGNED
+- Development Head Status: NOT RUN
+- Required check: `Passage Review Agent / merge-review`
 
-## Production Authorization
+## Production Review
 
-- Founder Production Authorization: NOT APPROVED
-- Protected environment or release evidence: NONE
+- Production Promotion: NO
+- [ ] Production review completed
+- Production Reviewer: UNASSIGNED
+- Production Reviewed Head: UNASSIGNED
+- Production Review Status: NOT RUN
+- Owner Gate: NOT REQUIRED
 
 ## Loop Status
 
@@ -53,6 +61,8 @@
 ## Deploy Decision
 
 - [ ] Agent context updated
+- Deploy Agent: UNASSIGNED
+- Merge Executor Identity: UNASSIGNED
 - Roadmap updated if scope or priority changed:
 - Deploy Decision: NOT APPROVED
 - Release marker only after all applicable gates pass: `[deploy] [qa-approved]`

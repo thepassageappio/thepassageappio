@@ -19,7 +19,14 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { checkLedger, REQUIRED_CYCLE8_CONTRACT_IDS } = require('./check-frontend-backend-parity');
+const {
+  checkLedger,
+  REQUIRED_CONTRACT_SOURCE_BINDINGS,
+  REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_PACKET1_URGENT_CONTRACT_IDS,
+  REQUIRED_PACKET1_VENDOR_CONTRACT_IDS,
+  REQUIRED_RELEASE_CONTRACT_IDS,
+} = require('./check-frontend-backend-parity');
 
 let passCount = 0;
 let failCount = 0;
@@ -303,7 +310,7 @@ function testRealLedger() {
     report('integration: real ledger is valid JSON and readable', false, err.message);
     return;
   }
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_RELEASE_CONTRACT_IDS });
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
@@ -327,6 +334,328 @@ function testRealPendingInvitationProjection() {
     'integration: accepted/revoked invitations cannot render as pending Team rows',
     filtersTerminalStates && rendersOnlyPendingRows,
     `filtersTerminalStates=${filtersTerminalStates} rendersOnlyPendingRows=${rendersOnlyPendingRows}`
+  );
+}
+
+function testReviewerVisibilityParityMutations() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const ledgerPath = path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json');
+  const required = REQUIRED_CONTRACT_SOURCE_BINDINGS['cycle8.staff.proof_history'];
+  const mutations = [
+    {
+      name: 'reviewer visibility migration',
+      file: 'supabase/migrations/20260726222505_staff_proof_reviewer_visibility.sql',
+      source: 'create or replace function passage_private.can_view_proof_reviewer(p_member_id uuid)',
+    },
+    {
+      name: 'reviewer visibility policy',
+      file: 'supabase/migrations/20260726222505_staff_proof_reviewer_visibility.sql',
+      source: 'or passage_private.can_view_proof_reviewer(id)',
+    },
+    {
+      name: 'reviewer helper ACL hardening',
+      file: 'supabase/migrations/20260727025124_staff_proof_reviewer_visibility_acl_hardening.sql',
+      source: 'from public, anon, service_role',
+    },
+    {
+      name: 'active workflow-location grant predicate',
+      file: 'supabase/migrations/20260727025124_staff_proof_reviewer_visibility_acl_hardening.sql',
+      source: 'and viewer_grant.revoked_at is null',
+    },
+    {
+      name: 'staff reviewer-name projection',
+      file: 'app/staff/work/[taskId]/page.tsx',
+      source: "humanizePreviewIdentity(displayMember(members.find((member) => member.id === review.reviewed_by_organization_member_id)), 'director')",
+    },
+    {
+      name: 'focused reviewer visibility SQL evidence',
+      file: 'supabase/tests/staff_proof_reviewer_visibility.sql',
+      source: 'Wrong-task reviewer identity leaked to assigned staff',
+    },
+  ];
+
+  let baseLedger;
+  try {
+    baseLedger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  } catch (error) {
+    report('integration mutation: reviewer visibility ledger is readable', false, error.message);
+    return;
+  }
+
+  for (const mutation of mutations) {
+    const requiredBinding = required.find((binding) => binding.file === mutation.file);
+    if (!requiredBinding?.includes.includes(mutation.source)) {
+      report(
+        `integration mutation: ${mutation.name} has a deterministic required binding`,
+        false,
+        `Required binding map does not include ${JSON.stringify(mutation.source)}`
+      );
+      continue;
+    }
+
+    const mutatedLedger = JSON.parse(JSON.stringify(baseLedger));
+    const contract = mutatedLedger.contracts.find(
+      (candidate) => candidate.id === 'cycle8.staff.proof_history'
+    );
+    const assertion = contract?.source_assertions.find(
+      (candidate) => candidate.file === mutation.file
+    );
+    if (!assertion) {
+      report(
+        `integration mutation: ${mutation.name} has a declared source assertion`,
+        false,
+        `Missing assertion for ${mutation.file}`
+      );
+      continue;
+    }
+    assertion.includes = assertion.includes.filter(
+      (candidate) => candidate !== mutation.source
+    );
+
+    const { ok, errors } = checkLedger(mutatedLedger, repoRoot, {
+      requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS,
+    });
+    const expected = errors.some(
+      (error) =>
+        error.includes(`required source binding declaration for "${mutation.file}"`) &&
+        error.includes(JSON.stringify(mutation.source))
+    );
+    report(
+      `integration mutation: removing ${mutation.name} fails parity`,
+      ok === false && expected,
+      `ok=${ok} errors=${JSON.stringify(errors)}`
+    );
+  }
+}
+
+function testUrgentOrganizationBoundaryParityMutations() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const ledgerPath = path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json');
+  let ledger;
+  try {
+    ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  } catch (error) {
+    report('urgent parity mutation: ledger is readable', false, error.message);
+    return;
+  }
+
+  const mutations = [
+    {
+      contractId: 'packet1.family.urgent_submission',
+      file: 'app/start/next/UrgentNextClient.tsx',
+      source: 'name="receivingOrganizationId"',
+      name: 'family receiver field binding',
+    },
+    {
+      contractId: 'packet1.family.urgent_submission',
+      file: 'app/start/next/UrgentNextClient.tsx',
+      source: 'Save privately — don’t share with Northstar',
+      name: 'requester-private self-handling copy',
+    },
+    {
+      contractId: 'packet1.family.urgent_submission',
+      file: 'app/start/next/UrgentNextClient.tsx',
+      source: '<dt>Visibility</dt><dd>Only you</dd>',
+      name: 'requester-private receipt branch',
+    },
+    {
+      contractId: 'packet1.family.urgent_submission',
+      file: 'app/start/next/UrgentNextClient.tsx',
+      source: 'action={startPreviewDemo}',
+      name: 'gated family demo continuation',
+    },
+    {
+      contractId: 'packet1.family.urgent_submission',
+      file: 'app/demo/actions.ts',
+      source: "family: '/start/next'",
+      name: 'family demo return target',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'lib/urgent/hosted.ts',
+      source: ".eq('wants_callback', true)",
+      name: 'callback-only director loader',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
+      source: 'member_row.organization_id = v_request.receiving_organization_id',
+      name: 'exact-organization claim predicate',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
+      source: 'urgent_intake_requests_packet1_receiver',
+      name: 'Packet-1 receiver allowlist constraint',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
+      source: "v_existing_event.metadata ->> 'family_name'",
+      name: 'case replay payload comparison',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
+      source: 'if not v_replay_authorized then',
+      name: 'case replay current authority check',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/tests/urgent_family_organization_boundary.sql',
+      source: 'Expected wrong-organization case-creation denial',
+      name: 'wrong-organization SQL denial evidence',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/tests/urgent_family_organization_boundary.sql',
+      source: 'Northstar director can see requester-private self-handling rows',
+      name: 'private self-handling SQL projection denial',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/tests/urgent_family_organization_boundary.sql',
+      source: 'Expected revoked-location case replay denial',
+      name: 'revoked-location case replay SQL denial',
+    },
+  ];
+
+  for (const mutation of mutations) {
+    const required = REQUIRED_CONTRACT_SOURCE_BINDINGS[mutation.contractId] ?? [];
+    const requiredBinding = required.find((binding) => binding.file === mutation.file);
+    if (!requiredBinding?.includes.includes(mutation.source)) {
+      report(`urgent parity mutation: ${mutation.name} is required`, false, 'binding map is incomplete');
+      continue;
+    }
+
+    const mutated = JSON.parse(JSON.stringify(ledger));
+    const contract = mutated.contracts.find((candidate) => candidate.id === mutation.contractId);
+    const assertion = contract?.source_assertions?.find((candidate) => candidate.file === mutation.file);
+    if (!assertion) {
+      report(`urgent parity mutation: ${mutation.name} is declared`, false, 'ledger assertion is missing');
+      continue;
+    }
+    assertion.includes = assertion.includes.filter((source) => source !== mutation.source);
+    const { ok, errors } = checkLedger(mutated, repoRoot, {
+      requiredContractIds: REQUIRED_RELEASE_CONTRACT_IDS,
+    });
+    const expected = errors.some(
+      (error) =>
+        error.includes(`required source binding declaration for "${mutation.file}"`)
+        && error.includes(JSON.stringify(mutation.source))
+    );
+    report(
+      `urgent parity mutation: removing ${mutation.name} fails parity`,
+      ok === false && expected,
+      `ok=${ok} errors=${JSON.stringify(errors)}`
+    );
+  }
+
+  report(
+    'urgent parity mutation: Packet 1 contract IDs are mandatory',
+    REQUIRED_PACKET1_URGENT_CONTRACT_IDS.every((id) =>
+      REQUIRED_RELEASE_CONTRACT_IDS.includes(id)
+    ),
+    JSON.stringify(REQUIRED_RELEASE_CONTRACT_IDS)
+  );
+}
+
+function testVendorReplayParityMutations() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const ledgerPath = path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json');
+  let ledger;
+  try {
+    ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  } catch (error) {
+    report('vendor parity mutation: ledger is readable', false, error.message);
+    return;
+  }
+
+  const mutations = [
+    {
+      file: 'app/director/cases/[workflowId]/PartnerRequestForms.tsx',
+      source: 'humanCategory(selectedPartner.category)',
+      name: 'selected-vendor service projection',
+    },
+    {
+      file: 'app/director/cases/[workflowId]/partner-actions.ts',
+      source: 'if (!category) {',
+      name: 'authoritative replay/new category split',
+    },
+    {
+      file: 'supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql',
+      source: 'pg_catalog.pg_advisory_xact_lock(',
+      name: 'serialized request-key replay lookup',
+    },
+    {
+      file: 'supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql',
+      source: 'v_existing.needed_by is distinct from p_needed_by',
+      name: 'needed-by replay conflict',
+    },
+    {
+      file: 'supabase/tests/partner_vendor_category_compatibility.sql',
+      source: 'Specialty-changed exact replay was not cardinality-stable',
+      name: 'specialty-changed replay SQL evidence',
+    },
+    {
+      file: 'supabase/tests/partner_vendor_category_compatibility.sql',
+      source: 'Suspended vendor exact replay was not cardinality-stable',
+      name: 'suspended-vendor replay SQL evidence',
+    },
+    {
+      file: 'supabase/tests/partner_vendor_category_compatibility.sql',
+      source: 'Expected direct update category denial',
+      name: 'direct update trigger denial',
+    },
+    {
+      file: 'supabase/tests/partner_vendor_category_compatibility.sql',
+      source: 'Expected append-only event delete denial',
+      name: 'append-only event denial',
+    },
+  ];
+  const contractId = 'packet1.vendor.fulfillment';
+
+  for (const mutation of mutations) {
+    const required = REQUIRED_CONTRACT_SOURCE_BINDINGS[contractId] ?? [];
+    const requiredBinding = required.find((binding) => binding.file === mutation.file);
+    if (!requiredBinding?.includes.includes(mutation.source)) {
+      report(`vendor parity mutation: ${mutation.name} is required`, false, 'binding map is incomplete');
+      continue;
+    }
+
+    const mutated = JSON.parse(JSON.stringify(ledger));
+    const contract = mutated.contracts.find((candidate) => candidate.id === contractId);
+    const assertion = contract?.source_assertions?.find(
+      (candidate) => candidate.file === mutation.file
+    );
+    if (!assertion) {
+      report(`vendor parity mutation: ${mutation.name} is declared`, false, 'ledger assertion is missing');
+      continue;
+    }
+    assertion.includes = assertion.includes.filter(
+      (source) => source !== mutation.source
+    );
+    const { ok, errors } = checkLedger(mutated, repoRoot, {
+      requiredContractIds: REQUIRED_RELEASE_CONTRACT_IDS,
+    });
+    const expected = errors.some(
+      (error) =>
+        error.includes(`required source binding declaration for "${mutation.file}"`)
+        && error.includes(JSON.stringify(mutation.source))
+    );
+    report(
+      `vendor parity mutation: removing ${mutation.name} fails parity`,
+      ok === false && expected,
+      `ok=${ok} errors=${JSON.stringify(errors)}`
+    );
+  }
+
+  report(
+    'vendor parity mutation: Packet 1 vendor contract ID is mandatory',
+    REQUIRED_PACKET1_VENDOR_CONTRACT_IDS.every((id) =>
+      REQUIRED_RELEASE_CONTRACT_IDS.includes(id)
+    ),
+    JSON.stringify(REQUIRED_RELEASE_CONTRACT_IDS)
   );
 }
 
@@ -355,6 +684,9 @@ function main() {
     console.log('Integration test (real repository ledger):');
     testRealLedger();
     testRealPendingInvitationProjection();
+    testReviewerVisibilityParityMutations();
+    testUrgentOrganizationBoundaryParityMutations();
+    testVendorReplayParityMutations();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }
