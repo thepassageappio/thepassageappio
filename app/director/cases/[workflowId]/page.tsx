@@ -41,6 +41,13 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   // their own table lineage, not part of the funeral-home operational data set.
   const client = await createPassageServerClient();
   const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+  // Fix (PR #57 finding): show each vendor's own specialty next to its name in
+  // the picker, so a director has an on-screen cue before choosing a category
+  // that must match it (enforced authoritatively by the RPC as of this fix).
+  const partnerOrganizationOptions = partnerContext.partnerOrganizations.map((organization) => ({
+    ...organization,
+    categoryLabel: humanPartnerCategory(organization.category),
+  }));
 
   return <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
     <Link className={styles.backLink} href="/director">← Today</Link>
@@ -70,7 +77,7 @@ export default async function DirectorCasePage({ params, searchParams }: { param
           ))}
         </ol>
       )}
-      <CreatePartnerRequestForm partnerOrganizations={partnerContext.partnerOrganizations} requestId={randomUUID()} workflowId={workflow.id} />
+      <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
     </section>
   </AppFrame>;
 }
