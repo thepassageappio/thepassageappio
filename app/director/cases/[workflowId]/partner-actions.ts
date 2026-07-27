@@ -9,7 +9,6 @@ import type { PartnerCommandState } from '@/app/partner/actions';
 // Director-side counterparts to app/partner/actions.ts: a director originates
 // a vendor request from the Case Room, and later verifies the vendor's
 // submitted delivery proof. Kept in their own file (not merged into the
-// existing app/director/actions.ts) so this addition stays isolated from the
 // already-merged Cycle 8 assignment/proof-review actions.
 type CreateReceipt = { partner_request_id: string; status: string; version: number; replayed: boolean };
 type VerifyReceipt = { partner_request_id: string; status: string; version: number; replayed: boolean };
@@ -49,6 +48,7 @@ export async function createPartnerRequest(_previous: PartnerCommandState, formD
     p_request_id: requestId,
   });
   if (result.error) {
+    if (result.error.code === 'PS001') return { status: 'validation', message: "This vendor doesn't handle that category of request. Choose a matching vendor or category." };
     if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'You do not have director authority for this case. Nothing changed.' };
     if (result.error.code === '22023') return { status: 'validation', message: 'This request conflicts with an earlier command. Reload the case.' };
     return { status: 'unavailable', message: 'Passage could not send this vendor request. Nothing changed.' };
