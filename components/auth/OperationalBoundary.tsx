@@ -5,11 +5,9 @@ import { redirect } from 'next/navigation';
 import { canOpenOperationalPath, landingPathForRole, resolveOperationalViewer } from '@/lib/auth/authorization';
 import { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath, OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
 import { loginPath } from '@/lib/auth/redirects';
-import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
+import { getRuntimeConfiguration } from '@/lib/runtime-config';
 import styles from './OperationalBoundary.module.css';
 
-// Plain HTML form POST to a route handler, not a Server Action - this must
-// keep working as an auth escape hatch even if client-side JS/fetch is flaky.
 const SIGNOUT_ACTION = '/auth/signout';
 
 function SignOutButton() {
@@ -23,12 +21,12 @@ type OperationalBoundaryProps = {
 };
 
 const reasonCopy = {
-  'environment-unavailable': 'Secure workspace access is not configured for this environment.',
+  'environment-unavailable': 'Secure workspace access is not configured right now.',
   'signed-out': 'Sign in before opening a funeral-home workspace.',
   'membership-required': 'This account does not have an active funeral-home membership.',
   'membership-revoked': 'Your team access has ended. No funeral-home work is visible.',
-  'membership-selection-required': 'This account belongs to more than one organization. Workspace selection must be completed before any operator data can be shown.',
-  'authority-unavailable': 'Passage could not verify an active role and location for this account. Operator data remains closed.',
+  'membership-selection-required': 'This account belongs to more than one organization. Choose the right workspace before any funeral-home work can be shown.',
+  'authority-unavailable': 'Passage could not verify an active role and location for this account. Funeral-home work remains closed.',
 } as const;
 
 export async function OperationalBoundary({ children, requestedPath, requiredWorkspace }: OperationalBoundaryProps) {
@@ -39,17 +37,19 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   if (!result.ok && result.reason === 'signed-out') redirect(loginPath(recoveryPath));
 
   if (!result.ok) {
-    return <AccessSurface title="Workspace access remains closed" message={reasonCopy[result.reason]} runtime={publicRuntimeLabel(configuration.runtime)} />;
+    const title = result.reason === 'membership-revoked' ? 'Your access has ended.' : 'This page isn’t available to your account.';
+    return <AccessSurface title={title} message={`${reasonCopy[result.reason]} No case, task, or request details were shown, and nothing changed.`} />;
   }
 
   const { viewer } = result;
   if (!canOpenOperationalPath(viewer.role, requiredWorkspace)) {
     const correctPath = landingPathForRole(viewer.role);
-    return <AccessSurface title="This workspace is outside your role" message={viewer.role === 'staff' ? 'Your funeral-home employee membership opens My work, not the director workspace.' : 'Your director membership opens the director workspace, not an employee’s assigned queue.'} runtime={publicRuntimeLabel(configuration.runtime)} recoveryHref={correctPath} recoveryLabel={correctPath === '/staff' ? 'Open My work' : 'Open director workspace'} />;
+    const roleMessage = viewer.role === 'staff' ? 'Your funeral-home employee membership opens My work, not the director workspace.' : 'Your director membership opens the director workspace, not an employee’s assigned queue.';
+    return <AccessSurface title="This page isn’t available to your account." message={`${roleMessage} No case, task, or request details were shown, and nothing changed.`} recoveryHref={correctPath} recoveryLabel={correctPath === '/staff' ? 'Open My work' : 'Open director workspace'} />;
   }
 
   if (configuration.runtime === 'demo' && pathname !== DIRECTOR_INVITATION_PATH) {
-    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SECURE PREVIEW · CHANGES ARE SAVED</span><p>You’re signed in as {viewer.displayName}. This workspace uses sample information, and no real messages are sent.</p><SignOutButton /></div>{children}</div>;
+    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>Private demo workspace · example information</span><p>Changes are saved for this demo. No customer records, messages, purchases, or payments are created.</p><SignOutButton /></div>{children}</div>;
   }
 
   if (canRenderVerifiedOperationalChild(pathname, configuration)) return children;
@@ -57,7 +57,7 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   return (
     <main className={styles.shell} id="main-content">
       <section className={styles.ready} aria-labelledby="workspace-ready-title">
-        <p className={styles.eyebrow}>SECURE PREVIEW</p>
+        <p className={styles.eyebrow}>PRIVATE DEMO WORKSPACE</p>
         <h1 id="workspace-ready-title">You’re signed in.</h1>
         <p>You can manage team access, but no cases are assigned to this account yet.</p>
         <dl>
@@ -68,7 +68,7 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
           <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
         </dl>
         <div className={styles.recovery}>
-          {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
+          {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a staff invitation</Link>}
           <SignOutButton />
         </div>
       </section>
@@ -76,14 +76,12 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   );
 }
 
-function AccessSurface({ title, message, runtime, recoveryHref, recoveryLabel }: { title: string; message: string; runtime: string; recoveryHref?: string; recoveryLabel?: string }) {
+function AccessSurface({ title, message, recoveryHref, recoveryLabel }: { title: string; message: string; recoveryHref?: string; recoveryLabel?: string }) {
   return (
     <main className={styles.shell} id="main-content">
       <section className={styles.denied} aria-labelledby="access-title">
-        <p className={styles.eyebrow}>{runtime}</p><h1 id="access-title">{title}</h1><p>{message}</p>
+        <p className={styles.eyebrow}>PRIVATE WORKSPACE</p><h1 id="access-title">{title}</h1><p>{message}</p>
         <div className={styles.recovery}>
-          {/* Plain <a> tags, not next/link Link: these are auth escape hatches and must not depend on
-              client-side RSC navigation succeeding (see QA sweep PR #50, bug 1). */}
           {recoveryHref && recoveryLabel && <a href={recoveryHref}>{recoveryLabel}</a>}
           <a href="/login">Return to sign in</a>
           <SignOutButton />

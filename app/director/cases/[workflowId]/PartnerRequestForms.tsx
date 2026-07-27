@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useMemo, useState } from 'react';
+import { DurableReceipt } from '@/components/operations/DurableReceipt';
 import { createPartnerRequest, verifyPartnerRequest } from './partner-actions';
 import type { PartnerCommandState } from '@/app/partner/actions';
 import styles from '../../../proof-loop.module.css';
@@ -9,7 +10,8 @@ const initialState: PartnerCommandState = { status: 'idle' };
 
 function Result({ state }: { state: PartnerCommandState }) {
   if (!state.message) return null;
-  return <div className={state.status === 'saved' ? styles.receipt : styles.error} role={state.status === 'saved' ? 'status' : 'alert'}><h3>{state.status === 'saved' ? 'Saved.' : 'Nothing changed.'}</h3><p>{state.message}</p></div>;
+  if (state.status === 'saved' && state.durable) return <DurableReceipt announce receipt={state.durable} />;
+  return <div className={styles.error} role="alert"><h3>Nothing changed.</h3><p>{state.message}</p></div>;
 }
 
 export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganizations }: { workflowId: string; requestId: string; partnerOrganizations: { id: string; name: string; category: string }[] }) {
@@ -58,7 +60,7 @@ export function VerifyPartnerRequestForm({ workflowId, partnerRequestId, request
       <input name="partnerRequestId" type="hidden" value={partnerRequestId} />
       <input name="requestId" type="hidden" value={requestId} />
       <input name="expectedVersion" type="hidden" value={version} />
-      <p className={styles.boundary}>Verifying marks this vendor request complete. The submitted delivery proof remains in history.</p>
+      <p className={styles.boundary}>Verifying marks this vendor request complete and keeps the delivery proof in history. It does not create a payment or send a message to the Rivera family.</p>
       <button disabled={pending} type="submit">{pending ? 'Verifying…' : 'Verify vendor delivery'}</button>
       <Result state={state} />
     </form>

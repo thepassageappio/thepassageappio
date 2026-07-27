@@ -1,87 +1,41 @@
-import Link from 'next/link';
-import { ContinuityRail, TopShell } from '@/components/core';
-import { continuity, demoCase, personas } from '@/lib/demo';
-import { startPreviewDemo } from './demo/actions';
+import type { Metadata } from 'next';
+import { Callout, CardGrid, ContentSection, PublicPage, Steps } from '@/components/public/PublicPage';
 
-export default async function DemoGateway({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
-  const { demo } = await searchParams;
+export const metadata: Metadata = {
+  title: 'Clear next steps for families and funeral homes',
+  description: 'Passage helps families and funeral-home teams understand what needs attention, who owns it, and what has been confirmed.',
+};
+
+export default function HomePage() {
   return (
-    <TopShell context="A calmer way to coordinate" mode="gateway">
-      <main id="main-content" className="gateway">
-        <section className="gateway__intro" aria-labelledby="gateway-title">
-          <div className="gateway__status">
-            <span className="gateway__edition">PASSAGE PREVIEW WORKSPACE</span>
-            <span className="gateway__sync"><i aria-hidden="true" />Synthetic information only</span>
-          </div>
-          <div className="gateway__heading">
-            <p>Less repetition. More certainty.</p>
-            <h1 id="gateway-title">Everyone knows<br />what happens next.</h1>
-            <div className="gateway__promise">
-              <span className="promise-line" aria-hidden="true" />
-              <p>Families ask for help once. Funeral homes, staff, and vendors each see the work that belongs to them.</p>
-            </div>
-          </div>
-          <div className="gateway__case" aria-label="Preview story">
-            <span>WHAT YOU CAN TRY</span>
-            <strong>{demoCase.person}</strong>
-            <small>{demoCase.location} · {demoCase.lastSync}</small>
-          </div>
-        </section>
-
-        <section className="journey" aria-labelledby="journey-title">
-          <header className="journey__header">
-            <span id="journey-title">CHOOSE A POINT OF VIEW</span>
-            <p>Work demos use synthetic records. Family help requires a Preview account before saving. Use made-up details only; no messages are sent.</p>
-          </header>
-          {demo === 'unavailable' && <p className="gateway__notice" role="alert">That demo session is not available in this environment. Choose family help or try the Preview again later.</p>}
-
-          <div className="journey__line" aria-hidden="true">
-            <span /><i /><i /><i /><i /><span />
-          </div>
-
-          <ol className="persona-flow">
-            {personas.map((persona) => (
-              <li className={`persona persona--${persona.state}`} key={persona.id}>
-                {persona.href ? (
-                  <Link href={persona.href}>
-                    <PersonaContents persona={persona} actionLabel="START" />
-                  </Link>
-                ) : (
-                  <form action={startPreviewDemo}>
-                    <input name="persona" type="hidden" value={persona.demoPersona} />
-                    <button type="submit"><PersonaContents persona={persona} actionLabel="OPEN DEMO" /></button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="gateway__continuity">
-          <div className="continuity-context">
-            <span>THE FAMILY CHOOSES WHAT MOVES.</span>
-            <div><strong>04</strong><p>clear handoffs<small>One approved set of details, not four repeated intakes.</small></p></div>
-          </div>
-          <ContinuityRail steps={continuity} label="How help moves" />
-        </section>
-
-        <footer className="gateway__footer">
-          <span>PASSAGE PREVIEW WORKSPACE</span>
-          <p>Preview only. Use made-up details. No messages are sent.</p>
-          <span>PASSAGE · 2026</span>
-        </footer>
-      </main>
-    </TopShell>
-  );
-}
-
-function PersonaContents({ actionLabel, persona }: { actionLabel: string; persona: (typeof personas)[number] }) {
-  return (
-    <>
-      <span className="persona__number">{persona.order}</span>
-      <span className="persona__identity"><strong>{persona.name}</strong><small>{persona.role}</small></span>
-      <span className="persona__action"><b>{persona.action}</b><small>{persona.detail}</small></span>
-      <span className="persona__enter">{actionLabel} <i aria-hidden="true">→</i></span>
-    </>
+    <PublicPage
+      eyebrow="Calm coordination when it matters"
+      title="Everyone knows what happens next."
+      lead="Passage brings families, funeral-home teams, and invited helpers into one clear flow: what needs attention, who owns it, what is waiting, and what has been confirmed."
+      actions={[
+        { href: '/start', label: 'Get help now' },
+        { href: '/funeral-home', label: 'For funeral homes', secondary: true },
+        { href: '/demo', label: 'View the demo', secondary: true },
+      ]}
+    >
+      <ContentSection eyebrow="One shared direction" title="Less repetition. More certainty." intro="Passage keeps each next step connected to the person, the people helping, and the confirmation that it was handled.">
+        <CardGrid cards={[
+          { title: 'Families', body: 'See the next step, who is handling it, what is waiting, and what information will be shared before you choose to share it.' },
+          { title: 'Funeral-home teams', body: 'Give every case a clear owner, keep staff focused on assigned work, and leave a useful record of what happened.' },
+          { title: 'Invited helpers', body: 'Receive only the details needed for one responsibility, with a clear audience and a clear way to finish or ask for help.' },
+        ]} />
+      </ContentSection>
+      <ContentSection eyebrow="How it works" title="A clear handoff from question to confirmation." tone="soft">
+        <Steps items={[
+          { title: 'Ask for help once', body: 'Start with the situation and the people involved. Passage explains what is saved before anything becomes part of a record.' },
+          { title: 'Choose who can help', body: 'The right person sees the work that belongs to them. Private family information is not opened to an entire team by default.' },
+          { title: 'Follow the next action', body: 'Each step shows the owner, who is waiting, what to do now, and what happens after the action.' },
+          { title: 'Keep the confirmation', body: 'When work is confirmed, Passage keeps the useful details with the related step so the family and team do not have to reconstruct it later.' },
+        ]} />
+      </ContentSection>
+      <Callout title="See Passage from every point of view." action={{ href: '/demo', label: 'Open the demo' }}>
+        <p>The demo uses example information. It does not create a family record, send a message, make a purchase, or charge a payment method.</p>
+      </Callout>
+    </PublicPage>
   );
 }

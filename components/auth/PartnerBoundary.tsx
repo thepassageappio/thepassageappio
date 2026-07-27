@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import { signOut } from '@/app/auth/actions';
 import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { loginPath } from '@/lib/auth/redirects';
-import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
 import styles from './OperationalBoundary.module.css';
 
 // Vendor/partner equivalent of OperationalBoundary. Deliberately separate and
@@ -23,22 +22,21 @@ const reasonCopy = {
 } as const;
 
 export async function PartnerBoundary({ children }: PartnerBoundaryProps) {
-  const configuration = getRuntimeConfiguration();
   const result = await resolvePartnerViewer();
   if (!result.ok && result.reason === 'signed-out') redirect(loginPath('/partner'));
 
   if (!result.ok) {
-    return <AccessSurface message={reasonCopy[result.reason]} runtime={publicRuntimeLabel(configuration.runtime)} title="Vendor access remains closed" />;
+    return <AccessSurface message={`${reasonCopy[result.reason]} No case, task, or request details were shown, and nothing changed.`} title="This page isn’t available to your account." />;
   }
 
   return children;
 }
 
-function AccessSurface({ title, message, runtime }: { title: string; message: string; runtime: string }) {
+function AccessSurface({ title, message }: { title: string; message: string }) {
   return (
     <main className={styles.shell} id="main-content">
       <section aria-labelledby="access-title" className={styles.denied}>
-        <p className={styles.eyebrow}>{runtime}</p>
+        <p className={styles.eyebrow}>PRIVATE VENDOR WORKSPACE</p>
         <h1 id="access-title">{title}</h1>
         <p>{message}</p>
         <div className={styles.recovery}>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useActionState } from 'react';
+import { DurableReceipt } from '@/components/operations/DurableReceipt';
 import { assignTask, revokeInvitation, revokeMember, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
@@ -10,11 +11,14 @@ const initialDirectorCommandState: DirectorCommandState = { status: 'idle' };
 
 function Receipt({ state }: { state: DirectorCommandState }) {
   if (!state.message) return null;
+  if (state.status === 'saved' && state.durable) {
+    return <DurableReceipt announce receipt={state.durable} />;
+  }
   return (
     <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}>
       <strong>{state.status === 'saved' ? 'Saved by Passage' : 'Nothing changed'}</strong>
       <p>{state.message}</p>
-      {state.receipt && <small>Saved {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'long' }).format(new Date(state.receipt.occurredAt))} · visible to authorized organization staff · recorded in team activity</small>}
+      {state.receipt && <small>Saved {state.receipt.savedLabel ?? 'at the original server-recorded time'} · visible to authorized organization staff · recorded in team activity</small>}
     </div>
   );
 }

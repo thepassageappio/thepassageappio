@@ -33,21 +33,21 @@ export async function startPreviewDemo(formData: FormData) {
     || configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'
     || !configuration.passwordAuthEnabled
   ) {
-    redirect('/?demo=unavailable');
+    redirect('/demo?demo=unavailable');
   }
 
   const credential = demoCredential(persona);
   if (!credential.email || credential.password.length < 24) {
-    redirect('/?demo=unavailable');
+    redirect('/demo?demo=unavailable');
   }
   const client = await createPassageServerClient();
-  if (!client) redirect('/?demo=unavailable');
+  if (!client) redirect('/demo?demo=unavailable');
 
   await client.auth.signOut();
   const result = await client.auth.signInWithPassword(credential);
   if (result.error || !result.data.user || result.data.user.email?.toLowerCase() !== credential.email.toLowerCase()) {
     await client.auth.signOut();
-    redirect('/?demo=unavailable');
+    redirect('/demo?demo=unavailable');
   }
   redirect(demoTargets[persona]);
 }

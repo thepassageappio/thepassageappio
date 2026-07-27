@@ -43,7 +43,7 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   const client = await createPassageServerClient();
   if (!client) return { status: 'unavailable', message: 'Passage could not save this right now. Nothing was lost — try again in a moment.' };
   const user = await verifiedUser(client);
-  if (!user) return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
+  if (!user) return { status: 'denied', message: 'Sign in to save this and request a callback.' };
 
   const result = await client.rpc('submit_urgent_intake_idempotent', {
     p_receiving_organization_id: receivingOrganizationId,
@@ -59,17 +59,26 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
     p_request_id: requestId,
   });
   if (result.error) {
-    if (result.error.code === '28000') return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
+    if (result.error.code === '28000') return { status: 'denied', message: 'Sign in to save this and request a callback.' };
     if (result.error.code === '22023') return { status: 'validation', message: 'This conflicts with something already saved. Reload and try again.' };
     return { status: 'unavailable', message: 'Passage could not save this right now. Nothing was lost — try again in a moment.' };
   }
   const receipt = firstRpcRow<SubmitReceipt>(result.data);
   if (!receipt?.urgent_intake_request_id) return { status: 'unavailable', message: 'We could not confirm this was saved. Try again in a moment.' };
+  const savedEvent = await client
+    .from('urgent_intake_events')
+    .select('occurred_at')
+    .eq('urgent_intake_request_id', receipt.urgent_intake_request_id)
+    .eq('idempotency_key', `urgent_intake_create:${requestId}`)
+    .maybeSingle();
+  if (savedEvent.error || !savedEvent.data?.occurred_at) {
+    return { status: 'unavailable', message: 'This may have been saved, but Passage could not confirm when. Reload before trying again.' };
+  }
 
   revalidatePath('/director/urgent');
   return {
     status: 'saved',
     message: wantsCallback ? 'Sent to Northstar. A director will reach out shortly.' : 'Saved privately. Northstar cannot see this.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed, wantsCallback },
+    receipt: { occurredAt: String(savedEvent.data.occurred_at), replayed: receipt.replayed, wantsCallback },
   };
 }

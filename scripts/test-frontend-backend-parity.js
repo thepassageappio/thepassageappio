@@ -467,6 +467,12 @@ function testUrgentOrganizationBoundaryParityMutations() {
     },
     {
       contractId: 'packet1.family.urgent_submission',
+      file: 'app/start/next/UrgentNextClient.tsx',
+      source: 'Sign in to an existing demo account',
+      name: 'truthful user-visible demo account wording',
+    },
+    {
+      contractId: 'packet1.family.urgent_submission',
       file: 'app/demo/actions.ts',
       source: "family: '/start/next'",
       name: 'family demo return target',

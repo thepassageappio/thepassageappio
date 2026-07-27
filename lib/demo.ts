@@ -28,7 +28,7 @@ export const demoCase = {
 export const personas: Persona[] = [
   {
     id: 'family', order: '01', name: 'Family help', role: 'Begin privately',
-    action: 'Start without signing in', detail: 'Use made-up details only. At the last step, continue with the family demo or sign in to an existing Preview account. No email is sent.',
+    action: 'Start without signing in', detail: 'Use made-up details only. At the last step, continue with the private browser demo or sign in to an existing demo account. No email is sent.',
     href: '/start', state: 'origin',
   },
   {

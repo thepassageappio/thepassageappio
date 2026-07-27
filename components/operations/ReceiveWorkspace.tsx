@@ -24,7 +24,7 @@ const PASS_RECORDS: Record<string, PassRecord> = {
   ] },
   'PASS-CHEN-EXPIRED': { status: 'expired', sender: 'Lena Chen', person: 'Arthur Chen', expires: 'Yesterday · 18:00' },
   'PASS-BROOKS-REVOKED': { status: 'revoked', sender: 'Avery Brooks', person: 'James Brooks', expires: 'Today · 16:00' },
-  'PASS-LEE-ACCEPTED': { status: 'accepted', sender: 'Jordan Lee', person: 'Evelyn Lee', acceptedAt: 'Today · 09:12', acceptedBy: 'Marcus Lee', caseName: 'an existing preview case' },
+  'PASS-LEE-ACCEPTED': { status: 'accepted', sender: 'Jordan Lee', person: 'Evelyn Lee', acceptedAt: 'Today · 09:12', acceptedBy: 'Marcus Lee', caseName: 'an existing example case' },
 };
 
 function normalize(value: string) { return value.trim().toUpperCase().replace(/\s+/g, '-'); }
@@ -48,7 +48,7 @@ export function ReceiveWorkspace() {
         sender: sandbox.familyCoordinator.name, relationship: sandbox.familyCoordinator.role,
         person: sandbox.person.name, destination: sandbox.organizations[0].name,
         expires: sandbox.transferPass.expiresLabel, acceptedAt: sandbox.transferPass.acceptedAt,
-        acceptedBy: sandbox.transferPass.acceptedBy, caseName: 'the Northstar preview case', scope: sandbox.transferPass.scope,
+        acceptedBy: sandbox.transferPass.acceptedBy, caseName: 'the Northstar example case', scope: sandbox.transferPass.scope,
       };
     }
     return PASS_RECORDS[queryCode] || { status: 'invalid' };
@@ -123,14 +123,14 @@ export function ReceiveWorkspace() {
           </section>
 
           <form className={styles.destination} onSubmit={(event) => { event.preventDefault(); if (!reviewed) { setError('Confirm your review before accepting.'); return; } setError(''); setAcceptRequested(true); dispatch({ type: 'accept_transfer_pass', actorId: 'elena-torres', actorMembershipId: 'membership-elena', idempotencyKey: `receive:accept:${queryCode}` }); }}>
-            <span>03 / DESTINATION</span><h2>Choose one preview case.</h2><p>This demo will copy the selected items into a preview case on this device. It will not create or update a real case.</p>
+            <span>03 / DESTINATION</span><h2>Choose one example case.</h2><p>This browser demo will copy the selected items into an example case on this device. It will not create or update a real case.</p>
             <fieldset><legend>CASE DESTINATION</legend>
               <label className={destination === 'new' ? styles.chosen : ''}><input checked={destination === 'new'} name="destination" onChange={() => setDestination('new')} type="radio" /><span><strong>Create intake</strong><small>{record.person} · New case</small></span></label>
               <label className={destination === 'existing' ? styles.chosen : ''}><input checked={destination === 'existing'} disabled name="destination" onChange={() => setDestination('existing')} type="radio" /><span><strong>No other eligible case</strong><small>Duplicate destination is blocked for this handoff.</small></span></label>
             </fieldset>
             <label className={styles.confirm}><input checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} type="checkbox" /><span>I reviewed the sender, scope, expiry, and destination.</span></label>
             {error && <p className={styles.error} role="alert">{error}</p>}
-            <button className={styles.accept} type="submit">Accept in preview <span>→</span></button>
+            <button className={styles.accept} type="submit">Accept in this browser demo <span>→</span></button>
           </form>
         </div>
       </section>
@@ -150,15 +150,15 @@ function PassFailure({ code, clearPass, record }: { code: string; clearPass: () 
 }
 
 function Receipt({ code, clearPass, destination, record }: { code: string; clearPass: () => void; destination: 'new' | 'existing'; record: PassRecord }) {
-  const caseName = destination === 'new' ? 'a new preview case' : 'the selected preview case';
+  const caseName = destination === 'new' ? 'a new example case' : 'the selected example case';
   const scopeCount = record.scope?.length ?? 0;
   return <AppFrame active="receive" identity="Elena Torres" role="Director · Northstar">
-    <section className={styles.heading}><div><p>TRANSFER PASS / PREVIEW RECEIPT</p><h1>Preview handoff complete.</h1></div><Signal tone="success">Accepted in preview</Signal></section>
-    <ContinuityRail label="Preview handoff" steps={[
+    <section className={styles.heading}><div><p>TRANSFER PASS / EXAMPLE RECEIPT</p><h1>Example handoff complete.</h1></div><Signal tone="success">Accepted in this browser demo</Signal></section>
+    <ContinuityRail label="Example handoff" steps={[
       { label: 'Handoff', detail: `From ${record.sender}`, state: 'complete' }, { label: 'Case', detail: caseName, state: 'complete' }, { label: 'Owner', detail: 'Elena Torres', state: 'complete' }, { label: 'Confirmation', detail: 'Saved on this device', state: 'complete' },
     ]} />
     <section className={styles.receipt}>
-      <div className={styles.receiptMark} aria-hidden="true">✓</div><div className={styles.receiptTitle}><span>PREVIEW CONFIRMATION</span><h2>The selected information now appears in {caseName}.</h2><p>This browser-only example saved the sender, recipient, selected information, time, and destination on this device. No customer record was created or changed.</p></div>
+      <div className={styles.receiptMark} aria-hidden="true">✓</div><div className={styles.receiptTitle}><span>EXAMPLE CONFIRMATION</span><h2>The selected information now appears in {caseName}.</h2><p>This browser-only example saved the sender, recipient, selected information, time, and destination on this device. No customer record was created or changed.</p></div>
       <dl><div><dt>DESTINATION</dt><dd>{caseName}</dd></div><div><dt>ACCEPTED BY</dt><dd>Elena Torres</dd></div><div><dt>SHARED</dt><dd>{scopeCount} selected {scopeCount === 1 ? 'group' : 'groups'}</dd></div><div><dt>PASS</dt><dd>{code}</dd></div></dl>
       <div className={styles.receiptActions}><a href="/">Return to demo choices <span>→</span></a><button onClick={clearPass} type="button">Receive another pass</button></div>
     </section>

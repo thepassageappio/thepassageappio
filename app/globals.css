@@ -34,8 +34,8 @@
   --apricot: var(--human);
   --apricot-light: var(--human-soft);
   --positive: var(--success);
-  --font-display: var(--font-display-loaded), "Iowan Old Style", Baskerville, Georgia, serif;
-  --font-sans: var(--font-sans-loaded), Montserrat, "Avenir Next", Avenir, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Iowan Old Style", Baskerville, Georgia, serif;
+  --font-sans: Montserrat, "Avenir Next", Avenir, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --shadow-soft: 0 18px 54px rgba(65, 57, 52, .07);
   --shadow-raised: 0 28px 80px rgba(65, 57, 52, .11);
@@ -133,7 +133,7 @@ button, input, select, textarea { font: inherit; }
 }
 .gateway__promise { max-width: 660px; display: grid; grid-template-columns: 80px 1fr; gap: 18px; align-items: start; margin-top: 36px; }
 .promise-line { height: 2px; margin-top: 9px; background: var(--cobalt); }
-.gateway__promise p { margin: 0; color: var(--graphite-2); font-size: clamp(13px, 1.3vw, 17px); line-height: 1.58; }
+.gateway__promise p { margin: 0; color: var(--graphite-2); font-size: clamp(16px, 1.3vw, 18px); line-height: 1.58; }
 .gateway__case {
   align-self: end;
   justify-self: end;
@@ -144,12 +144,12 @@ button, input, select, textarea { font: inherit; }
 }
 .gateway__case span { color: var(--muted); font: 700 9px/1 var(--font-mono); letter-spacing: .08em; }
 .gateway__case strong { margin-top: 11px; font-size: 23px; font-weight: 620; letter-spacing: -.035em; }
-.gateway__case small { margin-top: 6px; color: var(--muted); font-size: 10px; }
+.gateway__case small { margin-top: 6px; color: var(--muted); font-size: 14px; }
 
 .journey { border-top: 1px solid var(--hairline-strong); border-bottom: 1px solid var(--hairline-strong); background: var(--surface); }
 .journey__header { max-width: var(--max); margin: 0 auto; display: flex; justify-content: space-between; gap: 28px; padding: 24px clamp(18px, 4vw, 66px); }
 .journey__header span { font: 740 10px/1 var(--font-mono); letter-spacing: .1em; }
-.journey__header p { margin: 0; color: var(--muted); font-size: 11px; }
+.journey__header p { max-width: 700px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .gateway__notice { max-width: calc(var(--max) - 36px); margin: 0 auto 18px; padding: 14px 18px; border: 1px solid var(--human); border-radius: 10px; background: var(--human-soft); color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
 .journey__line { max-width: var(--max); height: 33px; margin: 0 auto; display: grid; grid-template-columns: 1fr repeat(4, auto 1fr); align-items: center; padding: 0 clamp(18px, 4vw, 66px); }
 .journey__line span { height: 1px; background: var(--hairline-strong); }
@@ -165,10 +165,10 @@ button, input, select, textarea { font: inherit; }
 .persona__number { font: 700 9px/1 var(--font-mono); color: var(--muted); }
 .persona__identity { display: grid; margin-top: 24px; }
 .persona__identity strong { font-family: var(--font-display); font-size: 27px; font-weight: 600; letter-spacing: -.025em; }
-.persona__identity small { margin-top: 4px; color: var(--muted); font-size: 10px; }
+.persona__identity small { margin-top: 4px; color: var(--muted); font-size: 14px; }
 .persona__action { align-self: end; display: grid; margin-top: 28px; }
 .persona__action b { font-size: 14px; font-weight: 680; }
-.persona__action small { max-width: 240px; margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.persona__action small { max-width: 240px; margin-top: 7px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .persona__enter { align-self: end; display: flex; justify-content: space-between; margin-top: 22px; padding-top: 15px; border-top: 1px solid var(--hairline); font: 760 9px/1 var(--font-mono); letter-spacing: .08em; }
 .persona__enter i { font: normal 16px/8px var(--font-sans); }
 .persona :is(a, button):hover, .persona :is(a, button):focus-visible { outline: 0; background: var(--cobalt); color: white; transform: translateY(-3px); box-shadow: var(--shadow-raised); }
@@ -206,7 +206,7 @@ button, input, select, textarea { font: inherit; }
 .gateway__footer { max-width: var(--max); margin: 0 auto; min-height: 80px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; padding: 0 clamp(18px, 4vw, 66px); border-top: 1px solid var(--hairline); color: var(--muted); }
 .gateway__footer span { font: 650 8px/1 var(--font-mono); letter-spacing: .08em; }
 .gateway__footer span:last-child { justify-self: end; }
-.gateway__footer p { margin: 0; font-size: 10px; }
+.gateway__footer p { margin: 0; font-size: 14px; line-height: 1.5; }
 
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--signal) 42%, transparent);
@@ -241,7 +241,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .gateway__heading h1 { font-size: clamp(46px, 16vw, 68px); line-height: .94; }
   .gateway__promise { display: block; margin-top: 28px; }
   .promise-line { width: 34px; margin-bottom: 14px; }
-  .gateway__promise p { font-size: 13px; }
+  .gateway__promise p { font-size: 16px; }
   .gateway__case { margin-top: 45px; }
   .journey__header { display: grid; padding-top: 21px; }
   .journey__header p { line-height: 1.45; }
@@ -268,4 +268,35 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+/* Public/demo comprehension floor: labels and recovery copy remain readable at
+   320px and 200% zoom; every interactive target remains at least 48px high. */
+.skip-link,
+.top-shell__brand,
+.gateway__footer a { min-height: 48px; display: inline-flex; align-items: center; }
+.skip-link,
+.top-shell__brand strong,
+.top-shell__context,
+.top-shell__environment,
+.gateway__edition,
+.gateway__sync,
+.gateway__heading > p,
+.gateway__notice,
+.journey__header span,
+.persona__number,
+.persona__enter,
+.continuity-context > span,
+.continuity-context small,
+.continuity-rail__header span,
+.continuity-rail__header b,
+.continuity-step strong,
+.continuity-step small,
+.gateway__footer span { font-size: 14px; }
+
+@media (max-width: 560px) {
+  .top-shell__environment,
+  .gateway__heading > p,
+  .persona__number,
+  .persona__enter { font-size: 14px; }
 }

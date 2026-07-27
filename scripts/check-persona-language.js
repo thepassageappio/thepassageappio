@@ -87,9 +87,9 @@ if (fs.existsSync(identityRuntimePath)) {
   try {
     const present = require(identityRuntimePath).humanizeMemberIdentity;
     const cases = [
-      ['staff synthetic email', null, 'cycle8-staff@test.invalid', 'staff', 'Preview staff member'],
-      ['director synthetic email', null, 'qa-director@fixture.test', 'director', 'Preview director'],
-      ['unknown synthetic email', null, 'unknown-test@example.invalid', undefined, 'Preview team member'],
+      ['staff synthetic email', null, 'cycle8-staff@test.invalid', 'staff', 'Authorized staff member'],
+      ['director synthetic email', null, 'qa-director@fixture.test', 'director', 'Authorized director'],
+      ['unknown synthetic email', null, 'unknown-test@example.invalid', undefined, 'Authorized team member'],
       ['genuine display name', 'Elena Torres', 'cycle8-director@test.invalid', 'director', 'Elena Torres'],
     ];
     for (const [label, displayName, email, role, expected] of cases) {

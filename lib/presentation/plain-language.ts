@@ -1,6 +1,16 @@
-import { containsInternalPreviewText } from './member-identity.js';
+import {
+  containsInternalPreviewText,
+  humanizeMemberIdentity,
+  humanizePreviewIdentity,
+  humanizePreviewLabel,
+} from './member-identity.js';
 
-export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel } from './member-identity.js';
+export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel };
+
+export function humanFamilyName(value: string | null | undefined, fallback = 'Family') {
+  const safe = humanizePreviewLabel(value ?? '', fallback).trim();
+  return /\bfamily$/i.test(safe) ? safe : `${safe} family`;
+}
 
 export function humanizeSavedReason(value: string | null, fallback: string) {
   if (!value) return null;

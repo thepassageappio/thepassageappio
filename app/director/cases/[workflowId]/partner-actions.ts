@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { resolveOperationalViewer } from '@/lib/auth/authorization';
 import { firstRpcRow } from '@/lib/auth/invitations';
+import { durableReceipt, vendorRequestSentReceipt } from '@/lib/presentation/durable-receipts';
+import { humanizePreviewIdentity, humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
 import type { PartnerCommandState } from '@/app/partner/actions';
 
@@ -84,12 +86,59 @@ export async function createPartnerRequest(_previous: PartnerCommandState, formD
   }
   const receipt = firstRpcRow<CreateReceipt>(result.data);
   if (!receipt?.partner_request_id) return { status: 'unavailable', message: 'We could not confirm the vendor request was saved. Reload the case before trying again.' };
+  const [eventResult, savedRequestResult, actorResult] = await Promise.all([
+    client
+      .from('partner_request_events')
+      .select('id, occurred_at')
+      .eq('partner_request_id', receipt.partner_request_id)
+      .eq('idempotency_key', `partner_request_create:${requestId}`)
+      .maybeSingle(),
+    client
+      .from('partner_requests')
+      .select('title, partner_organization_id')
+      .eq('organization_id', viewer.viewer.organizationId)
+      .eq('id', receipt.partner_request_id)
+      .maybeSingle(),
+    client
+      .from('organization_members')
+      .select('display_name, email, role')
+      .eq('organization_id', viewer.viewer.organizationId)
+      .eq('id', viewer.viewer.membershipId)
+      .maybeSingle(),
+  ]);
+  if (
+    eventResult.error
+    || !eventResult.data?.id
+    || !eventResult.data.occurred_at
+    || savedRequestResult.error
+    || !savedRequestResult.data
+    || actorResult.error
+    || !actorResult.data
+  ) {
+    return { status: 'unavailable', message: 'The request may be saved, but Passage could not confirm its receipt. Reload the case before trying again.' };
+  }
+  const savedPartnerResult = await client
+    .from('partner_organizations')
+    .select('name')
+    .eq('id', savedRequestResult.data.partner_organization_id)
+    .maybeSingle();
+  if (savedPartnerResult.error || !savedPartnerResult.data) {
+    return { status: 'unavailable', message: 'The request may be saved, but Passage could not confirm which vendor received it. Reload the case before trying again.' };
+  }
   revalidatePath(`/director/cases/${workflowId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This vendor request was already sent.' : 'Vendor request sent and saved in case history.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
+    message: receipt.replayed ? 'The original vendor request is shown below.' : 'The vendor request was sent and saved.',
+    durable: vendorRequestSentReceipt({
+      eventId: eventResult.data.id,
+      savedAt: eventResult.data.occurred_at,
+      actorName: actorResult.data.display_name,
+      actorEmail: actorResult.data.email,
+      actorRole: actorResult.data.role,
+      requestTitle: savedRequestResult.data.title,
+      partnerName: savedPartnerResult.data.name,
+    }),
   };
 }
 
@@ -122,11 +171,45 @@ export async function verifyPartnerRequest(_previous: PartnerCommandState, formD
   }
   const receipt = firstRpcRow<VerifyReceipt>(result.data);
   if (!receipt?.partner_request_id) return { status: 'unavailable', message: 'We could not confirm the verification was saved. Reload before trying again.' };
+  const [eventResult, requestResult] = await Promise.all([
+    client
+      .from('partner_request_events')
+      .select('id, occurred_at')
+      .eq('partner_request_id', partnerRequestId)
+      .eq('idempotency_key', `partner_request_verify:${requestId}`)
+      .maybeSingle(),
+    client
+      .from('partner_requests')
+      .select('title, partner_organization_id')
+      .eq('organization_id', viewer.viewer.organizationId)
+      .eq('id', partnerRequestId)
+      .maybeSingle(),
+  ]);
+  if (eventResult.error || !eventResult.data?.id || !eventResult.data.occurred_at || requestResult.error || !requestResult.data) {
+    return { status: 'unavailable', message: 'The delivery may be verified, but Passage could not confirm its receipt. Reload the case before trying again.' };
+  }
+  const partnerResult = await client
+    .from('partner_organizations')
+    .select('name')
+    .eq('id', requestResult.data.partner_organization_id)
+    .maybeSingle();
+  const partnerName = humanizePreviewLabel(partnerResult.data?.name ?? '', 'the vendor assigned to this request');
+  const changedBy = humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role);
+  const title = humanizePreviewLabel(requestResult.data.title ?? '', 'Memorial flowers');
   revalidatePath(`/director/cases/${workflowId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This delivery was already verified.' : 'Vendor delivery verified and saved in case history.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
+    message: receipt.replayed ? 'The original verification is shown below.' : 'The vendor delivery was verified.',
+    durable: durableReceipt({
+      eventId: eventResult.data.id,
+      heading: 'Delivery verified.',
+      changedBy,
+      savedAt: eventResult.data.occurred_at,
+      result: `${changedBy} verified ${title} from ${partnerName}.`,
+      visibleTo: `Northstar directors and ${partnerName}`,
+      savedIn: 'Case and vendor request history',
+      next: 'The request is complete.',
+    }),
   };
 }

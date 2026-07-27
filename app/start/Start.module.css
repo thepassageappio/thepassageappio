@@ -62,7 +62,7 @@
 }
 
 .eyebrow {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -97,7 +97,7 @@
 }
 
 .field small {
-  font-size: 13px;
+  font-size: 14px;
   color: #6b6258;
 }
 
@@ -225,7 +225,7 @@
 
 .receivingHome span {
   color: #625a51;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .receivingHome strong {
@@ -236,7 +236,7 @@
 .receivingHome p {
   margin: 2px 0 0;
   color: #4f5d53;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -274,7 +274,7 @@
 }
 
 .authCard p {
-  font-size: 13.5px;
+  font-size: 14px;
   color: #6b6258;
   margin: 0 0 14px;
 }
@@ -293,7 +293,7 @@
 
 .authCard .authBoundary {
   border-top: 1px solid #eee7dc;
-  font-size: 12.5px;
+  font-size: 14px;
   margin: 16px 0 0;
   padding-top: 12px;
 }
@@ -306,7 +306,8 @@
 
 .authToggle button {
   flex: 1;
-  font-size: 13px;
+  min-height: 48px;
+  font-size: 14px;
   font-weight: 650;
   padding: 9px 10px;
   border-radius: 8px;
@@ -343,7 +344,7 @@
   margin-bottom: 14px;
 }
 
-.receipt h1 {
+.receipt h2 {
   font-size: 21px;
   margin: 0 0 8px;
 }
@@ -366,7 +367,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   border-top: 1px solid #eee4d8;
   padding-top: 8px;
 }
@@ -388,4 +389,27 @@
   .title {
     font-size: 21px;
   }
+}
+
+.wordmark,
+.exit,
+.backLink,
+.primaryButton,
+.secondaryButton,
+.field input,
+.field textarea,
+.field select {
+  min-height: 48px;
+}
+
+.wordmark,
+.exit,
+.backLink {
+  display: inline-flex;
+  align-items: center;
+}
+
+.shell :focus-visible {
+  outline: 3px solid var(--focus, #5f566d);
+  outline-offset: 2px;
 }

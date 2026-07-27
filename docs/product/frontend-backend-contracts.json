@@ -918,7 +918,7 @@
           "file": "app/director/cases/[workflowId]/page.tsx",
           "includes": [
             "export const dynamic = 'force-dynamic'",
-            "loadHostedOperations({ proofs: true })",
+            "loadHostedOperations({ events: true, proofs: true })",
             "const selectedTask = query.task",
             "workflowTasks.find((task) => task.id === query.task)",
             "selectedTask.status === 'proof_submitted'",
@@ -1120,15 +1120,19 @@
           "file": "app/start/next/UrgentNextClient.tsx",
           "includes": [
             "Save privately — don’t share with Northstar",
-            "Northstar cannot see this.",
+            "Northstar Funeral Home cannot see it.",
             "PREVIEW_RECEIVING_ORGANIZATION.name",
             "name=\"receivingOrganizationId\"",
             "existing.wants_callback",
             "<dt>Visibility</dt><dd>Only you</dd>",
             "action={startPreviewDemo}",
             "name=\"persona\" type=\"hidden\" value=\"family\"",
-            "Sign in to an existing Preview account",
+            "Sign in to an existing demo account",
             "No email is sent."
+            ,"Request a callback from Northstar Funeral Home"
+            ,".eq('creation_request_id', draft.requestId)"
+            ,"urgent_intake_create:${draft.requestId}"
+            ,"formatSavedTime(state.receipt.occurredAt)"
           ]
         },
         {

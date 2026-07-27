@@ -91,8 +91,8 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
 }
 
 export function publicRuntimeLabel(runtime: PassageRuntime | null) {
-  if (runtime === 'demo') return 'Synthetic demo · no external messages';
-  if (runtime === 'preview') return 'Isolated preview · no external messages';
+  if (runtime === 'demo') return 'Private browser demo · choices stay on this device';
+  if (runtime === 'preview') return 'Private demo workspace · example information';
   if (runtime === 'production') return 'Production';
   return 'Environment unavailable';
 }
