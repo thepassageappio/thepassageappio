@@ -24,6 +24,10 @@ begin
        select 1 from supabase_migrations.schema_migrations
        where name = 'urgent_receiving_organization_boundary'
      )
+     or not exists (
+       select 1 from supabase_migrations.schema_migrations
+       where name = 'urgent_case_first_commitment'
+     )
      or to_regprocedure('public.submit_urgent_intake_idempotent(uuid,text,text,text,text,text,text,text,text,boolean,uuid)') is null
      or to_regprocedure('public.claim_urgent_intake_idempotent(uuid,integer,uuid)') is null
      or to_regprocedure('public.create_case_from_urgent_intake_idempotent(uuid,integer,uuid,text,text,uuid)') is null then
@@ -110,8 +114,11 @@ begin
   if position('organization_location_id' in v_definition) = 0
      or position('case_reference' in v_definition) = 0
      or position('family_name' in v_definition) = 0
-     or position('expected_version' in v_definition) = 0 then
-    raise exception 'Case creation lost complete replay payload validation';
+     or position('expected_version' in v_definition) = 0
+     or position('insert into public.tasks' in v_definition) = 0
+     or position('urgent_intake_first_task:' in v_definition) = 0
+     or position('first_task_id' in v_definition) = 0 then
+    raise exception 'Case creation lost replay validation or first-commitment atomicity';
   end if;
 
   for v_function in
@@ -244,6 +251,7 @@ declare
   v_request_id uuid;
   v_private_request_id uuid;
   v_workflow_id uuid;
+  v_first_task_id uuid;
   v_receipt record;
 begin
   perform set_config('request.jwt.claim.sub', 'a1000011-a100-4100-8100-000000000011', true);
@@ -464,7 +472,11 @@ begin
     'URGENT-BOUNDARY-1', 'Example family', v_case_key
   );
   v_workflow_id := v_receipt.workflow_id;
-  if v_receipt.replayed or v_receipt.status <> 'case_created' or v_receipt.version <> 3 then
+  v_first_task_id := v_receipt.first_task_id;
+  if v_receipt.replayed
+     or v_receipt.status <> 'case_created'
+     or v_receipt.version <> 3
+     or v_first_task_id is null then
     raise exception 'Northstar case-creation receipt is incorrect';
   end if;
   if not exists (
@@ -472,11 +484,28 @@ begin
     where id = v_workflow_id
       and organization_id = v_northstar
       and organization_location_id = v_northstar_location
+  ) or not exists (
+    select 1 from public.tasks
+    where id = v_first_task_id
+      and workflow_id = v_workflow_id
+      and organization_id = v_northstar
+      and assigned_organization_member_id is null
+      and title = 'Confirm the family''s first arrangement step.'
+      and status = 'assigned'
+      and version = 1
+  ) or not exists (
+    select 1 from public.workflow_events
+    where workflow_id = v_workflow_id
+      and task_id = v_first_task_id
+      and organization_id = v_northstar
+      and organization_location_id = v_northstar_location
+      and name = 'task.created'
+      and idempotency_key = 'urgent_intake_first_task:' || v_request_id::text
   ) or (
     select count(*) from public.urgent_intake_events
     where urgent_intake_request_id = v_request_id
   ) <> 3 then
-    raise exception 'Case creation did not persist exact organization/event truth';
+    raise exception 'Case creation did not persist exact workflow/task/event truth';
   end if;
 
   select * into strict v_receipt
@@ -484,7 +513,9 @@ begin
     v_request_id, 2, v_northstar_location,
     'URGENT-BOUNDARY-1', 'Example family', v_case_key
   );
-  if not v_receipt.replayed or v_receipt.workflow_id <> v_workflow_id then
+  if not v_receipt.replayed
+     or v_receipt.workflow_id <> v_workflow_id
+     or v_receipt.first_task_id <> v_first_task_id then
     raise exception 'Case creation replay was not idempotent';
   end if;
 
@@ -531,8 +562,10 @@ begin
       and version = 3
       and workflow_id = v_workflow_id
   ) or (select count(*) from public.urgent_intake_events where urgent_intake_request_id = v_request_id) <> 3
-     or (select count(*) from public.workflows where id = v_workflow_id) <> 1 then
-    raise exception 'Case replay conflict changed request/workflow/event cardinality';
+     or (select count(*) from public.workflows where id = v_workflow_id) <> 1
+     or (select count(*) from public.tasks where id = v_first_task_id and workflow_id = v_workflow_id) <> 1
+     or (select count(*) from public.workflow_events where task_id = v_first_task_id and name = 'task.created') <> 1 then
+    raise exception 'Case replay conflict changed request/workflow/task/event cardinality';
   end if;
 
   perform set_config('request.jwt.claim.sub', 'a1000011-a100-4100-8100-000000000011', true);
@@ -626,6 +659,7 @@ begin
   perform set_config('passage.test_urgent_request_id', v_request_id::text, true);
   perform set_config('passage.test_private_urgent_request_id', v_private_request_id::text, true);
   perform set_config('passage.test_urgent_workflow_id', v_workflow_id::text, true);
+  perform set_config('passage.test_urgent_first_task_id', v_first_task_id::text, true);
   perform set_config('passage.test_urgent_case_key', v_case_key::text, true);
 end
 $authority_matrix$;
@@ -687,12 +721,15 @@ declare
   v_request_id uuid := current_setting('passage.test_urgent_request_id')::uuid;
   v_private_request_id uuid := current_setting('passage.test_private_urgent_request_id')::uuid;
   v_workflow_id uuid := current_setting('passage.test_urgent_workflow_id')::uuid;
+  v_first_task_id uuid := current_setting('passage.test_urgent_first_task_id')::uuid;
 begin
   if (select count(*) from public.urgent_intake_requests where id in (v_request_id, v_private_request_id)) <> 2
      or (select count(*) from public.workflows where id = v_workflow_id) <> 1
+     or (select count(*) from public.tasks where id = v_first_task_id and workflow_id = v_workflow_id) <> 1
+     or (select count(*) from public.workflow_events where task_id = v_first_task_id and name = 'task.created') <> 1
      or (select count(*) from public.urgent_intake_events where urgent_intake_request_id = v_request_id) <> 3
      or (select count(*) from public.urgent_intake_events where urgent_intake_request_id = v_private_request_id) <> 1 then
-    raise exception 'Postgres final request/workflow/event cardinality changed';
+    raise exception 'Postgres final request/workflow/task/event cardinality changed';
   end if;
 end
 $postgres_final_cardinality$;

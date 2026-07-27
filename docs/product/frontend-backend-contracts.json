@@ -1181,18 +1181,20 @@
           "app/director/urgent/page.tsx",
           "app/director/urgent/[requestId]/page.tsx",
           "app/director/urgent/UrgentForms.tsx",
-          "app/director/urgent/actions.ts"
+          "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx"
         ],
         "files": [
           "app/director/urgent/page.tsx",
           "app/director/urgent/[requestId]/page.tsx",
           "app/director/urgent/UrgentForms.tsx",
           "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx",
           "lib/urgent/hosted.ts"
         ],
-        "note": "Queue and detail loaders filter the viewer's exact organization before rendering; Server Actions re-resolve owner/director authority and database commands enforce the same receiver boundary."
+        "note": "Queue and detail loaders filter the viewer's exact organization before rendering; Server Actions re-resolve owner/director authority and database commands enforce the same receiver boundary. A newly created authorized workflow opens its Case Room even before the first task exists, while a mismatched supplied task remains closed."
       },
-      "action_status": "submitted -> claimed -> case_created, with one version increment and immutable event per successful command",
+      "action_status": "submitted -> claimed -> case_created, with one version increment; case creation atomically opens one unassigned first commitment and returns both durable IDs",
       "server_command": [
         "public.claim_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_request_id uuid)",
         "public.create_case_from_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_request_id uuid)"
@@ -1200,6 +1202,7 @@
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
         "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727194332_urgent_case_first_commitment.sql",
         "app/director/urgent/actions.ts",
         "lib/urgent/hosted.ts"
       ],
@@ -1213,23 +1216,32 @@
           "cardinality": "one case workflow in the receiving organization and an authorized location per successful creation key"
         },
         {
+          "table": "tasks",
+          "cardinality": "one unassigned, version-1 first commitment in the created workflow per successful case-creation key"
+        },
+        {
           "table": "urgent_intake_events",
           "cardinality": "one immutable claim and one immutable case-created event per successful unique command key"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one immutable task.created event keyed to the urgent request and first task"
         }
       ],
       "rls_authority_predicate": "Queue/detail SELECT and claim require wants_callback=true, non-self_handling state, and active owner/director membership where organization_id equals the Packet-1 Northstar receiver. Case creation additionally requires manage authority for a location in Northstar.",
       "append_only_event": {
         "applicable": true,
         "table": "urgent_intake_events",
-        "event_type": "urgent_intake.claimed and urgent_intake.case_created",
-        "idempotency_key": "urgent_intake_claim:<request UUID> or urgent_intake_case_create:<request UUID>"
+        "event_type": "urgent_intake.claimed, urgent_intake.case_created, and task.created",
+        "idempotency_key": "urgent_intake_claim:<request UUID>, urgent_intake_case_create:<request UUID>, or urgent_intake_first_task:<urgent request UUID>"
       },
       "failure_recovery_states": [
         "wrong organization, staff role, revoked member, or unaffiliated user sees zero request/event rows",
         "wrong organization/role claim and case commands return 42501 with no row, workflow, or event mutation",
         "stale versions conflict atomically and reload returns the durable current state",
-        "same-key replay returns the original claim or workflow receipt only when expected version and every normalized payload field match and the caller still has current organization/location authority; otherwise 22023 or 42501 with no mutation",
-        "claimed organization is constrained to equal the explicit receiver"
+        "same-key replay returns the original claim or workflow-and-first-task receipt only when expected version and every normalized payload field match and the caller still has current organization/location authority; otherwise 22023 or 42501 with no mutation",
+        "claimed organization is constrained to equal the explicit receiver",
+        "an authorized newly created workflow with zero tasks opens a truthful case-ready state; an explicitly requested task outside that workflow fails closed"
       ],
       "persona_projection": "Only Northstar's active owner/director sees callback requests, contact detail, claim control, and case-creation control. Self-handling remains requester-only; all staff, revoked members, other organizations, and unrelated users see zero rows.",
       "evidence_test_references": [
@@ -1245,6 +1257,42 @@
             ".neq('status', 'self_handling')",
             ".eq('claimed_organization_id', organizationId)",
             "loadUrgentIntakeRequest(client: SupabaseClient, id: string, organizationId: string)"
+          ]
+        },
+        {
+          "file": "app/director/cases/[workflowId]/page.tsx",
+          "includes": [
+            "if (query.task && !selectedTask) return <Closed />;",
+            "The case is open. No work has been assigned yet.",
+            "You can send a vendor request below",
+            "<CreatePartnerRequestForm"
+          ]
+        },
+        {
+          "file": "app/director/urgent/actions.ts",
+          "includes": [
+            "first_task_id: string",
+            "!receipt?.workflow_id || !receipt.first_task_id",
+            "firstTaskId: receipt.first_task_id"
+          ]
+        },
+        {
+          "file": "app/director/urgent/UrgentForms.tsx",
+          "includes": [
+            "Create the case and its first commitment.",
+            "Open the case and assign the first commitment",
+            "Nothing is sent automatically."
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727194332_urgent_case_first_commitment.sql",
+          "includes": [
+            "first_task_id uuid",
+            "insert into public.tasks",
+            "'urgent_intake_first_task:' || v_request.id::text",
+            "'task.created'",
+            "'first_task_id', v_first_task_id",
+            "urgent_intake_backfill"
           ]
         },
         {
@@ -1278,9 +1326,9 @@
             "Northstar director can see requester-private self-handling rows",
             "Expected direct event insert denial",
             "Expected append-only event delete denial",
-            "Case replay conflict changed request/workflow/event cardinality",
+            "Case replay conflict changed request/workflow/task/event cardinality",
             "Expected revoked-location case replay denial",
-            "Postgres final request/workflow/event cardinality changed",
+            "Postgres final request/workflow/task/event cardinality changed",
             "Urgent helper ACL/search_path posture drifted"
           ]
         }

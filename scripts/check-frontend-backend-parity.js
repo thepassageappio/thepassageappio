@@ -159,6 +159,42 @@ const REQUIRED_CONTRACT_SOURCE_BINDINGS = {
       ],
     },
     {
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      includes: [
+        'if (query.task && !selectedTask) return <Closed />;',
+        'The case is open. No work has been assigned yet.',
+        'You can send a vendor request below',
+        '<CreatePartnerRequestForm',
+      ],
+    },
+    {
+      file: 'app/director/urgent/actions.ts',
+      includes: [
+        'first_task_id: string',
+        '!receipt?.workflow_id || !receipt.first_task_id',
+        'firstTaskId: receipt.first_task_id',
+      ],
+    },
+    {
+      file: 'app/director/urgent/UrgentForms.tsx',
+      includes: [
+        'Create the case and its first commitment.',
+        'Open the case and assign the first commitment',
+        'Nothing is sent automatically.',
+      ],
+    },
+    {
+      file: 'supabase/migrations/20260727194332_urgent_case_first_commitment.sql',
+      includes: [
+        'first_task_id uuid',
+        'insert into public.tasks',
+        "'urgent_intake_first_task:' || v_request.id::text",
+        "'task.created'",
+        "'first_task_id', v_first_task_id",
+        'urgent_intake_backfill',
+      ],
+    },
+    {
       file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
       includes: [
         'member_row.organization_id = v_request.receiving_organization_id',
@@ -189,9 +225,9 @@ const REQUIRED_CONTRACT_SOURCE_BINDINGS = {
         'Northstar director can see requester-private self-handling rows',
         'Expected direct event insert denial',
         'Expected append-only event delete denial',
-        'Case replay conflict changed request/workflow/event cardinality',
+        'Case replay conflict changed request/workflow/task/event cardinality',
         'Expected revoked-location case replay denial',
-        'Postgres final request/workflow/event cardinality changed',
+        'Postgres final request/workflow/task/event cardinality changed',
         'Urgent helper ACL/search_path posture drifted',
       ],
     },

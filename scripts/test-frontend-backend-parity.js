@@ -478,6 +478,30 @@ function testUrgentOrganizationBoundaryParityMutations() {
     },
     {
       contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/cases/[workflowId]/page.tsx',
+      source: 'The case is open. No work has been assigned yet.',
+      name: 'authorized zero-task case state',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/urgent/actions.ts',
+      source: 'firstTaskId: receipt.first_task_id',
+      name: 'first-commitment Server Action receipt',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'app/director/urgent/UrgentForms.tsx',
+      source: 'Open the case and assign the first commitment',
+      name: 'first-commitment recovery link',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
+      file: 'supabase/migrations/20260727194332_urgent_case_first_commitment.sql',
+      source: "'first_task_id', v_first_task_id",
+      name: 'atomic first-task replay receipt',
+    },
+    {
+      contractId: 'packet1.director.urgent_claim_and_case',
       file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
       source: 'member_row.organization_id = v_request.receiving_organization_id',
       name: 'exact-organization claim predicate',
