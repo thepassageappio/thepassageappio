@@ -16,7 +16,7 @@ type Phase = 'checking' | 'needs-auth' | 'ready' | 'already-saved';
 
 export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl: string; publishableKey: string }) {
   const router = useRouter();
-  const { draft } = useStartWizard();
+  const { draft, hydrated } = useStartWizard();
   const [phase, setPhase] = useState<Phase>('checking');
   const [existing, setExisting] = useState<ExistingRequest | null>(null);
   const [requestId] = useState(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`));
@@ -28,6 +28,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
   const [state, formAction, pending] = useActionState(submitUrgentIntake, initialState);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!draft.situationCategory) { router.replace('/start/situation'); return; }
     let cancelled = false;
     async function check() {
@@ -50,7 +51,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
     check();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft.situationCategory]);
+  }, [draft.situationCategory, hydrated]);
 
   async function handleAuth(event: FormEvent) {
     event.preventDefault();
@@ -69,7 +70,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
     setPhase('ready');
   }
 
-  if (!draft.situationCategory) return null;
+  if (!hydrated || !draft.situationCategory) return null;
   const guidance = situationGuidance(draft.situationCategory as SituationCategory);
 
   return (
