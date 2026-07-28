@@ -774,7 +774,16 @@
   .reviewBoundary > section:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
 
   .passPage { padding: 20px 20px 70px; }
-  .passStatus > span:last-child { overflow: hidden; max-width: 150px; text-overflow: ellipsis; white-space: nowrap; }
+  .passStatus { align-items: flex-start; padding-block: 12px; }
+  .passStatus > span:last-child {
+    flex: 1 1 150px;
+    min-width: 0;
+    max-width: 55%;
+    overflow-wrap: anywhere;
+    text-align: right;
+    white-space: normal;
+    line-height: 1.4;
+  }
   .passHero { display: flex; flex-direction: column; min-height: 0; padding: 48px 0 60px; }
   .passCopy { width: 100%; }
   .passCopy h1 { font-size: clamp(44px, 13vw, 62px); line-height: 1; }

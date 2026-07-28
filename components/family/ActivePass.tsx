@@ -7,12 +7,12 @@ import { EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { selectFamilyStatus } from '../../lib/passage-zero';
 import { membership } from '../../lib/sandbox/repository';
+import { formatDemoExpiry, normalizeDemoTransferDraft } from '../../lib/presentation/demo-expiry';
 
 const FALLBACK_PASS: TransferDraft = {
   recipientId: 'northstar',
   scopeIds: ['identity', 'care', 'wishes'],
   expiryId: '72h',
-  activatedAt: '2026-07-15T11:30:00.000Z',
 };
 
 function PassCode() {
@@ -33,6 +33,7 @@ export default function ActivePass() {
   const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
   const familyStatus = selectFamilyStatus(record);
   const [pass, setPass] = useState<TransferDraft>(FALLBACK_PASS);
+  const [savedInThisSession, setSavedInThisSession] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const revoked = record.transferPass.status === 'revoked';
@@ -41,9 +42,23 @@ export default function ActivePass() {
   useEffect(() => {
     try {
       const stored = window.sessionStorage.getItem('passage.family.transfer.v1');
-      if (stored) setPass(JSON.parse(stored) as TransferDraft);
+      if (stored) {
+        const normalized = normalizeDemoTransferDraft(JSON.parse(stored));
+        const recognized = normalized
+          && RECIPIENTS.some((item) => item.id === normalized.recipientId)
+          && normalized.scopeIds.every((scopeId) => SCOPES.some((item) => item.id === scopeId));
+        if (normalized && recognized) {
+          setPass(normalized);
+          setSavedInThisSession(true);
+        } else {
+          window.sessionStorage.removeItem('passage.family.transfer.v1');
+          setPass(FALLBACK_PASS);
+          setSavedInThisSession(false);
+        }
+      }
     } catch {
       setPass(FALLBACK_PASS);
+      setSavedInThisSession(false);
     }
   }, []);
 
@@ -53,6 +68,7 @@ export default function ActivePass() {
 
   const recipient = useMemo(() => RECIPIENTS.find((item) => item.id === pass.recipientId) ?? RECIPIENTS[0], [pass.recipientId]);
   const expiry = useMemo(() => EXPIRIES.find((item) => item.id === pass.expiryId) ?? EXPIRIES[1], [pass.expiryId]);
+  const expiryMoment = pass.expiresAt ? formatDemoExpiry(pass.expiresAt) ?? expiry.moment : expiry.moment;
   const included = useMemo(() => SCOPES.filter((item) => pass.scopeIds.includes(item.id)), [pass.scopeIds]);
   const excluded = useMemo(() => SCOPES.filter((item) => !pass.scopeIds.includes(item.id)), [pass.scopeIds]);
 
@@ -86,8 +102,8 @@ export default function ActivePass() {
     <main className={styles.passPage} id="active-pass">
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
-        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : `Closes ${expiry.moment}`}</span>
+        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : savedInThisSession ? 'HANDOFF ACTIVE' : 'HANDOFF EXAMPLE'}</strong>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : savedInThisSession ? `Closes ${expiryMoment}` : `Create it to start the ${expiry.label} window`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -139,11 +155,13 @@ export default function ActivePass() {
       <section className={styles.passControls} aria-labelledby="control-heading">
         <div>
           <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
-          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
-          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : 'Closing this example handoff is immediate and changes only this browser demo.'}</span>
+          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : savedInThisSession ? 'Need to stop access?' : 'Start with your own example choices.'}</h2>
+          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : savedInThisSession ? 'Closing this example handoff is immediate and changes only this browser demo.' : 'Choose the receiver, what they can open, and the access window. Nothing is sent and no real record changes.'}</span>
         </div>
         {record.transferPass.status === 'accepted' ? (
           <a className={styles.exitPass} href="/demo/family">Return to family demo</a>
+        ) : !savedInThisSession ? (
+          <a className={styles.exitPass} href="/demo/family">Create this example handoff</a>
         ) : !confirming ? (
           <button className={styles.revokeButton} onClick={() => setConfirming(true)} type="button">Close this handoff</button>
         ) : (

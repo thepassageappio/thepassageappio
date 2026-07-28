@@ -30,6 +30,7 @@ const familyIntent = read('components/family/FamilyIntentJourney.tsx');
 const transferComposer = read('components/family/TransferComposer.tsx');
 const activePass = read('components/family/ActivePass.tsx');
 const familyTypes = read('components/family/types.ts');
+const demoExpiry = require('../lib/presentation/demo-expiry');
 const demoModel = read('lib/demo.ts');
 const urgentNext = read('app/start/next/UrgentNextClient.tsx');
 const startContext = read('app/start/StartWizardContext.tsx');
@@ -86,6 +87,42 @@ assert(demoFamilyPass.includes('Private browser demo · choices stay on this dev
 assert(familyIntent.includes('nothing is sent or shared'));
 assert(familyIntent.includes('does not contact anyone, create a case, or send a handoff—even after you finish'));
 assert(activePass.includes('No real funeral home or family record was contacted or changed.'));
+assert(activePass.includes("'HANDOFF EXAMPLE'"));
+assert(activePass.includes('Create it to start the ${expiry.label} window'));
+assert(activePass.includes('Create this example handoff'));
+assert(!/\bnew Date\(|Date\.now\(|toLocale(?:Date|Time|String)/.test(familyTypes));
+assert(!/suppressHydrationWarning/.test(`${familyTypes}\n${transferComposer}\n${activePass}`));
+assert.equal((transferComposer.match(/\bnew Date\(\)\.toISOString\(\)/g) ?? []).length, 1);
+const activatedAt = '2026-07-27T03:38:00.000Z';
+assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '24h'), '2026-07-28T03:38:00.000Z');
+assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '72h'), '2026-07-30T03:38:00.000Z');
+assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '7d'), '2026-08-03T03:38:00.000Z');
+assert.equal(demoExpiry.deriveDemoExpiry('not-a-date', '72h'), null);
+assert.equal(
+  demoExpiry.normalizeDemoTransferDraft(
+    { recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt },
+  ).expiresAt,
+  '2026-07-30T03:38:00.000Z',
+);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({}), null);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: 'unknown', activatedAt }), null);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt: 'invalid' }), null);
+assert.equal(
+  demoExpiry.normalizeDemoTransferDraft({
+    recipientId: 'northstar',
+    scopeIds: ['identity'],
+    expiryId: '72h',
+    activatedAt,
+    expiresAt: '2026-07-31T03:38:00.000Z',
+  }),
+  null,
+);
+const formattedExpiry = demoExpiry.formatDemoExpiry('2026-07-30T03:38:00.000Z');
+assert.match(formattedExpiry, /Jul 29, 2026/);
+assert.match(formattedExpiry, /PDT/);
+for (const source of [familyTypes, activePass]) {
+  assert(!/\bnew Date\(|Date\.now\(|toLocale(?:Date|Time|String)/.test(source));
+}
 
 for (const [route, target] of [
   ['app/resources/page.tsx', '/guides'],
@@ -104,6 +141,10 @@ const familyFloor = familyStyles.slice(familyStyles.indexOf('The private browser
 for (const selector of ['.skipLink', '.wordmark', '.steps button', '.stageActions button', '.passObject > button', '.revokePanel button', '.closedPage > a']) assert(familyFloor.includes(selector));
 assert(familyFloor.includes('.closedPage > a { min-height: 48px;'));
 assert(familyFloor.includes('.closedPage > a { font-size: 14px;'));
+const mobilePassStatus = familyStyles.slice(familyStyles.indexOf('.passStatus { align-items: flex-start;'));
+assert(mobilePassStatus.includes('white-space: normal;'));
+assert(mobilePassStatus.includes('overflow-wrap: anywhere;'));
+assert(!mobilePassStatus.slice(0, mobilePassStatus.indexOf('.passHero')).includes('text-overflow: ellipsis'));
 
 assert(layout.includes("@fontsource/cormorant-garamond/500.css"));
 assert(layout.includes("@fontsource/montserrat/400.css"));

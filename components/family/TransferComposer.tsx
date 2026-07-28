@@ -6,6 +6,7 @@ import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
 import { DEFAULT_DRAFT, EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
+import { deriveDemoExpiry, formatDemoExpiry } from '../../lib/presentation/demo-expiry';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -59,14 +60,20 @@ export default function TransferComposer() {
   function activate() {
     if (!recipient || !expiry || included.length === 0) return;
     setActivating(true);
-    const activated: TransferDraft = { ...draft, activatedAt: new Date().toISOString() };
+    const activatedAt = new Date().toISOString();
+    const expiresAt = deriveDemoExpiry(activatedAt, expiry.id);
+    if (!expiresAt) {
+      setActivating(false);
+      return;
+    }
+    const activated: TransferDraft = { ...draft, activatedAt, expiresAt };
     window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
     dispatch({
       type: 'issue_transfer_pass',
       actorId: 'maya-rivera',
       idempotencyKey: `family:issue:${activated.activatedAt}`,
       scope: included.map((item) => ({ name: item.label, detail: item.detail })),
-      expiresLabel: expiry.moment,
+      expiresLabel: formatDemoExpiry(expiresAt) ?? expiry.moment,
     });
     router.push('/demo/family/pass');
   }
