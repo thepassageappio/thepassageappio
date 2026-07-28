@@ -1733,7 +1733,7 @@ Exact next action and auto-advance:
 
 ### Urgent/red receiver submit P1 — product-only publication split — 2026-07-28
 
-Status: **AD41 INDEPENDENT QA FAIL / 55312 REVIEW RETURN / SECOND REPLACEMENT DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This packet is not hosted, deployed, merged, or release-approved.
+Status: **AD41 INDEPENDENT QA FAIL / 55312 AND E00099 REVIEW RETURNS / THIRD REPLACEMENT DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This packet is not hosted, deployed, merged, or release-approved.
 
 Role instance and handoff:
 
@@ -1744,6 +1744,7 @@ Role instance and handoff:
 - This product-only branch starts from exact `greenfield/passage-zero` base `520a3bf2d12c51a427f7ad08a8f1dea1fe44d311`. It preserves the complete urgent product/data/parity repair and excludes `.github/workflows`, repository-governance doctrine, and governance-infrastructure tests. The separate governance correction remains independently tracked; this packet does not delete, revert, weaken, or supersede it.
 - Independent QA rejected first product-only head `ad41b55d245913e07a1ab81a57f48a785ef70413`: its broad `urgent_family_organization_boundary.sql` test hard-required the separately developed `urgent_case_first_commitment` migration even though that migration is absent from exact base `520a3bf...`. The test therefore was not reproducible from the candidate’s committed migration stack. Every approval path tied to `ad41b55...` is stale.
 - Reviewer returned replacement head `55312cba131dc08ff61064bbcf967d02833244e6`: the narrowed matrix proved requester, exact receiver leader, wrong-organization, and unrelated-user projection, but did not execute the PM-required signed-out submit denial or same-organization active-staff and revoked-leader helper/RLS/command denials. Every approval path tied to `55312cb...` is stale.
+- Reviewer returned second replacement head `e00099f18e78248ff260d915bffec89dea69e76e`: it added the anon, staff, and revoked-leader denials but omitted direct wrong-organization director rejection on the callback claim command and exact-receiver director rejection on the private `self_handling` request. Every approval path tied to `e00099f...` is stale.
 
 PM Sprint Brief:
 
@@ -1796,7 +1797,7 @@ Replacement Development Engineer verification for returned head `55312cb...`:
 - Server Action exports, operational-route fail-closed matrix, persona-language, runtime isolation, Vercel deploy gate 16/16, agent-context, release-train non-PR classification, existing release-governance regression, `git diff --check`, and TypeScript `tsc --noEmit`: PASS.
 - The receiver migration remains unchanged at Git blob `fdd3c978f7a703882dec30c45ac289519f6fab4f`. No SQL was run or applied; the exact rollback-only matrix remains for Independent QA execution against the guarded isolated project.
 
-Second replacement denial verification:
+Second replacement denial verification for returned head `e00099f...`:
 
 - Updated narrow SQL test Git blob: `a79d4c2b28ccb13cace56bfa99f2cb05a327fe46`.
 - Runtime anon role invokes the public submit signature and must receive `insufficient_privilege`; a postgres cardinality check proves the denied key created no request.
@@ -1804,9 +1805,16 @@ Second replacement denial verification:
 - The family projection is then restored and proves the callback remains `submitted` version 1, the private save remains `self_handling` version 1, neither is claimed, and each retains exactly one submission event. Final postgres cardinality remains two requests and two events.
 - Parity 17/17, Server Action exports, operational route, persona language, runtime isolation, Vercel deploy gate 16/16, agent context, release-train classification, existing governance regression, `git diff --check`, and TypeScript: PASS. No SQL was executed.
 
+Third replacement paired-command verification:
+
+- Updated narrow SQL test Git blob: `7a9d9cca9fbcfd1c89f7d203f926087753ab31a7`.
+- The active Northstar director receives `42501` when attempting to claim the private `self_handling` request. The active wrong-organization director receives `42501` when attempting to claim the callback request.
+- After those paired direct-command denials plus the existing staff/revoked denials, the family re-read proves callback `submitted` version 1, private `self_handling` version 1, neither claimed, one event each, and final two-request/two-event cardinality.
+- Parity 17/17, Server Action exports, operational route, persona language, runtime isolation, Vercel deploy gate 16/16, agent context, release-train classification, existing governance regression, `git diff --check`, and TypeScript: PASS. No SQL was executed.
+
 Release truth:
 
-- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale head `55312cb...`; second replacement Engineering gates PASS and independent QA NOT RUN.
+- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale heads `55312cb...` and `e00099f...`; third replacement Engineering gates PASS and independent QA NOT RUN.
 - **Hosted Preview QA:** NOT RUN for this product-only candidate.
 - **Production Deployment:** NOT DEPLOYED.
 - **Production QA:** NOT RUN.

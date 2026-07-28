@@ -550,9 +550,11 @@ Independent QA rejected product-only head `ad41b55d245913e07a1ab81a57f48a785ef70
 
 Reviewer then returned replacement head `55312cba131dc08ff61064bbcf967d02833244e6` because its narrow matrix omitted three PM-required runtime denials: signed-out anon submission, same-organization active-staff receiver helper/RLS/claim-command denial, and revoked-leader receiver helper/RLS/claim-command denial. The next replacement adds those exact identities and proves both callback/private request and event cardinality remain unchanged after every denial. No broader claim/case success path enters this P1.
 
+Reviewer returned second replacement head `e00099f18e78248ff260d915bffec89dea69e76e` because it still lacked paired direct-command evidence: a wrong-organization active director must receive `42501` when claiming the callback request, and an active director of the exact receiver must receive `42501` when claiming the private `self_handling` request. The third replacement adds only those commands and then re-proves callback `submitted` version 1, private `self_handling` version 1, neither claimed, and final two-request/two-event cardinality.
+
 Release truth for this P1:
 
-- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale head `55312cb...`; second replacement Engineering gates PASS and independent QA is required.
+- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale heads `55312cb...` and `e00099f...`; third replacement Engineering gates PASS and independent QA is required.
 - **Hosted Preview QA:** NOT RUN for the product-only candidate.
 - **Production Deployment:** NOT DEPLOYED.
 - **Production QA:** NOT RUN.

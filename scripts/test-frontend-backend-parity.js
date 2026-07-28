@@ -395,7 +395,9 @@ function testRealUrgentReceiverEvidenceScope() {
     && source.includes('Same-organization active staff command denial failed')
     && source.includes('Revoked Northstar leader helper or RLS denial failed')
     && source.includes('Revoked Northstar leader command denial failed')
-    && source.includes('Staff or revoked-leader denials changed request/event cardinality')
+    && source.includes('Exact receiver director private-request command denial failed')
+    && source.includes('Wrong-organization active director claim command denial failed')
+    && source.includes('Receiver command denials changed request status, version, or event cardinality')
     && source.includes('Final receiver-submit request/event cardinality changed')
     && source.trimEnd().endsWith('rollback;');
   const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')

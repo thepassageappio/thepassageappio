@@ -1062,6 +1062,8 @@
         "missing, malformed, or non-allowlisted receiver -> no request or event",
         "same request key with changed normalized input -> conflict with original rows unchanged",
         "same request key with identical input -> original receipt and no duplicate event",
+        "wrong-organization active director -> callback claim command denied and cardinality unchanged",
+        "active leader of the exact receiver -> private self_handling claim command denied and cardinality unchanged",
         "same-organization staff and revoked leaders -> receiver helper false, no receiver projection, claim command denied, and cardinality unchanged",
         "uncertain event-time read -> reload exact request before retrying",
         "reload resolves creation_request_id for the signed-in requester rather than a newer unrelated request"
@@ -1103,7 +1105,9 @@
             "Signed-out anon submit denial failed",
             "Same-organization active staff command denial failed",
             "Revoked Northstar leader command denial failed",
-            "Staff or revoked-leader denials changed request/event cardinality",
+            "Exact receiver director private-request command denial failed",
+            "Wrong-organization active director claim command denial failed",
+            "Receiver command denials changed request status, version, or event cardinality",
             "Exact receiving director callback/private RLS boundary failed",
             "Final receiver-submit request/event cardinality changed",
             "rollback;"

@@ -332,6 +332,8 @@ declare
   v_wrong_receiver_key constant uuid := 'b2000103-b200-4100-8100-000000000103';
   v_staff_claim_key constant uuid := 'b2000105-b200-4100-8100-000000000105';
   v_revoked_claim_key constant uuid := 'b2000106-b200-4100-8100-000000000106';
+  v_private_claim_key constant uuid := 'b2000107-b200-4100-8100-000000000107';
+  v_wrong_director_claim_key constant uuid := 'b2000108-b200-4100-8100-000000000108';
   v_callback_request_id uuid;
   v_private_request_id uuid;
   v_receipt record;
@@ -586,6 +588,16 @@ begin
   ) <> 0 then
     raise exception 'Exact receiving director callback/private RLS boundary failed';
   end if;
+  begin
+    perform public.claim_urgent_intake_idempotent(
+      v_private_request_id,
+      1,
+      v_private_claim_key
+    );
+    raise exception 'Exact receiver director private-request command denial failed';
+  exception
+    when sqlstate '42501' then null;
+  end;
 
   perform set_config('request.jwt.claim.sub', v_wrong_director::text, true);
   if (
@@ -599,6 +611,16 @@ begin
   ) <> 0 then
     raise exception 'Wrong-organization director can see receiver-bound rows';
   end if;
+  begin
+    perform public.claim_urgent_intake_idempotent(
+      v_callback_request_id,
+      1,
+      v_wrong_director_claim_key
+    );
+    raise exception 'Wrong-organization active director claim command denial failed';
+  exception
+    when sqlstate '42501' then null;
+  end;
 
   perform set_config('request.jwt.claim.sub', v_northstar_staff::text, true);
   if passage_private.is_active_urgent_leader_of_organization(v_northstar)
@@ -674,7 +696,7 @@ begin
     from public.urgent_intake_events
     where urgent_intake_request_id = v_private_request_id
   ) <> 1 then
-    raise exception 'Staff or revoked-leader denials changed request/event cardinality';
+    raise exception 'Receiver command denials changed request status, version, or event cardinality';
   end if;
 
   perform set_config('request.jwt.claim.sub', v_outsider::text, true);
