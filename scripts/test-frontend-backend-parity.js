@@ -360,6 +360,51 @@ function testRealUrgentReceiverBinding() {
   );
 }
 
+function testRealUrgentReceiverEvidenceScope() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const narrowTestPath = path.join(
+    repoRoot,
+    'supabase',
+    'tests',
+    'urgent_receiver_submit_boundary.sql'
+  );
+  const broadTestPath = path.join(
+    repoRoot,
+    'supabase',
+    'tests',
+    'urgent_family_organization_boundary.sql'
+  );
+  let source;
+  try {
+    source = fs.readFileSync(narrowTestPath, 'utf8');
+  } catch (err) {
+    report('integration: narrow urgent receiver-submit evidence is readable', false, err.message);
+    return;
+  }
+
+  const bindsExactCommittedStack = source.includes("where name = 'urgent_family_thin_slice'")
+    && source.includes("where name = 'urgent_receiving_organization_boundary'")
+    && source.includes('public.submit_urgent_intake_idempotent(uuid,text,text,text,text,text,text,text,text,boolean,uuid)');
+  const coversSubmissionContract = source.includes('Expected non-allowlisted receiver denial')
+    && source.includes('Exact callback replay was not idempotent')
+    && source.includes('Expected changed callback replay conflict')
+    && source.includes('Exact private replay was not idempotent')
+    && source.includes('Exact receiving director callback/private RLS boundary failed')
+    && source.includes('Final receiver-submit request/event cardinality changed')
+    && source.trimEnd().endsWith('rollback;');
+  const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')
+    && !source.includes('create_case_from_urgent_intake_idempotent')
+    && !source.includes('public.workflows')
+    && !source.includes('public.tasks')
+    && !fs.existsSync(broadTestPath);
+
+  report(
+    'integration: urgent receiver-submit SQL evidence is narrow and source-reproducible',
+    bindsExactCommittedStack && coversSubmissionContract && excludesSeparateCaseLane,
+    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} excludesSeparateCaseLane=${excludesSeparateCaseLane}`
+  );
+}
+
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
@@ -386,6 +431,7 @@ function main() {
     testRealLedger();
     testRealPendingInvitationProjection();
     testRealUrgentReceiverBinding();
+    testRealUrgentReceiverEvidenceScope();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }

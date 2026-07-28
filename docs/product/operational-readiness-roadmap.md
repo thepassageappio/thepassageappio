@@ -544,11 +544,13 @@ As of this entry, every item on the 2026-07-26 honest punch list is closed excep
 
 This entry supersedes the “urgent/red persona is DONE” claim immediately above. At exact PR #24 base `520a3bf2d12c51a427f7ad08a8f1dea1fe44d311`, `/start/next` does not pass the receiving-organization argument required by the receiver-bound `submit_urgent_intake_idempotent` function already present in the isolated test environment. The crisis-flow’s primary submit therefore fails before creating the family request.
 
-The bounded repair restores the exact Northstar receiver field and server validation, stable request identity, exact-key reload/replay recovery, authoritative append-only event time, callback-versus-private audience language, requester/receiver RLS boundary, parity regression, and the reviewed migration/rollback-test artifacts. It is split from the separately tracked workflow-governance correction so the least-privilege Passage Release Bot can publish product work without modifying a trusted workflow; the governance correction is neither deleted nor weakened.
+The bounded repair restores the exact Northstar receiver field and server validation, stable request identity, exact-key reload/replay recovery, authoritative append-only event time, callback-versus-private audience language, requester/receiver RLS boundary, parity regression, and the retained receiver-boundary migration. Its rollback-only evidence is intentionally limited to callback/private submission, replay/conflict, request/event cardinality, and receiver/private RLS against the exact committed source stack. It is split from the separately tracked workflow-governance correction so the least-privilege Passage Release Bot can publish product work without modifying a trusted workflow; the governance correction is neither deleted nor weakened.
+
+Independent QA rejected product-only head `ad41b55d245913e07a1ab81a57f48a785ef70413` because its broad urgent-family test required the separate first-commitment migration even though that migration is absent from the exact `greenfield/passage-zero` base. The broad test is removed from this P1 and replaced by `supabase/tests/urgent_receiver_submit_boundary.sql`, which preflights only the committed urgent thin slice and receiver-boundary migration. Claim/case/workflow/task first-commitment work remains a separate unresolved migration and evidence lane. This hotfix does not claim that broader migration drift is closed.
 
 Release truth for this P1:
 
-- **Source QA:** independent exact-head QA required.
+- **Source QA:** FAIL for stale head `ad41b55...`; replacement Engineering gates PASS and independent replacement-head QA is required.
 - **Hosted Preview QA:** NOT RUN for the product-only candidate.
 - **Production Deployment:** NOT DEPLOYED.
 - **Production QA:** NOT RUN.

@@ -1066,7 +1066,7 @@
       ],
       "persona_projection": "The family sees whether Northstar receives the callback request or cannot see a private save. Active Northstar leaders see callback requests only; staff, revoked members, other organizations, vendors, participants, and unrelated users see no row.",
       "evidence_test_references": [
-        "supabase/tests/urgent_family_organization_boundary.sql",
+        "supabase/tests/urgent_receiver_submit_boundary.sql",
         "scripts/test-frontend-backend-parity.js"
       ],
       "source_assertions": [
@@ -1091,6 +1091,16 @@
             "add column receiving_organization_id uuid",
             "p_receiving_organization_id uuid",
             "alter column receiving_organization_id set not null"
+          ]
+        },
+        {
+          "file": "supabase/tests/urgent_receiver_submit_boundary.sql",
+          "includes": [
+            "urgent_receiving_organization_boundary",
+            "Expected non-allowlisted receiver denial",
+            "Exact receiving director callback/private RLS boundary failed",
+            "Final receiver-submit request/event cardinality changed",
+            "rollback;"
           ]
         }
       ]
