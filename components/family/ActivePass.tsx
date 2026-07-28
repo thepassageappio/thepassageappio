@@ -57,6 +57,11 @@ export default function ActivePass() {
         }
       }
     } catch {
+      try {
+        window.sessionStorage.removeItem('passage.family.transfer.v1');
+      } catch {
+        // Storage can be disabled; the honest in-memory example remains usable.
+      }
       setPass(FALLBACK_PASS);
       setSavedInThisSession(false);
     }

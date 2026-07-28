@@ -98,6 +98,18 @@ assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '24h'), '2026-07-28T03:38:
 assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '72h'), '2026-07-30T03:38:00.000Z');
 assert.equal(demoExpiry.deriveDemoExpiry(activatedAt, '7d'), '2026-08-03T03:38:00.000Z');
 assert.equal(demoExpiry.deriveDemoExpiry('not-a-date', '72h'), null);
+for (const malformedInstant of [
+  '0',
+  '2026-02-30T00:00:00.000Z',
+  '2026-07-27',
+  '2026-07-27T03:38:00-07:00',
+  '2026-07-27T03:38:00Z',
+]) {
+  assert.equal(demoExpiry.canonicalIsoInstant(malformedInstant), null);
+  assert.equal(demoExpiry.deriveDemoExpiry(malformedInstant, '72h'), null);
+}
+assert.equal(demoExpiry.canonicalIsoInstant(activatedAt), activatedAt);
+assert.equal(demoExpiry.deriveDemoExpiry('9999-12-31T23:59:59.999Z', '72h'), null);
 assert.equal(
   demoExpiry.normalizeDemoTransferDraft(
     { recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt },
@@ -105,6 +117,9 @@ assert.equal(
   '2026-07-30T03:38:00.000Z',
 );
 assert.equal(demoExpiry.normalizeDemoTransferDraft({}), null);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt: '9999-12-31T23:59:59.999Z' }), null);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt: '0' }), null);
+assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt: '2026-02-30T00:00:00.000Z' }), null);
 assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: 'unknown', activatedAt }), null);
 assert.equal(demoExpiry.normalizeDemoTransferDraft({ recipientId: 'northstar', scopeIds: ['identity'], expiryId: '72h', activatedAt: 'invalid' }), null);
 assert.equal(
@@ -120,6 +135,8 @@ assert.equal(
 const formattedExpiry = demoExpiry.formatDemoExpiry('2026-07-30T03:38:00.000Z');
 assert.match(formattedExpiry, /Jul 29, 2026/);
 assert.match(formattedExpiry, /PDT/);
+assert(activePass.includes("window.sessionStorage.removeItem('passage.family.transfer.v1');"));
+assert(activePass.includes('Storage can be disabled; the honest in-memory example remains usable.'));
 for (const source of [familyTypes, activePass]) {
   assert(!/\bnew Date\(|Date\.now\(|toLocale(?:Date|Time|String)/.test(source));
 }

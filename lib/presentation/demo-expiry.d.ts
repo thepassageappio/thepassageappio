@@ -1,5 +1,7 @@
 export const DEMO_EXPIRY_TIME_ZONE: 'America/Los_Angeles';
 
+export function canonicalIsoInstant(value: unknown): string | null;
+
 export function deriveDemoExpiry(activatedAt: string, expiryId: string): string | null;
 
 export function formatDemoExpiry(expiresAt: string): string | null;
