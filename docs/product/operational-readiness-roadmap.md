@@ -539,3 +539,19 @@ This entry follows minutes after the correction above and closes three more item
 **Item 6 closed: the Cycle 8 M3 evidence gap is filled.** PR #65 merged, adding `docs/product/passage-zero-cycle8-m3-evidence-2026-07-26.md`. That document reports 8/8 correct denial-matrix results — six denial cases (wrong-org director, wrong-location director, revoked-membership staff, wrong-org staff, unassigned staff, and revoked-location-grant director) plus two positive controls — obtained via direct SQL against the real RLS-enforced read path in the isolated QA project, with four of the six denials (both denial reasons, on both routes) additionally corroborated live in a hosted browser showing clean, plain-language denial screens with no raw ids or engineering jargon. Reload-persistence was confirmed on both `/director/cases/[id]` and `/staff/work/[id]` via fresh authenticated navigations, with no stale or blank intermediate state. The 1440/390/360 responsive pass itself could not be obtained live — the pass's browser sandbox is hard-capped at 640×480 and rejects resizing even up to 1440×900 outright, a confirmed tooling limitation the evidence document flags explicitly as environmental, not a product gap. In its place, the document substitutes code-level evidence: both routes render through the same shared stylesheet, `app/proof-loop.module.css`, which has explicit breakpoints at 900px (collapsing the two-column case layout to one column) and 620px (stacking the hero and facts grid, collapsing actions to one column, and tightening panel padding) that directly cover the 390/360 portion of the acceptance bar, with the fluid, non-fixed-width layout above 900px giving no indication of overflow risk at 1440.
 
 As of this entry, every item on the 2026-07-26 honest punch list is closed except item 1 — the owner-only governance gates on PR #24 (Development Head approval, founder bootstrap attestation, live branch-protection/Bot activation, and separate founder Production authorization), which remains explicitly owner-only and outside this document's authority to close or advance — and item 2, refreshing PR #24's body, which has also been done separately.
+
+### Urgent/red completion invalidated by receiver submit P1 — 2026-07-28
+
+This entry supersedes the “urgent/red persona is DONE” claim immediately above. At exact PR #24 base `520a3bf2d12c51a427f7ad08a8f1dea1fe44d311`, `/start/next` does not pass the receiving-organization argument required by the receiver-bound `submit_urgent_intake_idempotent` function already present in the isolated test environment. The crisis-flow’s primary submit therefore fails before creating the family request.
+
+The bounded repair restores the exact Northstar receiver field and server validation, stable request identity, exact-key reload/replay recovery, authoritative append-only event time, callback-versus-private audience language, requester/receiver RLS boundary, parity regression, and the reviewed migration/rollback-test artifacts. It is split from the separately tracked workflow-governance correction so the least-privilege Passage Release Bot can publish product work without modifying a trusted workflow; the governance correction is neither deleted nor weakened.
+
+Release truth for this P1:
+
+- **Source QA:** independent exact-head QA required.
+- **Hosted Preview QA:** NOT RUN for the product-only candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL; PR #24 is not ready.
+
+This is a defect correction, not a product-direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. No readiness score advances. The next gate is exact-head independent source/SQL/RLS review, followed by one non-production Preview and hosted first-submit/replay/reload/denial/cardinality/1440/390/360 proof.

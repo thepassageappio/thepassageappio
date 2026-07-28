@@ -330,6 +330,36 @@ function testRealPendingInvitationProjection() {
   );
 }
 
+function testRealUrgentReceiverBinding() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const clientPath = path.join(repoRoot, 'app', 'start', 'next', 'UrgentNextClient.tsx');
+  const actionPath = path.join(repoRoot, 'app', 'start', 'actions.ts');
+  let clientSource;
+  let actionSource;
+  try {
+    clientSource = fs.readFileSync(clientPath, 'utf8');
+    actionSource = fs.readFileSync(actionPath, 'utf8');
+  } catch (err) {
+    report('integration: urgent receiver form/action sources are readable', false, err.message);
+    return;
+  }
+
+  const hiddenReceiverField = clientSource.includes(
+    '<input name="receivingOrganizationId" type="hidden" value={PREVIEW_RECEIVING_ORGANIZATION.id} />'
+  );
+  const actionReadsReceiver = actionSource.includes(
+    "const receivingOrganizationId = String(formData.get('receivingOrganizationId') ?? '');"
+  );
+  const rpcReceivesReceiver = actionSource.includes(
+    'p_receiving_organization_id: receivingOrganizationId'
+  );
+  report(
+    'integration: urgent callback receiver stays bound from hidden form field to RPC argument',
+    hiddenReceiverField && actionReadsReceiver && rpcReceivesReceiver,
+    `hiddenReceiverField=${hiddenReceiverField} actionReadsReceiver=${actionReadsReceiver} rpcReceivesReceiver=${rpcReceivesReceiver}`
+  );
+}
+
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
@@ -355,6 +385,7 @@ function main() {
     console.log('Integration test (real repository ledger):');
     testRealLedger();
     testRealPendingInvitationProjection();
+    testRealUrgentReceiverBinding();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }

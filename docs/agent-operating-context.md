@@ -1,6 +1,6 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-18 (America/Los_Angeles)
+Last updated: 2026-07-28 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
@@ -1730,3 +1730,65 @@ Exact next action and auto-advance:
 - Independent Product/Strategy QA `/root/qa_v5_revenue_strategy`: **PASS** after three precision corrections: After.com is labeled competitor/first-party positioning; the provider advance gate repeats the online-first operator threshold; and the roadmap distinguishes earlier gated research from downstream implementation.
 - Allocation is Now: close Cycle 8 and implement the first bounded M3 slice. Next: M4 plus research-only provider/V3 simulation and isolated Locker/Help a Friend prototypes. Later: one evidence-backed integration, a bounded non-custodial Locker pilot, and disclosed community education. Do not fund yet: V4 network infrastructure, paid ranking, live custodian actions, secret custody, paid creator acquisition, or a standalone viral helper loop.
 - This packet changes no Cycle 8 status, milestone target, July 23 owner-test target, score, pricing, provider relationship, campaign, database, deployment, or Production state. Cycle 8 remains PARTIAL; funeral home remains 94% guided / 40% operational; D2C remains 85% guided / 25% operational. Implementation remains held behind M3-M6, founder review, and the applicable evidence gates.
+
+### Urgent/red receiver submit P1 — product-only publication split — 2026-07-28
+
+Status: **DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This packet is not hosted, deployed, merged, or release-approved.
+
+Role instance and handoff:
+
+- Product Manager: `/root`, urgent/red submit P1. PM invalidated the earlier “urgent/red done” claim after the receiver-bound database command and `/start/next` Server Action were proven out of parity.
+- UI/UX Review: `/root/qa_demo_expiry_finalizer`, **PASS TO ENGINEERING WITH CONDITIONS**. The acceptance bar requires a named Northstar callback action, an explicitly private alternative, durable receipt time, exact reload recovery, accessible pending/error states, 48-pixel targets, visible focus, and zero overflow at 1440/390/360.
+- Development Engineer: `/root/urgent_product_only_split`.
+- Prior Engineering/QA/Review handoff received: combined candidate `c337760767bcf00f22f418a94f40ef78b509f463` contained a source-complete urgent repair, but the Passage Release Bot could not publish it because that commit also modified a trusted workflow and the Bot installation lacks the narrowly required workflow-file permission.
+- This product-only branch starts from exact `greenfield/passage-zero` base `520a3bf2d12c51a427f7ad08a8f1dea1fe44d311`. It preserves the complete urgent product/data/parity repair and excludes `.github/workflows`, repository-governance doctrine, and governance-infrastructure tests. The separate governance correction remains independently tracked; this packet does not delete, revert, weaken, or supersede it.
+
+PM Sprint Brief:
+
+- **Goal:** restore the signed-in family’s core urgent action so one deliberate choice either requests a callback from Northstar Funeral Home or saves the guidance privately, with durable request/event proof and truthful recovery.
+- **Requirements/components:** exact allowlisted receiver ID in wizard/form/Server Action/RPC; stable persisted request UUID; exact-key recovery; authoritative append-only event time; callback-versus-private audience copy; requester/receiver RLS boundary; replay/conflict/reload behavior; frontend/backend parity and operational-route regressions.
+- **Development objectives:** repair the smallest coherent product contract; keep the existing urgent tables, typed action, RPC, event spine, warm visual system, and persona boundaries; add no client-side authority or parallel urgent model.
+- **Acceptance:** source regression detects a missing receiver field or RPC argument; first submit creates one request and one event; exact replay is stable; changed replay conflicts without partial mutation; callback is visible only to requester plus an active leader of the exact receiver; private save remains requester-only; reload shows the same request and durable event time; signed-out, forged receiver, wrong organization, staff, revoked, and unrelated identities are denied; 1440/390/360 comprehension/accessibility/runtime checks pass.
+- **Dependencies:** exact base above; isolated project `uyacxqtsiwlvtmhxvoxr`; the already-applied and reviewed receiver-bound migration; canonical non-production Vercel Preview path.
+- **QA plan:** independent diff inspection; deterministic source gates; exact migration/test blob comparison; rollback-only SQL/RLS matrix; then exact-head hosted first-submit/replay/reload, director visibility, private non-visibility, cardinality, logs, and 1440/390/360 evidence.
+- **Deploy plan:** Passage Release Bot publishes a bounded draft PR against `greenfield/passage-zero`; exact-head Independent QA, Independent Agent Review, and Development Head decide before one branch-only non-production Preview. No `[qa-approved]` precedes hosted proof.
+- **Risks/recovery:** a source-only form change can drift from the already-applied function; regenerated request identity breaks idempotency; “latest request” recovery can show unrelated data; a successful mutation followed by failed proof re-read is uncertain and must direct reload, not duplicate submission.
+- **Non-goals/owner gates:** no new schema design, SQL application, Production, live email/SMS, public provider activation, pricing, billing, access-scope expansion, legal/medical claim, or broad urgent redesign. No owner gate is reached by this bounded non-production repair.
+- **Roadmap classification:** no material product-direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. The roadmap is touched only to invalidate the false completion claim and record the P1’s truthful release state.
+
+Documentation-first database artifact gate:
+
+- **What:** restore `20260727030000_urgent_receiving_organization_boundary.sql` and its rollback-only `urgent_family_organization_boundary.sql` regression to source.
+- **Why the frontend needs it:** `/start/next` must name and bind the exact receiving funeral home, while private saves remain requester-only.
+- **What breaks if skipped:** the UI calls a database signature that source control cannot reproduce or audit, and hosted behavior can drift from migrations.
+- **Risk:** reapplying already-present DDL or widening a `SECURITY DEFINER` boundary would be unsafe.
+- **Recovery:** no SQL is applied in this packet; independent QA compares the exact source artifacts and runs the test in a rollback-only transaction before any later release step.
+- **Data boundary and target:** synthetic isolated project `uyacxqtsiwlvtmhxvoxr` only. Production project `qsveqfchwylsbncsfgxe` is prohibited and untouched.
+
+Development handoff:
+
+- Product/UI files: `app/start/Start.module.css`, `app/start/StartWizardContext.tsx`, `app/start/actions.ts`, `app/start/next/UrgentNextClient.tsx`, and `lib/urgent/situations.ts`.
+- Contract/gates: `docs/product/frontend-backend-contracts.json`, `scripts/test-frontend-backend-parity.js`, and `scripts/test-operational-route-gate.js`.
+- Database artifacts: `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_family_organization_boundary.sql`.
+- Context/roadmap: this handoff and the matching readiness correction. No `.github` file is included.
+- The form now carries and the Server Action validates the allowlisted Northstar receiver before passing `p_receiving_organization_id`. The stable wizard request UUID drives exact recovery. Receipts read the matching append-only event time. Callback and private actions state who can see the saved request, and uncertain post-mutation recovery directs reload.
+
+Engineering verification:
+
+- `git diff HEAD --check`: PASS; 12 tracked files, no `.github`, `AGENTS.md`, release-governance doctrine, or governance-infrastructure test change.
+- Frontend/backend parity: PASS, 16/16, including the receiver field-to-Server-Action-to-RPC regression.
+- Server Action export guard: PASS; ten prohibited fixtures rejected and both Cycle 8 actions bound.
+- Operational route gate, persona-language guard, runtime isolation, Vercel deploy gate 16/16, agent-context guard, release-train non-PR classification, and the existing release-governance regression: PASS.
+- TypeScript `tsc --noEmit`: PASS.
+- All ten product/contract/guard/SQL artifacts match the independently source-approved combined candidate `c337760767bcf00f22f418a94f40ef78b509f463` by exact Git blob ID. The restored migration is `fdd3c978f7a703882dec30c45ac289519f6fab4f`; the rollback-only SQL test is `382c8dc44cb0920debbd64a952a07c00945ea0fc`.
+- A fresh optimized Next.js 16.1.6 build reached compilation but could not fetch Cormorant Garamond and Montserrat from Google Fonts because this isolated shell has no outbound connection. The failure named only those two remote font fetches; it did not report a source, type, route, or application compile error. The combined candidate’s prior optimized build applies to the executable product files only after exact blob equality is rechecked; independent QA and hosted Vercel build remain required for this new head.
+- No migration or test SQL was executed or applied by this Development Engineer.
+
+Release truth:
+
+- **Source QA:** ENGINEERING DETERMINISTIC GATES PASS / FRESH LOCAL BUILD ENVIRONMENT PARTIAL; independent QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN for this product-only candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA. No Claude-in-Chrome or other external-agent assistance was used by this Development Engineer.
