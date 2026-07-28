@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { AssignTaskForm } from './CommandForms';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
-import { humanAudience, humanAutomationLevel, humanizePreviewIdentity, humanizePreviewLabel, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
+import { humanAudience, humanAutomationLevel, humanFamilyName, humanizePreviewIdentity, humanizePreviewLabel, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import styles from '../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -42,11 +42,11 @@ export default async function DirectorPage() {
             const authorizedCandidates = activeStaff.filter((member) => member.id !== task.assigned_organization_member_id && grants.some((grant) => grant.organization_member_id === member.id && grant.organization_location_id === workflow?.organization_location_id && !grant.revoked_at));
             return (
               <article className={styles.workCard} key={task.id}>
-                <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'CASE'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Authorized location'}</span><b data-state={task.status}>{task.assigned_organization_member_id ? humanTaskStatus(task.status) : 'Unassigned'}</b></div>
+                <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'Case'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Your location'}</span><b data-state={task.status}>{task.assigned_organization_member_id ? humanTaskStatus(task.status) : 'Unassigned'}</b></div>
                 <div className={styles.cardBody}>
                   <p>{humanWorkflowPhase(workflow?.phase)}</p><h3>{task.title ?? 'Untitled commitment'}</h3>
                   <dl className={styles.facts}>
-                    <div><dt>Case</dt><dd>{workflow?.family_name ?? 'Family'} family · {workflow?.person_name ?? 'Person withheld'}</dd></div>
+                    <div><dt>Case</dt><dd>{humanFamilyName(workflow?.family_name)} · {workflow?.person_name ?? 'Person withheld'}</dd></div>
                     <div><dt>Owner</dt><dd>{currentOwner}</dd></div>
                     <div><dt>Waiting</dt><dd>{task.waiting_party ?? 'Nobody recorded'}</dd></div>
                     <div><dt>Due</dt><dd>{formatOperationalTime(task.due_at)}</dd></div>
@@ -56,7 +56,7 @@ export default async function DirectorPage() {
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                   </dl>
                 </div>
-                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} />}
+                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} workflowId={task.workflow_id} />}
                 <div className={styles.startForm}><p>Review this task, its submitted proof, and its saved history.</p><Link className={styles.primaryLink} href={`/director/cases/${task.workflow_id}?task=${task.id}#proof`}>Review task</Link></div>
               </article>
             );

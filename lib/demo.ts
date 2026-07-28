@@ -1,4 +1,4 @@
-export type PersonaId = 'family' | 'director' | 'staff' | 'receive';
+export type PersonaId = 'family' | 'director' | 'staff' | 'vendor';
 
 export type Persona = {
   id: PersonaId;
@@ -7,7 +7,8 @@ export type Persona = {
   role: string;
   action: string;
   detail: string;
-  href: string;
+  href?: string;
+  demoPersona?: 'family' | 'director' | 'staff' | 'vendor';
   state: 'origin' | 'active' | 'ready' | 'destination';
 };
 
@@ -19,39 +20,37 @@ export type ContinuityStep = {
 };
 
 export const demoCase = {
-  id: 'NS-2051',
   person: 'Sofia Rivera',
-  location: 'Northstar · Portland',
-  familyLead: 'Maya Rivera',
-  lastSync: '08:42 AM',
+  location: 'Northstar Funeral Home',
+  lastSync: 'Ready to explore',
 };
 
 export const personas: Persona[] = [
   {
-    id: 'family', order: '01', name: 'Maya', role: 'Family coordinator',
-    action: 'Control what moves', detail: 'Review the record, choose what to share, and follow every handoff.',
-    href: '/family', state: 'origin',
+    id: 'family', order: '01', name: 'Family help', role: 'Begin privately',
+    action: 'Start without signing in', detail: 'Use made-up details only. At the last step, continue with the private browser demo or sign in to an existing demo account. No email is sent.',
+    href: '/start', state: 'origin',
   },
   {
-    id: 'director', order: '02', name: 'Elena', role: 'Accountable director',
-    action: 'See the whole case', detail: 'Orient instantly, resolve decisions, and protect the family from repetition.',
-    href: '/director', state: 'active',
+    id: 'director', order: '02', name: 'Director', role: 'Funeral-home lead',
+    action: 'Open the director demo', detail: 'See urgent requests, assign work, and review saved confirmation.',
+    demoPersona: 'director', state: 'active',
   },
   {
-    id: 'staff', order: '03', name: 'Marcus', role: 'Assigned operator',
-    action: 'Keep promises moving', detail: 'Work from one next commitment with ownership and visible proof.',
-    href: '/staff', state: 'ready',
+    id: 'staff', order: '03', name: 'Staff', role: 'Assigned team member',
+    action: 'Open the staff demo', detail: 'See only assigned work, take the next step, and save confirmation.',
+    demoPersona: 'staff', state: 'ready',
   },
   {
-    id: 'receive', order: '04', name: 'Elena', role: 'Receiving director',
-    action: 'Receive with confidence', detail: 'Accept a consented handoff and return a durable receipt.',
-    href: '/receive', state: 'destination',
+    id: 'vendor', order: '04', name: 'Vendor', role: 'Outside service partner',
+    action: 'Open the vendor demo', detail: 'Respond to one request, quote the work, and submit delivery confirmation.',
+    demoPersona: 'vendor', state: 'destination',
   },
 ];
 
 export const continuity: ContinuityStep[] = [
-  { id: 'consent', label: 'Family handoff', meta: 'ISSUED', state: 'complete' },
-  { id: 'intake', label: 'Case accepted', meta: 'NS-2051', state: 'complete' },
-  { id: 'coordination', label: 'Commitment owned', meta: 'MARCUS', state: 'active' },
-  { id: 'handoff', label: 'Proof review', meta: 'NEXT', state: 'upcoming' },
+  { id: 'consent', label: 'Family asks for help', meta: 'Shared by choice', state: 'complete' },
+  { id: 'intake', label: 'Funeral home responds', meta: 'One clear owner', state: 'complete' },
+  { id: 'coordination', label: 'Team completes the work', meta: 'In progress', state: 'active' },
+  { id: 'handoff', label: 'Family sees confirmation', meta: 'Next', state: 'upcoming' },
 ];

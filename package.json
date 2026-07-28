@@ -11,12 +11,16 @@
     "test:persona-language": "node scripts/check-persona-language.js",
     "test:agent-context": "node scripts/check-agent-context.js",
     "test:runtime-config": "node scripts/test-runtime-config.js",
+    "test:packet-demo-vendor": "node scripts/test-release-packet-demo-vendor.js",
+    "test:public-conversion": "node scripts/test-public-conversion.js",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
     "test:server-actions": "node scripts/test-use-server-exports.js"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/montserrat": "5.3.0",
     "@supabase/ssr": "0.12.3",
     "@supabase/supabase-js": "2.110.7",
     "next": "16.1.6",

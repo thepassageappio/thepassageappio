@@ -47,7 +47,7 @@ export const SCOPES: ScopeItem[] = [
   { id: 'care', label: 'Current care', detail: 'Care location, receiving contact, and transport notes.' },
   { id: 'wishes', label: 'Service wishes', detail: 'The ceremony and memorial preferences saved so far.' },
   { id: 'documents', label: 'Selected documents', detail: 'Only the identification and planning files you choose.' },
-  { id: 'notes', label: 'Family notes', detail: 'Private reflections and conversations in the family space.' },
+  { id: 'notes', label: 'Family notes', detail: 'Private reflections and conversations in this browser demo.' },
 ];
 
 const EXPIRY_DURATIONS: { id: string; label: string; hours: number }[] = [

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { SituationCategory } from '@/lib/urgent/situations';
 
 export type StartDraft = {
+  requestId: string;
   situationCategory: SituationCategory | '';
   personName: string;
   personLocation: string;
@@ -15,6 +16,7 @@ export type StartDraft = {
 };
 
 const EMPTY_DRAFT: StartDraft = {
+  requestId: '',
   situationCategory: '',
   personName: '',
   personLocation: '',
@@ -43,9 +45,13 @@ export function StartWizardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.sessionStorage.getItem(STORAGE_KEY);
-      if (raw) setDraft({ ...EMPTY_DRAFT, ...JSON.parse(raw) });
+      const stored = raw ? { ...EMPTY_DRAFT, ...JSON.parse(raw) } : EMPTY_DRAFT;
+      setDraft({
+        ...stored,
+        requestId: stored.requestId || window.crypto.randomUUID(),
+      });
     } catch {
-      // Ignore malformed or unavailable storage; the wizard just starts fresh.
+      setDraft({ ...EMPTY_DRAFT, requestId: window.crypto.randomUUID() });
     }
     setHydrated(true);
   }, []);
@@ -64,7 +70,7 @@ export function StartWizardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reset = useCallback(() => {
-    setDraft(EMPTY_DRAFT);
+    setDraft({ ...EMPTY_DRAFT, requestId: window.crypto.randomUUID() });
     try {
       window.sessionStorage.removeItem(STORAGE_KEY);
     } catch {

@@ -11,11 +11,11 @@ type BoundarySignalProps = {
 
 export default function BoundarySignal({ recipient, included, excluded, expiry, active = false }: BoundarySignalProps) {
   return (
-    <aside className={active ? styles.signalActive : styles.signal} aria-label={active ? 'Active handoff boundary' : 'Handoff boundary preview'}>
+    <aside className={active ? styles.signalActive : styles.signal} aria-label={active ? 'Example handoff boundary' : 'Browser demo handoff boundary'}>
       <div className={styles.signalLight} aria-hidden="true" />
       <div className={styles.signalHeader}>
         <span>FAMILY CONTROL</span>
-        <strong>{active ? 'LIVE' : 'BUILDING'}</strong>
+        <strong>{active ? 'OPEN' : 'NOT OPEN YET'}</strong>
       </div>
 
       <div className={styles.signalRoute} aria-hidden="true">

@@ -17,7 +17,7 @@ const FALLBACK_PASS: TransferDraft = {
 
 function PassCode() {
   return (
-    <svg className={styles.passQr} viewBox="0 0 184 184" role="img" aria-label="Transfer Pass QR code placeholder">
+    <svg className={styles.passQr} viewBox="0 0 184 184" role="img" aria-label="Example QR code. It cannot be scanned outside this demo.">
       <rect className={styles.qrBackground} width="184" height="184" rx="6" />
       <g className={styles.qrCode}>
         <path d="M18 18h50v50H18zm10 10v30h30V28zM116 18h50v50h-50zm10 10v30h30V28zM18 116h50v50H18zm10 10v30h30v-30z" />
@@ -72,22 +72,22 @@ export default function ActivePass() {
 
   if (revoked) {
     return (
-      <main className={styles.closedPage}>
+      <main className={styles.closedPage} id="active-pass">
         <div className={styles.closedSignal} aria-hidden="true"><span /></div>
         <p>HANDOFF CLOSED / 04</p>
         <h1 ref={closedHeading} tabIndex={-1}>This pass cannot be opened now.</h1>
-        <span>{recipient.organization} can no longer use its QR or manual code. Sofia's family record has not changed.</span>
-        <a href="/family">Create a new handoff <i aria-hidden="true">-&gt;</i></a>
+        <span>{recipient.organization} can no longer use this example QR or manual code. Sofia&apos;s example information has not changed.</span>
+        <a href="/demo/family">Create a new example handoff <i aria-hidden="true">-&gt;</i></a>
       </main>
     );
   }
 
   return (
-    <main className={styles.passPage}>
+    <main className={styles.passPage} id="active-pass">
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
         <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : `Closes ${expiry.moment}`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -105,9 +105,9 @@ export default function ActivePass() {
 
         <div className={styles.passObject}>
           <div className={styles.passLight} aria-hidden="true" />
-          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'USED' : 'LIVE'}</strong></div>
+          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'RECEIVED' : 'READY'}</strong></div>
           <PassCode />
-          <span className={styles.scanLabel}>SCAN TO OPEN</span>
+          <span className={styles.scanLabel}>EXAMPLE CODE · DEMO ONLY</span>
           <div className={styles.manualCode}>
             <span>MANUAL CODE</span>
             <strong>{record.transferPass.code}</strong>
@@ -140,16 +140,16 @@ export default function ActivePass() {
         <div>
           <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
           <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
-          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved confirmation and will guide what happens next.` : record.transferPass.status === 'accepted' ? 'Northstar received only the approved handoff. Your family is waiting for the arrangement meeting time.' : 'Closing this pass is immediate. Your family record remains in place.'}</span>
+          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : 'Closing this example handoff is immediate and changes only this browser demo.'}</span>
         </div>
         {record.transferPass.status === 'accepted' ? (
-          <a className={styles.exitPass} href="/family">Return to family space</a>
+          <a className={styles.exitPass} href="/demo/family">Return to family demo</a>
         ) : !confirming ? (
           <button className={styles.revokeButton} onClick={() => setConfirming(true)} type="button">Close this handoff</button>
         ) : (
           <div className={styles.revokePanel} role="group" aria-labelledby="confirm-revoke-heading">
             <strong id="confirm-revoke-heading">Close access now?</strong>
-            <span>The QR and manual code will stop working.</span>
+            <span>The example QR and manual code will stop working in this browser demo.</span>
             <div>
               <button onClick={() => setConfirming(false)} type="button">Keep open</button>
               <button onClick={revoke} type="button">Yes, close it</button>

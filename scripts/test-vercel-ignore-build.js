@@ -8,6 +8,11 @@ const verificationMessage = 'test: hosted invitation verification [deploy] [cycl
 
 const cases = [
   { name: 'approved preview', expected: 1, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: approvedMessage } },
+  { name: 'bounded release-candidate verification preview', expected: 1, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/10h-delivery', VERCEL_GIT_COMMIT_MESSAGE: verificationMessage } },
+  { name: 'release candidate missing verification marker', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/10h-delivery', VERCEL_GIT_COMMIT_MESSAGE: 'release: packet one [deploy]' } },
+  { name: 'release candidate missing deploy marker', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/10h-delivery', VERCEL_GIT_COMMIT_MESSAGE: 'test: packet one [cycle-7a-verification-preview]' } },
+  { name: 'release candidate QA marker cannot pre-approve hosted QA', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/10h-delivery', VERCEL_GIT_COMMIT_MESSAGE: approvedMessage } },
+  { name: 'other release branch remains closed', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/other', VERCEL_GIT_COMMIT_MESSAGE: verificationMessage } },
   { name: 'owner-authorized verification preview', expected: 1, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: verificationMessage } },
   { name: 'skip marker wins', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: `${approvedMessage} [skip deploy]` } },
   { name: 'unmarked preview', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: 'docs: update context' } },
@@ -20,6 +25,7 @@ const cases = [
   { name: 'wrong project', expected: 0, env: { VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: 'prj_not_passage', VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: approvedMessage } },
   { name: 'approved production release', expected: 1, env: { VERCEL_ENV: 'production', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'main', VERCEL_GIT_COMMIT_MESSAGE: approvedMessage } },
   { name: 'feature branch cannot target production', expected: 0, env: { VERCEL_ENV: 'production', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'greenfield/passage-zero', VERCEL_GIT_COMMIT_MESSAGE: approvedMessage } },
+  { name: 'release candidate cannot target production', expected: 0, env: { VERCEL_ENV: 'production', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'release/10h-delivery', VERCEL_GIT_COMMIT_MESSAGE: verificationMessage } },
   { name: 'verification marker cannot target production', expected: 0, env: { VERCEL_ENV: 'production', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'main', VERCEL_GIT_COMMIT_MESSAGE: verificationMessage } },
   { name: 'verification plus QA cannot target production', expected: 0, env: { VERCEL_ENV: 'production', VERCEL_PROJECT_ID: canonicalProjectId, VERCEL_GIT_COMMIT_REF: 'main', VERCEL_GIT_COMMIT_MESSAGE: `${verificationMessage} [qa-approved]` } },
   { name: 'local build', expected: 1, env: { VERCEL_ENV: 'development', VERCEL_GIT_COMMIT_MESSAGE: 'local build' } },

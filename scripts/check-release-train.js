@@ -27,14 +27,17 @@ const requiredSections = [
   '## Development Handoff',
   '## QA Handoff',
   '## Independent Agent Review',
-  '## Founder Review',
-  '## Production Authorization',
+  '## Development Head / Release Authority',
+  '## Production Review',
   '## Loop Status',
   '## Deploy Decision',
 ];
 
 for (const section of requiredSections) {
   if (!body.includes(section)) fail(`Missing PR section: ${section}`);
+}
+if (/^##\s+(Founder|Human|Owner)\s+Review\b/im.test(body) || /Founder Review:/i.test(body)) {
+  fail('Routine founder/human/owner review is retired. Use Development Head and Production Review.');
 }
 
 if (isDraft) {
@@ -49,7 +52,7 @@ const requiredCheckedItems = [
   'Independent QA handoff completed',
   'Agent context updated',
   'Independent agent review completed',
-  'Founder review requested',
+  'Development Head review completed',
 ];
 
 function escapeRegExp(value) {
@@ -64,15 +67,54 @@ for (const item of requiredCheckedItems) {
 if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) fail('UX Status must be PASS or N/A.');
 if (!/QA Status:\s*PASS/i.test(body)) fail('QA Status must be PASS. Failed QA returns to Product Manager.');
 if (!/Independent Agent Review Status:\s*PASS/i.test(body)) fail('Independent Agent Review Status must be PASS.');
-const agentReviewerMatch = body.match(/Agent Reviewer:\s*\/?([A-Za-z0-9_\/-]+)/i);
-if (!agentReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewerMatch[1])) fail('Name the distinct agent reviewer.');
-const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+const roleValue = (label) => String((body.match(new RegExp(`${label}:\\s*([^\\r\\n]+)`, 'i')) || [])[1] || '').trim();
+const isMissingRole = (value) => !value || /^(UNASSIGNED|TBD|NONE|NOT RUN)$/i.test(value);
+const author = roleValue('Author/Implementer');
+const qaAgent = roleValue('QA Agent');
+const agentReviewer = roleValue('Agent Reviewer');
+const developmentHead = roleValue('Development Head');
+const deployAgent = roleValue('Deploy Agent');
+for (const [label, value] of [
+  ['Author/Implementer', author],
+  ['QA Agent', qaAgent],
+  ['Agent Reviewer', agentReviewer],
+  ['Development Head', developmentHead],
+  ['Deploy Agent', deployAgent],
+]) {
+  if (isMissingRole(value)) fail(`Name the distinct ${label}.`);
+}
+const normalizedRoles = [author, qaAgent, agentReviewer, developmentHead, deployAgent]
+  .map((value) => value.toLowerCase());
+if (new Set(normalizedRoles).size !== normalizedRoles.length) {
+  fail('Author, QA, Independent Agent Reviewer, Development Head, and Deploy must be distinct role instances.');
+}
+const reviewedHead = String((body.match(/Agent Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
 const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
 if (!actualHead || reviewedHead !== actualHead) fail('Independent Agent Review must match the current PR head SHA.');
-const founderReviewerMatch = body.match(/Founder Reviewer:\s*@?([A-Za-z0-9-]+)/i);
-if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
-if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+if (!/Development Head Status:\s*PASS/i.test(body)) fail('Development Head Status must be PASS.');
+const developmentHeadReviewedHead = String((body.match(/Development Head Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+if (!actualHead || developmentHeadReviewedHead !== actualHead) fail('Development Head approval must match the current PR head SHA.');
+const prAuthorIdentity = roleValue('PR Author Identity');
+const mergeExecutorIdentity = roleValue('Merge Executor Identity');
+if (isMissingRole(prAuthorIdentity) || isMissingRole(mergeExecutorIdentity)) {
+  fail('Record both PR Author Identity and Merge Executor Identity.');
+}
+if (prAuthorIdentity.toLowerCase() === mergeExecutorIdentity.toLowerCase()) {
+  fail('The PR author identity must not execute its own merge.');
+}
 if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
+
+const productionPromotion = roleValue('Production Promotion').toUpperCase();
+if (!['YES', 'NO'].includes(productionPromotion)) fail('Production Promotion must be YES or NO.');
+if (productionPromotion === 'YES') {
+  if (!/\[[xX]\]\s*Production review completed/.test(body)) fail('Production promotion requires completed Production Review.');
+  if (!/Production Review Status:\s*PASS/i.test(body)) fail('Production Review Status must be PASS.');
+  const productionReviewer = roleValue('Production Reviewer');
+  if (isMissingRole(productionReviewer)) fail('Name the distinct Production Reviewer.');
+  if (normalizedRoles.includes(productionReviewer.toLowerCase())) fail('Production Reviewer must be distinct from the delivery role chain.');
+  const productionHead = String((body.match(/Production Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+  if (productionHead !== actualHead) fail('Production Review must match the current PR head SHA.');
+}
 
 const cycleMatch = body.match(/Cycle:\s*([0-9]+)/i);
 const cycle = cycleMatch ? Number(cycleMatch[1]) : NaN;

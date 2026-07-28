@@ -8,18 +8,65 @@ Do not port the legacy Pages Router structure into Passage Zero. The historical 
 
 Every Passage Zero slice must advance the reachable persona UI, server-authorized command or query, durable state, RLS/authority predicate, append-only event or proof for mutations, recovery behavior, responsive projection, and parity-ledger entry together. A backend-only capability must be labeled `backend_only`; a UI state without durable proof fails QA. Production remains untouched until an explicitly approved production release train passes.
 
+## Delivery-first release loop — 2026-07-26 (owner-approved; binding)
+
+Owner directive: “the focus is develop qa release repeat and to get a full finished end to end product delivered to me in 10 hours.”
+
+The only product-progress unit is an exact artifact that completes this loop:
+
+1. **Develop:** finish one bounded, reachable end-to-end slice, including its authorized server/data contract, recovery behavior, responsive projection, and parity evidence.
+2. **Independent QA:** a distinct role tests the exact head and returns actionable failures or candidate approval.
+3. **Release:** publish that exact approved head to the truthful non-production Passage Zero Preview. A commit, pull request, merge, source test, or Vercel `READY` state alone is not a release outcome.
+4. **Hosted verification:** independently exercise the released slice at 1440, 390, and 360, including the applicable cross-persona, persistence, denial, recovery, console, runtime, accessibility, and comprehension gates.
+5. **Repeat:** PM immediately scopes the next highest-value gap from hosted evidence.
+
+Delivery controls:
+
+- Maintain one active integration candidate, one independent QA lane, and one next PM-scoped slice. Research, speculative architecture, standalone docs, and parallel feature branches may not displace a known hosted release blocker.
+- Uncommitted implementation may not accumulate across cycles. Before the next slice begins, the preceding work is either released and hosted-verified, explicitly rejected and reverted in its clean lane, or preserved on a named branch/PR with a truthful `SOURCE ONLY` or `PREVIEW PARTIAL` status.
+- Every two-hour interval must end with a new exact hosted artifact and verification result, or an evidence-backed blocker plus an immediate PM re-scope to work that can still reach Preview. Activity, files changed, tests run, migrations applied, and agent count are not substitutes for delivery.
+- A review that arrives after merge invalidates the merge-readiness verdict. Any P0/P1 finding reopens the candidate immediately; the next release packet must correct it before unrelated feature work advances.
+- The GitHub identity that authored a pull request must never merge it. Review and merge must occur before the integration branch publishes a `[deploy] [qa-approved]` candidate, not after.
+- Every owner update leads with: exact released commit and deployment; Source QA; Hosted Preview QA; Production Deployment; Production QA; Overall release state; end-to-end flows proven; and remaining blockers. Never describe source-only work as shipped, released, live, or delivered.
+- The first line of every progress update is either `Released: <exact URL> @ <commit/deployment>` or `Released: nothing.` Source, SQL, docs, local tests, and merges are never listed under Released.
+- Docs-only PRs are forbidden during an active delivery reset unless they directly unblock the current candidate. Stale side PRs must be merged through the reviewed lane, closed, or explicitly superseded in the same cycle.
+- The ten-hour target does not authorize invented readiness or skipped gates. It requires aggressive scope discipline: ship the strongest complete cross-persona product possible, then state any remaining gap plainly.
+
 ## Post-audit repository and language controls — 2026-07-18 (owner-approved)
 
-The durable policy is `docs/product/release-governance-and-plain-language-policy.md`. It supersedes any historical instruction that permits agents or schedules to ship directly to `main`, treats agent review as founder approval, allows overlapping greenfield initiatives to merge independently, or permits persona copy to expose internal implementation language.
+The durable policy is `docs/product/release-governance-and-plain-language-policy.md`. It supersedes any historical instruction that permits agents or schedules to ship directly to `main`, substitutes owner review for the required agent role chain, allows overlapping greenfield initiatives to merge independently, or permits persona copy to expose internal implementation language.
 
-- Agents and scheduled jobs must never push directly to `main`. After the one-time PR #25 governance bootstrap, they must author commits and pull requests only through the dedicated Passage GitHub App/Bot identity, never through the founder's GitHub User credentials. Founder review is the sole human review of Bot-authored pull requests. Independent agent review remains mandatory and separately labeled; it never counts as founder approval. A merge approval is not Production authorization: Production additionally requires the founder's approval through the protected Production environment or release gate for the exact commit.
-- One-time governance bootstrap exception: PR #25 may install the Bot-author/founder-review controls before that identity and ruleset exist. It must remain governance-only, pass exact-head independent agent QA and deterministic checks, use `[skip deploy]`, receive an explicit recorded founder bootstrap attestation, and make no product, runtime, database, or Production configuration change. The exception expires when PR #25 is merged or closed and may never be reused.
+- Agents and scheduled jobs must never push directly to `main`. They author commits and pull requests only through the dedicated Passage GitHub App/Bot identity, never through the owner's GitHub User credentials. Independent Agent Review remains mandatory and separately labeled. A distinct Development Head / Release Authority agent then approves or rejects the exact reviewed head through the existing `Passage Review Agent / merge-review` check. The Development Head must be separate from the author/implementer, QA, Independent Agent Reviewer, and Deploy role. No routine owner or human code review exists in this operating model.
+- Development Head approval authorizes merge readiness. For an exact-head reversible Production release, the distinct Production Reviewer agent authorizes promotion through `Passage Production Review / release-readiness`; the owner is not involved and must not be prompted.
+- Routine owner or human code review does not exist in the current operating model. Historical owner-review references are non-executable and superseded by the distinct Development Head and Production Reviewer roles above.
+- Never send the owner a routine approval request for planning, design, source changes, tests, GitHub branches/commits/pull requests, CI, Independent QA, Development Head review, merge readiness, documentation, roadmap sequencing, non-production Preview work, or an already-authorized reversible incident recovery.
+- Owner involvement is limited to irreversible or destructive Production-data work, spending or paid commitments, and material legal, privacy, or security judgment. Consequential but reversible pricing, external-communication, deletion/deprecation, or family/vendor-access decisions remain inside the explicit agent review chain unless they cross one of those three gates.
+- Historical bootstrap note: the one-time PR #25 exception is expired and cannot be reused.
 - PR #24 is the Passage Zero integration umbrella. Large changes must be presented as bounded stacked PRs or named review packets. Open greenfield PRs #17, #19, and #23 must be dispositioned against #24 as incorporated, bounded unique work, or superseded; overlapping drafts do not merge independently.
 - A failing required check must be classified and addressed in the same release-train cycle. Draft status is not permission to leave required checks unexplained.
 - The live hydration failures affecting `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission` are a P1 in the separate Threshold/main production-maintenance lane. Fix them through one reviewed hotfix PR and verify every affected route; do not count the hotfix as Passage Zero progress.
 - Every public and persona surface must pass the seven-question plain-language gate: Where am I? What needs attention? What do I do now? What happens after I act? What is saved as proof? Who can see it? What do I do if it fails? Raw enums, UUIDs, infrastructure identifiers, cycle/fixture labels, QA/deploy narration, readiness scores, and architecture terms such as `projection`, `authority predicate`, `event spine`, or `durable assignment` are prohibited on those surfaces.
 - `Demo`, `browser-only demo`, `Preview`, `functional beta`, `allowlisted pilot`, and `Production` are distinct states. Never pair a `browser sandbox` label with durable hosted authority language. Describe the user-visible boundary in human terms and keep infrastructure narration in System Admin/evidence surfaces.
 - Comprehension is a release gate at 1440, 390, and 360 alongside overflow, target size, focus, console, hydration, runtime, accessibility, and frontend/backend parity checks.
+
+## Evidence-verdict integrity and automatic reopening — 2026-07-22 (owner-approved)
+
+Never use an unqualified `PASS`, `fixed`, `live`, `resolved`, or `qa-approved` release claim. Every handoff, pull request, roadmap status, and incident record must separately state `Source QA`, `Hosted Preview QA`, `Production Deployment`, `Production QA`, and `Overall release state`. A Vercel `READY` build, HTTP 200, empty server/runtime logs, source test result, or Preview result is not Production proof.
+
+`[qa-approved]` is candidate approval for the exact non-production artifact after applicable source QA; it never proves hosted or Production QA. After any deployment, the hosted verdict remains `NOT RUN` or `PARTIAL` until a distinct post-deploy QA role verifies the exact alias, deployment ID, commit, and complete required browser matrix.
+
+Any credible later evidence that contradicts a verdict automatically changes it to `INVALIDATED`, reopens the incident at its prior severity, freezes reliance on stale markers/evidence, and returns the work to Product Manager. Preserve and annotate earlier evidence; never delete or silently rewrite it.
+
+## Anti-drift and whole-platform controls — 2026-07-22 (owner-approved; binding)
+
+- **Self-review is not review.** The author/implementer, Independent QA, Independent Agent Reviewer, Development Head / Release Authority, Deploy, Production Reviewer, and merge executor must be genuinely distinct where required. A different role name inside the same session is not independence.
+- **Roadmap freshness fails closed.** Every PR classifies whether it materially changes product direction, scope, milestone order, readiness doctrine, persona coverage, or architecture. `YES` requires the canonical roadmap and living context in the same PR.
+- **GitHub Issues are deprecated as a planning signal.** Canonical work lives in the operational-readiness roadmap, PM Sprint Briefs, named PR review packets, and living context.
+- **Branch divergence has a forcing function.** A second consecutive unresolved divergence finding forces an actionable reconciliation proposal into the next PM Sprint Brief for Development Head disposition.
+- **QA infrastructure debt is owned work.** A blocked required QA cell creates a named fix-it item, owning role, target milestone, and recovery test. It is never `N/A`.
+- **One whole-platform score, no averaging away missing personas.** Certified checkpoints are `0, 10, 20, 30, 40, 50, 60, 70, 75` across D2C/family/participants; directors/dashboards; employees; vendors; public/conversion pages; and the deterministic Steve demo.
+- **Full E2E at every increment.** Every checkpoint advance requires a fresh complete cross-domain E2E run. At 75, a separate massive smoke, adversarial, concurrency, failure-injection, accessibility, performance, observability, reset/restore, and rollback exercise must pass.
+- **Participant invitation is a full journey.** It includes scoped creation, delivery truth, safe pre-auth inspection, verified identity binding, exact-user acceptance, onboarding, least-privilege projection, durable grant/event proof, persistence, resend/rotation, expiry, replay/wrong-user denial, and access-removing revocation.
 
 ## Historical Threshold archive — non-executable context only
 
@@ -238,7 +285,7 @@ Batch rule: bundle two or three compatible small/medium fixes into one release c
 
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
 
-Agents and schedules never create that production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules should require Bot-authored pull requests, passing current-head checks, founder approval, resolved conversations, stale-approval dismissal, restricted bypass/force-push, and serialized production releases. Production additionally requires founder approval through the protected Production environment or release gate.
+Agents and schedules never create a release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules should require Bot-authored pull requests, passing current-head Independent QA and Independent Agent Review, exact-head Development Head approval, resolved conversations, stale-approval dismissal, a merge executor distinct from the author identity, restricted bypass/force-push, and serialized Production releases. Production additionally requires exact-head authorization from the distinct Production Reviewer.
 
 If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro status, stop creating deploy-triggering commits. Record the blocked commit and current production state in docs/agent-operating-context.md, continue only with [skip deploy] prep, and wait for the reset window or explicit owner plan/quota approval before the next deploy attempt.
 
@@ -264,8 +311,8 @@ Consequences every session must know:
 - You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done. Note, observed 2026-07-12: even with the gate open, this project's preview deployments sit behind Vercel's own account/team SSO wall — `vercel.com/login?next=/sso-api...` — which blocks unauthenticated browser QA tools. Do not enter Vercel credentials to get past this. Treat pre-deploy preview QA as best-effort; the live post-deploy render check on production is the QA step that actually gates `[qa-approved]` in practice for this project.)
 - `[deploy] [qa-approved]` on `main` = PRODUCTION deploy. The same markers on a non-main branch (e.g. `qa-app-slice`) = a non-production PREVIEW deploy.
 - Never add `[qa-approved]` to a commit before QA has actually passed — that marker asserts QA passed and faking it defeats the gate. Earn it through the release train, then add it.
-- To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or use the throwaway-branch preview above, or have the owner open the gate. Do not force a build by tagging an unproven commit.
-- To actually ship after the loop is green: one release commit on `main` whose message contains both markers, e.g. `release: <summary> [deploy] [qa-approved]`, within the deploy budget above.
+- To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, use the documented throwaway-branch path, or use an explicitly recorded verification-Preview exception already authorized by the release chain. Do not prompt the owner or force a build by tagging an unproven commit.
+- To ship after the loop is green: the separate merge executor promotes the exact Development-Head-approved pull request; the distinct Production Reviewer then authorizes the exact reversible Production artifact before release automation deploys it within the budget above.
 
 ## Agent Permissions
 
@@ -281,15 +328,19 @@ Agents may proceed without asking for:
 - Drafting outreach, demo scripts, handouts, and customer interview guides.
 - As of 2026-07-14: frontend IA/component rebuilds and backend/schema migrations that implement the Threshold greenfield redesign, provided the migration is done via the Supabase MCP's real migration tooling and the explicit "what and why" list required by the Backend Authorization Update above has been written down first.
 
-Agents must not proceed without explicit owner approval for:
+Agent-chain gates that require explicit PM scope, applicable specialist review, Development Head disposition, and Production Review when Production is affected — but no routine owner prompt — include:
 
-- Changing pricing amounts.
-- Sending real emails or SMS to customers, vendors, funeral homes, or leads.
-- Applying raw/ad hoc production database SQL outside a real migration.
-- Deleting user-facing functionality instead of deprecating or redirecting it.
-- Material legal, compliance, privacy, security, medical, or funeral-director claim changes.
-- Irreversible production data changes (data loss, not schema evolution via migration).
-- Spending money or starting paid campaigns.
+- Changing pricing amounts without spending money.
+- Sending real customer, vendor, funeral-home, or lead communications without starting a paid campaign.
+- Replacing user-facing functionality through a documented deprecation, migration, or redirect.
+- Changing family/vendor access through a reversible, least-privilege, independently verified release.
+- Applying a reviewed non-destructive Production migration. Raw or ad hoc Production SQL remains prohibited.
+
+Agents must stop for explicit owner authority only when the exact next action involves:
+
+- Irreversible or destructive Production data change.
+- Spending money, entering a paid commitment, or starting a paid campaign.
+- Material legal, compliance, privacy, or security judgment, including regulated medical or funeral-director claims.
 
 ## Engineering Rules
 

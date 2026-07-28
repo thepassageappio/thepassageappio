@@ -1,11 +1,32 @@
-import { containsInternalPreviewText } from './member-identity.js';
+import {
+  containsInternalPreviewText,
+  humanizeMemberIdentity,
+  humanizePreviewIdentity,
+  humanizePreviewLabel,
+} from './member-identity.js';
 
-export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel } from './member-identity.js';
+export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel };
+
+export function humanFamilyName(value: string | null | undefined, fallback = 'Family') {
+  const safe = humanizePreviewLabel(value ?? '', fallback).trim();
+  return /\bfamily$/i.test(safe) ? safe : `${safe} family`;
+}
 
 export function humanizeSavedReason(value: string | null, fallback: string) {
   if (!value) return null;
   if (containsInternalPreviewText(value)) return fallback;
   return value;
+}
+
+const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';
+const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';
+
+export function humanTaskOwnerAction(value: string | null | undefined, fallback = 'Complete the assigned work') {
+  if (!value) return fallback;
+  const normalized = value.trim();
+  if (normalized === urgentFirstCommitmentLegacyAction) return urgentFirstCommitmentOwnerAction;
+  if (containsInternalPreviewText(normalized)) return fallback;
+  return normalized;
 }
 
 const taskStatusLabels: Record<string, string> = {

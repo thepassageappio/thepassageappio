@@ -29,16 +29,26 @@ export type HostedPartnerRequest = {
 export type HostedPartnerRequestEvent = {
   id: string;
   partner_request_id: string;
+  actor_organization_member_id: string | null;
+  actor_partner_member_id: string | null;
   name: string;
   previous_state: string | null;
   next_state: string;
+  idempotency_key: string;
+  metadata: Record<string, unknown>;
   occurred_at: string;
+};
+
+export type HostedPartnerMember = {
+  id: string;
+  display_name: string;
 };
 
 export type HostedPartnerData = {
   viewer: PartnerViewer;
   requests: HostedPartnerRequest[];
   events: HostedPartnerRequestEvent[];
+  members: HostedPartnerMember[];
 };
 
 export type HostedPartnerResult =
@@ -62,14 +72,15 @@ export async function loadHostedPartnerData(options: { events?: boolean } = {}):
   const client = await createPassageServerClient();
   if (!client) return { ok: false, message: 'The isolated workspace data service is unavailable.' };
 
-  const [requestResult, eventResult] = await Promise.all([
+  const [requestResult, eventResult, memberResult] = await Promise.all([
     client.from('partner_requests').select(PARTNER_REQUEST_COLUMNS).eq('partner_organization_id', viewerResult.viewer.partnerOrganizationId).order('sent_at', { ascending: false }),
     options.events
-      ? client.from('partner_request_events').select('id, partner_request_id, name, previous_state, next_state, occurred_at').eq('partner_organization_id', viewerResult.viewer.partnerOrganizationId).order('occurred_at', { ascending: false }).limit(100)
+      ? client.from('partner_request_events').select('id, partner_request_id, actor_organization_member_id, actor_partner_member_id, name, previous_state, next_state, idempotency_key, metadata, occurred_at').eq('partner_organization_id', viewerResult.viewer.partnerOrganizationId).order('occurred_at', { ascending: false }).limit(100)
       : Promise.resolve({ data: [], error: null }),
+    client.from('partner_members').select('id, display_name').eq('partner_organization_id', viewerResult.viewer.partnerOrganizationId).eq('status', 'active'),
   ]);
 
-  const error = requestResult.error ?? eventResult.error;
+  const error = requestResult.error ?? eventResult.error ?? memberResult.error;
   if (error) return { ok: false, message: 'Passage could not verify durable vendor requests. No data is shown.' };
 
   return {
@@ -78,6 +89,7 @@ export async function loadHostedPartnerData(options: { events?: boolean } = {}):
       viewer: viewerResult.viewer,
       requests: (requestResult.data ?? []) as HostedPartnerRequest[],
       events: (eventResult.data ?? []) as HostedPartnerRequestEvent[],
+      members: (memberResult.data ?? []) as HostedPartnerMember[],
     },
   };
 }
@@ -91,14 +103,32 @@ export type PassageServerClient = NonNullable<Awaited<ReturnType<typeof createPa
 // passage_private.can_manage_location inside partner_requests_authorized_select),
 // so a director only ever sees requests for cases they are authorized to manage.
 export async function loadPartnerContextForWorkflow(client: PassageServerClient, workflowId: string) {
-  const [requestResult, organizationResult] = await Promise.all([
-    client.from('partner_requests').select(PARTNER_REQUEST_COLUMNS).eq('workflow_id', workflowId).order('sent_at', { ascending: false }),
-    client.from('partner_organizations').select('id, name, category').eq('status', 'active').order('name'),
+  const requestResult = await client
+    .from('partner_requests')
+    .select(PARTNER_REQUEST_COLUMNS)
+    .eq('workflow_id', workflowId)
+    .order('sent_at', { ascending: false });
+  const requests = (requestResult.data ?? []) as HostedPartnerRequest[];
+  const requestPartnerIds = [...new Set(requests.map((request) => request.partner_organization_id))];
+  const [activeOrganizationResult, requestedOrganizationResult] = await Promise.all([
+    client.from('partner_organizations').select('id, name, category, status').eq('status', 'active').order('name'),
+    requestPartnerIds.length > 0
+      ? client.from('partner_organizations').select('id, name, category, status').in('id', requestPartnerIds)
+      : Promise.resolve({ data: [], error: null }),
   ]);
+  const partnerOrganizations = [
+    ...((activeOrganizationResult.data ?? []) as { id: string; name: string; category: string; status: string }[]),
+    ...((requestedOrganizationResult.data ?? []) as { id: string; name: string; category: string; status: string }[]),
+  ].filter((organization, index, all) => all.findIndex((candidate) => candidate.id === organization.id) === index);
+  const requestIds = requests.map((request) => request.id);
+  const eventResult = requestIds.length > 0
+    ? await client.from('partner_request_events').select('id, partner_request_id, actor_organization_member_id, actor_partner_member_id, name, previous_state, next_state, idempotency_key, metadata, occurred_at').in('partner_request_id', requestIds).order('occurred_at', { ascending: false }).limit(100)
+    : { data: [], error: null };
   return {
-    requests: (requestResult.data ?? []) as HostedPartnerRequest[],
-    partnerOrganizations: (organizationResult.data ?? []) as { id: string; name: string; category: string }[],
-    error: requestResult.error ?? organizationResult.error ?? null,
+    requests,
+    partnerOrganizations,
+    events: (eventResult.data ?? []) as HostedPartnerRequestEvent[],
+    error: requestResult.error ?? activeOrganizationResult.error ?? requestedOrganizationResult.error ?? eventResult.error ?? null,
   };
 }
 

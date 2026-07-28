@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useActionState } from 'react';
+import { DurableReceipt } from '@/components/operations/DurableReceipt';
 import { assignTask, revokeInvitation, revokeMember, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
@@ -9,26 +11,32 @@ const initialDirectorCommandState: DirectorCommandState = { status: 'idle' };
 
 function Receipt({ state }: { state: DirectorCommandState }) {
   if (!state.message) return null;
+  if (state.status === 'saved' && state.durable) {
+    return <DurableReceipt announce receipt={state.durable} />;
+  }
   return (
     <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}>
       <strong>{state.status === 'saved' ? 'Saved by Passage' : 'Nothing changed'}</strong>
       <p>{state.message}</p>
-      {state.receipt && <small>Saved {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'long' }).format(new Date(state.receipt.occurredAt))} · visible to authorized organization staff · recorded in team activity</small>}
+      {state.receipt && <small>Saved {state.receipt.savedLabel ?? 'at the original server-recorded time'} · visible to authorized organization staff · recorded in team activity</small>}
     </div>
   );
 }
 
-export function AssignTaskForm({ taskId, requestId, version, candidates, currentOwner }: { taskId: string; requestId: string; version: number; candidates: Candidate[]; currentOwner: string }) {
+export function AssignTaskForm({ taskId, workflowId, requestId, version, candidates, currentOwner }: { taskId: string; workflowId: string; requestId: string; version: number; candidates: Candidate[]; currentOwner: string }) {
   const [state, action, pending] = useActionState(assignTask, initialDirectorCommandState);
+  const noCandidates = candidates.length === 0;
   return (
     <form action={action} aria-busy={pending} className={styles.commandForm}>
       <input name="taskId" type="hidden" value={taskId} />
+      <input name="workflowId" type="hidden" value={workflowId} />
       <input name="requestId" type="hidden" value={requestId} />
       <input name="expectedVersion" type="hidden" value={version} />
       <p><strong>{currentOwner === 'Unassigned' ? 'Assign this commitment' : 'Change the current owner'}</strong><span>Current owner: {currentOwner}. Passage checks that the new owner can work at this location before saving.</span></p>
-      <label>New owner<select disabled={pending || candidates.length === 0} name="assigneeId" required>{candidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select></label>
-      <label>Reason<input disabled={pending || candidates.length === 0} maxLength={240} name="reason" placeholder="Why ownership is changing" required /></label>
-      <button aria-busy={pending} disabled={pending || candidates.length === 0} type="submit">{pending ? 'Saving ownership…' : candidates.length ? (currentOwner === 'Unassigned' ? 'Assign work' : 'Save reassignment') : 'No alternate staff'}</button>
+      <label>New owner<select disabled={pending || noCandidates} name="assigneeId" required>{candidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select></label>
+      <label>Reason<input disabled={pending || noCandidates} maxLength={240} name="reason" placeholder="Why ownership is changing" required /></label>
+      <button aria-busy={pending} disabled={pending || noCandidates} type="submit">{pending ? 'Saving ownership…' : noCandidates ? 'No eligible staff available' : currentOwner === 'Unassigned' ? 'Assign work' : 'Save reassignment'}</button>
+      {noCandidates && <p className={styles.formBoundary}>No active staff member has access to this case location. Nothing can be assigned until team access is corrected. <Link href="/director/team">Review Team access</Link>.</p>}
       <Receipt state={state} />
     </form>
   );

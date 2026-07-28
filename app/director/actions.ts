@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { resolveOperationalViewer } from '@/lib/auth/authorization';
 import { firstRpcRow } from '@/lib/auth/invitations';
+import type { DurableReceiptData } from '@/components/operations/DurableReceipt';
+import { formatDurableReceiptTime, taskAssignmentReceipt } from '@/lib/presentation/durable-receipts';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type DirectorCommandState = {
@@ -11,7 +13,9 @@ export type DirectorCommandState = {
   receipt?: {
     occurredAt: string;
     replayed: boolean;
+    savedLabel?: string;
   };
+  durable?: DurableReceiptData;
 };
 
 type CommandReceipt = { event_id: string; occurred_at: string; replayed: boolean };
@@ -40,11 +44,12 @@ function rpcFailure(error: { code?: string } | null, noun: string): DirectorComm
 
 export async function assignTask(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
   const taskId = String(formData.get('taskId') ?? '');
+  const workflowId = String(formData.get('workflowId') ?? '');
   const assigneeId = String(formData.get('assigneeId') ?? '');
   const expectedVersion = Number(formData.get('expectedVersion'));
   const reason = String(formData.get('reason') ?? '').trim();
   const requestId = String(formData.get('requestId') ?? '');
-  if (!uuid.test(taskId) || !uuid.test(assigneeId) || !uuid.test(requestId) || !Number.isInteger(expectedVersion) || expectedVersion < 1 || !reason) {
+  if (!uuid.test(taskId) || !uuid.test(workflowId) || !uuid.test(assigneeId) || !uuid.test(requestId) || !Number.isInteger(expectedVersion) || expectedVersion < 1 || !reason) {
     return failure('validation', 'Choose authorized staff and explain why ownership is changing. Nothing changed.');
   }
   const authority = await directorClient();
@@ -59,10 +64,57 @@ export async function assignTask(_previous: DirectorCommandState, formData: Form
   if (result.error) return rpcFailure(result.error, 'assignment');
   const receipt = firstRpcRow<CommandReceipt>(result.data);
   if (!receipt?.event_id || !receipt.occurred_at) return failure('unavailable', 'We could not confirm that the owner changed. Reload before trying again.');
+  const [actorResult, assigneeResult, taskResult] = await Promise.all([
+    authority.client
+      .from('organization_members')
+      .select('display_name, email, role')
+      .eq('organization_id', authority.viewer.organizationId)
+      .eq('id', authority.viewer.membershipId)
+      .maybeSingle(),
+    authority.client
+      .from('organization_members')
+      .select('display_name, email, role')
+      .eq('organization_id', authority.viewer.organizationId)
+      .eq('id', assigneeId)
+      .maybeSingle(),
+    authority.client
+      .from('tasks')
+      .select('title, status')
+      .eq('organization_id', authority.viewer.organizationId)
+      .eq('id', taskId)
+      .maybeSingle(),
+  ]);
+  if (
+    actorResult.error
+    || !actorResult.data
+    || assigneeResult.error
+    || !assigneeResult.data
+    || taskResult.error
+    || !taskResult.data
+  ) {
+    return failure('unavailable', 'Ownership may be saved, but Passage could not confirm its receipt. Reload the case before trying again.');
+  }
+  const assignmentReceipt = taskAssignmentReceipt({
+    eventId: receipt.event_id,
+    savedAt: receipt.occurred_at,
+    actorName: actorResult.data.display_name,
+    actorEmail: actorResult.data.email,
+    actorRole: actorResult.data.role,
+    assigneeName: assigneeResult.data.display_name,
+    assigneeEmail: assigneeResult.data.email,
+    assigneeRole: assigneeResult.data.role,
+    taskTitle: taskResult.data.title,
+    taskStatus: taskResult.data.status,
+  });
   revalidatePath('/director');
+  revalidatePath(`/director/cases/${workflowId}`);
   revalidatePath('/staff');
   revalidatePath('/director/activity');
-  return { status: 'saved', message: receipt.replayed ? 'This ownership change was already saved. The original saved time is shown below.' : 'Ownership was saved in team activity.', receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed } };
+  return {
+    status: 'saved',
+    message: receipt.replayed ? 'The original ownership change is shown below.' : 'Ownership was saved.',
+    durable: assignmentReceipt,
+  };
 }
 
 export async function revokeInvitation(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
@@ -77,7 +129,7 @@ export async function revokeInvitation(_previous: DirectorCommandState, formData
   if (!receipt?.invitation_id || !receipt.revoked_at) return failure('unavailable', 'Passage did not return a complete revocation receipt. Reload before retrying.');
   revalidatePath('/director/team');
   revalidatePath('/director/activity');
-  return { status: 'saved', message: receipt.replayed ? 'This invitation was already revoked. The original saved time is shown below.' : 'The invitation was revoked. No access was granted.', receipt: { occurredAt: receipt.revoked_at, replayed: receipt.replayed } };
+  return { status: 'saved', message: receipt.replayed ? 'The original invitation change is shown below.' : 'The invitation was revoked. No access was granted.', receipt: { occurredAt: receipt.revoked_at, replayed: receipt.replayed, savedLabel: formatDurableReceiptTime(receipt.revoked_at) } };
 }
 
 export async function revokeMember(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
@@ -94,7 +146,7 @@ export async function revokeMember(_previous: DirectorCommandState, formData: Fo
   revalidatePath('/director/team');
   revalidatePath('/director/activity');
   revalidatePath('/staff');
-  return { status: 'saved', message: receipt.replayed ? 'This access change was already saved. The original saved time is shown below.' : 'Team access ended. Earlier activity remains in the record.', receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed } };
+  return { status: 'saved', message: receipt.replayed ? 'The original access change is shown below.' : 'Team access ended. Earlier activity remains in the record.', receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed, savedLabel: formatDurableReceiptTime(receipt.occurred_at) } };
 }
 
 export async function reviewTaskProof(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
@@ -129,7 +181,7 @@ export async function reviewTaskProof(_previous: DirectorCommandState, formData:
   revalidatePath('/staff');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'Already recorded. The original review receipt was returned.' : decision === 'verified' ? 'Proof verified. The task is complete.' : 'Replacement requested. The task returned to the current owner.',
-    receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed },
+    message: receipt.replayed ? 'The original review is shown below.' : decision === 'verified' ? 'Proof verified. The task is complete.' : 'Replacement requested. The task returned to the current owner.',
+    receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed, savedLabel: formatDurableReceiptTime(receipt.occurred_at) },
   };
 }

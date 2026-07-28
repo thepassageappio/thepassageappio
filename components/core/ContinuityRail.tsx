@@ -11,7 +11,7 @@ export function ContinuityRail({ steps, compact = false, label = 'Case continuit
     <section className={`continuity-rail${compact ? ' continuity-rail--compact' : ''}`} aria-label={label}>
       <header className="continuity-rail__header">
         <span>{label}</span>
-        <b>LIVE</b>
+        <b>EXAMPLE</b>
       </header>
       <ol className="continuity-rail__steps">
         {steps.map((step) => (

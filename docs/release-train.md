@@ -9,12 +9,29 @@ This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` contr
 3. Engineering implements the reachable UI and its server/data/RLS/event/recovery contract together.
 4. Independent QA verifies source, database authority, negative paths, browser behavior, and evidence.
 5. Deploy verifies project, branch, environment scope, release marker, deployment, logs, and post-deploy behavior.
-6. A distinct Independent Agent Reviewer challenges the exact head and records a required agent-review result. This is automated review, never founder approval.
-7. The founder reviews the current head of a Bot-authored pull request through native GitHub review controls before merge.
-8. Production separately requires founder authorization through the protected Production environment or release gate for the exact approved commit.
+6. A distinct Independent Agent Reviewer challenges the exact head and records a required agent-review result.
+7. A distinct Development Head / Release Authority reviews the exact head, all handoffs, required checks, and evidence before merge.
+8. Deploy validates the exact Vercel artifact; a distinct Production Reviewer authorizes any later exact-head reversible Production promotion. The owner is not involved in ordinary releases.
 9. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
 
-No role may promote its own work to QA PASS. Agent role separation does not substitute for the distinct Independent Agent Review check, founder review, or founder Production authorization. Role instance, received handoff, decision, evidence, failures, next target, PR/packet, agent-review state, founder-review state, and Production-authorization state belong in the operating context.
+No role may promote or merge its own work. Role instance, received handoff, decision, exact head, evidence, failures, next target, PR/packet, agent-review state, Development Head state, merge executor, and Production-authorization state belong in the operating context.
+
+Historical owner-review labels are retired and are not a current role or owner gate. Development Head and Production Reviewer are the binding release authorities for routine reversible releases.
+
+## Delivery cadence
+
+Each cycle is `develop → independent QA → release exact Preview artifact → hosted verification → PM re-scope`. A cycle does not close on a commit, PR, merge, migration, source test, or `READY` build. It closes only with an exact hosted verdict.
+
+- One integration candidate, one independent QA lane, and one next scoped slice are the WIP limit.
+- P0/P1 review findings block unrelated feature work and invalidate any earlier merge-readiness claim.
+- A review received after merge is a process failure and reopens the candidate.
+- Every two-hour interval produces a new hosted candidate/verdict or an evidence-backed blocker and immediate deliverable re-scope.
+- Owner reports lead with the exact commit/deployment and the five separate verdict fields; implementation activity is never reported as delivery.
+- Every update begins with `Released: <exact URL> @ <commit/deployment>` or `Released: nothing.` Docs-only side work is prohibited unless it directly unblocks the active candidate.
+
+## Verdict stages and reopening
+
+Every role separately records `Source QA`, `Hosted Preview QA`, `Production Deployment`, `Production QA`, and `Overall release state`. A later reproducible contradiction invalidates the old verdict and returns the candidate to PM. `READY`, HTTP 200, empty logs, or `[qa-approved]` cannot substitute for hosted or Production QA.
 
 ## Branch, PR, and collision control
 
@@ -24,7 +41,9 @@ No role may promote its own work to QA PASS. Agent role separation does not subs
 - Overlapping greenfield PRs are dispositioned before merge: incorporate unique bounded work, or label and close them as superseded. They never merge independently without reconciliation.
 - A failing required check is classified in the same cycle as fix now, superseded, or explicitly blocked. Red checks do not age silently because a PR is draft.
 - Production release automation is serialized with a single repository/environment lock. Concurrent schedules may prepare separate branches but may not race a merge, alias, or Production deployment.
-- Repository protections should require passing current-head checks, the Independent Agent Review check, founder approval of Bot-authored work, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`. The protected Production environment separately requires founder authorization.
+- Repository protections should require passing current-head checks, Independent Agent Review, exact-head Development Head approval, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`.
+- The pull-request author and merge executor must be recorded and different. A review or P0/P1 finding posted after merge invalidates merge readiness and must be corrected before the next integration release.
+- Every PR declares whether scope materially changed; `YES` requires roadmap and living-context updates in the same PR.
 
 ## Per-slice contract
 
