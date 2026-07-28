@@ -330,6 +330,89 @@ function testRealPendingInvitationProjection() {
   );
 }
 
+function testRealUrgentReceiverBinding() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const clientPath = path.join(repoRoot, 'app', 'start', 'next', 'UrgentNextClient.tsx');
+  const actionPath = path.join(repoRoot, 'app', 'start', 'actions.ts');
+  let clientSource;
+  let actionSource;
+  try {
+    clientSource = fs.readFileSync(clientPath, 'utf8');
+    actionSource = fs.readFileSync(actionPath, 'utf8');
+  } catch (err) {
+    report('integration: urgent receiver form/action sources are readable', false, err.message);
+    return;
+  }
+
+  const hiddenReceiverField = clientSource.includes(
+    '<input name="receivingOrganizationId" type="hidden" value={PREVIEW_RECEIVING_ORGANIZATION.id} />'
+  );
+  const actionReadsReceiver = actionSource.includes(
+    "const receivingOrganizationId = String(formData.get('receivingOrganizationId') ?? '');"
+  );
+  const rpcReceivesReceiver = actionSource.includes(
+    'p_receiving_organization_id: receivingOrganizationId'
+  );
+  report(
+    'integration: urgent callback receiver stays bound from hidden form field to RPC argument',
+    hiddenReceiverField && actionReadsReceiver && rpcReceivesReceiver,
+    `hiddenReceiverField=${hiddenReceiverField} actionReadsReceiver=${actionReadsReceiver} rpcReceivesReceiver=${rpcReceivesReceiver}`
+  );
+}
+
+function testRealUrgentReceiverEvidenceScope() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const narrowTestPath = path.join(
+    repoRoot,
+    'supabase',
+    'tests',
+    'urgent_receiver_submit_boundary.sql'
+  );
+  const broadTestPath = path.join(
+    repoRoot,
+    'supabase',
+    'tests',
+    'urgent_family_organization_boundary.sql'
+  );
+  let source;
+  try {
+    source = fs.readFileSync(narrowTestPath, 'utf8');
+  } catch (err) {
+    report('integration: narrow urgent receiver-submit evidence is readable', false, err.message);
+    return;
+  }
+
+  const bindsExactCommittedStack = source.includes("where name = 'urgent_family_thin_slice'")
+    && source.includes("where name = 'urgent_receiving_organization_boundary'")
+    && source.includes('public.submit_urgent_intake_idempotent(uuid,text,text,text,text,text,text,text,text,boolean,uuid)');
+  const coversSubmissionContract = source.includes('Expected non-allowlisted receiver denial')
+    && source.includes('Signed-out anon submit denial failed')
+    && source.includes('Exact callback replay was not idempotent')
+    && source.includes('Expected changed callback replay conflict')
+    && source.includes('Exact private replay was not idempotent')
+    && source.includes('Exact receiving director callback/private RLS boundary failed')
+    && source.includes('Same-organization active staff helper or RLS denial failed')
+    && source.includes('Same-organization active staff command denial failed')
+    && source.includes('Revoked Northstar leader helper or RLS denial failed')
+    && source.includes('Revoked Northstar leader command denial failed')
+    && source.includes('Exact receiver director private-request command denial failed')
+    && source.includes('Wrong-organization active director claim command denial failed')
+    && source.includes('Receiver command denials changed request status, version, or event cardinality')
+    && source.includes('Final receiver-submit request/event cardinality changed')
+    && source.trimEnd().endsWith('rollback;');
+  const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')
+    && !source.includes('create_case_from_urgent_intake_idempotent')
+    && !source.includes('public.workflows')
+    && !source.includes('public.tasks')
+    && !fs.existsSync(broadTestPath);
+
+  report(
+    'integration: urgent receiver-submit SQL evidence is narrow and source-reproducible',
+    bindsExactCommittedStack && coversSubmissionContract && excludesSeparateCaseLane,
+    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} excludesSeparateCaseLane=${excludesSeparateCaseLane}`
+  );
+}
+
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
@@ -355,6 +438,8 @@ function main() {
     console.log('Integration test (real repository ledger):');
     testRealLedger();
     testRealPendingInvitationProjection();
+    testRealUrgentReceiverBinding();
+    testRealUrgentReceiverEvidenceScope();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }

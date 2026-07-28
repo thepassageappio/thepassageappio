@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
 import { createPassageServerClient } from '@/lib/supabase/server';
-import type { SituationCategory } from '@/lib/urgent/situations';
+import { PREVIEW_RECEIVING_ORGANIZATION, type SituationCategory } from '@/lib/urgent/situations';
 
 export type UrgentCommandState = {
   status: 'idle' | 'saved' | 'validation' | 'denied' | 'unavailable' | 'conflict';
@@ -19,6 +19,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 export async function submitUrgentIntake(_previous: UrgentCommandState, formData: FormData): Promise<UrgentCommandState> {
   const situationCategory = String(formData.get('situationCategory') ?? '');
+  const receivingOrganizationId = String(formData.get('receivingOrganizationId') ?? '');
   const personName = String(formData.get('personName') ?? '').trim();
   const personLocation = String(formData.get('personLocation') ?? '').trim();
   const personTiming = String(formData.get('personTiming') ?? '').trim();
@@ -29,6 +30,9 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   const wantsCallback = String(formData.get('wantsCallback') ?? '') === 'true';
   const requestId = String(formData.get('requestId') ?? '');
 
+  if (receivingOrganizationId !== PREVIEW_RECEIVING_ORGANIZATION.id) {
+    return { status: 'validation', message: 'We could not confirm where to send this. Nothing was saved. Reload and try again.' };
+  }
   if (!SITUATIONS.includes(situationCategory as SituationCategory)
     || personName.length < 1 || personName.length > 200
     || personLocation.length < 1 || personLocation.length > 300
@@ -39,11 +43,12 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   }
 
   const client = await createPassageServerClient();
-  if (!client) return { status: 'unavailable', message: 'Passage could not save this right now. Nothing was lost — try again in a moment.' };
+  if (!client) return { status: 'unavailable', message: 'Passage could not save this right now. Nothing changed — try again in a moment.' };
   const user = await verifiedUser(client);
   if (!user) return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
 
   const result = await client.rpc('submit_urgent_intake_idempotent', {
+    p_receiving_organization_id: receivingOrganizationId,
     p_situation_category: situationCategory,
     p_person_name: personName,
     p_person_location: personLocation,
@@ -57,16 +62,28 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   });
   if (result.error) {
     if (result.error.code === '28000') return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
-    if (result.error.code === '22023') return { status: 'validation', message: 'This conflicts with something already saved. Reload and try again.' };
-    return { status: 'unavailable', message: 'Passage could not save this right now. Nothing was lost — try again in a moment.' };
+    if (result.error.code === '22023') return { status: 'conflict', message: 'This request is different from what was already saved. Reload to check the saved request before trying again.' };
+    return { status: 'unavailable', message: 'We could not confirm whether this was saved. Reload and check before trying again.' };
   }
   const receipt = firstRpcRow<SubmitReceipt>(result.data);
-  if (!receipt?.urgent_intake_request_id) return { status: 'unavailable', message: 'We could not confirm this was saved. Try again in a moment.' };
+  if (!receipt?.urgent_intake_request_id) {
+    return { status: 'unavailable', message: 'We could not confirm whether this was saved. Reload and check before trying again.' };
+  }
+
+  const savedEvent = await client
+    .from('urgent_intake_events')
+    .select('occurred_at')
+    .eq('urgent_intake_request_id', receipt.urgent_intake_request_id)
+    .eq('idempotency_key', `urgent_intake_create:${requestId}`)
+    .maybeSingle();
+  if (savedEvent.error || !savedEvent.data?.occurred_at) {
+    return { status: 'unavailable', message: 'This may have been saved, but Passage could not confirm when. Reload and check before trying again.' };
+  }
 
   revalidatePath('/director/urgent');
   return {
     status: 'saved',
-    message: wantsCallback ? 'Saved. A director will reach out shortly.' : 'Saved for your records.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed, wantsCallback },
+    message: wantsCallback ? 'Sent to Northstar. A director will reach out shortly.' : 'Saved privately. Northstar cannot see this.',
+    receipt: { occurredAt: String(savedEvent.data.occurred_at), replayed: receipt.replayed, wantsCallback },
   };
 }

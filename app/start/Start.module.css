@@ -212,6 +212,33 @@
   color: #3c3630;
 }
 
+.receivingHome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: -6px 0 22px;
+  padding: 14px 16px;
+  border: 1px solid #cfe0d1;
+  border-radius: 12px;
+  background: #f2f7f2;
+}
+
+.receivingHome span,
+.receivingHome p {
+  color: #4f5d53;
+  font-size: 14px;
+}
+
+.receivingHome strong {
+  color: #244b3c;
+  font-size: 16px;
+}
+
+.receivingHome p {
+  margin: 2px 0 0;
+  line-height: 1.45;
+}
+
 .alert {
   background: #fbeaea;
   border: 1px solid #edbdbd;
@@ -220,6 +247,23 @@
   padding: 12px 14px;
   font-size: 14px;
   margin-bottom: 16px;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.recoveryButton {
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .notice {
@@ -296,7 +340,7 @@
   margin-bottom: 14px;
 }
 
-.receipt h1 {
+.receipt h2 {
   font-size: 21px;
   margin: 0 0 8px;
 }
@@ -332,6 +376,32 @@
   margin: 0;
   font-weight: 600;
   text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.wordmark,
+.exit,
+.backLink,
+.primaryButton,
+.secondaryButton,
+.recoveryButton,
+.authToggle button,
+.field input,
+.field textarea,
+.field select {
+  min-height: 48px;
+}
+
+.wordmark,
+.exit,
+.backLink {
+  display: inline-flex;
+  align-items: center;
+}
+
+.shell :focus-visible {
+  outline: 3px solid #5f566d;
+  outline-offset: 2px;
 }
 
 @media (max-width: 420px) {
@@ -340,5 +410,13 @@
   }
   .title {
     font-size: 21px;
+  }
+  .receiptFacts div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .receiptFacts dd {
+    text-align: left;
   }
 }
