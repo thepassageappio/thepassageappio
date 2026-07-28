@@ -5,6 +5,9 @@ import { displayMember, formatOperationalTime, loadHostedOperations } from '@/li
 import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadPartnerContextForWorkflow } from '@/lib/partner/hosted';
 import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
+import { loadWorkflowMessages } from '@/lib/messaging/hosted';
+import { postWorkflowMessage } from '@/lib/messaging/actions';
+import { MessageThread } from '@/components/messaging/MessageThread';
 import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
 import styles from '../../../proof-loop.module.css';
@@ -36,12 +39,22 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const latestReviewer = latestReview ? humanizePreviewIdentity(displayMember(members.find((member) => member.id === latestReview.reviewed_by_organization_member_id)), 'director') : null;
   const latestReason = humanizeSavedReason(latestReview?.reason ?? null, 'The proof needs a clearer or corrected replacement.');
 
+  // Vendor requests for this case (Batch 2 addition). Loaded separately from
+  // loadHostedOperations() since partner_requests/partner_organizations are
+  // their own table lineage, not part of the funeral-home operational data set.
   const client = await createPassageServerClient();
   const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+  // Fix (PR #57 finding): show each vendor's own specialty next to its name in
+  // the picker, so a director has an on-screen cue before choosing a category
+  // that must match it (enforced authoritatively by the RPC as of this fix).
   const partnerOrganizationOptions = partnerContext.partnerOrganizations.map((organization) => ({
     ...organization,
     categoryLabel: humanPartnerCategory(organization.category),
   }));
+
+  // Messages (this batch): shares the exact same table/RPC and RLS predicate
+  // used by the family case-detail messages page -- see lib/messaging/hosted.ts.
+  const messagesResult = client ? await loadWorkflowMessages(client, workflow.id, viewer.userId) : { ok: false as const, message: 'The isolated workspace data service is unavailable.' };
 
   return <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
     <Link className={styles.backLink} href="/director">← Today</Link>
@@ -72,6 +85,12 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         </ol>
       )}
       <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
+    </section>
+
+    <section className={styles.panel} aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Messages</p><h2 id="messages-heading">Messages with the family.</h2>
+      <MessageThread messages={messagesResult.ok ? messagesResult.messages : []} postAction={postWorkflowMessage} requestId={randomUUID()} workflowId={workflow.id} />
+      {!messagesResult.ok && <p className={styles.boundary}>{messagesResult.message}</p>}
     </section>
   </AppFrame>;
 }
