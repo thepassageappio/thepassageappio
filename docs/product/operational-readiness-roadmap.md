@@ -548,9 +548,11 @@ The bounded repair restores the exact Northstar receiver field and server valida
 
 Independent QA rejected product-only head `ad41b55d245913e07a1ab81a57f48a785ef70413` because its broad urgent-family test required the separate first-commitment migration even though that migration is absent from the exact `greenfield/passage-zero` base. The broad test is removed from this P1 and replaced by `supabase/tests/urgent_receiver_submit_boundary.sql`, which preflights only the committed urgent thin slice and receiver-boundary migration. Claim/case/workflow/task first-commitment work remains a separate unresolved migration and evidence lane. This hotfix does not claim that broader migration drift is closed.
 
+Reviewer then returned replacement head `55312cba131dc08ff61064bbcf967d02833244e6` because its narrow matrix omitted three PM-required runtime denials: signed-out anon submission, same-organization active-staff receiver helper/RLS/claim-command denial, and revoked-leader receiver helper/RLS/claim-command denial. The next replacement adds those exact identities and proves both callback/private request and event cardinality remain unchanged after every denial. No broader claim/case success path enters this P1.
+
 Release truth for this P1:
 
-- **Source QA:** FAIL for stale head `ad41b55...`; replacement Engineering gates PASS and independent replacement-head QA is required.
+- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale head `55312cb...`; second replacement Engineering gates PASS and independent QA is required.
 - **Hosted Preview QA:** NOT RUN for the product-only candidate.
 - **Production Deployment:** NOT DEPLOYED.
 - **Production QA:** NOT RUN.

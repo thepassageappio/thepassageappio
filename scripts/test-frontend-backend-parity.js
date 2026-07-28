@@ -386,10 +386,16 @@ function testRealUrgentReceiverEvidenceScope() {
     && source.includes("where name = 'urgent_receiving_organization_boundary'")
     && source.includes('public.submit_urgent_intake_idempotent(uuid,text,text,text,text,text,text,text,text,boolean,uuid)');
   const coversSubmissionContract = source.includes('Expected non-allowlisted receiver denial')
+    && source.includes('Signed-out anon submit denial failed')
     && source.includes('Exact callback replay was not idempotent')
     && source.includes('Expected changed callback replay conflict')
     && source.includes('Exact private replay was not idempotent')
     && source.includes('Exact receiving director callback/private RLS boundary failed')
+    && source.includes('Same-organization active staff helper or RLS denial failed')
+    && source.includes('Same-organization active staff command denial failed')
+    && source.includes('Revoked Northstar leader helper or RLS denial failed')
+    && source.includes('Revoked Northstar leader command denial failed')
+    && source.includes('Staff or revoked-leader denials changed request/event cardinality')
     && source.includes('Final receiver-submit request/event cardinality changed')
     && source.trimEnd().endsWith('rollback;');
   const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')

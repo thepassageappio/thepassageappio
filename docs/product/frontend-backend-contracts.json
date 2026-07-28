@@ -1058,9 +1058,11 @@
         "idempotency_key": "urgent_intake_create:<caller-supplied request UUID>"
       },
       "failure_recovery_states": [
+        "signed-out or anon submit -> execute denied and no request or event",
         "missing, malformed, or non-allowlisted receiver -> no request or event",
         "same request key with changed normalized input -> conflict with original rows unchanged",
         "same request key with identical input -> original receipt and no duplicate event",
+        "same-organization staff and revoked leaders -> receiver helper false, no receiver projection, claim command denied, and cardinality unchanged",
         "uncertain event-time read -> reload exact request before retrying",
         "reload resolves creation_request_id for the signed-in requester rather than a newer unrelated request"
       ],
@@ -1098,6 +1100,10 @@
           "includes": [
             "urgent_receiving_organization_boundary",
             "Expected non-allowlisted receiver denial",
+            "Signed-out anon submit denial failed",
+            "Same-organization active staff command denial failed",
+            "Revoked Northstar leader command denial failed",
+            "Staff or revoked-leader denials changed request/event cardinality",
             "Exact receiving director callback/private RLS boundary failed",
             "Final receiver-submit request/event cardinality changed",
             "rollback;"

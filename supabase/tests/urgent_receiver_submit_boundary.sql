@@ -196,6 +196,24 @@ insert into auth.users (
     '{"full_name":"Outsider"}',
     now(),
     now()
+  ),
+  (
+    'b2000015-b200-4100-8100-000000000015',
+    'staff@urgent-receiver-submit.test',
+    now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Northstar Staff"}',
+    now(),
+    now()
+  ),
+  (
+    'b2000016-b200-4100-8100-000000000016',
+    'revoked-director@urgent-receiver-submit.test',
+    now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Revoked Northstar Director"}',
+    now(),
+    now()
   );
 
 insert into public.organizations (id, name)
@@ -230,7 +248,72 @@ insert into public.organization_members (
     null,
     null,
     null
+  ),
+  (
+    'b2000033-b200-4100-8100-000000000033',
+    'c7a00001-7a00-47a0-87a0-000000000001',
+    'b2000015-b200-4100-8100-000000000015',
+    'staff@urgent-receiver-submit.test',
+    'staff',
+    'active',
+    'Northstar Staff',
+    now(),
+    null,
+    null,
+    null
+  ),
+  (
+    'b2000034-b200-4100-8100-000000000034',
+    'c7a00001-7a00-47a0-87a0-000000000001',
+    'b2000016-b200-4100-8100-000000000016',
+    'revoked-director@urgent-receiver-submit.test',
+    'director',
+    'revoked',
+    'Revoked Northstar Director',
+    now(),
+    clock_timestamp(),
+    'b2000012-b200-4100-8100-000000000012',
+    'Rollback-only receiver authority regression'
   );
+
+set local role anon;
+
+do $anon_submit_denial$
+begin
+  begin
+    perform public.submit_urgent_intake_idempotent(
+      'c7a00001-7a00-47a0-87a0-000000000001',
+      'hospice',
+      'Signed Out Example',
+      'Portland, Oregon',
+      null,
+      'Alex Example',
+      '555-0100',
+      null,
+      null,
+      true,
+      'b2000104-b200-4100-8100-000000000104'
+    );
+    raise exception 'Signed-out anon submit denial failed';
+  exception
+    when insufficient_privilege then null;
+  end;
+end
+$anon_submit_denial$;
+
+reset role;
+
+do $anon_denial_cardinality$
+begin
+  if exists (
+    select 1
+    from public.urgent_intake_requests
+    where creation_request_id = 'b2000104-b200-4100-8100-000000000104'
+  ) then
+    raise exception 'Signed-out anon denial created partial request state';
+  end if;
+end
+$anon_denial_cardinality$;
 
 set local role authenticated;
 
@@ -242,9 +325,13 @@ declare
   v_northstar_director constant uuid := 'b2000012-b200-4100-8100-000000000012';
   v_wrong_director constant uuid := 'b2000013-b200-4100-8100-000000000013';
   v_outsider constant uuid := 'b2000014-b200-4100-8100-000000000014';
+  v_northstar_staff constant uuid := 'b2000015-b200-4100-8100-000000000015';
+  v_revoked_director constant uuid := 'b2000016-b200-4100-8100-000000000016';
   v_callback_key constant uuid := 'b2000101-b200-4100-8100-000000000101';
   v_private_key constant uuid := 'b2000102-b200-4100-8100-000000000102';
   v_wrong_receiver_key constant uuid := 'b2000103-b200-4100-8100-000000000103';
+  v_staff_claim_key constant uuid := 'b2000105-b200-4100-8100-000000000105';
+  v_revoked_claim_key constant uuid := 'b2000106-b200-4100-8100-000000000106';
   v_callback_request_id uuid;
   v_private_request_id uuid;
   v_receipt record;
@@ -511,6 +598,83 @@ begin
     where urgent_intake_request_id in (v_callback_request_id, v_private_request_id)
   ) <> 0 then
     raise exception 'Wrong-organization director can see receiver-bound rows';
+  end if;
+
+  perform set_config('request.jwt.claim.sub', v_northstar_staff::text, true);
+  if passage_private.is_active_urgent_leader_of_organization(v_northstar)
+     or (
+       select count(*)
+       from public.urgent_intake_requests
+       where id in (v_callback_request_id, v_private_request_id)
+     ) <> 0
+     or (
+       select count(*)
+       from public.urgent_intake_events
+       where urgent_intake_request_id in (v_callback_request_id, v_private_request_id)
+     ) <> 0 then
+    raise exception 'Same-organization active staff helper or RLS denial failed';
+  end if;
+  begin
+    perform public.claim_urgent_intake_idempotent(
+      v_callback_request_id,
+      1,
+      v_staff_claim_key
+    );
+    raise exception 'Same-organization active staff command denial failed';
+  exception
+    when sqlstate '42501' then null;
+  end;
+
+  perform set_config('request.jwt.claim.sub', v_revoked_director::text, true);
+  if passage_private.is_active_urgent_leader_of_organization(v_northstar)
+     or (
+       select count(*)
+       from public.urgent_intake_requests
+       where id in (v_callback_request_id, v_private_request_id)
+     ) <> 0
+     or (
+       select count(*)
+       from public.urgent_intake_events
+       where urgent_intake_request_id in (v_callback_request_id, v_private_request_id)
+     ) <> 0 then
+    raise exception 'Revoked Northstar leader helper or RLS denial failed';
+  end if;
+  begin
+    perform public.claim_urgent_intake_idempotent(
+      v_callback_request_id,
+      1,
+      v_revoked_claim_key
+    );
+    raise exception 'Revoked Northstar leader command denial failed';
+  exception
+    when sqlstate '42501' then null;
+  end;
+
+  perform set_config('request.jwt.claim.sub', v_family::text, true);
+  if not exists (
+    select 1
+    from public.urgent_intake_requests
+    where id = v_callback_request_id
+      and status = 'submitted'
+      and version = 1
+      and claimed_organization_id is null
+  ) or (
+    select count(*)
+    from public.urgent_intake_events
+    where urgent_intake_request_id = v_callback_request_id
+  ) <> 1 or not exists (
+    select 1
+    from public.urgent_intake_requests
+    where id = v_private_request_id
+      and status = 'self_handling'
+      and version = 1
+      and claimed_organization_id is null
+  ) or (
+    select count(*)
+    from public.urgent_intake_events
+    where urgent_intake_request_id = v_private_request_id
+  ) <> 1 then
+    raise exception 'Staff or revoked-leader denials changed request/event cardinality';
   end if;
 
   perform set_config('request.jwt.claim.sub', v_outsider::text, true);
