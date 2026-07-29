@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
   "version": 4,
-  "last_updated": "2026-07-27",
+  "last_updated": "2026-07-28",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -1012,6 +1012,115 @@
       ]
     },
     {
+      "id": "m3.shared.workflow_messages",
+      "cycle": "M3",
+      "capability": "Family owners, updates-scoped participants, and managed directors share one append-only case message thread without exposing internal identity or command identifiers",
+      "status": "implemented",
+      "persona": ["family", "participant", "director"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/messages and /director/cases/[workflowId]",
+        "component": [
+          "components/messaging/MessageThread.tsx",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "files": [
+          "components/messaging/MessageThread.tsx",
+          "components/messaging/MessageThread.module.css",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "lib/family/messages-view.ts",
+          "lib/messaging/hosted.ts",
+          "lib/messaging/actions.ts"
+        ],
+        "note": "Both routes use one shared thread and Server Action. The composer is absent when history cannot be loaded, visible times are server-formatted in UTC, and the page explains that the message is saved inside Passage rather than sent by email or text."
+      },
+      "action_status": "load authorized history -> add message -> durable receipt; identical request replay returns the original receipt, while a different actor or body using the same request id conflicts and requires reload",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql",
+        "lib/messaging/hosted.ts",
+        "lib/messaging/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per (workflow_id, creation_request_id); normalized body and server-derived sender/time are stable on identical replay"
+        }
+      ],
+      "rls_authority_predicate": "Authenticated clients have no direct workflow_messages table SELECT or write privilege. Both RPCs use passage_private.can_message_workflow(workflow_id): the linked active family-space owner, an active participant whose category_scope contains updates, or an active owner/director managing the exact workflow location.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The workflow_messages row is itself the append-only task/case communication proof: ordinary clients cannot insert, update, delete, or select the internal table; the idempotent post command creates it and an owner-level trigger rejects later update/delete. No duplicate workflow-event row is created for this thin slice."
+      },
+      "failure_recovery_states": [
+        "history load failure hides the composer, states that nothing was added, and offers a 48-pixel reload action",
+        "signed-out or unauthorized post returns a calm denial and no row",
+        "non-updates and revoked participants plus wrong-location, cross-organization, and unrelated identities receive 42501 for list/post and reveal no message or identity metadata",
+        "identical replay returns the original message id/time without a duplicate row; changed-actor or changed-body replay returns 22023 and directs reload",
+        "direct authenticated SELECT/INSERT/UPDATE/DELETE remains denied; every denial and conflict preserves exact message cardinality",
+        "invalid or oversized body returns validation without a partial row",
+        "visible timestamps use the persisted occurred_at plus a server-produced UTC label so browser timezone cannot change hydration text"
+      ],
+      "persona_projection": "The implemented family/participant and director routes receive only message id, family/staff sender kind, a bounded plain-language sender label, body, occurred time, and server-computed is_own. sender_user_id, organization member id, continuity participant id, organization id, and creation request id never cross the client projection. No user-visible staff messaging route is claimed.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
+      "id": "m3.staff.workflow_messages_backend",
+      "cycle": "M3",
+      "capability": "Currently assigned active staff have backend authority to list and post case messages for their assigned workflow",
+      "status": "backend_only",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "files": [],
+        "note": "The database and RPC contract is implemented, but no staff message route or component exists. This contract earns no user-visible staff messaging credit."
+      },
+      "action_status": "assigned active staff backend list/post authority only; user-visible staff messaging remains unimplemented",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per successful assigned-staff request; denial and replay conflict add zero rows"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_message_workflow(workflow_id) requires auth.uid() to map to a current active staff membership with an active grant on the workflow location and at least one task on that exact workflow currently assigned to that membership.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The append-only workflow_messages row is the durable receipt. Direct authenticated writes are revoked and the post RPC is the only mutation path."
+      },
+      "failure_recovery_states": [
+        "unassigned, former, revoked, wrong-location, and cross-organization staff list/post attempts return 42501 and add no row",
+        "direct table SELECT/INSERT/UPDATE/DELETE remains denied",
+        "identical replay returns the original receipt; changed actor or body conflicts without changing cardinality",
+        "staff UI remains explicitly unavailable until a separate reachable route/component slice passes responsive and hosted QA"
+      ],
+      "persona_projection": "Assigned staff can receive the same client-safe RPC projection at the backend boundary. No route or component currently exposes it to the staff persona.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
       "id": "urgent.family.receiver_bound_submission",
       "cycle": "Urgent P1",
       "capability": "A signed-in family requests a Northstar callback or saves the same guidance privately",
@@ -1037,7 +1146,7 @@
       "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "app/start/actions.ts"
       ],
       "durable_tables": [
@@ -1090,7 +1199,7 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
             "add column receiving_organization_id uuid",
             "p_receiving_organization_id uuid",

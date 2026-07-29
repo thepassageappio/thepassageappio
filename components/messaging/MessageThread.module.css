@@ -1,0 +1,25 @@
+.thread { display: grid; gap: 16px; margin-top: 20px; }
+.list { display: grid; gap: 10px; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; list-style: none; }
+.empty { margin: 0; color: var(--muted); font-size: 14px; }
+.bubble { max-width: 88%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.bubble[data-own="true"] { margin-left: auto; border-color: var(--signal); background: var(--signal-soft); }
+.meta { margin: 0 0 6px; color: var(--muted); font-size: 12px; font-weight: 760; letter-spacing: .02em; text-transform: uppercase; }
+.body { margin: 0; font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+.form { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.composerLabel { font-size: 13px; font-weight: 740; }
+.boundary { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.form textarea { min-height: 84px; width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 12px 13px; background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; resize: vertical; }
+.form button { min-height: 48px; width: 100%; border: 1px solid var(--signal); border-radius: 8px; background: var(--signal); color: white; font-weight: 780; cursor: pointer; }
+.form button:disabled { cursor: not-allowed; opacity: .62; }
+.success { margin: 0; padding: 10px 12px; border-left: 4px solid var(--success); background: var(--success-soft); font-size: 13px; }
+.errorText { margin: 0; padding: 10px 12px; border-left: 4px solid var(--danger); background: var(--danger-soft); font-size: 13px; }
+.loadFailure { display: grid; gap: 12px; padding: 14px; border-left: 4px solid var(--danger); background: var(--danger-soft); }
+.loadFailure p { margin: 0; font-size: 14px; line-height: 1.5; }
+.loadFailure a { display: inline-flex; min-height: 48px; width: fit-content; align-items: center; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-weight: 760; text-decoration: none; }
+.form :is(textarea, button):focus-visible { outline: 3px solid color-mix(in srgb, var(--signal) 55%, white); outline-offset: 3px; }
+.loadFailure a:focus-visible { outline: 3px solid color-mix(in srgb, var(--signal) 55%, white); outline-offset: 3px; }
+@media (max-width: 620px) {
+  .list { max-height: 320px; }
+  .bubble { max-width: 100%; }
+  .loadFailure a { width: 100%; justify-content: center; }
+}
