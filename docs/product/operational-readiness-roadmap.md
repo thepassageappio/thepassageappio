@@ -561,3 +561,22 @@ Release truth for this P1:
 - **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL; PR #24 is not ready.
 
 This is a defect correction, not a product-direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. No readiness score advances. The next gate is exact-head independent source/SQL/RLS review, followed by one non-production Preview and hosted first-submit/replay/reload/denial/cardinality/1440/390/360 proof.
+
+### Post-merge urgent first-task parity invalidation — 2026-07-28
+
+The later merge head `e25c6d2dc64e64687ec55d31d711ffeba9569266` does not restore PR #24 readiness. Exact-source parity was 16/17: the ledger referenced nonexistent `20260727030000_urgent_receiving_organization_boundary.sql` instead of the committed/applied `20260727042651` file, while the isolated database also contained `urgent_case_first_commitment` at applied version `20260727200936` with no matching source file. The earlier source-PASS and “migration drift closed” claims are therefore invalidated.
+
+The bounded source repair restores the exact first-commitment statements under the truthful applied filename, restores the broad rollback-only authority/replay/cardinality matrix, returns both durable case and first-task receipts, opens Case Room Tasks at the returned task, and limits assignment choices to active staff with a non-revoked exact-location grant. Missing-task and no-candidate recovery remain visible, human, and non-destructive.
+
+Roadmap classification: defect and source/database parity correction only. It changes no product direction, milestone order, readiness doctrine, persona scope, or score. Funeral home remains **94% guided / 40% operational**; D2C remains **85% guided / 25% operational**; vendor remains **90% guided / 28% operational**. Source gates, independent SQL/RLS QA, one exact-head non-production Preview, and complete hosted first-submit/replay/reload/assignment/denial/cardinality/1440/390/360 evidence remain required before any hosted PASS or cutover claim.
+
+### Urgent first-task QA return closed in source - 2026-07-28 21:44 -07:00
+
+The replacement urgent packet closes four source-level QA findings without changing roadmap direction or scores:
+
+- zero-task Case Rooms show missing-first-task recovery before generic invalid-task denial, while invalid task selectors on nonempty workflows still fail closed;
+- ordinary workload assignment says `Assign task`, and only the urgent first commitment says `Assign first task`;
+- no-candidate recovery names the exact humanized case location and directs the director to review team access before returning;
+- the rollback-only SQL matrix executes first-task assignment and proves durable assignment, one append-only event, idempotent replay, and wrong-organization, wrong-location, unaffiliated, former/revoked actor plus invalid target denials without cardinality drift.
+
+This is a defect and frontend/backend parity correction only. It changes no product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score. Candidate `AGENTS.md` is intentionally unchanged from exact merge source; the requested governance doctrine replacement is a separate bounded packet. Funeral home remains **94% guided / 40% operational**; D2C remains **85% guided / 25% operational**; vendor remains **90% guided / 28% operational**. Independent source/SQL/RLS QA, one non-production Preview, and complete hosted 1440/390/360 assignment/replay/reload/denial/cardinality evidence remain required.

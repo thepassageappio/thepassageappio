@@ -39,6 +39,7 @@ export default async function DirectorPage() {
           {tasks.map((task) => {
             const workflow = workflowById.get(task.workflow_id);
             const currentOwner = displayMember(task.assigned_organization_member_id ? memberById.get(task.assigned_organization_member_id) : undefined);
+            const locationName = locationById.get(workflow?.organization_location_id ?? '') ?? 'this location';
             const authorizedCandidates = activeStaff.filter((member) => member.id !== task.assigned_organization_member_id && grants.some((grant) => grant.organization_member_id === member.id && grant.organization_location_id === workflow?.organization_location_id && !grant.revoked_at));
             return (
               <article className={styles.workCard} key={task.id}>
@@ -56,7 +57,7 @@ export default async function DirectorPage() {
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                   </dl>
                 </div>
-                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} />}
+                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} locationName={locationName} requestId={randomUUID()} taskId={task.id} version={task.version} workflowId={task.workflow_id} />}
                 <div className={styles.startForm}><p>Review this task, its submitted proof, and its saved history.</p><Link className={styles.primaryLink} href={`/director/cases/${task.workflow_id}?task=${task.id}#proof`}>Review task</Link></div>
               </article>
             );
