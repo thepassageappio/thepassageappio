@@ -1,7 +1,7 @@
 # Workflow-message trigger search-path source evidence
 
-Recorded: 2026-07-28 22:45:47 -07:00  
-Role: Messaging Security/Engineering `/root/messaging_p1_engineering`  
+Recorded: 2026-07-28 22:45:47 -07:00
+Role: Messaging Security/Engineering `/root/messaging_p1_engineering`
 Reviewed source base: PR #74 head `dff62760e6e7139ab5a2ef8b8c6f9f887a524411` in an isolated archive
 
 ## Change boundary
