@@ -1,6 +1,6 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
-  "version": 3,
+  "version": 4,
   "last_updated": "2026-07-28",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
@@ -1118,6 +1118,110 @@
         "supabase/tests/workflow_messages_client_projection.sql",
         "scripts/test-workflow-messaging-security.js",
         "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
+      "id": "urgent.family.receiver_bound_submission",
+      "cycle": "Urgent P1",
+      "capability": "A signed-in family requests a Northstar callback or saves the same guidance privately",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/start/next",
+        "component": [
+          "app/start/next/UrgentNextClient.tsx",
+          "app/start/actions.ts"
+        ],
+        "files": [
+          "app/start/next/UrgentNextClient.tsx",
+          "app/start/StartWizardContext.tsx",
+          "app/start/actions.ts",
+          "app/start/Start.module.css",
+          "lib/urgent/situations.ts"
+        ],
+        "note": "The family sees Northstar as the callback receiver, a requester-private alternative, and one exact saved receipt reconstructed from the persisted request key."
+      },
+      "action_status": "not saved -> submitted and shared with Northstar, or self_handling and requester-private; exact replay returns the original receipt while changed input conflicts without mutation",
+      "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+        "app/start/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "urgent_intake_requests",
+          "cardinality": "one receiver-bound request per requester and creation request UUID"
+        },
+        {
+          "table": "urgent_intake_events",
+          "cardinality": "one immutable urgent_intake.submitted event per successful creation request UUID"
+        }
+      ],
+      "rls_authority_predicate": "The requester reads their own request; only callback rows are additionally visible to an active owner/director of the exact receiving organization. Private saves remain requester-only.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "urgent_intake_events",
+        "event_type": "urgent_intake.submitted",
+        "idempotency_key": "urgent_intake_create:<caller-supplied request UUID>"
+      },
+      "failure_recovery_states": [
+        "signed-out or anon submit -> execute denied and no request or event",
+        "missing, malformed, or non-allowlisted receiver -> no request or event",
+        "same request key with changed normalized input -> conflict with original rows unchanged",
+        "same request key with identical input -> original receipt and no duplicate event",
+        "wrong-organization active director -> callback claim command denied and cardinality unchanged",
+        "active leader of the exact receiver -> private self_handling claim command denied and cardinality unchanged",
+        "same-organization staff and revoked leaders -> receiver helper false, no receiver projection, claim command denied, and cardinality unchanged",
+        "uncertain event-time read -> reload exact request before retrying",
+        "reload resolves creation_request_id for the signed-in requester rather than a newer unrelated request"
+      ],
+      "persona_projection": "The family sees whether Northstar receives the callback request or cannot see a private save. Active Northstar leaders see callback requests only; staff, revoked members, other organizations, vendors, participants, and unrelated users see no row.",
+      "evidence_test_references": [
+        "supabase/tests/urgent_receiver_submit_boundary.sql",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "app/start/next/UrgentNextClient.tsx",
+          "includes": [
+            "name=\"receivingOrganizationId\"",
+            ".eq('creation_request_id', draft.requestId)",
+            "urgent_intake_create:${draft.requestId}"
+          ]
+        },
+        {
+          "file": "app/start/actions.ts",
+          "includes": [
+            "receivingOrganizationId !== PREVIEW_RECEIVING_ORGANIZATION.id",
+            "p_receiving_organization_id: receivingOrganizationId"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+          "includes": [
+            "add column receiving_organization_id uuid",
+            "p_receiving_organization_id uuid",
+            "alter column receiving_organization_id set not null"
+          ]
+        },
+        {
+          "file": "supabase/tests/urgent_receiver_submit_boundary.sql",
+          "includes": [
+            "urgent_receiving_organization_boundary",
+            "Expected non-allowlisted receiver denial",
+            "Signed-out anon submit denial failed",
+            "Same-organization active staff command denial failed",
+            "Revoked Northstar leader command denial failed",
+            "Exact receiver director private-request command denial failed",
+            "Wrong-organization active director claim command denial failed",
+            "Receiver command denials changed request status, version, or event cardinality",
+            "Exact receiving director callback/private RLS boundary failed",
+            "Final receiver-submit request/event cardinality changed",
+            "rollback;"
+          ]
+        }
       ]
     }
   ]

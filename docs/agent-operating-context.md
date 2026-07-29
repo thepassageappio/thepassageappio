@@ -1814,3 +1814,92 @@ Exact next action and auto-advance:
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE PARTIAL.
 - No live SQL, commit, push, deployment, product, migration, matrix, parity, roadmap, or Supabase state changed.
+### Urgent/red receiver submit P1 — product-only publication split — 2026-07-28
+
+Status: **AD41 INDEPENDENT QA FAIL / 55312 AND E00099 REVIEW RETURNS / THIRD REPLACEMENT DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This packet is not hosted, deployed, merged, or release-approved.
+
+Role instance and handoff:
+
+- Product Manager: `/root`, urgent/red submit P1. PM invalidated the earlier “urgent/red done” claim after the receiver-bound database command and `/start/next` Server Action were proven out of parity.
+- UI/UX Review: `/root/qa_demo_expiry_finalizer`, **PASS TO ENGINEERING WITH CONDITIONS**. The acceptance bar requires a named Northstar callback action, an explicitly private alternative, durable receipt time, exact reload recovery, accessible pending/error states, 48-pixel targets, visible focus, and zero overflow at 1440/390/360.
+- Development Engineer: `/root/urgent_product_only_split`.
+- Prior Engineering/QA/Review handoff received: combined candidate `c337760767bcf00f22f418a94f40ef78b509f463` contained a source-complete urgent repair, but the Passage Release Bot could not publish it because that commit also modified a trusted workflow and the Bot installation lacks the narrowly required workflow-file permission.
+- This product-only branch starts from exact `greenfield/passage-zero` base `520a3bf2d12c51a427f7ad08a8f1dea1fe44d311`. It preserves the complete urgent product/data/parity repair and excludes `.github/workflows`, repository-governance doctrine, and governance-infrastructure tests. The separate governance correction remains independently tracked; this packet does not delete, revert, weaken, or supersede it.
+- Independent QA rejected first product-only head `ad41b55d245913e07a1ab81a57f48a785ef70413`: its broad `urgent_family_organization_boundary.sql` test hard-required the separately developed `urgent_case_first_commitment` migration even though that migration is absent from exact base `520a3bf...`. The test therefore was not reproducible from the candidate’s committed migration stack. Every approval path tied to `ad41b55...` is stale.
+- Reviewer returned replacement head `55312cba131dc08ff61064bbcf967d02833244e6`: the narrowed matrix proved requester, exact receiver leader, wrong-organization, and unrelated-user projection, but did not execute the PM-required signed-out submit denial or same-organization active-staff and revoked-leader helper/RLS/command denials. Every approval path tied to `55312cb...` is stale.
+- Reviewer returned second replacement head `e00099f18e78248ff260d915bffec89dea69e76e`: it added the anon, staff, and revoked-leader denials but omitted direct wrong-organization director rejection on the callback claim command and exact-receiver director rejection on the private `self_handling` request. Every approval path tied to `e00099f...` is stale.
+
+PM Sprint Brief:
+
+- **Goal:** restore the signed-in family’s core urgent action so one deliberate choice either requests a callback from Northstar Funeral Home or saves the guidance privately, with durable request/event proof and truthful recovery.
+- **Requirements/components:** exact allowlisted receiver ID in wizard/form/Server Action/RPC; stable persisted request UUID; exact-key recovery; authoritative append-only event time; callback-versus-private audience copy; requester/receiver RLS boundary; replay/conflict/reload behavior; frontend/backend parity and operational-route regressions.
+- **Development objectives:** repair the smallest coherent product contract; keep the existing urgent tables, typed action, RPC, event spine, warm visual system, and persona boundaries; add no client-side authority or parallel urgent model.
+- **Acceptance:** source regression detects a missing receiver field or RPC argument; first submit creates one request and one event; exact replay is stable; changed replay conflicts without partial mutation; callback is visible only to requester plus an active leader of the exact receiver; private save remains requester-only; reload shows the same request and durable event time; signed-out, forged receiver, wrong organization, staff, revoked, and unrelated identities are denied; 1440/390/360 comprehension/accessibility/runtime checks pass.
+- **Dependencies:** exact base above; isolated project `uyacxqtsiwlvtmhxvoxr`; the already-applied and reviewed receiver-bound migration; canonical non-production Vercel Preview path.
+- **QA plan:** independent diff inspection; deterministic source gates; exact receiver migration inspection; rollback-only receiver-submit SQL/RLS matrix that depends only on the committed thin-slice and receiver-boundary migrations; then exact-head hosted first-submit/replay/reload, director visibility, private non-visibility, cardinality, logs, and 1440/390/360 evidence.
+- **Deploy plan:** Passage Release Bot publishes a bounded draft PR against `greenfield/passage-zero`; exact-head Independent QA, Independent Agent Review, and Development Head decide before one branch-only non-production Preview. No `[qa-approved]` precedes hosted proof.
+- **Risks/recovery:** a source-only form change can drift from the already-applied function; regenerated request identity breaks idempotency; “latest request” recovery can show unrelated data; a successful mutation followed by failed proof re-read is uncertain and must direct reload, not duplicate submission.
+- **Non-goals/owner gates:** no new schema design, SQL application, Production, live email/SMS, public provider activation, pricing, billing, access-scope expansion, legal/medical claim, or broad urgent redesign. No owner gate is reached by this bounded non-production repair.
+- **Roadmap classification:** no material product-direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. The roadmap is touched only to invalidate the false completion claim and record the P1’s truthful release state.
+
+Documentation-first database artifact gate:
+
+- **What:** retain `20260727030000_urgent_receiving_organization_boundary.sql` and replace the unreproducible broad test with narrow rollback-only `urgent_receiver_submit_boundary.sql`.
+- **Why the frontend needs it:** `/start/next` must name and bind the exact receiving funeral home, while private saves remain requester-only.
+- **What breaks if skipped:** the UI calls a database signature that source control cannot reproduce or audit, and hosted behavior can drift from migrations.
+- **Risk:** reapplying already-present DDL or widening a `SECURITY DEFINER` boundary would be unsafe.
+- **Recovery:** no SQL is applied in this packet; independent QA inspects the exact source artifacts and runs the narrow test in a rollback-only transaction before any later release step.
+- **Data boundary and target:** synthetic isolated project `uyacxqtsiwlvtmhxvoxr` only. Production project `qsveqfchwylsbncsfgxe` is prohibited and untouched.
+- **Separate unresolved lane:** the broader first-commitment migration and claim/case/workflow/task regression remain outside this hotfix and are not present on exact base `520a3bf...`. This packet does not claim that broader migration drift is closed.
+
+Development handoff:
+
+- Product/UI files: `app/start/Start.module.css`, `app/start/StartWizardContext.tsx`, `app/start/actions.ts`, `app/start/next/UrgentNextClient.tsx`, and `lib/urgent/situations.ts`.
+- Contract/gates: `docs/product/frontend-backend-contracts.json`, `scripts/test-frontend-backend-parity.js`, and `scripts/test-operational-route-gate.js`.
+- Database artifacts: `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_receiver_submit_boundary.sql`.
+- Context/roadmap: this handoff and the matching readiness correction. No `.github` file is included.
+- The form now carries and the Server Action validates the allowlisted Northstar receiver before passing `p_receiving_organization_id`. The stable wizard request UUID drives exact recovery. Receipts read the matching append-only event time. Callback and private actions state who can see the saved request, and uncertain post-mutation recovery directs reload.
+
+Historical Engineering verification for invalidated head `ad41b55...`:
+
+- `git diff HEAD --check`: PASS; 12 tracked files, no `.github`, `AGENTS.md`, release-governance doctrine, or governance-infrastructure test change.
+- Frontend/backend parity: PASS, 16/16, including the receiver field-to-Server-Action-to-RPC regression.
+- Server Action export guard: PASS; ten prohibited fixtures rejected and both Cycle 8 actions bound.
+- Operational route gate, persona-language guard, runtime isolation, Vercel deploy gate 16/16, agent-context guard, release-train non-PR classification, and the existing release-governance regression: PASS.
+- TypeScript `tsc --noEmit`: PASS.
+- The product/UI and receiver migration blobs matched the combined candidate, but that did not make its broad SQL test reproducible from this branch. The receiver migration remains exact Git blob `fdd3c978f7a703882dec30c45ac289519f6fab4f`; broad SQL-test blob `382c8dc...` is intentionally removed from this packet.
+- A fresh optimized Next.js 16.1.6 build reached compilation but could not fetch Cormorant Garamond and Montserrat from Google Fonts because this isolated shell has no outbound connection. The failure named only those two remote font fetches; it did not report a source, type, route, or application compile error. The combined candidate’s prior optimized build applies to the executable product files only after exact blob equality is rechecked; independent QA and hosted Vercel build remain required for this new head.
+- No migration or test SQL was executed or applied by this Development Engineer.
+
+Replacement Development Engineer verification for returned head `55312cb...`:
+
+- Removed `supabase/tests/urgent_family_organization_boundary.sql` from this product-only packet. Added `supabase/tests/urgent_receiver_submit_boundary.sql`, Git blob `db43338622e7b0d790483fcdcd73c50fb849c8c0`.
+- The narrow rollback-only test preflights only `urgent_family_thin_slice`, `urgent_receiving_organization_boundary`, and the receiver-bound submit signature. It contains no first-commitment, claim, case-creation, workflow, or task dependency.
+- Its catalog and transaction matrix covers exact Northstar receiver enforcement; signed-out anon submit denial; callback and private creation; wrong-receiver no-write; exact replay; changed-payload conflict; one request/one append-only event per key; requester visibility; callback visibility for an active leader of the exact receiver; private non-visibility; wrong-organization and unrelated-user denial; runtime false helper results plus projection and claim-command denials for same-organization active staff and a revoked director; unchanged cardinality after those denials; and final two-request/two-event cardinality.
+- Frontend/backend parity: PASS, 17/17. The new executable regression fails if the broad test returns, if a separate case-lane dependency enters the narrow test, or if the narrow callback/private/replay/conflict/RLS/cardinality evidence disappears.
+- Server Action exports, operational-route fail-closed matrix, persona-language, runtime isolation, Vercel deploy gate 16/16, agent-context, release-train non-PR classification, existing release-governance regression, `git diff --check`, and TypeScript `tsc --noEmit`: PASS.
+- The receiver migration remains unchanged at Git blob `fdd3c978f7a703882dec30c45ac289519f6fab4f`. No SQL was run or applied; the exact rollback-only matrix remains for Independent QA execution against the guarded isolated project.
+
+Second replacement denial verification for returned head `e00099f...`:
+
+- Updated narrow SQL test Git blob: `a79d4c2b28ccb13cace56bfa99f2cb05a327fe46`.
+- Runtime anon role invokes the public submit signature and must receive `insufficient_privilege`; a postgres cardinality check proves the denied key created no request.
+- Runtime same-organization active staff and revoked-director identities each prove the exact receiver-leader helper returns false, both callback/private request and event projections return zero, and the receiver claim command returns `42501`.
+- The family projection is then restored and proves the callback remains `submitted` version 1, the private save remains `self_handling` version 1, neither is claimed, and each retains exactly one submission event. Final postgres cardinality remains two requests and two events.
+- Parity 17/17, Server Action exports, operational route, persona language, runtime isolation, Vercel deploy gate 16/16, agent context, release-train classification, existing governance regression, `git diff --check`, and TypeScript: PASS. No SQL was executed.
+
+Third replacement paired-command verification:
+
+- Updated narrow SQL test Git blob: `7a9d9cca9fbcfd1c89f7d203f926087753ab31a7`.
+- The active Northstar director receives `42501` when attempting to claim the private `self_handling` request. The active wrong-organization director receives `42501` when attempting to claim the callback request.
+- After those paired direct-command denials plus the existing staff/revoked denials, the family re-read proves callback `submitted` version 1, private `self_handling` version 1, neither claimed, one event each, and final two-request/two-event cardinality.
+- Parity 17/17, Server Action exports, operational route, persona language, runtime isolation, Vercel deploy gate 16/16, agent context, release-train classification, existing governance regression, `git diff --check`, and TypeScript: PASS. No SQL was executed.
+
+Release truth:
+
+- **Source QA:** FAIL for stale head `ad41b55...`; REVIEW RETURN for stale heads `55312cb...` and `e00099f...`; third replacement Engineering gates PASS and independent QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN for this product-only candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA. No Claude-in-Chrome or other external-agent assistance was used by this Development Engineer.

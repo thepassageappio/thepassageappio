@@ -2,30 +2,54 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState, type FormEvent } from 'react';
+import { useActionState, useEffect, useRef, useState, type FormEvent } from 'react';
 import { getPassageBrowserClient } from '@/lib/supabase/browser';
-import { humanSituationCategory, situationGuidance, type SituationCategory } from '@/lib/urgent/situations';
+import { humanSituationCategory, PREVIEW_RECEIVING_ORGANIZATION, situationGuidance, type SituationCategory } from '@/lib/urgent/situations';
 import { submitUrgentIntake, type UrgentCommandState } from '../actions';
 import { useStartWizard } from '../StartWizardContext';
 import styles from '../Start.module.css';
 
 const initialState: UrgentCommandState = { status: 'idle' };
 
-type ExistingRequest = { id: string; status: string; wants_callback: boolean; coordinator_name: string; coordinator_phone: string | null; coordinator_email: string | null };
-type Phase = 'checking' | 'needs-auth' | 'ready' | 'already-saved';
+type ExistingRequest = {
+  id: string;
+  status: string;
+  wants_callback: boolean;
+  coordinator_name: string;
+  coordinator_phone: string | null;
+  coordinator_email: string | null;
+  occurredAt: string | null;
+};
+type Phase = 'checking' | 'needs-auth' | 'ready' | 'already-saved' | 'recovery-error';
+
+function formatSavedTime(value: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'long',
+      timeZone: 'America/Los_Angeles',
+    }).format(new Date(value));
+  } catch {
+    return 'Saved time could not be displayed. Reload to check.';
+  }
+}
 
 export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl: string; publishableKey: string }) {
   const router = useRouter();
   const { draft, hydrated } = useStartWizard();
   const [phase, setPhase] = useState<Phase>('checking');
   const [existing, setExisting] = useState<ExistingRequest | null>(null);
-  const [requestId] = useState(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`));
   const [authMode, setAuthMode] = useState<'create' | 'signin'>('create');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState('');
   const [state, formAction, pending] = useActionState(submitUrgentIntake, initialState);
+  const actionError = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (state.status !== 'idle' && state.status !== 'saved') actionError.current?.focus();
+  }, [state.status]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -38,20 +62,38 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
         if (!cancelled) setPhase('needs-auth');
         return;
       }
-      const { data } = await client
+      const requestResult = await client
         .from('urgent_intake_requests')
         .select('id, status, wants_callback, coordinator_name, coordinator_phone, coordinator_email')
+        .eq('creation_request_id', draft.requestId)
         .eq('requester_user_id', userResult.user.id)
-        .order('submitted_at', { ascending: false })
-        .limit(1);
+        .maybeSingle();
       if (cancelled) return;
-      if (data && data.length > 0) { setExisting(data[0] as ExistingRequest); setPhase('already-saved'); }
-      else setPhase('ready');
+      if (requestResult.error) {
+        setPhase('recovery-error');
+        return;
+      }
+      if (!requestResult.data) {
+        setPhase('ready');
+        return;
+      }
+      const eventResult = await client
+        .from('urgent_intake_events')
+        .select('occurred_at')
+        .eq('urgent_intake_request_id', requestResult.data.id)
+        .eq('idempotency_key', `urgent_intake_create:${draft.requestId}`)
+        .maybeSingle();
+      if (cancelled) return;
+      setExisting({
+        ...(requestResult.data as Omit<ExistingRequest, 'occurredAt'>),
+        occurredAt: eventResult.data?.occurred_at ?? null,
+      });
+      setPhase('already-saved');
     }
     check();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft.situationCategory, hydrated]);
+  }, [draft.requestId, draft.situationCategory, hydrated, publishableKey, router, supabaseUrl]);
 
   async function handleAuth(event: FormEvent) {
     event.preventDefault();
@@ -93,23 +135,49 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
           <ol>{guidance.steps.map((step) => <li key={step}>{step}</li>)}</ol>
         </section>
 
+        <section className={styles.receivingHome} aria-labelledby="receiving-home-heading">
+          <span>If you request a callback</span>
+          <strong id="receiving-home-heading">{PREVIEW_RECEIVING_ORGANIZATION.name}</strong>
+          <p>Only an active owner or director at Northstar can open the request. Saving privately keeps it hidden from Northstar.</p>
+        </section>
+
         {phase === 'checking' && <p className={styles.lede}>One moment…</p>}
+
+        {phase === 'recovery-error' && (
+          <div className={styles.alert} role="alert">
+            <p>Passage could not check whether this exact request was already saved. Nothing new was sent.</p>
+            <button className={styles.recoveryButton} onClick={() => window.location.reload()} type="button">Reload and check</button>
+          </div>
+        )}
 
         {phase === 'already-saved' && existing && (
           <div className={styles.receipt}>
             <div className={styles.receiptMark} aria-hidden="true">✓</div>
-            <h1>Already saved.</h1>
+            <h2>Already saved.</h2>
             <p>
               {existing.status === 'claimed' || existing.status === 'case_created'
-                ? `A director from Passage is already helping with this for ${existing.coordinator_name}.`
+                ? 'An authorized director at Northstar Funeral Home is helping with this request.'
                 : existing.wants_callback
-                  ? `We have this saved and a director will reach out to ${existing.coordinator_name} shortly.`
-                  : `We saved this for ${existing.coordinator_name}'s records. No callback was requested.`}
+                  ? `Northstar Funeral Home has this request. An authorized director will contact ${existing.coordinator_name} using the details provided.`
+                  : 'Saved privately. Northstar Funeral Home cannot see it.'}
             </p>
             <dl className={styles.receiptFacts}>
               <div><dt>Situation</dt><dd>{humanSituationCategory(draft.situationCategory)}</dd></div>
+              {existing.wants_callback
+                ? <div><dt>Sent to</dt><dd>{PREVIEW_RECEIVING_ORGANIZATION.name}</dd></div>
+                : <div><dt>Visibility</dt><dd>Only you</dd></div>}
+              {existing.wants_callback && <div><dt>Visibility</dt><dd>You and an active Northstar owner or director</dd></div>}
               <div><dt>Contact</dt><dd>{existing.coordinator_phone || existing.coordinator_email}</dd></div>
+              <div>
+                <dt>Saved</dt>
+                <dd>
+                  {existing.occurredAt
+                    ? <time dateTime={existing.occurredAt}>{formatSavedTime(existing.occurredAt)}</time>
+                    : 'Saved time could not be confirmed. Reload before trying again.'}
+                </dd>
+              </div>
             </dl>
+            {!existing.occurredAt && <button className={styles.recoveryButton} onClick={() => window.location.reload()} type="button">Reload and check</button>}
           </div>
         )}
 
@@ -139,6 +207,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
 
         {phase === 'ready' && state.status !== 'saved' && (
           <form action={formAction} aria-busy={pending} noValidate>
+            <input name="receivingOrganizationId" type="hidden" value={PREVIEW_RECEIVING_ORGANIZATION.id} />
             <input name="situationCategory" type="hidden" value={draft.situationCategory} />
             <input name="personName" type="hidden" value={draft.personName} />
             <input name="personLocation" type="hidden" value={draft.personLocation} />
@@ -147,11 +216,18 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
             <input name="coordinatorPhone" type="hidden" value={draft.coordinatorPhone} />
             <input name="coordinatorEmail" type="hidden" value={draft.coordinatorEmail} />
             <input name="callbackNotes" type="hidden" value={draft.callbackNotes} />
-            <input name="requestId" type="hidden" value={requestId} />
-            {state.status !== 'idle' && state.message && <p className={styles.alert} role="alert">{state.message}</p>}
+            <input name="requestId" type="hidden" value={draft.requestId} />
+            {state.status !== 'idle' && state.message && (
+              <div className={styles.alert} ref={actionError} role="alert" tabIndex={-1}>
+                <p>{state.message}</p>
+                {(state.status === 'unavailable' || state.status === 'conflict') && (
+                  <button className={styles.recoveryButton} onClick={() => window.location.reload()} type="button">Reload and check</button>
+                )}
+              </div>
+            )}
             <fieldset disabled={pending} style={{ border: 'none', padding: 0, margin: 0 }}>
-              <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Request a callback from Passage'}</button>
-              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">I'll take this step myself for now</button>
+              <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Request a callback from Northstar Funeral Home'}</button>
+              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately — don&apos;t share with Northstar</button>
             </fieldset>
           </form>
         )}
@@ -159,8 +235,22 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
         {state.status === 'saved' && (
           <div className={styles.receipt}>
             <div className={styles.receiptMark} aria-hidden="true">✓</div>
-            <h1>Saved.</h1>
-            <p>{state.receipt?.wantsCallback ? `A director will reach out to ${draft.coordinatorName || 'your contact'} shortly.` : 'We saved this for your records. Come back anytime if you need a callback.'}</p>
+            <h2>Saved.</h2>
+            <p>
+              {state.receipt?.wantsCallback
+                ? `Northstar Funeral Home has this request. An authorized director will contact ${draft.coordinatorName || 'your contact'} using the details provided.`
+                : 'Saved privately. Northstar Funeral Home cannot see it. Come back anytime if you decide to request a callback.'}
+            </p>
+            {state.receipt && (
+              <dl className={styles.receiptFacts}>
+                {state.receipt.wantsCallback
+                  ? <div><dt>Sent to</dt><dd>{PREVIEW_RECEIVING_ORGANIZATION.name}</dd></div>
+                  : <div><dt>Visibility</dt><dd>Only you</dd></div>}
+                {state.receipt.wantsCallback && <div><dt>Visibility</dt><dd>You and an active Northstar owner or director</dd></div>}
+                <div><dt>Contact</dt><dd>{draft.coordinatorPhone || draft.coordinatorEmail}</dd></div>
+                <div><dt>Saved</dt><dd><time dateTime={state.receipt.occurredAt}>{formatSavedTime(state.receipt.occurredAt)}</time></dd></div>
+              </dl>
+            )}
           </div>
         )}
       </main>

@@ -1,5 +1,10 @@
 export type SituationCategory = 'home_unexpected' | 'hospice' | 'hospital' | 'care_facility' | 'already_handled' | 'other';
 
+export const PREVIEW_RECEIVING_ORGANIZATION = {
+  id: 'c7a00001-7a00-47a0-87a0-000000000001',
+  name: 'Northstar Funeral Home',
+} as const;
+
 export const SITUATION_OPTIONS: { value: SituationCategory; label: string }[] = [
   { value: 'home_unexpected', label: 'It happened at home, unexpectedly' },
   { value: 'hospice', label: 'They were in hospice care' },
