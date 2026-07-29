@@ -1223,6 +1223,225 @@
           ]
         }
       ]
+    },
+    {
+      "id": "urgent.director.case_first_task",
+      "cycle": "Urgent parity repair",
+      "capability": "The receiving funeral home's active owner or director claims a callback request and atomically opens a case with one assignable first task",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/urgent",
+        "component": [
+          "app/director/urgent/page.tsx",
+          "app/director/urgent/[requestId]/page.tsx",
+          "app/director/urgent/UrgentForms.tsx",
+          "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx"
+        ],
+        "files": [
+          "app/director/urgent/page.tsx",
+          "app/director/urgent/[requestId]/page.tsx",
+          "app/director/urgent/UrgentForms.tsx",
+          "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "app/staff/page.tsx",
+          "app/staff/work/[taskId]/page.tsx",
+          "lib/urgent/hosted.ts",
+          "lib/presentation/plain-language.ts"
+        ],
+        "note": "The queue and detail stay bound to the viewer's exact receiving organization. A successful case command returns the durable case and first-task identifiers and opens the Tasks state without rendering either identifier."
+      },
+      "action_status": "submitted -> claimed -> case_created; case creation atomically creates exactly one unassigned first task and returns the original case/task receipt on an exact authorized replay",
+      "server_command": [
+        "public.claim_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_request_id uuid)",
+        "public.create_case_from_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_request_id uuid)",
+        "public.assign_task_idempotent(p_task_id uuid, p_expected_version integer, p_assignee_member_id uuid, p_reason text, p_request_id uuid)"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+        "app/director/urgent/actions.ts",
+        "app/director/actions.ts",
+        "lib/urgent/hosted.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "urgent_intake_requests",
+          "cardinality": "one receiver-bound request whose claimed organization is null or exactly equals the receiver"
+        },
+        {
+          "table": "workflows",
+          "cardinality": "one case workflow in the receiving organization and authorized location per successful case-creation key"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "exactly one unassigned version-1 first task in the created workflow per successful case-creation key"
+        },
+        {
+          "table": "urgent_intake_events",
+          "cardinality": "one immutable claim event and one immutable case-created event per successful unique command key"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one immutable task.created event keyed to the urgent request and first task"
+        }
+      ],
+      "rls_authority_predicate": "Queue, detail, and claim require an active owner/director of the exact receiving organization. Case creation also requires management authority for the selected location. Assignment requires an active staff member with a non-revoked grant to the case's exact location.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "urgent_intake_events and workflow_events",
+        "event_type": "urgent_intake.claimed, urgent_intake.case_created, task.created, and task.assigned",
+        "idempotency_key": "urgent_intake_claim:<request UUID>, urgent_intake_case_create:<request UUID>, urgent_intake_first_task:<urgent request UUID>, or the assignment request UUID"
+      },
+      "failure_recovery_states": [
+        "wrong organization, wrong location, staff role, revoked member, unaffiliated user, and unassigned staff fail closed",
+        "stale versions conflict atomically and reload returns durable current state",
+        "exact replay returns the original workflow-and-first-task receipt without duplicate rows or events",
+        "changed replay input or lost current authority returns conflict or denial without mutation",
+        "an authorized workflow with no task shows reload and urgent-queue recovery before any vendor action loads",
+        "no eligible exact-location staff disables assignment and links to team access",
+        "an explicitly requested task outside the workflow fails closed"
+      ],
+      "persona_projection": "Only an active authorized director sees callback detail and case controls. The assigned staff member later sees the task's human owner action, never the director's assignment instruction or raw identifiers.",
+      "evidence_test_references": [
+        "supabase/tests/urgent_family_organization_boundary.sql",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "lib/urgent/hosted.ts",
+          "includes": [
+            ".eq('receiving_organization_id', organizationId)",
+            ".eq('wants_callback', true)",
+            ".neq('status', 'self_handling')",
+            ".eq('claimed_organization_id', organizationId)",
+            "loadUrgentIntakeRequest(client: SupabaseClient, id: string, organizationId: string)"
+          ]
+        },
+        {
+          "file": "app/director/urgent/actions.ts",
+          "includes": [
+            "first_task_id: string",
+            "!receipt?.workflow_id || !receipt.first_task_id",
+            "firstTaskId: receipt.first_task_id"
+          ]
+        },
+        {
+          "file": "app/director/urgent/UrgentForms.tsx",
+          "includes": [
+            "Create the case and first task.",
+            "Open case and choose an owner",
+            "Nothing is sent to the family."
+          ]
+        },
+        {
+          "file": "app/director/cases/[workflowId]/page.tsx",
+          "includes": [
+            "if (query.task && workflowTasks.length > 0 && !selectedTask)",
+            "The case is open, but its first task is unavailable.",
+            "Choose who owns the first task.",
+            "assignmentKind=\"first-task\"",
+            "locationName={humanizePreviewLabel(location?.name ?? '', 'this location')}",
+            "<AssignTaskForm",
+            "member.role === 'staff' && member.status === 'active'",
+            "grant.organization_location_id === workflow.organization_location_id",
+            "!grant.revoked_at",
+            "const activeStage = proofStage ? 'proof' : 'tasks';"
+          ]
+        },
+        {
+          "file": "app/director/CommandForms.tsx",
+          "includes": [
+            "name=\"workflowId\"",
+            "Team member",
+            "assignmentKind === 'first-task' ? 'Assign first task' : 'Assign task'",
+            "Assign first task",
+            "No eligible team members can work at {locationName}. Review team access, then return here."
+          ]
+        },
+        {
+          "file": "app/director/actions.ts",
+          "includes": [
+            "const workflowId = String(formData.get('workflowId')",
+            "!uuid.test(workflowId)",
+            "client.rpc('assign_task_idempotent'",
+            "revalidatePath(`/director/cases/${workflowId}`)"
+          ]
+        },
+        {
+          "file": "lib/presentation/plain-language.ts",
+          "includes": [
+            "urgentFirstTaskOwnerAction",
+            "export function humanTaskOwnerAction"
+          ]
+        },
+        {
+          "file": "app/staff/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action"
+          ]
+        },
+        {
+          "file": "app/staff/work/[taskId]/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+          "includes": [
+            "member_row.organization_id = v_request.receiving_organization_id",
+            "urgent_intake_requests_claim_matches_receiver",
+            "urgent_intake_requests_packet1_receiver",
+            "if not v_replay_authorized then"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+          "includes": [
+            "first_task_id uuid",
+            "insert into public.tasks",
+            "'urgent_intake_first_task:' || v_request.id::text",
+            "'task.created'",
+            "'first_task_id', v_first_task_id",
+            "urgent_intake_backfill"
+          ]
+        },
+        {
+          "file": "supabase/tests/urgent_family_organization_boundary.sql",
+          "includes": [
+            "Expected wrong-organization case-creation denial",
+            "Urgent first-task assignment did not persist task and append-only event",
+            "Urgent first-task assignment replay duplicated its event",
+            "Assigned staff My Work RLS projection omitted the urgent workflow or task",
+            "Unaffiliated identity can see the urgent workflow or task",
+            "Unassigned exact-location staff can see the urgent workflow or task",
+            "Wrong-location staff can see the urgent workflow or task",
+            "Wrong-organization staff can see the urgent workflow or task",
+            "Former or revoked staff can see the urgent workflow or task",
+            "Former or revoked director can see the urgent workflow or task",
+            "My Work RLS visibility matrix changed durable assignment cardinality",
+            "Expected wrong-organization assignment target denial",
+            "Expected wrong-location assignment target denial",
+            "Expected revoked assignment target denial",
+            "Expected wrong-organization assignment actor denial",
+            "Expected wrong-location assignment actor denial",
+            "Expected unaffiliated assignment actor denial",
+            "Expected former-or-revoked assignment actor denial",
+            "Assignment denials changed durable task or event cardinality",
+            "Northstar director can see requester-private self-handling rows",
+            "Expected revoked-location case replay denial",
+            "Postgres final request/workflow/task/event cardinality changed",
+            "rollback;"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1844,7 +1844,7 @@ PM Sprint Brief:
 
 Documentation-first database artifact gate:
 
-- **What:** retain `20260727030000_urgent_receiving_organization_boundary.sql` and replace the unreproducible broad test with narrow rollback-only `urgent_receiver_submit_boundary.sql`.
+- **What:** retain the truthfully applied `20260727042651_urgent_receiving_organization_boundary.sql` and replace the unreproducible broad test with narrow rollback-only `urgent_receiver_submit_boundary.sql`.
 - **Why the frontend needs it:** `/start/next` must name and bind the exact receiving funeral home, while private saves remain requester-only.
 - **What breaks if skipped:** the UI calls a database signature that source control cannot reproduce or audit, and hosted behavior can drift from migrations.
 - **Risk:** reapplying already-present DDL or widening a `SECURITY DEFINER` boundary would be unsafe.
@@ -1856,7 +1856,7 @@ Development handoff:
 
 - Product/UI files: `app/start/Start.module.css`, `app/start/StartWizardContext.tsx`, `app/start/actions.ts`, `app/start/next/UrgentNextClient.tsx`, and `lib/urgent/situations.ts`.
 - Contract/gates: `docs/product/frontend-backend-contracts.json`, `scripts/test-frontend-backend-parity.js`, and `scripts/test-operational-route-gate.js`.
-- Database artifacts: `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_receiver_submit_boundary.sql`.
+- Database artifacts: `supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_receiver_submit_boundary.sql`.
 - Context/roadmap: this handoff and the matching readiness correction. No `.github` file is included.
 - The form now carries and the Server Action validates the allowlisted Northstar receiver before passing `p_receiving_organization_id`. The stable wizard request UUID drives exact recovery. Receipts read the matching append-only event time. Callback and private actions state who can see the saved request, and uncertain post-mutation recovery directs reload.
 
@@ -1903,3 +1903,73 @@ Release truth:
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
 - Auto-advance target: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA. No Claude-in-Chrome or other external-agent assistance was used by this Development Engineer.
+
+### Post-merge urgent first-task parity repair — 2026-07-28
+
+Status: **DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This entry invalidates the merged-head `e25c6d2dc64e64687ec55d31d711ffeba9569266` source-PASS claim. Exact merged source passed only 16/17 parity checks because it referenced a nonexistent receiver migration filename, and it omitted the `urgent_case_first_commitment` migration already applied to isolated project `uyacxqtsiwlvtmhxvoxr`.
+
+Role record:
+
+- Product Manager: root release-train PM. The bounded goal is to make urgent case creation save one workflow and exactly one unassigned first task in one transaction, then open that task for exact-location assignment. No Production, provider, pricing, messaging, or access expansion is in scope.
+- UI/UX Review: `/root/postmerge_parity_ux`, PASS to Engineering with conditions. Required human copy, Tasks-first orientation, no raw IDs, exact-location team choices, 48-pixel recovery actions, explicit missing-task recovery, and server time only or no displayed time.
+- Development Engineer: `/root/postmerge_parity_engineering`. Work was performed only in the exact extracted `e25c6d2` source; no GitHub, Vercel, Supabase, or Production state was mutated.
+- Next role: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA.
+
+Documentation-first database artifact gate:
+
+- **What:** restore the exact reviewed `urgent_case_first_commitment` statements under the truthful applied filename `supabase/migrations/20260727200936_urgent_case_first_commitment.sql`; keep the receiver boundary under `20260727042651`; restore the broad rollback-only organization/location/replay/cardinality test.
+- **Why:** the director UI now requires the authoritative command receipt to return both the case and first-task identifiers, and staff assignment must begin from a durable unassigned task rather than an empty workflow.
+- **Breakage if skipped:** source cannot reproduce the isolated database, case creation can leave no assignable work, exact replay cannot recover the first task, and frontend/backend parity is false.
+- **Risk/recovery:** the migration is forward-only, guarded, additive to the receiver boundary, and transaction-atomic. It is not applied in this Development handoff. QA must compare it with isolated migration history and execute only the rollback-only test against `uyacxqtsiwlvtmhxvoxr`. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+Development handoff:
+
+- Restored `20260727200936_urgent_case_first_commitment.sql` and `urgent_family_organization_boundary.sql`; corrected every executable receiver-migration reference to `20260727042651`.
+- Case creation now requires and consumes `workflow_id` plus `first_task_id`, omits client-generated receipt time, deep-links to the returned task, and uses the approved success/replay language.
+- Case Room opens the returned task in Tasks, filters candidates to active staff with a non-revoked grant to the exact case location, revalidates the exact Case Room after assignment, and provides calm no-candidate and missing-task recovery.
+- Staff pages translate the legacy director assignment instruction into the assigned person's next action. No raw identifier is rendered.
+- Frontend/backend ledger now records the complete urgent director claim -> case -> first task -> assignment contract, durable cardinality, authority, append-only events, recovery, and persona projection.
+
+Release truth:
+
+- **Source QA:** DEVELOPMENT PASS/PARTIAL; independent QA NOT RUN. Frontend/backend parity passed 17/17 and the checker passed 19 contracts. Server Action export, operational-route, persona-language, runtime-isolation, deploy-gate 16/16, agent-context, release-train non-PR classification, release-governance, and TypeScript gates passed. The optimized build reached Next/Turbopack compilation but failed only because this deeply nested extracted-source path made a generated Windows chunk path exceed the filesystem maximum; no TypeScript, route, or application compile error was reported. Independent QA must rerun the optimized build from a normal checkout path.
+- **Hosted Preview QA:** NOT RUN for this repair.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL. No readiness score changes.
+
+### Post-merge urgent first-task parity - QA return and replacement Engineering handoff - 2026-07-28 21:44 -07:00
+
+Release truth: **REPLACEMENT ENGINEERING SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. Source QA for the prior candidate is **FAIL**; Hosted Preview QA is **NOT RUN**; Production Deployment is **NOT DEPLOYED**; Production QA is **NOT RUN**; Overall release state is **SOURCE ONLY / NON-PRODUCTION PARTIAL**.
+
+- Product Manager `/root` returned all four independent-QA findings as **FIX NOW**. Development Engineer `/root/postmerge_parity_engineering` changed only the extracted `e25c6d2dc64e64687ec55d31d711ffeba9569266` candidate. No branch, PR, Preview, database, Vercel configuration, or Production resource changed.
+- An authorized zero-task Case Room now reaches the named missing-first-task recovery panel before generic invalid-task denial. An explicit task outside a nonempty workflow still fails closed.
+- `AssignTaskForm` now uses an explicit `first-task` variant. Urgent recovery says `Assign first task`; ordinary workload assignment says `Assign task`. The no-candidate boundary names the humanized case location and renders: `No eligible team members can work at [location]. Review team access, then return here.`
+- The broad rollback-only urgent matrix now executes `assign_task_idempotent` after case/first-task creation. It proves one exact-location staff assignment and one append-only `task.assigned` event, exact replay without duplication, and atomic denials for wrong-organization target, wrong-location target, revoked target, wrong-organization actor, wrong-location actor, unaffiliated actor, and former/revoked actor. Final task/event cardinality remains exact.
+- The parity ledger now asserts the distinct assignment labels, exact-location recovery, zero-task ordering, assignment command, replay, append-only proof, and actor/target denials.
+- PM explicitly separated governance from this urgent product packet. Candidate `AGENTS.md` was restored byte-for-byte to the exact `e25c6d2...` source blob (`45751268fe83831ee91edbbbe2d5f0eff2f8d78e`). No governance doctrine change is included or claimed.
+
+Focused Engineering gates: parity checker **PASS** (19 contracts); parity regression **PASS** (17/17); TypeScript `--noEmit` **PASS**; Server Action export regression **PASS** (ten prohibited fixtures rejected and both Cycle 8 actions bound). The optimized-build path retains the already-recorded nested Windows archive path-length limitation; this handoff does not convert it into an application verdict.
+
+Roadmap classification: defect/parity correction only; no product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score change. Next role is distinct Independent QA for the replacement diff and applicable source/SQL/RLS gates. One truthful non-production Preview and complete 1440/390/360 hosted evidence remain mandatory before `[qa-approved]`.
+
+### Post-merge urgent first-task parity - second QA return - 2026-07-28 21:51 -07:00
+
+Independent QA returned the replacement on one remaining evidence gap only: assignment command and denial proof did not prove that the newly assigned person could actually see the exact urgent workflow/task through the same RLS read path used by My Work, while other identities could not.
+
+Development Engineer `/root/postmerge_parity_engineering` extended only the rollback matrix and its parity/context assertions. After authorized assignment and exact replay, the assigned active staff identity must see exactly one matching version-2 task and its exact-location workflow. An unaffiliated identity, a distinct active but unassigned staff member with an exact-location grant, wrong-location staff, wrong-organization staff, revoked staff, and revoked director identities must see zero rows for both identifiers. Returning to the authorized director must prove the workflow, assignment, version, and single append-only assignment-event cardinality are unchanged.
+
+No product code, migration, fixture, project guard, rollback boundary, branch, PR, Preview, database, Vercel configuration, or Production resource changed. Source QA remains **REPLACEMENT ENGINEERING SOURCE COMPLETE / INDEPENDENT QA REQUIRED**; Hosted Preview QA remains **NOT RUN**; Production Deployment remains **NOT DEPLOYED**; Production QA remains **NOT RUN**; Overall release state remains **SOURCE ONLY / NON-PRODUCTION PARTIAL**.
+
+### Post-merge urgent first-task parity - independent source QA PASS - 2026-07-28 22:02 -07:00
+
+- Independent QA Agent `/root/urgent_repair_qa` completed two return loops and then issued **SOURCE QA PASS** for the frozen replacement candidate. The first return corrected unreachable authorized zero-task recovery, a shared assignment-label regression, missing exact-location recovery copy, and missing assignment/event/denial execution. The second return added authenticated My Work projection proof for the assigned staff identity plus zero-row proof for unassigned, wrong-location, wrong-organization, unaffiliated, former/revoked staff, and former/revoked director identities.
+- Final source evidence proves one urgent workflow, exactly one first task, exactly one `task.created` event, one authorized assignment at version 2, exactly one `task.assigned` event, exact replay without duplication, conflict/authority/candidate denials without mutation, assigned-staff workflow/task visibility, denied-persona non-visibility, and unchanged final cardinality.
+- Deterministic gates: frontend/backend parity **17/17 PASS**; contract checker **19 PASS**; Server Action export, operational-route, persona-language, runtime-isolation, Vercel deploy-gate **16/16**, agent-context, release-governance, and TypeScript gates **PASS**.
+- Optimized build remains **PARTIAL for local infrastructure only**. The deeply nested archive first exceeded a generated Windows path limit; the short-path rerun reached Next/Turbopack and then stopped because the restricted runner could not fetch the two configured Google Fonts. No source, TypeScript, route, or application compile error was reported. The exact Vercel Preview build must close this evidence cell.
+- **Source QA:** PASS for this bounded urgent repair candidate.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PASS / EXTERNAL SQL AND HOSTED PREVIEW QA PENDING.
+- Remaining gates: distinct Independent Agent Review and Development Head exact-head decisions; rollback-only SQL execution against isolated project `uyacxqtsiwlvtmhxvoxr`; Bot-authored branch-only verification Preview; submit -> claim -> case + first task -> assignment -> staff My Work plus replay/conflict/reload/denial/recovery QA at 1440, 390, and 360; clean console, hydration, network, and Vercel runtime logs. Production project `qsveqfchwylsbncsfgxe` remains prohibited.

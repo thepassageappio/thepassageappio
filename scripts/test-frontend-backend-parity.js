@@ -400,16 +400,23 @@ function testRealUrgentReceiverEvidenceScope() {
     && source.includes('Receiver command denials changed request status, version, or event cardinality')
     && source.includes('Final receiver-submit request/event cardinality changed')
     && source.trimEnd().endsWith('rollback;');
-  const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')
+  const narrowTestExcludesCaseLane = !source.includes('urgent_case_first_commitment')
     && !source.includes('create_case_from_urgent_intake_idempotent')
     && !source.includes('public.workflows')
-    && !source.includes('public.tasks')
-    && !fs.existsSync(broadTestPath);
+    && !source.includes('public.tasks');
+  const firstCommitmentMigrationPath = path.join(
+    repoRoot,
+    'supabase',
+    'migrations',
+    '20260727200936_urgent_case_first_commitment.sql'
+  );
+  const broadCaseLaneRestored = fs.existsSync(broadTestPath)
+    && fs.existsSync(firstCommitmentMigrationPath);
 
   report(
-    'integration: urgent receiver-submit SQL evidence is narrow and source-reproducible',
-    bindsExactCommittedStack && coversSubmissionContract && excludesSeparateCaseLane,
-    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} excludesSeparateCaseLane=${excludesSeparateCaseLane}`
+    'integration: narrow receiver evidence stays isolated while the broader case lane is source-reproducible',
+    bindsExactCommittedStack && coversSubmissionContract && narrowTestExcludesCaseLane && broadCaseLaneRestored,
+    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} narrowTestExcludesCaseLane=${narrowTestExcludesCaseLane} broadCaseLaneRestored=${broadCaseLaneRestored}`
   );
 }
 
