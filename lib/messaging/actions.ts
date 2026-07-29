@@ -25,13 +25,13 @@ export async function postWorkflowMessage(_previous: MessageCommandState, formDa
   const body = String(formData.get('body') ?? '').trim();
 
   if (!uuid.test(workflowId) || !uuid.test(requestId) || body.length < 1 || body.length > 4000) {
-    return { status: 'validation', message: 'Enter a message before sending.' };
+    return { status: 'validation', message: 'Write a message before adding it.' };
   }
 
   const client = await createPassageServerClient();
-  if (!client) return { status: 'unavailable', message: 'We could not open this case right now. Nothing was sent. Try again.' };
+  if (!client) return { status: 'unavailable', message: 'We could not open this case right now. Nothing was added. Try again.' };
   const user = await verifiedUser(client);
-  if (!user) return { status: 'denied', message: 'Sign in to send a message on this case.' };
+  if (!user) return { status: 'denied', message: 'Sign in to add a message to this case.' };
 
   const result = await client.rpc('post_workflow_message_idempotent', {
     p_workflow_id: workflowId,
@@ -39,9 +39,9 @@ export async function postWorkflowMessage(_previous: MessageCommandState, formDa
     p_request_id: requestId,
   });
   if (result.error) {
-    if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'This case is not available to your account. Nothing was sent.' };
-    if (result.error.code === '22023') return { status: 'validation', message: 'Enter a message before sending.' };
-    return { status: 'unavailable', message: 'Passage could not send this message. Nothing was sent.' };
+    if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'This case is not available to your account. Nothing was added.' };
+    if (result.error.code === '22023') return { status: 'validation', message: 'This message conflicts with an earlier request. Reload the case, then add it again.' };
+    return { status: 'unavailable', message: 'Passage could not add this message. Nothing was added. Try again.' };
   }
   const receipt = firstRpcRow<PostReceipt>(result.data);
   if (!receipt?.message_id) return { status: 'unavailable', message: 'We could not confirm the message was saved. Reload before trying again.' };
@@ -50,7 +50,7 @@ export async function postWorkflowMessage(_previous: MessageCommandState, formDa
   revalidatePath(`/director/cases/${workflowId}`);
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This message was already sent.' : 'Message sent.',
+    message: receipt.replayed ? 'This message was already added.' : 'Message added to this case.',
     receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed },
   };
 }

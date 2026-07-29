@@ -8,6 +8,7 @@ export type WorkflowMessage = {
   senderLabel: string;
   body: string;
   occurredAt: string;
+  occurredAtLabel: string;
   /** True when the current viewer authored this message -- lets the UI say "You" instead of repeating their own label. */
   isOwn: boolean;
 };
@@ -16,44 +17,52 @@ export type WorkflowMessageThreadResult =
   | { ok: true; messages: WorkflowMessage[] }
   | { ok: false; message: string };
 
-const MESSAGE_COLUMNS = 'id, sender_kind, sender_label, sender_user_id, body, occurred_at';
-
 type MessageRow = {
-  id: string;
+  message_id: string;
   sender_kind: 'staff' | 'family';
   sender_label: string;
-  sender_user_id: string;
   body: string;
   occurred_at: string;
+  is_own: boolean;
 };
 
-// Shared by both the family case-detail messages page and the director Case
-// Room's Messages panel. RLS (passage_private.can_view_workflow) already
-// scopes this to whoever is authorized to see the case -- this loader adds
-// nothing beyond mapping the row to a client-safe shape. sender_user_id is
-// used only to compute isOwn below; it is never returned to a caller.
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+function formatWorkflowMessageTimeUtc(value: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return 'Time unavailable';
+  const hour = date.getUTCHours();
+  const minute = String(date.getUTCMinutes()).padStart(2, '0');
+  const clockHour = hour % 12 || 12;
+  const period = hour >= 12 ? 'PM' : 'AM';
+  return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}, ${clockHour}:${minute} ${period} UTC`;
+}
+
+// Shared by the family messages page and the director Case Room. The public
+// RPC is the sole authenticated read surface: it re-checks workflow authority,
+// computes is_own in the database, and cannot return internal user, member,
+// participant, or request identifiers. The UTC label is produced on the server
+// so the browser hydrates the exact text that Next rendered.
 export async function loadWorkflowMessages(
   client: PassageServerClient,
   workflowId: string,
-  currentUserId: string,
 ): Promise<WorkflowMessageThreadResult> {
-  const result = await client
-    .from('workflow_messages')
-    .select(MESSAGE_COLUMNS)
-    .eq('workflow_id', workflowId)
-    .order('occurred_at', { ascending: true });
+  const result = await client.rpc('list_workflow_messages_client_safe', {
+    p_workflow_id: workflowId,
+  });
   if (result.error) return { ok: false, message: 'Passage could not load messages for this case.' };
 
   const rows = (result.data ?? []) as MessageRow[];
   return {
     ok: true,
     messages: rows.map((row) => ({
-      id: row.id,
+      id: row.message_id,
       senderKind: row.sender_kind,
       senderLabel: row.sender_label,
       body: row.body,
       occurredAt: row.occurred_at,
-      isOwn: row.sender_user_id === currentUserId,
+      occurredAtLabel: formatWorkflowMessageTimeUtc(row.occurred_at),
+      isOwn: row.is_own,
     })),
   };
 }

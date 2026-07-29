@@ -54,9 +54,12 @@ export default async function DirectorCasePage({ params, searchParams }: { param
 
   // Messages (this batch): shares the exact same table/RPC and RLS predicate
   // used by the family case-detail messages page -- see lib/messaging/hosted.ts.
-  const messagesResult = client ? await loadWorkflowMessages(client, workflow.id, viewer.userId) : { ok: false as const, message: 'The isolated workspace data service is unavailable.' };
+  const messagesResult = client ? await loadWorkflowMessages(client, workflow.id) : { ok: false as const, message: 'Passage could not load messages for this case.' };
+  const messageRecoveryHref = query.task
+    ? `/director/cases/${workflow.id}?task=${selectedTask.id}#messages`
+    : `/director/cases/${workflow.id}#messages`;
 
-  return <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
+  return <AppFrame active="case" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
     <Link className={styles.backLink} href="/director">← Today</Link>
     <ol aria-label="Case Room position" className={styles.orientation}><li>Now</li><li>Tasks</li><li aria-current="step" data-active="true">Proof</li></ol>
     <header className={styles.hero}><div><p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Authorized case')} · {humanizePreviewLabel(location?.name ?? '', 'Managed location')} · {humanWorkflowPhase(workflow.phase)}</p><h1>{humanizePreviewLabel(workflow.person_name ?? '', 'Person withheld')}</h1><span>{humanizePreviewLabel(workflow.family_name ?? '', 'Family')} family · proof review</span></div><strong className={styles.status} data-state={selectedTask.status}>{humanTaskStatus(selectedTask.status)}</strong></header>
@@ -87,10 +90,16 @@ export default async function DirectorCasePage({ params, searchParams }: { param
       <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
     </section>
 
-    <section className={styles.panel} aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
+    <section className={styles.panel} id="messages" aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
       <p className={styles.eyebrow}>Messages</p><h2 id="messages-heading">Messages with the family.</h2>
-      <MessageThread messages={messagesResult.ok ? messagesResult.messages : []} postAction={postWorkflowMessage} requestId={randomUUID()} workflowId={workflow.id} />
-      {!messagesResult.ok && <p className={styles.boundary}>{messagesResult.message}</p>}
+      <MessageThread
+        loadError={messagesResult.ok ? undefined : messagesResult.message}
+        messages={messagesResult.ok ? messagesResult.messages : []}
+        postAction={postWorkflowMessage}
+        recoveryHref={messageRecoveryHref}
+        requestId={randomUUID()}
+        workflowId={workflow.id}
+      />
     </section>
   </AppFrame>;
 }

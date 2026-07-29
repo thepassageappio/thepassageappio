@@ -40,7 +40,7 @@ export async function loadFamilyMessagesView(workflowId: string): Promise<Family
   if (workflowResult.error) return { ok: false, reason: 'unavailable' };
   if (!workflowResult.data) return { ok: false, reason: 'not-authorized' };
 
-  const messagesResult = await loadWorkflowMessages(client, workflowId, user.id);
+  const messagesResult = await loadWorkflowMessages(client, workflowId);
   if (!messagesResult.ok) return { ok: false, reason: 'unavailable' };
 
   return {

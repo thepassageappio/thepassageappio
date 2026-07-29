@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
+  active: 'director' | 'case' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
   children: ReactNode;
   identity: string;
   mode?: 'demo' | 'verified';
