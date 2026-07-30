@@ -43,6 +43,35 @@ const terminalStateComponent = files.continuePage.slice(
   files.continuePage.indexOf('function TerminalInvitationState'),
 );
 
+function hasFailClosedFunctionSearchPathAssertion(sql) {
+  const blockStart = sql.indexOf('from pg_catalog.pg_proc as function_row');
+  const blockEnd = sql.indexOf(
+    "message = 'Participant family-safe updates test refused: reviewed catalog behavior drifted'",
+  );
+  if (blockStart < 0 || blockEnd <= blockStart) return false;
+
+  const block = sql.slice(blockStart, blockEnd);
+  return block.includes("'passage_private.can_view_workflow_as_family(uuid)'::regprocedure")
+    && block.includes("'public.list_participant_family_updates()'::regprocedure")
+    && block.includes("array['search_path=\"\"']::text[]")
+    && block.includes('pg_catalog.pg_options_to_table(')
+    && block.includes("function_option.option_name = 'search_path'")
+    && block.includes("function_option.option_value = pg_catalog.quote_ident('')")
+    && block.includes('is distinct from pg_catalog.quote_ident(\'\')')
+    && block.includes(') <> 2 then')
+    && !block.includes('array_to_string(function_row.proconfig')
+    && !block.includes("not like '%search_path=%'");
+}
+
+const missingSearchPathConfigMutant = files.sqlMatrix.replace(
+  '@> array[\'search_path=""\']::text[]',
+  'is null',
+);
+const nonemptySearchPathMutant = files.sqlMatrix.replace(
+  'array[\'search_path=""\']::text[]',
+  "array['search_path=public']::text[]",
+);
+
 const assertions = [
   ['raw invitation route is immediately exchanged for a server-held intent',
     files.proxy.includes("match(/^\\/invite\\/([^/]+)$/)")
@@ -154,6 +183,12 @@ const assertions = [
       && files.sqlMatrix.includes('private family workflow predicate')
       && files.sqlMatrix.includes('Family-safe projection exposed a protected identifier')
       && files.sqlMatrix.trimEnd().endsWith('rollback;')],
+  ['rollback matrix requires exact empty search_path for both definer functions',
+    hasFailClosedFunctionSearchPathAssertion(files.sqlMatrix)],
+  ['rollback matrix source guard rejects a missing search_path configuration',
+    !hasFailClosedFunctionSearchPathAssertion(missingSearchPathConfigMutant)],
+  ['rollback matrix source guard rejects a nonempty search_path configuration',
+    !hasFailClosedFunctionSearchPathAssertion(nonemptySearchPathMutant)],
   ['/family reaches authenticated people management',
     files.familyPage.includes('href="/family/people"')
       && files.familyPage.includes('Manage people with family access')],

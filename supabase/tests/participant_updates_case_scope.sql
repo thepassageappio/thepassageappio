@@ -86,20 +86,35 @@ begin
      or position('participant_row.user_id' in v_projection_definition) = 0
      or position('participant_row.status' in v_projection_definition) = 0
      or position('participant_row.category_scope' in v_projection_definition) = 0
-     or exists (
-       select 1
+     or (
+       select count(*)
        from pg_catalog.pg_proc as function_row
        where function_row.oid in (
          'passage_private.can_view_workflow_as_family(uuid)'::regprocedure,
          'public.list_participant_family_updates()'::regprocedure
        )
+         and function_row.prosecdef
+         and function_row.provolatile = 's'
+         and function_row.proconfig
+             @> array['search_path=""']::text[]
          and (
-           not function_row.prosecdef
-           or function_row.provolatile <> 's'
-           or pg_catalog.array_to_string(function_row.proconfig, ',')
-              not like '%search_path=%'
+           select count(*)
+           from pg_catalog.pg_options_to_table(
+             function_row.proconfig
+           ) as function_option
+           where function_option.option_name = 'search_path'
+             and function_option.option_value = pg_catalog.quote_ident('')
+         ) = 1
+         and not exists (
+           select 1
+           from pg_catalog.pg_options_to_table(
+             function_row.proconfig
+           ) as function_option
+           where function_option.option_name = 'search_path'
+             and function_option.option_value
+                 is distinct from pg_catalog.quote_ident('')
          )
-     ) then
+     ) <> 2 then
     raise exception using
       errcode = '55000',
       message = 'Participant family-safe updates test refused: reviewed catalog behavior drifted';
