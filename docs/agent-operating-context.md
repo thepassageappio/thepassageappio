@@ -1,6 +1,6 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-28 (America/Los_Angeles)
+Last updated: 2026-07-29 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
@@ -8,7 +8,7 @@ This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` 
 
 Paste this into a new Codex chat:
 
-> Passage Release Train: start the loop. Continue Passage Zero on `greenfield/passage-zero`, draft PR #24, from the latest recorded head and dirty-state inventory. Read `AGENTS.md`, `docs/agent-operating-context.md`, `docs/release-train.md`, the canonical roadmap, persona architecture, and role briefs completely. Passage Zero is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Never push directly to main. After the one-time PR #25 bootstrap, agents author only through the dedicated Passage GitHub App/Bot; a distinct agent reviews the exact head, the founder reviews Bot-authored pull requests, and Production separately requires founder authorization through the protected environment. Preserve the proven Cycle 7A/7B isolated authority/work evidence and unchanged readiness scores. Cycle 8 remains FAIL/PARTIAL until its rollback-only SQL/RLS matrix passes. Enforce the seven-question plain-language gate, truthful Demo versus Secure Preview labels, human event/status copy, and 1440/390/360 comprehension. Production hydration on six public routes remains a separate P1 hotfix. Continue without asking Steve except for explicit owner gates.
+> Passage Release Train: start the loop. Continue Passage Zero on `greenfield/passage-zero`, draft PR #24, from the latest recorded head and dirty-state inventory. Read `AGENTS.md`, `docs/agent-operating-context.md`, `docs/release-train.md`, the canonical roadmap, persona architecture, and role briefs completely. Passage Zero is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Never push directly to `main`. Agents author only through the dedicated Passage GitHub App/Bot. A distinct Independent Agent Reviewer challenges the exact head; a separate Development Head / Release Authority approves or rejects it through `Passage Review Agent / merge-review`; reversible Production promotion separately requires exact-head authorization from the distinct Production Reviewer. There is no routine founder or human review gate. Ask the owner only for destructive Production data work, spending, or material legal/privacy/security judgment. Preserve the proven Cycle 7A/7B isolated authority/work evidence and unchanged legacy readiness scores, but do not award a whole-platform checkpoint until the complete six-domain matrix passes. Enforce the seven-question plain-language gate, truthful Demo versus Secure Preview labels, human event/status copy, and 1440/390/360 comprehension. Continue without asking Steve except for explicit `AGENTS.md` owner gates.
 
 ## Founder mandate
 
@@ -1570,7 +1570,7 @@ Role instances and decisions:
 - Product Manager `/root/pm_governance_consolidation`: **COMPLETE**. Passage Zero/PR #24 is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Direct-main agent/schedule pushes, silent red CI, self-review, overlapping greenfield merges, and architecture narration are FIX NOW. Readiness remains funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**.
 - UX Review `/root/ux_plain_language_audit`: current preview **FAIL for release / PASS for Engineering start**. Every page must answer where the user is, what needs attention, what to do, what happens next, what is saved, who can see it, and recovery. Browser-only Demo and Secure Preview require distinct truthful labels. Raw enums, UUIDs, internal architecture, fixture/cycle/QA/deploy language, and raw backend errors are prohibited.
 - Documentation/Engineering `/root/engineering_governance_docs`: **COMPLETE**. It updated `AGENTS.md`, `docs/release-train.md`, the canonical roadmap, cutover plan, persona architecture, and new `docs/product/release-governance-and-plain-language-policy.md` without changing Cycle 8 implementation.
-- Engineering `/root`: implemented greenfield release-train controls and the first reachable-copy correction. New PR structure distinguishes drafts from merge-ready evidence, serializes same-target release-train runs, requires context, and blocks the confirmed persona vocabulary regressions. It replaced the mixed environment language, internal director/staff/team/activity copy, UUID activity fallback, and ambiguous browser-only Demo actions on the sampled routes. The original non-author `User` review inference recorded here was later rejected by the dedicated reviewer and superseded by the owner-approved Bot-author/founder-review model below. Direct-main prevention belongs to required GitHub branch rules; a post-push workflow cannot prevent a push.
+- Historical Engineering record `/root`: implemented greenfield release-train controls and the first reachable-copy correction. New PR structure distinguished drafts from merge-ready evidence, serialized same-target release-train runs, required context, and blocked confirmed persona vocabulary regressions. It replaced mixed environment language, internal director/staff/team/activity copy, UUID activity fallback, and ambiguous browser-only Demo actions on the sampled routes. The original non-author `User` inference and subsequent Bot-author/founder-review model are both superseded by the 2026-07-22 Development Head / Production Reviewer correction. Direct-main prevention belongs to required GitHub branch rules; a post-push workflow cannot prevent a push.
 - Independent QA `/root/qa_governance_language`: first returned **PARTIAL/FAIL** because the scanner missed raw enum rendering, historical Threshold language remained executable-sounding, the roadmap reintroduced two-initiative framing, the reviewer check lacked account-type/current-head proof, and candidate-head checkers were tamperable. PM re-scoped FIX NOW; Engineering added explicit human maps and regression fixtures, archived the historical directives, corrected the one-lane roadmap, required current-head `User` approval, and added a trusted base-branch immutable governance workflow. QA re-review is **PASS** for the bounded governance/roadmap/plain-language source slice and authorizes one `[skip deploy]` commit only. It does not authorize Preview, Production, `[qa-approved]`, Cycle 8 migration, or PR #24 merge.
 
 Files and contract changes:
@@ -1578,7 +1578,7 @@ Files and contract changes:
 - Governance/docs: `AGENTS.md`, `docs/release-train.md`, `docs/product/operational-readiness-roadmap.md`, `docs/product/passage-zero-cutover-plan.md`, `docs/product/persona-action-architecture.md`, `docs/product/release-governance-and-plain-language-policy.md`, and this context.
 - Enforceable repo controls: `.github/workflows/agent-release-train.yml`, `.github/workflows/governance-integrity.yml`, `.github/pull_request_template.md`, `scripts/check-agent-context.js`, `scripts/check-release-train.js`, `scripts/check-persona-language.js`, `scripts/test-release-governance.js`, and `package.json` scripts. The rejected custom review-identity inference script is removed by the solo-founder correction below.
 - Plain-language source: gateway/environment shell, family intent/pass action, receive Preview flow, director intake, hosted director/team/activity, staff landing, invitation entry/creation, and operational access boundary. Existing Cycle 8 proof-loop files remain dirty and uncommitted; no migration was applied.
-- Repository branch protection/rules must require Bot-authored pull requests after bootstrap, current-head checks, Independent Agent Review, founder approval, stale-approval dismissal, resolved conversations, restricted bypass, and blocked force-push/deletion. The protected Production environment separately requires founder authorization. These external controls remain explicit gates, not source-file claims.
+- Historical branch-protection target, superseded: the then-current plan required founder approval and authorization. The active model instead requires Bot-authored pull requests, current-head checks, Independent Agent Review, Development Head / Release Authority approval, distinct Production Reviewer authorization, stale-approval dismissal, resolved conversations, restricted bypass, and blocked force-push/deletion.
 
 Verification completed before independent QA:
 
@@ -1590,15 +1590,17 @@ Verification completed before independent QA:
 - Optimized Next.js build: PASS; all current routes compiled and page data generated.
 - No browser or hosted PASS is claimed for these uncommitted copy changes. No Preview or Production deployment was created. Production Supabase and Vercel configuration remain untouched.
 
-PR, deployment, and next-role disposition:
+Historical PR, deployment, and next-role disposition — superseded by the owner correction at 2026-07-22 04:59 -07:00:
 
-- PR #24 remains the draft integration umbrella. It must gain bounded review packets for identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. Its final cutover vehicle must be Bot-authored, pass Independent Agent Review, and receive founder review before leaving draft status for merge consideration.
+- Historical directive, superseded: PR #24 remains the draft integration umbrella and needs bounded review packets, but its final cutover now requires exact-head Independent Agent Review and Development Head / Release Authority approval—not founder review.
 - PR #17 must have its exact heading corrected or be closed with the failure root cause recorded; #17/#19/#23 require diff-based incorporated/unique/superseded disposition against #24. No competing architecture merges independently.
-- Governance and roadmap changes are `[skip deploy]`. The six-route Production hydration repair requires a separate clean Bot-authored main-based hotfix PR, exact-head Independent Agent Review, founder review, protected-environment Production authorization, all-route responsive/hydration/runtime evidence, and post-deploy verification.
+- Historical directive, superseded: governance and roadmap changes are `[skip deploy]`. The six-route Production hydration repair uses exact-head Independent Agent Review, Development Head approval, distinct Production Reviewer authorization, and post-deploy verification; routine founder review is prohibited.
 - Cycle 8 remains source-only QA FAIL/PARTIAL. Its migration is not applied and no Cycle 8 deployment is authorized.
 - Historical next-role note, now superseded: Deploy verified the `[skip deploy]` governance commit canceled. The remaining governance work is the PR #25 bootstrap, dedicated Bot identity, live rules, founder review, protected Production environment, PR dispositions, the clean-main hydration hotfix, and hosted 1440/390/360 copy QA.
 
-### Governance bootstrap adversarial correction - 2026-07-18 15:38 -07:00
+### Historical governance bootstrap adversarial correction - 2026-07-18 15:38 -07:00
+
+This section preserves the then-current bootstrap record. Its founder-review and PR #25 instructions are non-executable and superseded by the owner correction at 2026-07-22 04:59 -07:00.
 
 - Governance source commit `14b30029593c92e99aeeab2c6490b8af3f6b0912` was pushed to draft PR #24 with `[skip deploy]`. Distinct Deploy verification confirmed Vercel deployment `dpl_FtSrgEL2Ma6LTfxLWfh76E8p9ZRN` canceled before build and Production remained unchanged.
 - A narrow main-based draft PR #25 was opened to bootstrap the controls without merging Passage Zero product code. Independent QA failed its first head `61f7a32bacddef48a86c0a72c7bdd5db546952aa`: API-created files had dirty endings; a push workflow falsely classified legitimate PR merges as direct pushes; and candidate-controlled code received a persisted/read token.
@@ -1609,7 +1611,9 @@ PR, deployment, and next-role disposition:
 - PR #25 remains open, draft, and unmerged. Direct-main protection is incomplete until the corrected governance-only bootstrap passes exact-head Independent Agent Review, receives the founder's explicit one-time bootstrap attestation, merges without deployment, and Phase B installs the Bot identity and live rules.
 - Cycle 8 remains FAIL/PARTIAL and uncommitted. No migration was applied. PR #25 and Production remain blocked while the solo-founder governance correction below is reviewed and externally activated.
 
-### Owner-approved solo-founder Bot-author governance correction - 2026-07-18 16:42 -07:00
+### Historical solo-founder Bot-author governance correction - 2026-07-18 16:42 -07:00
+
+This section preserves the model that existed on 2026-07-18. It is non-executable and superseded by the distinct Development Head / Release Authority and Production Reviewer model recorded at 2026-07-22 04:59 -07:00.
 
 Owner decision:
 
@@ -1729,7 +1733,7 @@ Exact next action and auto-advance:
 - UX/Product Design `/root/ux_cycle8_proof_loop`: **DISCOVERY PASS / IMPLEMENTATION HOLD**. Digital Continuity Locker, Help a Friend, and online-first provider handoff remain separate prototypes joined only by `intent -> smallest useful detail -> explicit permission -> named owner -> bounded handoff -> receipt -> recovery`. Passage does not store secrets, infer authority from relationship, rank providers by payment, or turn grief communities into lead funnels.
 - Independent Product/Strategy QA `/root/qa_v5_revenue_strategy`: **PASS** after three precision corrections: After.com is labeled competitor/first-party positioning; the provider advance gate repeats the online-first operator threshold; and the roadmap distinguishes earlier gated research from downstream implementation.
 - Allocation is Now: close Cycle 8 and implement the first bounded M3 slice. Next: M4 plus research-only provider/V3 simulation and isolated Locker/Help a Friend prototypes. Later: one evidence-backed integration, a bounded non-custodial Locker pilot, and disclosed community education. Do not fund yet: V4 network infrastructure, paid ranking, live custodian actions, secret custody, paid creator acquisition, or a standalone viral helper loop.
-- This packet changes no Cycle 8 status, milestone target, July 23 owner-test target, score, pricing, provider relationship, campaign, database, deployment, or Production state. Cycle 8 remains PARTIAL; funeral home remains 94% guided / 40% operational; D2C remains 85% guided / 25% operational. Implementation remains held behind M3-M6, founder review, and the applicable evidence gates.
+- This packet changes no Cycle 8 status, milestone target, July 23 owner-test target, score, pricing, provider relationship, campaign, database, deployment, or Production state. Cycle 8 remains PARTIAL; funeral home remains 94% guided / 40% operational; D2C remains 85% guided / 25% operational. Implementation remains held behind M3-M6, exact-head Independent Agent Review, Development Head / Release Authority approval, and the applicable evidence gates.
 
 ## Cross-persona messaging thin slice - 2026-07-28
 
@@ -2087,3 +2091,16 @@ No product code, migration, fixture, project guard, rollback boundary, branch, P
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE CORRECTION / NON-PRODUCTION PARTIAL.
 - Next-role target: distinct evidence-integrity QA verifies the canonical hashes and focused checks; Engineering then freezes a replacement deploy-marker head; a fresh Independent Agent Reviewer and distinct Development Head bind that exact head before a distinct Deploy role publishes the non-production branch.
+
+### Combined Preview candidate - Development Head return and final governance-text repair - 2026-07-29 18:05 -07:00
+
+- Exact head `d202dafd40afe5198c95a131ff6836d50d528bcf` passed fresh Independent Agent Review by `/root/independent_review_replacement_head`: governance, context, deploy gate 19/19, merge-identity fixtures, messaging 23/23, parity 17/17 plus 19 contracts, Server Actions, operational routes, persona language, runtime isolation, TypeScript, optimized build, and diff check all passed. Hosted Preview QA remained NOT RUN and Production remained untouched.
+- Development Head `/root/development_head_d202` returned **REQUIRED**, not approved, on that exact head. All technical/data/build/hash/ancestry/marker gates passed and the Development Head explicitly accepted the roadmap branch-reconciliation proposal. It correctly found active stale founder-review directions in the fresh-chat kickoff and strategy handoff plus current-tense historical governance lines that could restart the prohibited owner-dependency model.
+- Product Manager classified the governance-text defect **FIX NOW**. Engineering corrected the fresh-chat kickoff to the active Independent Agent Reviewer -> Development Head / Release Authority -> Production Reviewer chain, corrected the V2/V4/V5 implementation gate, and labeled the older bootstrap/founder-review directions historical, non-executable, and superseded. No route, copy, data, migration, environment, deployment, or Production resource changed.
+- UX Review: **N/A** for this documentation-only correction. Roadmap classification: anti-regression governance repair within the already classified release-infrastructure packet; no product direction, score, pricing, or Production scope change.
+- The Independent Agent Review PASS and Development Head result on `d202daf...` become **STALE** when this correction is committed. A new exact deploy-marker head must rerun context/governance/source checks, receive fresh Independent Agent Review, and receive a fresh distinct Development Head decision before publication.
+- **Source QA:** ENGINEERING CORRECTION / fresh exact-head review required.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE CORRECTION / NON-PRODUCTION PARTIAL.
