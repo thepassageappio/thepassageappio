@@ -99,6 +99,6 @@ Adversarial source results:
 - obsolete executable comparison: rejected;
 - actual executable canonical comparison: accepted.
 
-Focused messaging security: **23/23 PASS**. Replacement guard SHA-256: `5FBF688AC1C74D6D7AECD6DBFDE3FBAA011EBC2FCCA70562F156F97C949E0B53`.
+Focused messaging security: **23/23 PASS**. The originally recorded replacement-guard SHA-256 `5FBF688AC1C74D6D7AECD6DBFDE3FBAA011EBC2FCCA70562F156F97C949E0B53` was later found not to bind the final committed guard and is **STALE**. The canonical committed blob is 15,625 LF bytes with SHA-256 `21C4A9389A154E459FB2D76382BDA77DD4FFB75B2679CC12C13FF585CD2ABFFF`; the 23/23 suite was rerun against that logical source during the 2026-07-29 combined-candidate correction. No migration or SQL-matrix hash changed.
 
 No migration, rollback matrix, parity contract, product source, live SQL, database, GitHub, Vercel, Preview, or Production state changed. Distinct source rereview is required; repository integration remains PARTIAL because the inherited operational-route mismatch is unchanged.
