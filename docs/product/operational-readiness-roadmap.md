@@ -4,7 +4,7 @@ Status: canonical internal roadmap for the greenfield Passage Zero rebuild.
 
 Owner audience: Passage System Admin, Product, UX, Engineering, QA, and Deploy roles. This document is not a public or persona-facing roadmap and its percentages, sprint language, founder goals, and readiness evidence must never appear on family, funeral-home, staff, participant, or vendor surfaces.
 
-Last updated: 2026-07-26 (America/Los_Angeles)
+Last updated: 2026-07-29 (America/Los_Angeles)
 
 ## Canonical product decision — owner-approved 2026-07-18
 
@@ -139,7 +139,7 @@ This V5 link creates no active sprint, score, milestone, implementation authoriz
 | --- | ---: | ---: | --- | --- |
 | Funeral home | 94% | 40% | Hosted isolated director/staff authority; accepted invitation projection; assigned workload, start, reassignment, invitation/member revocation, append-only Activity, replay/conflict/denial, reload persistence, and 1440/390/360 evidence | Task-bound proof/review Case Room, delivery/recovery, integrations, Development Head-approved Bot-authored cutover, and pilot controls |
 | Family / D2C | 85% | 25% | Planning-versus-urgent entry, Transfer Pass demonstration, family-safe status/proof projection, and responsive guidance | Real account lifecycle, durable family grants, participant invitations, recovery, funeral-home handoff, notification delivery, and data controls |
-| Separate demo instance | 20% | 10% | Branch-bound Preview and isolated Supabase lab prove a synthetic director/staff authority loop; production remains untouched | Deterministic full seed/reset, blocked external communications, integration simulation, automated smoke, and isolated domain/environment |
+| Separate demo instance | 20% | 10% | The public gateway has fictional family and receiving-director browser samples; director and staff choices are secure sign-in, not operator demos. The isolated Supabase lab separately proves a synthetic authority loop; production remains untouched | Deterministic director/staff and full-persona seed/reset, blocked external communications, integration simulation, automated smoke, and isolated domain/environment |
 | Production readiness | 15% | 10% | Buildable Next.js application, controlled migration discipline, explicit environment guard, security preflight, and evidence habit | Production-safe migrations, monitoring, backups/restore, support/break-glass, notification/integration operations, security/privacy review, and rollout/runbooks |
 
 Current launch truth: Passage Zero exists only in non-production Vercel Preview and the isolated Supabase project. Cycle 7A/7B is a proven synthetic functional-beta authority/work slice, not an allowlisted pilot or Production release. Production Passage Zero pages are unchanged.
@@ -611,3 +611,9 @@ The replacement urgent packet closes four source-level QA findings without chang
 - the rollback-only SQL matrix executes first-task assignment and proves durable assignment, one append-only event, idempotent replay, and wrong-organization, wrong-location, unaffiliated, former/revoked actor plus invalid target denials without cardinality drift.
 
 This is a defect and frontend/backend parity correction only. It changes no product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score. Candidate `AGENTS.md` is intentionally unchanged from exact merge source; the requested governance doctrine replacement is a separate bounded packet. Funeral home remains **94% guided / 40% operational**; D2C remains **85% guided / 25% operational**; vendor remains **90% guided / 28% operational**. Independent source/SQL/RLS QA, one non-production Preview, and complete hosted 1440/390/360 assignment/replay/reload/denial/cardinality evidence remain required.
+
+### Gateway sample-versus-workspace boundary correction - 2026-07-29
+
+Independent hosted QA invalidated the gateway as deterministic-demo evidence: one universal Preview label sent the director choice to real workspace sign-in, while fictional information was labeled `LIVE` and presented with a case identifier, clock freshness, and named operator cues. The bounded source repair now labels family and receiving-director routes as fictional samples and sends director and staff choices directly to invitation-aware secure sign-in with truthful labels. It removes current-proof cues from the fictional rail, adds immediate visible and announced navigation feedback, and restores `/favicon.ico`.
+
+This is a comprehension and demo-boundary defect correction, not a deterministic operator demo. Full director/staff persona switching, isolated seed/reset, blocked outbound effects, and automated smoke remain **NOT BUILT** and receive no demo or whole-platform readiness credit. Product direction, milestone order, schema, pricing, and all readiness scores remain unchanged. Source and hosted 1440/390/360 Independent QA are required before the replacement gateway is treated as Preview-verified.

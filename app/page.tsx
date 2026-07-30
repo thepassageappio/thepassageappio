@@ -1,5 +1,6 @@
-import Link from 'next/link';
-import { ContinuityRail, TopShell } from '@/components/core';
+import { ContinuityRail } from '@/components/core/ContinuityRail';
+import { GatewayPersonaFlow } from '@/components/core/GatewayPersonaFlow';
+import { TopShell } from '@/components/core/TopShell';
 import { continuity, demoCase, personas } from '@/lib/demo';
 
 export default function DemoGateway() {
@@ -9,7 +10,7 @@ export default function DemoGateway() {
         <section className="gateway__intro" aria-labelledby="gateway-title">
           <div className="gateway__status">
             <span className="gateway__edition">PASSAGE PREVIEW</span>
-            <span className="gateway__sync"><i aria-hidden="true" />Sample information only</span>
+            <span className="gateway__sync"><i aria-hidden="true" />No real case is shown here</span>
           </div>
           <div className="gateway__heading">
             <p>Keep the next step clear</p>
@@ -19,43 +20,32 @@ export default function DemoGateway() {
               <p>Passage carries approved details and next steps between the people helping, so families repeat less.</p>
             </div>
           </div>
-          <div className="gateway__case" aria-label="Demo case">
-            <span>PREVIEW EXAMPLE</span>
+          <div className="gateway__case" aria-label="Fictional family example">
+            <span>FICTIONAL FAMILY EXAMPLE</span>
             <strong>{demoCase.person}</strong>
-            <small>{demoCase.id} · Last aligned {demoCase.lastSync}</small>
+            <small>Sample journey · no real case created</small>
           </div>
         </section>
 
         <section className="journey" aria-labelledby="journey-title">
           <header className="journey__header">
-            <span id="journey-title">CHOOSE WHAT YOU NEED TODAY</span>
-            <p>Preview one point of view. No real case is created and nobody is contacted.</p>
+            <span id="journey-title">CHOOSE A SAMPLE OR SECURE WORKSPACE</span>
+            <p>Family and receiving-director samples use fictional information; their actions may save only in this browser and contact nobody. Director and staff options open secure sign-in for authorized team members. If access fails, use your invitation or ask your funeral-home administrator.</p>
           </header>
 
           <div className="journey__line" aria-hidden="true">
             <span /><i /><i /><i /><i /><span />
           </div>
 
-          <ol className="persona-flow">
-            {personas.map((persona) => (
-              <li className={`persona persona--${persona.state}`} key={persona.id}>
-                <Link href={persona.href}>
-                  <span className="persona__number">{persona.order}</span>
-                  <span className="persona__identity"><strong>{persona.name}</strong><small>{persona.role}</small></span>
-                  <span className="persona__action"><b>{persona.action}</b><small>{persona.detail}</small></span>
-                  <span className="persona__enter">PREVIEW <i aria-hidden="true">↗</i></span>
-                </Link>
-              </li>
-            ))}
-          </ol>
+          <GatewayPersonaFlow personas={personas} />
         </section>
 
         <section className="gateway__continuity">
           <div className="continuity-context">
-            <span>THE FAMILY CHOOSES WHAT MOVES.</span>
+            <span>ONE FICTIONAL JOURNEY</span>
             <div><strong>04</strong><p>clear handoffs<small>One approved set of details, not four repeated intakes.</small></p></div>
           </div>
-          <ContinuityRail steps={continuity} label={`${demoCase.person} · ${demoCase.id}`} />
+          <ContinuityRail steps={continuity} label={`${demoCase.person} · sample journey`} status="SAMPLE" />
         </section>
 
         <footer className="gateway__footer">

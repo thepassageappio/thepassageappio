@@ -2119,3 +2119,179 @@ No product code, migration, fixture, project guard, rollback boundary, branch, P
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE PASS / NON-PRODUCTION PARTIAL.
 - Auto-advance target: freeze the context-bearing publishable head, obtain fresh exact-head Independent Agent Review and distinct Development Head approval, then a distinct Deploy role pushes only `release/10h-delivery`; after Vercel reports the exact deployment terminal state, distinct hosted QA executes the required 1440/390/360 functional, responsive, accessibility, console, hydration, runtime, recovery, replay/conflict, and denial evidence. No owner or founder review is required.
+
+### Hosted gateway sample-versus-workspace boundary - PM Sprint Brief - 2026-07-29 19:14 -07:00
+
+Status: **FIX NOW / HANDOFF TO DISTINCT UX REVIEW**.
+
+- Product Manager `/root` received exact hosted evidence from Preview deployment `dpl_7YpZTvkeK3pBLxKdxVUfYeouaNKx`, commit `a8996ae6944f10b3695e09ff6968615e251212bc`. The 1440 root gateway renders `PREVIEW DEMO · CHANGES STAY ON THIS DEVICE`, labels all four persona cards `PREVIEW`, says no real case is created, and labels the fictional Rivera timeline `LIVE`. Clicking the director card `See the whole case` leaves the root visible through the 2.757-second network-idle checkpoint and reaches `/login?next=%2Fdirector` by 7.757 seconds, where the visitor is asked to sign in to the real funeral-home workspace. Console/page errors and overflow were clean, but the page also requested a missing `favicon.ico` and received 404. Evidence is retained outside the product tree under `.review-bot-tmp/a899-hosted-qa/`.
+- Product classification: **P1 comprehension and deterministic-demo boundary defect**. A sample action must open a sample; a secure workspace action must say sign in before the click. Mixing those outcomes under one `PREVIEW` label violates the seven-question plain-language gate and reproduces the previously reported browser-sandbox/server-authority ambiguity.
+- Sprint goal: make the gateway completely truthful without pretending the full director/staff Steve demo already exists. Family and receiving-director browser fixtures remain clearly labeled sample experiences. Director and staff cards are clearly labeled secure-workspace sign-in actions until a separately scoped deterministic operator demo exists.
+
+Requirements and sprint components:
+
+1. Replace the gateway-wide `changes stay on this device` claim with one human sentence that distinguishes sample views from signed-in workspaces.
+2. Replace the one-size-fits-all persona action label. `/family` and `/receive` must say `Explore sample`; `/director` and `/staff` must say `Sign in`.
+3. The journey instruction must explain before any click: sample family/receiving views use fictional information and change nothing; director/staff actions open secure sign-in for authorized team members.
+4. Replace the fictional timeline's `LIVE` state with direct sample language such as `SAMPLE`, and ensure adjacent state/proof labels cannot be mistaken for current server-backed activity.
+5. Each card's action, detail, accessible name, and destination must agree. No sample label may lead to Auth; no sign-in label may imply a browser-only sandbox.
+6. Restore a valid application icon so direct root navigation creates no `favicon.ico` 404.
+7. Preserve the current protected `/director` and `/staff` authority boundary, the browser-only `/family` and `/receive` fixtures, Passage Zero typography/warm surfaces/states, keyboard semantics, and the existing noindex Preview boundary.
+8. Add a deterministic regression that fails if all four cards share one action label, if a sample label targets `/director` or `/staff`, if an authenticated-workspace label targets a browser fixture, if the fictional timeline says `LIVE`, if the favicon route is absent, or if gateway copy again claims every change stays on-device.
+
+Acceptance criteria:
+
+- At 1440, 390, and 360, a five-second read identifies which actions are fictional samples and which require an authorized account. No required instruction, card action, or focus indicator overflows or clips; enabled targets remain at least 48 CSS pixels.
+- Direct and client navigation prove `/family` and `/receive` open sample experiences while `/director` and `/staff` land on invitation-aware secure sign-in with the expected return path.
+- Console warnings/errors, page errors, unhandled rejections, failed application requests, framework overlays, hydration recovery, and horizontal overflow are zero for the gateway and each destination.
+- Full deterministic director/staff demo remains explicitly **NOT BUILT in this repair** and receives no readiness credit. It remains a separate roadmap slice after participant invitation unless PM reorders it through evidence.
+
+Dependencies and risks:
+
+- Change only `app/page.tsx`, `lib/demo.ts`, focused source tests, canonical roadmap status if the implementation changes named demo coverage, and this context. Avoid schema, Supabase, Auth, operational route, fixture, or Production changes.
+- Risk: relabeling without changing the gateway instruction can leave the contradiction intact. Risk: weakening Auth to make the card act like a demo would breach authority. Recovery is to revert this isolated presentation packet; no data rollback is needed.
+
+QA and deploy plan:
+
+- Distinct UX Review defines exact copy/action hierarchy first. Development implements the bounded presentation/test packet. Independent QA runs the regression, persona-language, route/runtime gates, TypeScript, optimized build, and 1440/390/360 browser matrix.
+- If source and hosted QA pass, the Bot updates the configured non-production Preview through the exact-head Independent Reviewer and Development Head chain. No `[qa-approved]` appears before hosted PASS. Production remains prohibited.
+
+Roadmap classification: this repair clarifies the current demo boundary and does not change product direction, milestone order, pricing, schema, or score. The implementation PR must update the canonical roadmap's demo-status wording because the present gateway cannot be counted as a deterministic director/staff demo.
+
+Owner gates: none. No routine owner/founder review, credential request, Production work, real communication, spending, destructive data, or material legal/privacy/security judgment is involved.
+
+- **Source QA:** NOT RUN for the repair.
+- **Hosted Preview QA:** current exact deployment is **FAIL for gateway comprehension/deterministic-demo boundary**, pending distinct QA confirmation and replacement hosted proof.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** PREVIEW DEPLOYED / HOSTED FAIL FOR GATEWAY BOUNDARY / NOT QA-APPROVED.
+- Auto-advance target: distinct UX Review, then Development, Independent QA, exact-head release review, replacement Preview, and full hosted re-verification. The train does not pause for owner review.
+
+### Hosted gateway sample-versus-workspace boundary - UI/UX Review handoff - 2026-07-29 19:20 -07:00
+
+Status: **PASS TO DEVELOPMENT WITH CONDITIONS**. This is approval of the bounded experience contract only. It is not Source QA, Hosted Preview QA, demo-readiness credit, or release approval.
+
+Role instance and evidence received:
+
+- Distinct UI/UX Review Agent `/root/ux_participant_lifecycle` received the Product Manager brief above and reviewed the exact hosted FAIL report for deployment `dpl_7YpZTvkeK3pBLxKdxVUfYeouaNKx`, commit `a8996ae6944f10b3695e09ff6968615e251212bc`, plus the rendered 1440 evidence, `app/page.tsx`, `lib/demo.ts`, the root-only core shell/continuity components, gateway styles, Auth destination, and current family/receiving samples.
+- The visual system is strong enough to preserve. The failure is the information and destination hierarchy: four cards share `PREVIEW`; two enter fictional browser samples and two take a delayed protected-route redirect to real workspace sign-in. Fictional names on the operator cards and `LIVE`, case ID, owner, and clock details on the sample rail compound the ambiguity.
+
+Exact gateway copy and hierarchy:
+
+1. Keep the current Passage wordmark, warm ivory hero, display heading, restrained four-step layout, and root heading `Keep your family and care team on the same page.`
+2. Top-shell environment text becomes `FICTIONAL SAMPLES · SECURE WORKSPACES REQUIRE SIGN-IN`. The hero status becomes `No real case is shown here`. Remove every gateway-wide claim that all choices or changes stay on the device.
+3. The example block reads `FICTIONAL FAMILY EXAMPLE`, `Sofia Rivera`, and `Sample journey · no real case created`. Remove `NS-2051`, `Last aligned`, and the clock from the public gateway.
+4. Journey heading becomes `CHOOSE A SAMPLE OR SECURE WORKSPACE`. Its visible instruction is:
+
+   `Family and receiving-director samples use fictional information; their actions may save only in this browser and contact nobody. Director and staff options open secure sign-in for authorized team members. If access fails, use your invitation or ask your funeral-home administrator.`
+
+5. Each card has a visible boundary label above its identity and one differentiated action at the bottom. Do not rely on color, hover, order, or the journey paragraph alone.
+   - Family: boundary `FICTIONAL SAMPLE`; identity `Maya` / `Family coordinator`; action `Choose what to share`; detail `Explore fictional Rivera family information. Changes stay in this browser and nobody is contacted.`; CTA `Explore sample`; destination `/family`; accessible name `Explore the fictional family coordinator sample`.
+   - Director: boundary `SECURE WORKSPACE`; identity `Funeral-home director` / `Authorized directors`; action `Open the director workspace`; detail `Sign in with an authorized funeral-home account. A director sample is not included on this page.`; CTA `Sign in`; direct destination `/login?next=%2Fdirector`; accessible name `Sign in to the secure funeral-home director workspace`.
+   - Staff: boundary `SECURE WORKSPACE`; identity `Funeral-home staff` / `Authorized staff members`; action `Open assigned work`; detail `Sign in with an authorized funeral-home account. A staff sample is not included on this page.`; CTA `Sign in`; direct destination `/login?next=%2Fstaff`; accessible name `Sign in to the secure funeral-home staff workspace`.
+   - Receiving director: boundary `FICTIONAL SAMPLE`; identity `Elena` / `Receiving director`; action `Review a Transfer Pass`; detail `Explore a fictional handoff. Preview actions stay in this browser and do not create a real case.`; CTA `Explore sample`; destination `/receive`; accessible name `Explore the fictional receiving-director sample`.
+6. Replace the same-window `↗` glyph with a decorative `→`; the existing glyph implies a new window. The complete card remains one semantic link. Do not nest buttons, add click-only cards, or hide the boundary inside an accessible name.
+7. The lower section reads `ONE FICTIONAL JOURNEY`. Its rail label is `Sofia Rivera · sample journey`, its state is `SAMPLE`, and adjacent step metadata is `EXAMPLE COMPLETE`, `EXAMPLE COMPLETE`, `EXAMPLE CURRENT`, and `EXAMPLE NEXT`. Remove `LIVE`, raw/synthetic case IDs, clock-like freshness, and named operator proof from this public fictional rail.
+
+Navigation and response behavior:
+
+- Director and staff links go directly to the truthful Auth URLs above. Do not route through `/director` or `/staff` first, weaken their guards, create a fake signed-in state, or add a simulated operator workspace.
+- Leave framework prefetch enabled for the four visible destinations. On click/tap/keyboard activation, the first visual response must paint within 200 ms. If the destination is not committed immediately, the activated card shows and programmatically announces `Opening sample…` or `Opening secure sign in…` until navigation completes; repeated activation must not create duplicate navigation.
+- Hosted acceptance records activation-to-first-paint, activation-to-URL-change, and activation-to-usable-destination. Root content may never appear inert for 500 ms or longer after activation. Each destination should render its useful heading within the Core Web Vitals 2.5-second LCP target; a slower result is a recorded performance failure, not concealed by a spinner.
+- Back navigation returns to the same gateway position without a stale pending label. Modified-click/new-tab behavior remains native.
+
+Responsive, visual, and accessibility acceptance:
+
+- Preserve Cormorant Garamond for the hero/display headings, Montserrat for actions/instructions, warm ivory surfaces, low-saturation purple/blue/green signals, and the existing quiet hairlines. Boundary words and action labels must be at least 12 CSS pixels and remain legible without hover.
+- At 1440, retain the four-column comparison. At 390 and 360, keep one card per row and place each boundary label before the identity, purpose, detail, and CTA in that reading order. The environment sentence may wrap to two lines but must not collide with the brand. No horizontal scroll, clipping, or truncated instruction is permitted at 200% text zoom.
+- The complete card links already exceed Passage's 48-by-48 target; retain that target, the visible three-pixel focus outline, DOM/visual focus order, skip link, reduced-motion behavior, and sufficient focus/text/non-text contrast. Hover and focus may share color treatment, but focus must remain independently visible.
+- Pending navigation is a polite status message and does not steal focus. Destination focus follows normal page navigation; do not programmatically move focus to a toast. Every link's visible action words are contained in its accessible name.
+- Add a valid Passage application icon. Direct `/favicon.ico` must return 200 with a valid icon response and must produce no failed browser request.
+
+Development and regression acceptance:
+
+1. The implementation may make the smallest focused edits needed in `app/page.tsx`, `lib/demo.ts`, the root-only `components/core/TopShell.tsx` and `components/core/ContinuityRail.tsx`, `app/globals.css`, an application-icon asset/metadata declaration, focused source tests, the canonical roadmap wording, and this context. Do not touch Supabase, Auth behavior, operational guards, family/receive fixture behavior, schema, fixtures, environment configuration, or Production.
+2. A deterministic test must prove all exact boundary/action/destination mappings, absence of `LIVE`, public case ID/time/owner metadata, absence of the universal device-only claim, presence of the favicon, and direct Auth return paths. It must fail if a sample CTA targets Auth/protected operations, a secure-workspace CTA targets a fixture, or all four CTAs become identical.
+3. Independent QA must exercise direct and client navigation for root plus all four cards at 1440, 390, and 360; record final URL, useful heading, latency checkpoints, focus/keyboard operation, 200% text reflow, `scrollWidth === clientWidth`, and raw console/page/unhandled-rejection/failed-request/overlay evidence.
+4. FAIL if any operator card remains a fictional persona preview, any sample card reaches Auth, any secure-workspace card implies a sample, any fictional rail says `LIVE` or presents freshness/proof as current, any card activation appears frozen for 500 ms, or `/favicon.ico` fails. PARTIAL if any viewport, destination, latency, keyboard, focus, zoom, or runtime cell is missing.
+5. Full deterministic director/staff operator demo remains **NOT BUILT** and receives no readiness credit. This repair must not rename secure sign-in as that demo or add user-facing roadmap/QA narration.
+
+Research grounding:
+
+- WCAG 2.2 link purpose, headings/labels, focus visibility/not-obscured, target size, reflow, and status-message guidance requires predictable labels/destinations, visible keyboard state, programmatically exposed pending feedback, and responsive reading order. Passage retains its stricter 48-pixel target above WCAG's 24-pixel AA minimum: `https://www.w3.org/TR/WCAG22/` and `https://www.w3.org/WAI/WCAG22/Understanding/`.
+- web.dev defines good Interaction to Next Paint as at most 200 ms and good Largest Contentful Paint as at most 2.5 seconds. This turns the observed multi-second inert click into measured Engineering and hosted-QA acceptance rather than a subjective freeze report: `https://web.dev/articles/inp` and `https://web.dev/articles/lcp`.
+
+Release truth and handoff:
+
+- **Source QA:** NOT RUN for the repair.
+- **Hosted Preview QA:** exact current deployment remains FAIL.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** UX PASS FOR DEVELOPMENT START / CURRENT HOSTED PREVIEW FAIL / NOT QA-APPROVED / NO DEMO-READINESS CREDIT.
+- Roadmap classification remains `NO` for product direction but the implementation must correct the canonical demo-status wording in the same PR. Owner gate: none. Auto-advance target: distinct Development Engineer, then distinct Independent QA.
+
+### Hosted gateway sample-versus-workspace boundary - Development Engineer handoff - 2026-07-29 19:37 -07:00
+
+Status: **ENGINEERING SOURCE PASS / HANDOFF TO DISTINCT INDEPENDENT QA**. This is a source verdict for the bounded repair, not Hosted Preview QA, `[qa-approved]`, deterministic-demo credit, merge readiness, or Production authorization.
+
+Role and received handoffs:
+
+- Distinct Development Engineer `/root/eng_gateway_boundary` received the complete Product Manager Sprint Brief dated 19:14, the distinct UI/UX Review handoff dated 19:20, and the exact hosted FAIL report for deployment `dpl_7YpZTvkeK3pBLxKdxVUfYeouaNKx`, commit `a8996ae6944f10b3695e09ff6968615e251212bc`.
+- Engineering worked only in isolated worktree `.release-train-clean/.gateway-boundary-repair` from exact head `a8996ae...`. The inherited worktree change was the PM/UX context above. No other local change was overwritten.
+- Next.js 16 App Router and React guidance were applied to preserve native `Link` semantics and prefetch, keep the server page boundary small, avoid a barrel import for the new client component, use typed serializable props, and contain client state to transient navigation feedback. No external agent or Claude-in-Chrome assistance was used.
+
+Implemented boundary and recovery:
+
+- `lib/demo.ts` now carries explicit `FICTIONAL SAMPLE` versus `SECURE WORKSPACE` data, exact differentiated CTA/destination/accessibility/pending labels, and fictional rail metadata only. Family and receiving-director choices remain `/family` and `/receive`; director and staff now point directly to `/login?next=%2Fdirector` and `/login?next=%2Fstaff`.
+- `app/page.tsx`, `components/core/TopShell.tsx`, and `components/core/ContinuityRail.tsx` implement the accepted copy hierarchy. The universal device-only claim, all-card `PREVIEW`, fictional `LIVE`, public case id, freshness clock, and named-operator proof cues are absent. The same-window arrow is `→`.
+- New root-only client component `components/core/GatewayPersonaFlow.tsx` preserves framework prefetch and native modified-click/new-tab behavior. An unmodified activation synchronously changes the card text to `Opening sample…` or `Opening secure sign in…`, publishes the same text through a polite status region, and uses a synchronous ref guard to reject duplicate activation. Normal Next navigation remains in control, and route remount plus `pageshow` clears stale pending state on back/BFCache return.
+- `app/globals.css` preserves the existing warm visual system and four-column/one-column layouts, raises visible boundary/CTA labels to at least 12px, retains a 48px action row, restores a visible three-pixel card focus outline, supports the longer truthful copy, and adds an extra narrow reflow rule for 200% zoom-equivalent widths.
+- `app/favicon.ico/route.ts` returns a valid Passage SVG icon and `app/layout.tsx` declares it. Local optimized-runtime verification returned `/favicon.ico` as HTTP 200 with `image/svg+xml; charset=utf-8`, and the root metadata referenced `/favicon.ico`.
+- `scripts/test-gateway-boundary.js` deterministically executes the persona data and fails on mapping/copy/destination drift, identical CTAs, sample-to-Auth or workspace-to-fixture crossing, inaccessible action wording, `LIVE`, public case id/time/operator cues, the universal device-only claim, wrong arrow, missing pending/status/native-modifier safeguards, or missing favicon response source.
+- `docs/product/operational-readiness-roadmap.md` now states that the gateway contains only fictional family/receiving samples plus secure director/staff sign-in. It explicitly keeps deterministic director/staff persona switching, seed/reset, blocked outbound effects, and smoke as **NOT BUILT** with no readiness credit.
+
+Changed files:
+
+- `app/page.tsx`
+- `app/layout.tsx`
+- `app/globals.css`
+- `app/favicon.ico/route.ts`
+- `components/core/TopShell.tsx`
+- `components/core/ContinuityRail.tsx`
+- `components/core/GatewayPersonaFlow.tsx`
+- `lib/demo.ts`
+- `scripts/test-gateway-boundary.js`
+- `docs/product/operational-readiness-roadmap.md`
+- `docs/agent-operating-context.md`
+
+Source verification:
+
+- Gateway regression: **PASS**.
+- Persona-language gate: **PASS**.
+- Operational-route guard matrix: **PASS**.
+- Runtime isolation: **PASS**.
+- Vercel deploy gate: **19/19 PASS**.
+- Release-governance regression: **PASS**.
+- Agent-context structure/same-PR gate: **PASS**.
+- Frontend/backend parity fixture and repository ledger: **17/17 PASS**, 19 contracts.
+- Server Action export gate: **PASS**, 10 prohibited fixtures rejected and two Cycle 8 actions bound.
+- Messaging security regression: **23/23 PASS**.
+- TypeScript `tsc --noEmit`: **PASS**, using the existing root-installed exact dependencies after the worktree-local `pnpm` wrapper attempted a restricted-network reinstall and failed closed.
+- Optimized Next.js 16.1.6 webpack build: **PASS**, 14/14 static pages generated. A pre-existing test-only Google-font response outside product source was used because network access is restricted. The only output was the known nested-worktree root-inference warning.
+- Local optimized-runtime `/favicon.ico`: **HTTP 200**, correct SVG content type; root: **HTTP 200** with exact boundary copy and icon metadata.
+- `git diff --check`: **PASS**.
+- React/Next best-practice review: **PASS for Engineering handoff**. No async Client Component, client data fetch, manual router replacement, nested interactive control, disabled prefetch, focus-stealing toast, or modified-click interception was introduced.
+
+Known gaps and release truth:
+
+- Source timing logic exists, but sub-200ms first paint, sub-500ms non-inert behavior, destination LCP, back restoration, and actual client navigation must be measured by distinct hosted QA; Engineering does not promote source inspection into browser evidence.
+- The required 1440/390/360 direct/client matrix, keyboard/focus, 200% text reflow, overflow, console/page/rejection/request/overlay, and all four useful destination headings remain **NOT RUN** for this replacement.
+- Full deterministic director/staff operator demo remains **NOT BUILT** and receives no score or readiness credit.
+- No Supabase, schema, SQL, fixture, Auth guard, operational/data code, environment/configuration, branch, commit, push, PR, deployment, external communication, Production, or owner-account state changed.
+- Roadmap classification: **NO material product direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change**. The required roadmap edit corrects demo-status wording only. Scores remain unchanged and whole-platform certified readiness remains at the prior checkpoint.
+- **Source QA:** ENGINEERING PASS / distinct Independent QA required.
+- **Hosted Preview QA:** current exact deployment remains **FAIL**; replacement **NOT DEPLOYED / NOT RUN**.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR COMPLETE / CURRENT HOSTED PREVIEW FAIL / NON-PRODUCTION PARTIAL / NOT QA-APPROVED.
+- Auto-advance target: distinct Independent QA reviews this exact worktree diff, reruns all source gates, and executes local or exact replacement-Preview 1440/390/360 browser evidence. A later exact-head Independent Agent Reviewer and Development Head may evaluate only after QA. No owner/founder prompt is required.

@@ -18,6 +18,7 @@ const sans = Montserrat({
 export const metadata: Metadata = {
   title: { default: 'Passage', template: '%s · Passage' },
   description: 'One trusted continuity layer for every person around a loss.',
+  icons: [{ url: '/favicon.ico', type: 'image/svg+xml' }],
 };
 
 export const viewport: Viewport = {

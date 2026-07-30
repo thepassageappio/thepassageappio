@@ -3,11 +3,15 @@ export type PersonaId = 'family' | 'director' | 'staff' | 'receive';
 export type Persona = {
   id: PersonaId;
   order: string;
+  boundary: 'FICTIONAL SAMPLE' | 'SECURE WORKSPACE';
   name: string;
   role: string;
   action: string;
   detail: string;
+  cta: 'Explore sample' | 'Sign in';
   href: string;
+  accessibleName: string;
+  pendingLabel: 'Opening sample…' | 'Opening secure sign in…';
   state: 'origin' | 'active' | 'ready' | 'destination';
 };
 
@@ -19,39 +23,39 @@ export type ContinuityStep = {
 };
 
 export const demoCase = {
-  id: 'NS-2051',
   person: 'Sofia Rivera',
-  location: 'Northstar · Portland',
-  familyLead: 'Maya Rivera',
-  lastSync: '08:42 AM',
 };
 
 export const personas: Persona[] = [
   {
-    id: 'family', order: '01', name: 'Maya', role: 'Family coordinator',
-    action: 'Control what moves', detail: 'Review the record, choose what to share, and follow every handoff.',
-    href: '/family', state: 'origin',
+    id: 'family', order: '01', boundary: 'FICTIONAL SAMPLE', name: 'Maya', role: 'Family coordinator',
+    action: 'Choose what to share', detail: 'Explore fictional Rivera family information. Changes stay in this browser and nobody is contacted.',
+    cta: 'Explore sample', href: '/family', accessibleName: 'Explore the fictional family coordinator sample',
+    pendingLabel: 'Opening sample…', state: 'origin',
   },
   {
-    id: 'director', order: '02', name: 'Elena', role: 'Accountable director',
-    action: 'See the whole case', detail: 'Orient instantly, resolve decisions, and protect the family from repetition.',
-    href: '/director', state: 'active',
+    id: 'director', order: '02', boundary: 'SECURE WORKSPACE', name: 'Funeral-home director', role: 'Authorized directors',
+    action: 'Open the director workspace', detail: 'Sign in with an authorized funeral-home account. A director sample is not included on this page.',
+    cta: 'Sign in', href: '/login?next=%2Fdirector', accessibleName: 'Sign in to the secure funeral-home director workspace',
+    pendingLabel: 'Opening secure sign in…', state: 'active',
   },
   {
-    id: 'staff', order: '03', name: 'Marcus', role: 'Assigned operator',
-    action: 'Keep promises moving', detail: 'Work from one next commitment with ownership and visible proof.',
-    href: '/staff', state: 'ready',
+    id: 'staff', order: '03', boundary: 'SECURE WORKSPACE', name: 'Funeral-home staff', role: 'Authorized staff members',
+    action: 'Open assigned work', detail: 'Sign in with an authorized funeral-home account. A staff sample is not included on this page.',
+    cta: 'Sign in', href: '/login?next=%2Fstaff', accessibleName: 'Sign in to the secure funeral-home staff workspace',
+    pendingLabel: 'Opening secure sign in…', state: 'ready',
   },
   {
-    id: 'receive', order: '04', name: 'Elena', role: 'Receiving director',
-    action: 'Receive with confidence', detail: 'Accept a consented handoff and return a durable receipt.',
-    href: '/receive', state: 'destination',
+    id: 'receive', order: '04', boundary: 'FICTIONAL SAMPLE', name: 'Elena', role: 'Receiving director',
+    action: 'Review a Transfer Pass', detail: 'Explore a fictional handoff. Preview actions stay in this browser and do not create a real case.',
+    cta: 'Explore sample', href: '/receive', accessibleName: 'Explore the fictional receiving-director sample',
+    pendingLabel: 'Opening sample…', state: 'destination',
   },
 ];
 
 export const continuity: ContinuityStep[] = [
-  { id: 'consent', label: 'Family handoff', meta: 'ISSUED', state: 'complete' },
-  { id: 'intake', label: 'Case accepted', meta: 'NS-2051', state: 'complete' },
-  { id: 'coordination', label: 'Commitment owned', meta: 'MARCUS', state: 'active' },
-  { id: 'handoff', label: 'Proof review', meta: 'NEXT', state: 'upcoming' },
+  { id: 'consent', label: 'Family handoff', meta: 'EXAMPLE COMPLETE', state: 'complete' },
+  { id: 'intake', label: 'Case accepted', meta: 'EXAMPLE COMPLETE', state: 'complete' },
+  { id: 'coordination', label: 'Commitment owned', meta: 'EXAMPLE CURRENT', state: 'active' },
+  { id: 'handoff', label: 'Proof review', meta: 'EXAMPLE NEXT', state: 'upcoming' },
 ];

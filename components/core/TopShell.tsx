@@ -17,7 +17,7 @@ export function TopShell({ children, context = 'Connected care', mode = 'workspa
           <strong>PASSAGE</strong>
         </Link>
         <span className="top-shell__context"><i aria-hidden="true" />{context}</span>
-        <span className="top-shell__environment">PREVIEW DEMO · CHANGES STAY ON THIS DEVICE</span>
+        <span className="top-shell__environment">FICTIONAL SAMPLES · SECURE WORKSPACES REQUIRE SIGN-IN</span>
       </header>
       {children}
     </div>
