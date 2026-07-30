@@ -1266,6 +1266,7 @@
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
         "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+        "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
         "app/director/urgent/actions.ts",
         "app/director/actions.ts",
         "lib/urgent/hosted.ts"
@@ -1414,6 +1415,16 @@
           ]
         },
         {
+          "file": "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
+          "includes": [
+            "security definer;",
+            "set search_path = '';",
+            "from public, anon, authenticated, service_role;",
+            "from public, anon, service_role;",
+            "to authenticated;"
+          ]
+        },
+        {
           "file": "supabase/tests/urgent_family_organization_boundary.sql",
           "includes": [
             "Expected wrong-organization case-creation denial",
@@ -1436,7 +1447,12 @@
             "Expected former-or-revoked assignment actor denial",
             "Assignment denials changed durable task or event cardinality",
             "Northstar director can see requester-private self-handling rows",
-            "Expected revoked-location case replay denial",
+            "Revoked-location public case replay must return 42501 with no receipt",
+            "Case command ACL boundary must expose only the public authenticated entrypoint",
+            "Authenticated direct private case helper must return 42501 with no receipt",
+            "Anon public case wrapper must return 42501 with no receipt",
+            "Service-role public case wrapper must return 42501 with no receipt",
+            "Forbidden case entrypoint changed full retained state",
             "Postgres final request/workflow/task/event cardinality changed",
             "rollback;"
           ]
