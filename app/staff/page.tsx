@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
-import { humanAudience, humanFamilyName, humanizePreviewIdentity, humanizePreviewLabel, humanNextStep, humanTaskOwnerAction, humanTaskStatus } from '@/lib/presentation/plain-language';
+import { humanAudience, humanizePreviewIdentity, humanizePreviewLabel, humanNextStep, humanTaskOwnerAction, humanTaskStatus } from '@/lib/presentation/plain-language';
 import { StartTaskForm } from './StartTaskForm';
 import styles from '../operations-beta.module.css';
 
@@ -35,13 +35,13 @@ export default async function StaffPage() {
             const owner = memberById.get(task.assigned_organization_member_id ?? '');
             return (
               <article className={styles.workCard} key={task.id}>
-                <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'Case'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Your location'}</span><b data-state={task.status}>{humanTaskStatus(task.status)}</b></div>
+                <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'CASE'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Authorized location'}</span><b data-state={task.status}>{humanTaskStatus(task.status)}</b></div>
                 <div className={styles.cardBody}>
                   <p>NEXT OWNED COMMITMENT · {formatOperationalTime(task.due_at)}</p><h3>{task.title ?? 'Untitled commitment'}</h3>
                   <dl className={styles.facts}>
                     <div><dt>Owner</dt><dd>{displayMember(owner)}</dd></div>
                     <div><dt>Waiting</dt><dd>{task.waiting_party ?? 'Nobody recorded'}</dd></div>
-                    <div><dt>Case boundary</dt><dd>{workflow?.person_name ?? 'Person withheld'} · {humanFamilyName(workflow?.family_name)}</dd></div>
+                    <div><dt>Case boundary</dt><dd>{workflow?.person_name ?? 'Person withheld'} · {workflow?.family_name ?? 'Family'} family</dd></div>
                     <div><dt>Visible to</dt><dd>{humanAudience(task.audience)}</dd></div>
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>
                     <div><dt>What you do</dt><dd>{humanTaskOwnerAction(task.human_action, 'Start the assigned work')}</dd></div>

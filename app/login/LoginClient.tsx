@@ -94,7 +94,7 @@ export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, 
           {emailEnabled && <form className={styles.inviteForm} onSubmit={continueWithEmail}>
             <label htmlFor="sign-in-email">Invited email address</label>
             <input autoComplete="email" id="sign-in-email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
-            <button className={styles.secondary} disabled={busy} type="submit">Email me a secure sign-in link</button>
+            <button className={styles.secondary} disabled={busy} type="submit">Request secure email link</button>
           </form>}
           <p className={styles.helper}>Passage does not finish sign-in until the account is verified by the server.</p>
           <div className={styles.divider}><span>or open an existing invitation</span></div>

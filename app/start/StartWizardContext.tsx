@@ -48,7 +48,7 @@ export function StartWizardProvider({ children }: { children: ReactNode }) {
       const stored = raw ? { ...EMPTY_DRAFT, ...JSON.parse(raw) } : EMPTY_DRAFT;
       setDraft({
         ...stored,
-        requestId: stored.requestId || window.crypto.randomUUID(),
+        requestId: isUuid(stored.requestId) ? stored.requestId : window.crypto.randomUUID(),
       });
     } catch {
       setDraft({ ...EMPTY_DRAFT, requestId: window.crypto.randomUUID() });
@@ -80,6 +80,10 @@ export function StartWizardProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ draft, hydrated, update, reset }), [draft, hydrated, update, reset]);
   return <StartWizardContextInstance.Provider value={value}>{children}</StartWizardContextInstance.Provider>;
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export function useStartWizard(): StartWizardValue {

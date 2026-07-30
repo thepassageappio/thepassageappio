@@ -94,7 +94,7 @@ export type SandboxEvent = {
 };
 
 export type SandboxRecord = {
-  schemaVersion: 4;
+  schemaVersion: 3;
   organizations: [{ id: OrganizationId; name: 'Northstar Funeral Home' }];
   locations: [
     { id: 'northstar-portland'; organizationId: OrganizationId; name: 'Portland'; active: true },
@@ -102,7 +102,7 @@ export type SandboxRecord = {
   ];
   memberships: SandboxMembership[];
   routingRules: [
-    { id: 'route-portland-intake'; organizationId: OrganizationId; locationId: 'northstar-portland'; accountableMembershipId: 'membership-elena'; firstAssigneeMembershipId: 'membership-avery'; active: true },
+    { id: 'route-portland-intake'; organizationId: OrganizationId; locationId: 'northstar-portland'; accountableMembershipId: 'membership-elena'; firstAssigneeMembershipId: 'membership-marcus'; active: true },
     { id: 'route-beaverton-intake'; organizationId: OrganizationId; locationId: 'northstar-beaverton'; accountableMembershipId: 'membership-elena'; firstAssigneeMembershipId: 'membership-avery'; active: true },
   ];
   workspaceContext: { directorLocationId: WorkspaceLocationId; staffLocationId: LocationId; staffMembershipId: MembershipId };

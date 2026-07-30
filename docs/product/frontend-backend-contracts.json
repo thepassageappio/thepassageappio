@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
   "version": 4,
-  "last_updated": "2026-07-26",
+  "last_updated": "2026-07-28",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -653,8 +653,6 @@
       "server_command": "RLS-scoped server SELECT over public.task_proofs and public.task_proof_reviews through loadHostedOperations({ proofs: true })",
       "backend_files": [
         "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
-        "supabase/migrations/20260726222505_staff_proof_reviewer_visibility.sql",
-        "supabase/migrations/20260727025124_staff_proof_reviewer_visibility_acl_hardening.sql",
         "lib/operations/hosted.ts",
         "app/staff/work/[taskId]/page.tsx"
       ],
@@ -663,7 +661,7 @@
         { "table": "task_proof_reviews", "cardinality": "at most one append-only director decision per proof" },
         { "table": "tasks", "cardinality": "one current assignment, status, and version controls staff visibility" }
       ],
-      "rls_authority_predicate": "passage_private.can_view_task(task_id) restricts proof/review rows to the current active assigned staff member with an active workflow-location grant. The rewritten cycle_7b_members_authorized_select policy adds passage_private.can_view_proof_reviewer(id), allowing that same current active assignee to resolve only the organization_members identity attached to a review of their assigned task. The private SECURITY DEFINER helper has a fixed empty search_path and EXECUTE only for authenticated; wrong-task, unassigned, former, revoked, wrong-location, and cross-organization identities receive no reviewer member row.",
+      "rls_authority_predicate": "passage_private.can_view_task(task_id) requires the caller to remain the current active assigned staff member with an active grant on the workflow location; unavailable, former, revoked, wrong-location, and cross-organization identities receive no rows",
       "append_only_event": {
         "applicable": false,
         "reason": "This contract is a read-only history projection; submission and review contracts define the append-only events that populate it."
@@ -674,10 +672,9 @@
         "reload reconstructs the same ordered proof and review chain from durable rows",
         "a failed submission moves focus to the unchanged result and offers exact-task reload plus a return to My work"
       ],
-      "persona_projection": "Current assigned staff sees only the authorized task's case-team proof chain and the human reviewer name resolved from reviewed_by_organization_member_id; directors receive their managed-location projection. A reviewer identity that is connected only to another task does not project. Unassigned, former, revoked, wrong-organization, family, vendor, and unrelated identities receive no reviewer member row or proof detail.",
+      "persona_projection": "Current assigned staff sees only the authorized task's case-team proof chain; directors receive their managed-location projection; former staff, family, vendors, and unrelated organizations receive no proof detail.",
       "evidence_test_references": [
         "supabase/tests/cycle_8_task_proof_loop.sql",
-        "supabase/tests/staff_proof_reviewer_visibility.sql",
         "scripts/test-frontend-backend-parity.js",
         "docs/agent-operating-context.md"
       ],
@@ -690,9 +687,7 @@
             "proofReviews.filter((review) => review.task_id === task.id)",
             "taskProofs.map((proof, index) =>",
             "Proof and replacement history.",
-            "This work is not available to your account.",
-            "review.reviewed_by_organization_member_id",
-            "humanizePreviewIdentity(displayMember(members.find((member) => member.id === review.reviewed_by_organization_member_id)), 'director')"
+            "This work is not available to your account."
           ]
         },
         {
@@ -713,46 +708,6 @@
             "create policy cycle_8_task_proofs_authorized_select on public.task_proofs",
             "create policy cycle_8_task_proof_reviews_authorized_select on public.task_proof_reviews",
             "using (passage_private.can_view_task(task_id))"
-          ]
-        },
-        {
-          "file": "supabase/migrations/20260726222505_staff_proof_reviewer_visibility.sql",
-          "includes": [
-            "create or replace function passage_private.can_view_proof_reviewer(p_member_id uuid)",
-            "security definer",
-            "set search_path to ''",
-            "create policy cycle_7b_members_authorized_select",
-            "or passage_private.can_view_proof_reviewer(id)"
-          ]
-        },
-        {
-          "file": "supabase/migrations/20260727025124_staff_proof_reviewer_visibility_acl_hardening.sql",
-          "includes": [
-            "create or replace function passage_private.can_view_proof_reviewer(",
-            "join public.workflows as workflow_row",
-            "join public.organization_member_locations as viewer_grant",
-            "and viewer_grant.organization_location_id =",
-            "workflow_row.organization_location_id",
-            "and viewer_grant.revoked_at is null",
-            "revoke all",
-            "on function passage_private.can_view_proof_reviewer(uuid)",
-            "from public, anon, service_role",
-            "grant execute",
-            "to authenticated"
-          ]
-        },
-        {
-          "file": "supabase/tests/staff_proof_reviewer_visibility.sql",
-          "includes": [
-            "Active assigned staff could not resolve the exact proof reviewer",
-            "Wrong-task reviewer identity leaked to assigned staff",
-            "Unassigned staff retained proof-reviewer visibility",
-            "Former assignee retained proof-reviewer visibility",
-            "Revoked staff retained proof-reviewer visibility",
-            "Wrong-location staff retained proof-reviewer visibility",
-            "Revoked location grant retained proof-reviewer visibility",
-            "Wrong-organization staff gained proof-reviewer visibility",
-            "Reviewer helper function ACL/search_path posture drifted"
           ]
         }
       ]
@@ -918,7 +873,7 @@
           "file": "app/director/cases/[workflowId]/page.tsx",
           "includes": [
             "export const dynamic = 'force-dynamic'",
-            "loadHostedOperations({ events: true, proofs: true })",
+            "loadHostedOperations({ proofs: true })",
             "const selectedTask = query.task",
             "workflowTasks.find((task) => task.id === query.task)",
             "selectedTask.status === 'proof_submitted'",
@@ -1057,9 +1012,118 @@
       ]
     },
     {
-      "id": "packet1.family.urgent_submission",
-      "cycle": "Packet 1",
-      "capability": "A signed-in family either requests a Northstar callback or saves the same guidance privately",
+      "id": "m3.shared.workflow_messages",
+      "cycle": "M3",
+      "capability": "Family owners, updates-scoped participants, and managed directors share one append-only case message thread without exposing internal identity or command identifiers",
+      "status": "implemented",
+      "persona": ["family", "participant", "director"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/messages and /director/cases/[workflowId]",
+        "component": [
+          "components/messaging/MessageThread.tsx",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "files": [
+          "components/messaging/MessageThread.tsx",
+          "components/messaging/MessageThread.module.css",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "lib/family/messages-view.ts",
+          "lib/messaging/hosted.ts",
+          "lib/messaging/actions.ts"
+        ],
+        "note": "Both routes use one shared thread and Server Action. The composer is absent when history cannot be loaded, visible times are server-formatted in UTC, and the page explains that the message is saved inside Passage rather than sent by email or text."
+      },
+      "action_status": "load authorized history -> add message -> durable receipt; identical request replay returns the original receipt, while a different actor or body using the same request id conflicts and requires reload",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql",
+        "lib/messaging/hosted.ts",
+        "lib/messaging/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per (workflow_id, creation_request_id); normalized body and server-derived sender/time are stable on identical replay"
+        }
+      ],
+      "rls_authority_predicate": "Authenticated clients have no direct workflow_messages table SELECT or write privilege. Both RPCs use passage_private.can_message_workflow(workflow_id): the linked active family-space owner, an active participant whose category_scope contains updates, or an active owner/director managing the exact workflow location.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The workflow_messages row is itself the append-only task/case communication proof: ordinary clients cannot insert, update, delete, or select the internal table; the idempotent post command creates it and an owner-level trigger rejects later update/delete. No duplicate workflow-event row is created for this thin slice."
+      },
+      "failure_recovery_states": [
+        "history load failure hides the composer, states that nothing was added, and offers a 48-pixel reload action",
+        "signed-out or unauthorized post returns a calm denial and no row",
+        "non-updates and revoked participants plus wrong-location, cross-organization, and unrelated identities receive 42501 for list/post and reveal no message or identity metadata",
+        "identical replay returns the original message id/time without a duplicate row; changed-actor or changed-body replay returns 22023 and directs reload",
+        "direct authenticated SELECT/INSERT/UPDATE/DELETE remains denied; every denial and conflict preserves exact message cardinality",
+        "invalid or oversized body returns validation without a partial row",
+        "visible timestamps use the persisted occurred_at plus a server-produced UTC label so browser timezone cannot change hydration text"
+      ],
+      "persona_projection": "The implemented family/participant and director routes receive only message id, family/staff sender kind, a bounded plain-language sender label, body, occurred time, and server-computed is_own. sender_user_id, organization member id, continuity participant id, organization id, and creation request id never cross the client projection. No user-visible staff messaging route is claimed.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
+      "id": "m3.staff.workflow_messages_backend",
+      "cycle": "M3",
+      "capability": "Currently assigned active staff have backend authority to list and post case messages for their assigned workflow",
+      "status": "backend_only",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "files": [],
+        "note": "The database and RPC contract is implemented, but no staff message route or component exists. This contract earns no user-visible staff messaging credit."
+      },
+      "action_status": "assigned active staff backend list/post authority only; user-visible staff messaging remains unimplemented",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per successful assigned-staff request; denial and replay conflict add zero rows"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_message_workflow(workflow_id) requires auth.uid() to map to a current active staff membership with an active grant on the workflow location and at least one task on that exact workflow currently assigned to that membership.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The append-only workflow_messages row is the durable receipt. Direct authenticated writes are revoked and the post RPC is the only mutation path."
+      },
+      "failure_recovery_states": [
+        "unassigned, former, revoked, wrong-location, and cross-organization staff list/post attempts return 42501 and add no row",
+        "direct table SELECT/INSERT/UPDATE/DELETE remains denied",
+        "identical replay returns the original receipt; changed actor or body conflicts without changing cardinality",
+        "staff UI remains explicitly unavailable until a separate reachable route/component slice passes responsive and hosted QA"
+      ],
+      "persona_projection": "Assigned staff can receive the same client-safe RPC projection at the backend boundary. No route or component currently exposes it to the staff persona.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
+      "id": "urgent.family.receiver_bound_submission",
+      "cycle": "Urgent P1",
+      "capability": "A signed-in family requests a Northstar callback or saves the same guidance privately",
       "status": "implemented",
       "persona": "family",
       "frontend": {
@@ -1071,30 +1135,31 @@
         ],
         "files": [
           "app/start/next/UrgentNextClient.tsx",
+          "app/start/StartWizardContext.tsx",
           "app/start/actions.ts",
           "app/start/Start.module.css",
           "lib/urgent/situations.ts"
         ],
-        "note": "The final family step visibly names Northstar Funeral Home only as the callback receiver, explains that private saves stay hidden, and submits the Packet-1 allowlisted organization id through a verified Server Action."
+        "note": "The family sees Northstar as the callback receiver, a requester-private alternative, and one exact saved receipt reconstructed from the persisted request key."
       },
-      "action_status": "not saved -> submitted and shared with Northstar, or self_handling and requester-private; exact normalized replay returns the original receipt while any changed input conflicts without mutation",
+      "action_status": "not saved -> submitted and shared with Northstar, or self_handling and requester-private; exact replay returns the original receipt while changed input conflicts without mutation",
       "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "app/start/actions.ts"
       ],
       "durable_tables": [
         {
           "table": "urgent_intake_requests",
-          "cardinality": "one request per requester and creation UUID, with one non-null receiving_organization_id"
+          "cardinality": "one receiver-bound request per requester and creation request UUID"
         },
         {
           "table": "urgent_intake_events",
-          "cardinality": "one immutable urgent_intake.submitted event per successful creation key"
+          "cardinality": "one immutable urgent_intake.submitted event per successful creation request UUID"
         }
       ],
-      "rls_authority_predicate": "The requester can read their own request. Only wants_callback=true non-self_handling rows are additionally visible to an active Northstar owner/director. Packet 1 rejects every receiver except the exact Northstar allowlist id and removes the org-agnostic overload.",
+      "rls_authority_predicate": "The requester reads their own request; only callback rows are additionally visible to an active owner/director of the exact receiving organization. Private saves remain requester-only.",
       "append_only_event": {
         "applicable": true,
         "table": "urgent_intake_events",
@@ -1102,47 +1167,28 @@
         "idempotency_key": "urgent_intake_create:<caller-supplied request UUID>"
       },
       "failure_recovery_states": [
-        "signed-out or unverified account -> no request or event",
-        "fresh key with missing, forged, or non-allowlisted receiver -> 22023 with no request/event",
-        "same key with any changed normalized receiver, situation, person, location, timing, coordinator, phone, email, notes, or callback choice -> 22023 with the original row unchanged",
-        "same key and every normalized input equal -> original receipt with replayed=true and no duplicate event",
-        "self_handling remains requester-only; Northstar reads zero request/event rows and cannot claim it",
-        "reload reads the durable receiver, status, and contact receipt through requester RLS"
+        "signed-out or anon submit -> execute denied and no request or event",
+        "missing, malformed, or non-allowlisted receiver -> no request or event",
+        "same request key with changed normalized input -> conflict with original rows unchanged",
+        "same request key with identical input -> original receipt and no duplicate event",
+        "wrong-organization active director -> callback claim command denied and cardinality unchanged",
+        "active leader of the exact receiver -> private self_handling claim command denied and cardinality unchanged",
+        "same-organization staff and revoked leaders -> receiver helper false, no receiver projection, claim command denied, and cardinality unchanged",
+        "uncertain event-time read -> reload exact request before retrying",
+        "reload resolves creation_request_id for the signed-in requester rather than a newer unrelated request"
       ],
-      "persona_projection": "The family sees that a callback sends the request to Northstar and that Save privately does not. Northstar active leaders see callback requests only; all staff, revoked members, other organizations, vendors, participants, and unrelated users see zero rows.",
+      "persona_projection": "The family sees whether Northstar receives the callback request or cannot see a private save. Active Northstar leaders see callback requests only; staff, revoked members, other organizations, vendors, participants, and unrelated users see no row.",
       "evidence_test_references": [
-        "supabase/tests/urgent_family_organization_boundary.sql",
-        "scripts/test-release-packet-demo-vendor.js",
+        "supabase/tests/urgent_receiver_submit_boundary.sql",
         "scripts/test-frontend-backend-parity.js"
       ],
       "source_assertions": [
         {
           "file": "app/start/next/UrgentNextClient.tsx",
           "includes": [
-            "Save privately — don’t share with Northstar",
-            "Northstar Funeral Home cannot see it.",
-            "PREVIEW_RECEIVING_ORGANIZATION.name",
             "name=\"receivingOrganizationId\"",
-            "existing.wants_callback",
-            "<dt>Visibility</dt><dd>Only you</dd>",
-            "action={startPreviewDemo}",
-            "name=\"persona\" type=\"hidden\" value=\"family\"",
-            "Sign in to an existing demo account",
-            "No email is sent."
-            ,"Request a callback from Northstar Funeral Home"
-            ,".eq('creation_request_id', draft.requestId)"
-            ,"urgent_intake_create:${draft.requestId}"
-            ,"formatSavedTime(state.receipt.occurredAt)"
-          ]
-        },
-        {
-          "file": "app/demo/actions.ts",
-          "includes": [
-            "export type DemoPersona = 'family' | 'director' | 'staff' | 'vendor'",
-            "family: '/start/next'",
-            "PASSAGE_PREVIEW_DEMO_SESSIONS_ENABLED",
-            "configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'",
-            "client.auth.signInWithPassword(credential)"
+            ".eq('creation_request_id', draft.requestId)",
+            "urgent_intake_create:${draft.requestId}"
           ]
         },
         {
@@ -1153,29 +1199,35 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
             "add column receiving_organization_id uuid",
-            "alter column receiving_organization_id set not null",
-            "drop function public.submit_urgent_intake_idempotent(",
             "p_receiving_organization_id uuid",
-            "p_receiving_organization_id is distinct from",
-            "v_existing.person_location is distinct from btrim(p_person_location)",
-            "v_existing.callback_notes is distinct from v_notes",
-            "v_existing.wants_callback is distinct from p_wants_callback",
-            "coalesce(",
-            "request_row.claimed_organization_id",
-            "workflow_row.organization_id",
-            "request_row.wants_callback",
-            "request_row.status <> 'self_handling'"
+            "alter column receiving_organization_id set not null"
+          ]
+        },
+        {
+          "file": "supabase/tests/urgent_receiver_submit_boundary.sql",
+          "includes": [
+            "urgent_receiving_organization_boundary",
+            "Expected non-allowlisted receiver denial",
+            "Signed-out anon submit denial failed",
+            "Same-organization active staff command denial failed",
+            "Revoked Northstar leader command denial failed",
+            "Exact receiver director private-request command denial failed",
+            "Wrong-organization active director claim command denial failed",
+            "Receiver command denials changed request status, version, or event cardinality",
+            "Exact receiving director callback/private RLS boundary failed",
+            "Final receiver-submit request/event cardinality changed",
+            "rollback;"
           ]
         }
       ]
     },
     {
-      "id": "packet1.director.urgent_claim_and_case",
-      "cycle": "Packet 1",
-      "capability": "The receiving funeral home's active owner/director lists, claims, and turns its urgent request into a case",
+      "id": "urgent.director.case_first_task",
+      "cycle": "Urgent parity repair",
+      "capability": "The receiving funeral home's active owner or director claims a callback request and atomically opens a case with one assignable first task",
       "status": "implemented",
       "persona": "director",
       "frontend": {
@@ -1187,8 +1239,7 @@
           "app/director/urgent/UrgentForms.tsx",
           "app/director/urgent/actions.ts",
           "app/director/cases/[workflowId]/page.tsx",
-          "app/director/CommandForms.tsx",
-          "app/director/actions.ts"
+          "app/director/CommandForms.tsx"
         ],
         "files": [
           "app/director/urgent/page.tsx",
@@ -1200,20 +1251,22 @@
           "app/director/actions.ts",
           "app/staff/page.tsx",
           "app/staff/work/[taskId]/page.tsx",
-          "lib/presentation/plain-language.ts",
-          "lib/urgent/hosted.ts"
+          "lib/urgent/hosted.ts",
+          "lib/presentation/plain-language.ts"
         ],
-        "note": "Queue and detail loaders filter the viewer's exact organization before rendering; Server Actions re-resolve owner/director authority and database commands enforce the same receiver boundary. A newly created first commitment opens in Tasks with exact-location eligible staff assignment; a truly missing task fails closed with reload and urgent-queue recovery, while a mismatched supplied task remains closed."
+        "note": "The queue and detail stay bound to the viewer's exact receiving organization. A successful case command returns the durable case and first-task identifiers and opens the Tasks state without rendering either identifier."
       },
-      "action_status": "submitted -> claimed -> case_created, with one version increment; case creation atomically opens one unassigned first commitment and returns both durable IDs",
+      "action_status": "submitted -> claimed -> case_created; case creation atomically creates exactly one unassigned first task and returns the original case/task receipt on an exact authorized replay",
       "server_command": [
         "public.claim_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_request_id uuid)",
-        "public.create_case_from_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_request_id uuid)"
+        "public.create_case_from_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_request_id uuid)",
+        "public.assign_task_idempotent(p_task_id uuid, p_expected_version integer, p_assignee_member_id uuid, p_reason text, p_request_id uuid)"
       ],
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
-        "supabase/migrations/20260727194332_urgent_case_first_commitment.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+        "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
         "app/director/urgent/actions.ts",
         "app/director/actions.ts",
         "lib/urgent/hosted.ts"
@@ -1221,42 +1274,42 @@
       "durable_tables": [
         {
           "table": "urgent_intake_requests",
-          "cardinality": "one receiver-bound row whose claimed_organization_id is null or exactly equals receiving_organization_id"
+          "cardinality": "one receiver-bound request whose claimed organization is null or exactly equals the receiver"
         },
         {
           "table": "workflows",
-          "cardinality": "one case workflow in the receiving organization and an authorized location per successful creation key"
+          "cardinality": "one case workflow in the receiving organization and authorized location per successful case-creation key"
         },
         {
           "table": "tasks",
-          "cardinality": "one unassigned, version-1 first commitment in the created workflow per successful case-creation key"
+          "cardinality": "exactly one unassigned version-1 first task in the created workflow per successful case-creation key"
         },
         {
           "table": "urgent_intake_events",
-          "cardinality": "one immutable claim and one immutable case-created event per successful unique command key"
+          "cardinality": "one immutable claim event and one immutable case-created event per successful unique command key"
         },
         {
           "table": "workflow_events",
           "cardinality": "one immutable task.created event keyed to the urgent request and first task"
         }
       ],
-      "rls_authority_predicate": "Queue/detail SELECT and claim require wants_callback=true, non-self_handling state, and active owner/director membership where organization_id equals the Packet-1 Northstar receiver. Case creation additionally requires manage authority for a location in Northstar.",
+      "rls_authority_predicate": "Queue, detail, and claim require an active owner/director of the exact receiving organization. Case creation also requires management authority for the selected location. Assignment requires an active staff member with a non-revoked grant to the case's exact location.",
       "append_only_event": {
         "applicable": true,
-        "table": "urgent_intake_events",
-        "event_type": "urgent_intake.claimed, urgent_intake.case_created, and task.created",
-        "idempotency_key": "urgent_intake_claim:<request UUID>, urgent_intake_case_create:<request UUID>, or urgent_intake_first_task:<urgent request UUID>"
+        "table": "urgent_intake_events and workflow_events",
+        "event_type": "urgent_intake.claimed, urgent_intake.case_created, task.created, and task.assigned",
+        "idempotency_key": "urgent_intake_claim:<request UUID>, urgent_intake_case_create:<request UUID>, urgent_intake_first_task:<urgent request UUID>, or the assignment request UUID"
       },
       "failure_recovery_states": [
-        "wrong organization, staff role, revoked member, or unaffiliated user sees zero request/event rows",
-        "wrong organization/role claim and case commands return 42501 with no row, workflow, or event mutation",
-        "stale versions conflict atomically and reload returns the durable current state",
-        "same-key replay returns the original claim or workflow-and-first-task receipt only when expected version and every normalized payload field match and the caller still has current organization/location authority; otherwise 22023 or 42501 with no mutation",
-        "claimed organization is constrained to equal the explicit receiver",
-        "an authorized newly created workflow with an unassigned first task opens assignment as the primary action; no eligible staff disables assignment and links to Team access",
-        "an authorized workflow with zero tasks fails closed before vendor loading and offers exact-case reload plus urgent-queue recovery; an explicitly requested task outside that workflow fails closed"
+        "wrong organization, wrong location, staff role, revoked member, unaffiliated user, and unassigned staff fail closed",
+        "stale versions conflict atomically and reload returns durable current state",
+        "exact replay returns the original workflow-and-first-task receipt without duplicate rows or events",
+        "changed replay input or lost current authority returns conflict or denial without mutation",
+        "an authorized workflow with no task shows reload and urgent-queue recovery before any vendor action loads",
+        "no eligible exact-location staff disables assignment and links to team access",
+        "an explicitly requested task outside the workflow fails closed"
       ],
-      "persona_projection": "Only Northstar's active owner/director sees callback requests, contact detail, claim control, and case-creation control. Self-handling remains requester-only; all staff, revoked members, other organizations, and unrelated users see zero rows.",
+      "persona_projection": "Only an active authorized director sees callback detail and case controls. The assigned staff member later sees the task's human owner action, never the director's assignment instruction or raw identifiers.",
       "evidence_test_references": [
         "supabase/tests/urgent_family_organization_boundary.sql",
         "scripts/test-frontend-backend-parity.js"
@@ -1273,33 +1326,44 @@
           ]
         },
         {
+          "file": "app/director/urgent/actions.ts",
+          "includes": [
+            "first_task_id: string",
+            "!receipt?.workflow_id || !receipt.first_task_id",
+            "firstTaskId: receipt.first_task_id"
+          ]
+        },
+        {
+          "file": "app/director/urgent/UrgentForms.tsx",
+          "includes": [
+            "Create the case and first task.",
+            "Open case and choose an owner",
+            "Nothing is sent to the family."
+          ]
+        },
+        {
           "file": "app/director/cases/[workflowId]/page.tsx",
           "includes": [
-            "if (query.task && !selectedTask) return <Closed />;",
-            "The first commitment could not load.",
-            "Nothing is assignable from this case yet.",
-            "Choose who owns the first commitment.",
+            "if (query.task && workflowTasks.length > 0 && !selectedTask)",
+            "The case is open, but its first task is unavailable.",
+            "Choose who owns the first task.",
+            "assignmentKind=\"first-task\"",
+            "locationName={humanizePreviewLabel(location?.name ?? '', 'this location')}",
             "<AssignTaskForm",
             "member.role === 'staff' && member.status === 'active'",
             "grant.organization_location_id === workflow.organization_location_id",
             "!grant.revoked_at",
-            "const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';",
-            "const activeStage = proofStage ? 'proof' : 'tasks';",
-            "selectedTask.status === 'blocked' ? 'This commitment is blocked.",
-            "selectedTask.status === 'assigned' ? `${ownerName} owns this commitment",
-            "selectedTask.status === 'proof_submitted' ? 'Proof waiting for review.'",
-            "Proof verified — task complete.",
-            "humanTaskOwnerAction(task.human_action",
-            "active={activeStage}",
-            "<CreatePartnerRequestForm"
+            "const activeStage = proofStage ? 'proof' : 'tasks';"
           ]
         },
         {
           "file": "app/director/CommandForms.tsx",
           "includes": [
             "name=\"workflowId\"",
-            "No eligible staff available",
-            "Review Team access"
+            "Team member",
+            "assignmentKind === 'first-task' ? 'Assign first task' : 'Assign task'",
+            "Assign first task",
+            "No eligible team members can work at {locationName}. Review team access, then return here."
           ]
         },
         {
@@ -1314,8 +1378,7 @@
         {
           "file": "lib/presentation/plain-language.ts",
           "includes": [
-            "const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';",
-            "const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';",
+            "urgentFirstTaskOwnerAction",
             "export function humanTaskOwnerAction"
           ]
         },
@@ -1332,23 +1395,16 @@
           ]
         },
         {
-          "file": "app/director/urgent/actions.ts",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
-            "first_task_id: string",
-            "!receipt?.workflow_id || !receipt.first_task_id",
-            "firstTaskId: receipt.first_task_id"
+            "member_row.organization_id = v_request.receiving_organization_id",
+            "urgent_intake_requests_claim_matches_receiver",
+            "urgent_intake_requests_packet1_receiver",
+            "if not v_replay_authorized then"
           ]
         },
         {
-          "file": "app/director/urgent/UrgentForms.tsx",
-          "includes": [
-            "Create the case and its first commitment.",
-            "Open the case and assign the first commitment",
-            "Nothing is sent automatically."
-          ]
-        },
-        {
-          "file": "supabase/migrations/20260727194332_urgent_case_first_commitment.sql",
+          "file": "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
           "includes": [
             "first_task_id uuid",
             "insert into public.tasks",
@@ -1359,178 +1415,46 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
           "includes": [
-            "member_row.organization_id = v_request.receiving_organization_id",
-            "claimed_organization_id = v_request.receiving_organization_id",
-            "urgent_intake_requests_claim_matches_receiver",
-            "urgent_intake_requests_packet1_receiver",
-            "coalesce(",
-            "request_row.claimed_organization_id",
-            "workflow_row.organization_id",
-            "wants_callback",
-            "status <> 'self_handling'",
-            "v_existing_event.metadata ->> 'expected_version'",
-            "v_existing_event.metadata ->> 'organization_location_id'",
-            "v_existing_event.metadata ->> 'case_reference'",
-            "v_existing_event.metadata ->> 'family_name'",
-            "v_replay_authorized :=",
-            "if not v_replay_authorized then",
-            "from public, anon, authenticated, service_role"
+            "security definer;",
+            "set search_path = '';",
+            "from public, anon, authenticated, service_role;",
+            "from public, anon, service_role;",
+            "to authenticated;"
           ]
         },
         {
           "file": "supabase/tests/urgent_family_organization_boundary.sql",
           "includes": [
-            "Wrong-organization director can see Northstar rows",
-            "Expected wrong-organization claim denial",
             "Expected wrong-organization case-creation denial",
-            "Expected fresh-key non-allowlisted receiver denial",
+            "Urgent first-task assignment did not persist task and append-only event",
+            "Urgent first-task assignment replay duplicated its event",
+            "Assigned staff My Work RLS projection omitted the urgent workflow or task",
+            "Unaffiliated identity can see the urgent workflow or task",
+            "Unassigned exact-location staff can see the urgent workflow or task",
+            "Wrong-location staff can see the urgent workflow or task",
+            "Wrong-organization staff can see the urgent workflow or task",
+            "Former or revoked staff can see the urgent workflow or task",
+            "Former or revoked director can see the urgent workflow or task",
+            "My Work RLS visibility matrix changed durable assignment cardinality",
+            "Expected wrong-organization assignment target denial",
+            "Expected wrong-location assignment target denial",
+            "Expected revoked assignment target denial",
+            "Expected wrong-organization assignment actor denial",
+            "Expected wrong-location assignment actor denial",
+            "Expected unaffiliated assignment actor denial",
+            "Expected former-or-revoked assignment actor denial",
+            "Assignment denials changed durable task or event cardinality",
             "Northstar director can see requester-private self-handling rows",
-            "Expected direct event insert denial",
-            "Expected append-only event delete denial",
-            "Case replay conflict changed request/workflow/task/event cardinality",
-            "Expected revoked-location case replay denial",
+            "Revoked-location public case replay must return 42501 with no receipt",
+            "Case command ACL boundary must expose only the public authenticated entrypoint",
+            "Authenticated direct private case helper must return 42501 with no receipt",
+            "Anon public case wrapper must return 42501 with no receipt",
+            "Service-role public case wrapper must return 42501 with no receipt",
+            "Forbidden case entrypoint changed full retained state",
             "Postgres final request/workflow/task/event cardinality changed",
-            "Urgent helper ACL/search_path posture drifted"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "packet1.vendor.fulfillment",
-      "cycle": "Packet 1",
-      "capability": "A director sends a service-compatible vendor request; the scoped vendor responds, quotes, submits delivery confirmation, and the director verifies it",
-      "status": "implemented",
-      "persona": "vendor",
-      "frontend": {
-        "user_visible": true,
-        "route": "/partner",
-        "component": [
-          "app/director/cases/[workflowId]/PartnerRequestForms.tsx",
-          "app/partner/page.tsx",
-          "app/partner/requests/[requestId]/page.tsx"
-        ],
-        "files": [
-          "app/page.tsx",
-          "app/demo/actions.ts",
-          "app/director/cases/[workflowId]/PartnerRequestForms.tsx",
-          "app/director/cases/[workflowId]/partner-actions.ts",
-          "app/partner/actions.ts",
-          "app/partner/page.tsx",
-          "app/partner/requests/[requestId]/page.tsx"
-        ],
-        "note": "The Preview gateway opens a server-authenticated synthetic vendor session without exposing credentials. The director form derives service from the selected vendor and never posts category as authority. For an existing same-key request, the Server Action uses the immutable stored category without consulting mutable vendor state; only genuinely new work requires an active vendor and uses its current category."
-      },
-      "action_status": "sent -> in_progress or declined -> proof_submitted -> verified, with version checks and one immutable event per successful idempotency key. Exact create replay remains stable after vendor-specialty changes or suspension; changed workflow, vendor, category, title, details, or needed-by value conflicts with no mutation.",
-      "server_command": [
-        "public.create_partner_request_idempotent(uuid,uuid,text,text,text,timestamptz,uuid)",
-        "public.respond_to_partner_request_idempotent(uuid,integer,text,integer,text,uuid)",
-        "public.submit_partner_request_proof_idempotent(uuid,integer,text,text,uuid)",
-        "public.verify_partner_request_idempotent(uuid,integer,uuid)"
-      ],
-      "backend_files": [
-        "supabase/migrations/20260726033918_partner_vendor_thin_slice.sql",
-        "supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql",
-        "app/director/cases/[workflowId]/partner-actions.ts",
-        "app/partner/actions.ts",
-        "lib/partner/hosted.ts"
-      ],
-      "durable_tables": [
-        {
-          "table": "partner_requests",
-          "cardinality": "one request per funeral-home organization and creation request key; a new request category equals the selected active vendor's current category, while the saved category remains immutable if the vendor later changes specialty"
-        },
-        {
-          "table": "partner_request_events",
-          "cardinality": "one append-only event per organization and idempotency key"
-        }
-      ],
-      "rls_authority_predicate": "Directors require active managed-location authority over the case before any replay lookup; vendors require an active partner_members row for the request's exact partner organization. The create command serializes the organization/request key and resolves exact replay before mutable vendor validation. Only a new request requires an active vendor and matching current category. The fixed-search-path category guard rejects mismatched direct INSERT or category/vendor UPDATE.",
-      "append_only_event": {
-        "applicable": true,
-        "table": "partner_request_events",
-        "event_type": "partner_request.sent, accepted, declined, proof_submitted, or verified",
-        "idempotency_key": "partner_request_<action>:<request UUID>"
-      },
-      "failure_recovery_states": [
-        "demo sessions fail closed outside the exact isolated Preview runtime or when server-only credentials are absent",
-        "wrong organization, role, location, revoked member, or unrelated vendor is denied with no request detail or mutation",
-        "a new-request vendor category mismatch returns validation and leaves zero request/event rows",
-        "same-key exact replay returns the original receipt after vendor-specialty changes or suspension without duplicate rows or events",
-        "same-key changed workflow, vendor, category, title, details, or needed-by value returns conflict and preserves the original request/event checksums",
-        "direct mismatched INSERT/UPDATE and direct client event insertion are denied; vendor events remain append-only",
-        "stale version conflicts require reload",
-        "credential rotation is required before hosted demo QA and never prints or commits secret values"
-      ],
-      "persona_projection": "The vendor sees only requests addressed to its own active partner organization and bounded request history; it cannot browse family records, funeral-home cases, other vendors, or director-only verification controls.",
-      "evidence_test_references": [
-        "supabase/tests/partner_vendor_category_compatibility.sql",
-        "scripts/test-release-packet-demo-vendor.js",
-        "scripts/test-frontend-backend-parity.js"
-      ],
-      "source_assertions": [
-        {
-          "file": "app/director/cases/[workflowId]/PartnerRequestForms.tsx",
-          "includes": [
-            "name=\"partnerOrganizationId\"",
-            "humanCategory(selectedPartner.category)",
-            "Service matched to this vendor",
-            "Choose a different vendor to change the service."
-          ]
-        },
-        {
-          "file": "app/director/cases/[workflowId]/partner-actions.ts",
-          "includes": [
-            ".from('partner_requests')",
-            ".eq('creation_request_id', requestId)",
-            "let category = existingRequestResult.data?.category;",
-            "if (!category) {",
-            "p_category: category",
-            "result.error.code === 'PS001'",
-            "result.error.code === '23514'"
-          ]
-        },
-        {
-          "file": "supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql",
-          "includes": [
-            "partner_requests_category_guard",
-            "before insert or update of partner_organization_id, category",
-            "on function passage_private.enforce_partner_request_category()",
-            "from public, anon, authenticated, service_role",
-            "pg_catalog.pg_advisory_xact_lock(",
-            "select request.* into v_existing",
-            "if found then",
-            "v_existing.needed_by is distinct from p_needed_by",
-            "where organization.id = p_partner_organization_id",
-            "and organization.status = 'active'",
-            "v_partner_org.category is distinct from p_category"
-          ]
-        },
-        {
-          "file": "supabase/tests/partner_vendor_category_compatibility.sql",
-          "includes": [
-            "Denied category mismatch left a partial write",
-            "Specialty-changed exact replay was not cardinality-stable",
-            "Suspended vendor exact replay was not cardinality-stable",
-            "Changed % replay did not return 22023",
-            "Suspended fresh vendor was not rejected atomically",
-            "Fresh specialty mismatch was not atomic",
-            "Matching current-specialty request cardinality failed",
-            "Expected direct insert category denial",
-            "Expected direct update category denial",
-            "Expected direct authenticated event insert denial",
-            "Expected append-only event update denial",
-            "Expected append-only event delete denial",
-            "Vendor compatibility final cardinality changed"
-          ]
-        },
-        {
-          "file": "app/demo/actions.ts",
-          "includes": [
-            "PASSAGE_PREVIEW_DEMO_SESSIONS_ENABLED",
-            "configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'",
-            "client.auth.signInWithPassword(credential)"
+            "rollback;"
           ]
         }
       ]

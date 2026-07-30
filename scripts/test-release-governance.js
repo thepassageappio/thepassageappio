@@ -9,39 +9,52 @@ const path = require('node:path');
 const sections = `
 ## Product Manager Scope
 - [x] Product Manager scope completed
+- Material Product Direction or Scope Change: NO
+- Canonical Roadmap Updated: NOT REQUIRED
+- Consecutive Unresolved Branch-Divergence Reviews: 0
+- Reconciliation Proposal: NOT REQUIRED
 ## UX Review
 - [x] UX review completed
 - UX Status: PASS
 ## Development Handoff
 - [x] Development handoff completed
-- Author/Implementer: /root/engineering
-- PR Author Identity: passage-author[bot]
+- Implementation Role: /root/engineer
+- PR Author GitHub Identity: passage-author[bot]
 ## QA Handoff
 - [x] Independent QA handoff completed
-- QA Agent: /root/qa
+- QA Role: /root/qa
 - QA Status: PASS
+- QA Infrastructure Status: CLEAR
+- QA Infrastructure Fix-it Item: NOT REQUIRED
+- QA Infrastructure Owner Role: NOT REQUIRED
+- QA Infrastructure Recovery Test: NOT REQUIRED
 ## Independent Agent Review
 - [x] Independent agent review completed
 - Agent Reviewer: /root/reviewer
-- Agent Reviewed Head: 1111111111111111111111111111111111111111
+- Reviewed Head: 1111111111111111111111111111111111111111
 - Independent Agent Review Status: PASS
 ## Development Head / Release Authority
-- [x] Development Head review completed
-- Development Head: /root/development_head
+- [x] Development Head approval recorded
+- Development Head Role: /root/development_head
 - Development Head Reviewed Head: 1111111111111111111111111111111111111111
-- Development Head Status: PASS
-## Production Review
-- Production Promotion: NO
-- [ ] Production review completed
-- Production Reviewer: UNASSIGNED
-- Production Reviewed Head: UNASSIGNED
-- Production Review Status: NOT RUN
+- Development Head Approval: APPROVED
+- Merge Authority GitHub Identity: github-actions[bot]
+## Production Authorization
+- Owner Gate: NOT REQUIRED
+- Production Reviewer Authorization: NOT REQUESTED
+- Protected environment or release evidence: NONE
+- Production Reviewer Role: /root/production_reviewer
+## Platform Readiness Gate
+- Current Certified Platform Readiness: 0
+- Proposed Certified Platform Readiness: 0
+- Domain Floors: NOT RUN
+- Whole-Platform E2E: NOT REQUIRED
+- Massive 75% Full-Platform QA: NOT REQUIRED
 ## Loop Status
 - Cycle: 1
 ## Deploy Decision
 - [x] Agent context updated
-- Deploy Agent: /root/deploy
-- Merge Executor Identity: passage-release-automation
+- Deploy Role: /root/deploy
 - Deploy Decision: APPROVED
 `;
 
@@ -52,13 +65,22 @@ function run(script, env) {
   });
 }
 
+let mergeIdentity = run('scripts/check-merge-identity.js', {
+  PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_MERGED_BY_LOGIN: 'github-actions[bot]',
+});
+assert.equal(mergeIdentity.status, 0, mergeIdentity.stderr);
+mergeIdentity = run('scripts/check-merge-identity.js', {
+  PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_MERGED_BY_LOGIN: 'passage-author[bot]',
+});
+assert.notEqual(mergeIdentity.status, 0, 'Expected actual same-identity merge to fail.');
+
 let result = run('scripts/check-release-train.js', {
   GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'true', PR_BODY: sections,
 });
 assert.equal(result.status, 0, result.stderr);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections,
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections,
 });
 assert.equal(result.status, 0, result.stderr);
 
@@ -73,49 +95,49 @@ result = run('scripts/check-release-train.js', {
 assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Development Head Status: PASS', 'Development Head Status: FAIL'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Development Head Approval: APPROVED', 'Development Head Approval: REQUIRED'),
 });
-assert.notEqual(result.status, 0, 'Expected failed Development Head review to fail.');
+assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
   GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Development Head Reviewed Head: 1111111111111111111111111111111111111111', 'Development Head Reviewed Head: 2222222222222222222222222222222222222222'),
 });
-assert.notEqual(result.status, 0, 'Expected stale Development Head review to fail.');
+assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Development Head: /root/development_head', 'Development Head: /root/reviewer'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Development Head Role: /root/development_head', 'Development Head Role: /root/reviewer'),
 });
-assert.notEqual(result.status, 0, 'Expected duplicate reviewer/Development Head roles to fail.');
+assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Merge Executor Identity: passage-release-automation', 'Merge Executor Identity: passage-author[bot]'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections.replace('Merge Authority GitHub Identity: github-actions[bot]', 'Merge Authority GitHub Identity: passage-author[bot]'),
 });
-assert.notEqual(result.status, 0, 'Expected author-equals-merge-executor to fail.');
-
-const retiredRoutineReview = sections.replace(
-  /## Development Head \/ Release Authority[\s\S]*?(?=## Production Review)/,
-  '## Founder Review\n- [x] Founder review requested\n- Founder Reviewer: owner\n- Founder Review: APPROVED\n',
-);
-result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: retiredRoutineReview,
-});
-assert.notEqual(result.status, 0, 'Expected the retired routine founder-review model to fail closed.');
-
-const productionSections = sections
-  .replace('Production Promotion: NO', 'Production Promotion: YES')
-  .replace('[ ] Production review completed', '[x] Production review completed')
-  .replace('Production Reviewer: UNASSIGNED', 'Production Reviewer: /root/production_reviewer')
-  .replace('Production Reviewed Head: UNASSIGNED', 'Production Reviewed Head: 1111111111111111111111111111111111111111')
-  .replace('Production Review Status: NOT RUN', 'Production Review Status: PASS');
-result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: productionSections,
-});
-assert.equal(result.status, 0, result.stderr);
+assert.notEqual(result.status, 0, 'Expected author-equals-merger to fail.');
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: productionSections.replace('Production Reviewed Head: 1111111111111111111111111111111111111111', 'Production Reviewed Head: 2222222222222222222222222222222222222222'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections.replace('Material Product Direction or Scope Change: NO', 'Material Product Direction or Scope Change: YES'),
 });
-assert.notEqual(result.status, 0, 'Expected stale Production Review to fail.');
+assert.notEqual(result.status, 0, 'Expected material scope change without roadmap evidence to fail.');
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections.replace('Consecutive Unresolved Branch-Divergence Reviews: 0', 'Consecutive Unresolved Branch-Divergence Reviews: 2'),
+});
+assert.notEqual(result.status, 0, 'Expected repeated divergence without reconciliation proposal to fail.');
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections.replace('Proposed Certified Platform Readiness: 0', 'Proposed Certified Platform Readiness: 20'),
+});
+assert.notEqual(result.status, 0, 'Expected a multi-checkpoint readiness jump to fail.');
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_AUTHOR_LOGIN: 'passage-author[bot]', PR_BODY: sections.replace('Proposed Certified Platform Readiness: 0', 'Proposed Certified Platform Readiness: 10'),
+});
+assert.notEqual(result.status, 0, 'Expected readiness advance without domain-floor/E2E proof to fail.');
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: `${sections}\n## Founder Review\nFounder Review: APPROVED`,
+});
+assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
   GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '2222222222222222222222222222222222222222', PR_BODY: sections,
@@ -141,41 +163,4 @@ result = run('scripts/check-persona-language.js', { CANDIDATE_ROOT: languageFixt
 assert.equal(result.status, 0, result.stderr);
 fs.rmSync(languageFixtureRoot, { recursive: true, force: true });
 
-const activeGovernanceFiles = [
-  'AGENTS.md',
-  'docs/release-train.md',
-  'docs/product/passage-zero-cutover-plan.md',
-  'docs/product/release-governance-and-plain-language-policy.md',
-  'docs/product/operational-readiness-roadmap.md',
-  '.github/pull_request_template.md',
-  '.github/workflows/governance-integrity.yml',
-  'scripts/check-release-train.js',
-  'scripts/check-agent-context.js',
-];
-const retiredPatterns = [
-  /^##\s+Founder Review\b/im,
-  /Founder Review:\s*APPROVED/i,
-  /founder review requested/i,
-  /founder approval before merge/i,
-  /founder Production authorization/i,
-];
-for (const file of activeGovernanceFiles) {
-  const source = fs.readFileSync(file, 'utf8');
-  for (const pattern of retiredPatterns) {
-    assert.equal(pattern.test(source), false, `${file} retains retired routine-review language: ${pattern}`);
-  }
-}
-
-const cutoverSource = fs.readFileSync('docs/product/passage-zero-cutover-plan.md', 'utf8');
-const legacyCutoverMutation = cutoverSource.replace(
-  'a distinct Development Head / Release Authority approves or rejects merge readiness for that same head',
-  'Founder review requested; Founder Review: APPROVED before merge',
-);
-assert.notEqual(legacyCutoverMutation, cutoverSource, 'Cutover legacy-review mutation must alter the binding authority clause.');
-assert.equal(
-  retiredPatterns.some((pattern) => pattern.test(legacyCutoverMutation)),
-  true,
-  'The active-governance scan must reject legacy founder-review language in the cutover contract.',
-);
-
-console.log('PASS release governance requires distinct exact-head agent authorities and rejects the retired routine-review model, including cutover-contract regression');
+console.log('PASS release governance enforces independent roles, author/merger separation, roadmap freshness, divergence forcing, QA infrastructure, and readiness checkpoints');

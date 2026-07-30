@@ -1,7 +1,7 @@
 -- Packet 1 forward repair: urgent case creation must leave one assignable
 -- commitment, not an empty workflow that cannot advance through the operating
 -- loop. This migration is additive/forward-only relative to applied migration
--- 20260727030000_urgent_receiving_organization_boundary.sql.
+-- 20260727042651_urgent_receiving_organization_boundary.sql.
 --
 -- Target for review/application: isolated project uyacxqtsiwlvtmhxvoxr only.
 -- Production project qsveqfchwylsbncsfgxe is explicitly out of scope.

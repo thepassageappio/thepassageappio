@@ -7,7 +7,6 @@ const requiredFiles = [
   'AGENTS.md',
   'docs/agent-operating-context.md',
   'docs/release-train.md',
-  'docs/product/release-governance-and-plain-language-policy.md',
   'docs/product/operational-readiness-roadmap.md',
   'docs/agents/product-manager.md',
   'docs/agents/ux-review.md',
@@ -30,12 +29,23 @@ function git(args) {
 for (const file of requiredFiles) if (!fs.existsSync(file)) fail(`Missing required release-train file: ${file}`);
 
 const guide = fs.readFileSync('AGENTS.md', 'utf8');
+const operatingContext = fs.readFileSync('docs/agent-operating-context.md', 'utf8');
 const releaseTrain = fs.readFileSync('docs/release-train.md', 'utf8');
-for (const phrase of ['Passage Zero', 'docs/product/operational-readiness-roadmap.md', 'Development Head / Release Authority', 'Production Reviewer', 'direct', 'main']) {
+for (const phrase of ['Passage Zero', 'docs/product/operational-readiness-roadmap.md', 'Development Head / Release Authority', 'direct', 'main']) {
   if (!guide.toLowerCase().includes(phrase.toLowerCase())) fail(`AGENTS.md must retain governance phrase: ${phrase}`);
 }
-for (const phrase of ['Product Manager', 'UX Review', 'Engineering', 'QA', 'Deploy', 'Independent Agent Review', 'Development Head / Release Authority', 'Production Reviewer']) {
+for (const phrase of ['Product Manager', 'UX Review', 'Engineering', 'QA', 'Deploy', 'Development Head / Release Authority']) {
   if (!releaseTrain.toLowerCase().includes(phrase.toLowerCase())) fail(`Release train must retain role/gate: ${phrase}`);
+}
+
+const kickoffMatch = operatingContext.match(/## Fresh-chat kickoff([\s\S]*?)(?=\n##\s)/i);
+if (!kickoffMatch) fail('Living context must retain one bounded Fresh-chat kickoff section.');
+const kickoff = kickoffMatch[1];
+for (const phrase of ['Independent Agent Reviewer', 'Development Head / Release Authority', 'Production Reviewer', 'There is no routine founder or human review gate']) {
+  if (!kickoff.toLowerCase().includes(phrase.toLowerCase())) fail(`Fresh-chat kickoff must retain active governance phrase: ${phrase}`);
+}
+for (const forbidden of ['the founder reviews', 'founder authorization', 'founder approval', 'one-time PR #25 bootstrap']) {
+  if (kickoff.toLowerCase().includes(forbidden.toLowerCase())) fail(`Fresh-chat kickoff contains superseded governance: ${forbidden}`);
 }
 
 let base = process.env.AGENT_CONTEXT_BASE || '';

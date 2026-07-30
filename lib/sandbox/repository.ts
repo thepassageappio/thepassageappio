@@ -1,7 +1,7 @@
 import type { CaseId, CommitmentId, LocationId, MembershipId, SandboxActor, SandboxCase, SandboxCommand, SandboxCommitment, SandboxEvent, SandboxMembership, SandboxRecord } from './types';
 
-export const SANDBOX_STORAGE_KEY = 'passage.zero.operational-truth.v4';
-export const LEGACY_SANDBOX_STORAGE_KEY = 'passage.zero.operational-truth.v3';
+export const SANDBOX_STORAGE_KEY = 'passage.zero.operational-truth.v3';
+export const LEGACY_SANDBOX_STORAGE_KEY = 'passage.zero.operational-truth.v2';
 const FIXTURE_TIME = '2026-07-15T15:42:00.000Z';
 const MAYA: SandboxActor & { id: 'maya-rivera' } = { id: 'maya-rivera', name: 'Maya Rivera', role: 'Family coordinator' };
 const ELENA: SandboxActor = { id: 'elena-torres', name: 'Elena Torres', role: 'Accountable director' };
@@ -67,7 +67,7 @@ const cases: SandboxCase[] = [
 ];
 
 const commitments: SandboxCommitment[] = [
-  { id: 'confirm-arrangement-meeting', caseId: 'NS-2051', assignmentId: 'assignment-ns-2051-arrangement', assignedMembershipId: 'membership-avery', title: 'Confirm the arrangement meeting with Maya Rivera.', status: 'assigned', waitingParty: 'Maya Rivera', due: '10:30', blocker: 'Maya Rivera is waiting for the meeting time.', proofRequirement: 'Meeting time + family acknowledgment', nextOwnerMembershipId: 'membership-avery', output: { kind: 'family_draft', eyebrow: 'PASSAGE-PREPARED DRAFT', audience: 'Audience: Maya Rivera · family coordinator', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Your Northstar team is coordinating the arrangement meeting. Please review the proposed time before this message is sent.', cta: 'Review family message', helper: 'Nothing is sent until an authorized team member reviews and sends it.', reviewReady: false, sentExternally: false } },
+  { id: 'confirm-arrangement-meeting', caseId: 'NS-2051', assignmentId: 'assignment-ns-2051-arrangement', assignedMembershipId: 'membership-marcus', title: 'Confirm the arrangement meeting with Maya Rivera.', status: 'assigned', waitingParty: 'Maya Rivera', due: '10:30', blocker: 'Maya Rivera is waiting for the meeting time.', proofRequirement: 'Meeting time + family acknowledgment', nextOwnerMembershipId: 'membership-marcus', output: { kind: 'family_draft', eyebrow: 'PASSAGE-PREPARED DRAFT', audience: 'Audience: Maya Rivera · family coordinator', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Your Northstar team is coordinating the arrangement meeting. Please review the proposed time before this message is sent.', cta: 'Review family message', helper: 'Nothing is sent until an authorized team member reviews and sends it.', reviewReady: false, sentExternally: false } },
   { id: 'confirm-receiving-location', caseId: 'NS-2048', assignmentId: 'assignment-ns-2048-location', assignedMembershipId: 'membership-marcus', title: 'Confirm the receiving location so transport can dispatch.', status: 'assigned', waitingParty: 'Transport team', due: '11:15', blocker: 'Two locations are ready; destination is unconfirmed.', proofRequirement: 'Destination + dispatch timestamp', nextOwnerMembershipId: 'membership-marcus', output: { kind: 'automatic_internal_receipt', eyebrow: 'AUTOMATIC INTERNAL RECEIPT', audience: 'Audience: Northstar case team', automationLabel: 'Recorded automatically', boundaryLabel: 'Internal only', body: 'The provider handoff was received and added to the Chen case timeline.', helper: 'No external message was sent.', reviewReady: false, sentExternally: false } },
   { id: 'resolve-benefits-document', caseId: 'NS-2039', assignmentId: 'assignment-ns-2039-benefits', assignedMembershipId: 'membership-elena', title: 'Resolve the missing benefits document before the aftercare call.', status: 'assigned', waitingParty: 'Patel family', due: '15:30', blocker: 'Family has not located the policy schedule.', proofRequirement: 'Document received or exception recorded', nextOwnerMembershipId: 'membership-elena', output: { kind: 'internal_draft', eyebrow: 'PASSAGE-PREPARED SUMMARY', audience: 'Audience: Elena Torres + Portland case team', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Benefits document remains outstanding. Confirm the exception path before the aftercare call.', cta: 'Review internal summary', helper: 'This draft stays inside the case team and is not visible to the family.', reviewReady: false, sentExternally: false } },
   { id: 'approve-keepsake-artwork', caseId: 'NS-2053', assignmentId: 'assignment-ns-2053-artwork', assignedMembershipId: null, title: 'Review keepsake artwork and record family approval.', status: 'assigned', waitingParty: 'Williams family', due: '13:45', blocker: 'No employee owns the approval follow-up.', proofRequirement: 'Family approval + final artwork version', nextOwnerMembershipId: null },
@@ -80,19 +80,19 @@ function withCanonicalAliases(record: Omit<SandboxRecord, 'case' | 'commitment'>
 
 export function createCanonicalSandbox(): SandboxRecord {
   return withCanonicalAliases({
-    schemaVersion: 4,
+    schemaVersion: 3,
     organizations: [{ id: 'northstar', name: 'Northstar Funeral Home' }],
     locations: [{ id: 'northstar-portland', organizationId: 'northstar', name: 'Portland', active: true }, { id: 'northstar-beaverton', organizationId: 'northstar', name: 'Beaverton', active: true }],
     memberships: [
       { id: 'membership-elena', organizationId: 'northstar', actor: ELENA, role: 'director', locationScope: 'organization', active: true },
       { id: 'membership-marcus', organizationId: 'northstar', actor: MARCUS, role: 'care_coordinator', locationScope: 'northstar-portland', active: true },
-      { id: 'membership-avery', organizationId: 'northstar', actor: AVERY, role: 'care_coordinator', locationScope: 'organization', active: true },
+      { id: 'membership-avery', organizationId: 'northstar', actor: AVERY, role: 'care_coordinator', locationScope: 'northstar-beaverton', active: true },
     ],
     routingRules: [
-      { id: 'route-portland-intake', organizationId: 'northstar', locationId: 'northstar-portland', accountableMembershipId: 'membership-elena', firstAssigneeMembershipId: 'membership-avery', active: true },
+      { id: 'route-portland-intake', organizationId: 'northstar', locationId: 'northstar-portland', accountableMembershipId: 'membership-elena', firstAssigneeMembershipId: 'membership-marcus', active: true },
       { id: 'route-beaverton-intake', organizationId: 'northstar', locationId: 'northstar-beaverton', accountableMembershipId: 'membership-elena', firstAssigneeMembershipId: 'membership-avery', active: true },
     ],
-    workspaceContext: { directorLocationId: 'all', staffLocationId: 'northstar-portland', staffMembershipId: 'membership-avery' },
+    workspaceContext: { directorLocationId: 'all', staffLocationId: 'northstar-portland', staffMembershipId: 'membership-marcus' },
     person: { id: 'sofia-rivera', name: 'Sofia Rivera' }, familyCoordinator: MAYA,
     transferPass: { code: 'PASS-RIVERA-7K4M', status: 'issued', expiresLabel: 'Today · 14:30', scope: [
       { name: 'Approved family contacts', detail: 'Maya Rivera + 2 approved contacts' }, { name: 'Service preferences', detail: 'Ceremony, music, access needs' },
@@ -212,12 +212,11 @@ export function readSandbox(storage: Pick<Storage, 'getItem' | 'removeItem'>): S
     const raw = storage.getItem(SANDBOX_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as SandboxRecord;
-      if (parsed.schemaVersion === 4 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5 && parsed.commitment?.assignedMembershipId === 'membership-avery') return withCanonicalAliases(normalizePreparedOutputReviews(parsed));
+      if (parsed.schemaVersion === 3 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5) return withCanonicalAliases(normalizePreparedOutputReviews(parsed));
     }
   } catch { /* An invalid or older sandbox is safely replaced below. */ }
   storage.removeItem(SANDBOX_STORAGE_KEY);
   storage.removeItem(LEGACY_SANDBOX_STORAGE_KEY);
-  storage.removeItem('passage.zero.operational-truth.v2');
   storage.removeItem('passage.zero.operational-truth.v1');
   return createCanonicalSandbox();
 }

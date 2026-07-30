@@ -3,7 +3,7 @@ import { acceptInvitation } from './actions';
 import { firstRpcRow, type InvitationAcceptance, type InvitationInspection, validInvitationToken } from '@/lib/auth/invitations';
 import { loginPath } from '@/lib/auth/redirects';
 import { verifiedUser } from '@/lib/auth/session';
-import { getRuntimeConfiguration } from '@/lib/runtime-config';
+import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
 import { createPassageServerClient } from '@/lib/supabase/server';
 import { AcceptInvitationButton } from './AcceptInvitationButton';
 import styles from '../../login/Auth.module.css';
@@ -46,7 +46,7 @@ export default async function InvitationPage({ params, searchParams }: { params:
   const stateError = !validInvitationToken(token)
     ? failureMessages.invalid
     : !configuration.available || !client
-      ? 'Invitation access is not available here right now. Nothing was joined or changed.'
+      ? configuration.reason
       : inspectionResult?.error
         ? failureMessages.retry
         : !invitation
@@ -55,7 +55,7 @@ export default async function InvitationPage({ params, searchParams }: { params:
 
   return (
     <main className={styles.shell} id="main-content">
-      <header className={styles.brandBar}><Link href="/">PASSAGE</Link><span>PRIVATE INVITATION</span></header>
+      <header className={styles.brandBar}><Link href="/">PASSAGE</Link><span>{publicRuntimeLabel(configuration.runtime)}</span></header>
       <section className={styles.panel} aria-labelledby="invite-title">
         <p className={styles.eyebrow}>FUNERAL-HOME INVITATION</p>
         <h1 id="invite-title">Review what you’re joining.</h1>

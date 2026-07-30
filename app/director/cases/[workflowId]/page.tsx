@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
-import { DurableReceipt } from '@/components/operations/DurableReceipt';
 import { AssignTaskForm } from '@/app/director/CommandForms';
 import { displayMember, formatOperationalTime, loadHostedOperations, type HostedTask } from '@/lib/operations/hosted';
 import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadPartnerContextForWorkflow } from '@/lib/partner/hosted';
-import { humanAudience, humanFamilyName, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskOwnerAction, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
-import { durableReceipt, taskAssignmentReceipt, vendorRequestSentReceipt } from '@/lib/presentation/durable-receipts';
+import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskOwnerAction, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
+import { loadWorkflowMessages } from '@/lib/messaging/hosted';
+import { postWorkflowMessage } from '@/lib/messaging/actions';
+import { MessageThread } from '@/components/messaging/MessageThread';
 import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
 import styles from '../../../proof-loop.module.css';
@@ -17,9 +18,9 @@ export const revalidate = 0;
 
 export default async function DirectorCasePage({ params, searchParams }: { params: Promise<{ workflowId: string }>; searchParams: Promise<{ task?: string }> }) {
   const [{ workflowId }, query] = await Promise.all([params, searchParams]);
-  const result = await loadHostedOperations({ events: true, proofs: true });
+  const result = await loadHostedOperations({ proofs: true });
   if (!result.ok) return <Closed />;
-  const { viewer, workflows, tasks, members, grants, events, proofs, proofReviews } = result.data;
+  const { viewer, workflows, tasks, members, grants, proofs, proofReviews } = result.data;
   const workflow = workflows.find((candidate) => candidate.id === workflowId);
   if (!workflow) return <Closed />;
 
@@ -27,7 +28,7 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const selectedTask = query.task
     ? workflowTasks.find((task) => task.id === query.task)
     : workflowTasks.find((task) => task.status === 'proof_submitted') ?? workflowTasks[0];
-  if (query.task && !selectedTask) return <Closed />;
+  if (query.task && workflowTasks.length > 0 && !selectedTask) return <Closed />;
 
   const location = viewer.locations.find((candidate) => candidate.id === workflow.organization_location_id);
   const frame = {
@@ -42,19 +43,19 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         <Orientation active="tasks" />
         <header className={styles.hero}>
           <div>
-            <p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Case')} · {humanizePreviewLabel(location?.name ?? '', 'Your location')} · {humanWorkflowPhase(workflow.phase)}</p>
+            <p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Authorized case')} · {humanizePreviewLabel(location?.name ?? '', 'Managed location')} · {humanWorkflowPhase(workflow.phase)}</p>
             <h1>{humanizePreviewLabel(workflow.person_name ?? '', 'Person withheld')}</h1>
-            <span>{humanFamilyName(workflow.family_name)} · first commitment unavailable</span>
+            <span>{humanizePreviewLabel(workflow.family_name ?? '', 'Family')} family · first task unavailable</span>
           </div>
           <strong className={styles.status} data-state="blocked">Needs attention</strong>
         </header>
         <section className={styles.panel} aria-labelledby="missing-task-heading">
           <p className={styles.eyebrow}>Tasks · Recovery</p>
-          <h2 id="missing-task-heading">The first commitment could not load.</h2>
-          <p>Nothing is assignable from this case yet. No work or vendor request was changed. Reload the case, or return to urgent requests so the director team can confirm what needs attention.</p>
+          <h2 id="missing-task-heading">The case is open, but its first task is unavailable.</h2>
+          <p>Nothing is ready to assign. Reload the case. If it is still missing, return to Urgent requests.</p>
           <div className={styles.recoveryActions}>
-            <Link href={`/director/cases/${workflow.id}`}>Reload this case</Link>
-            <Link href="/director/urgent">Review urgent requests</Link>
+            <Link href={`/director/cases/${workflow.id}`}>Reload case</Link>
+            <Link href="/director/urgent">Return to urgent requests</Link>
           </div>
         </section>
       </AppFrame>
@@ -67,25 +68,6 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const latestReview = latestProof ? reviewByProof.get(latestProof.id) : undefined;
   const owner = members.find((member) => member.id === selectedTask.assigned_organization_member_id);
   const ownerName = humanizePreviewIdentity(displayMember(owner), owner?.role);
-  const assignmentEvent = events.find((event) => (
-    event.task_id === selectedTask.id
-    && (event.name === 'task.assigned' || event.name === 'task.reassigned')
-  ));
-  const assignmentActorMember = members.find((member) => member.id === assignmentEvent?.actor_organization_member_id);
-  const assignmentReceipt = assignmentEvent ? taskAssignmentReceipt({
-    eventId: assignmentEvent.id,
-    savedAt: assignmentEvent.occurred_at,
-    actorName: assignmentActorMember?.display_name,
-    actorEmail: assignmentActorMember?.email,
-    actorRole: assignmentActorMember?.role ?? 'director',
-    assigneeName: typeof assignmentEvent.metadata?.assigned_member_name === 'string'
-      ? assignmentEvent.metadata.assigned_member_name
-      : owner?.display_name,
-    assigneeEmail: owner?.email,
-    assigneeRole: owner?.role ?? 'staff',
-    taskTitle: selectedTask.title,
-    taskStatus: selectedTask.status,
-  }) : null;
   const isUnassigned = selectedTask.assigned_organization_member_id === null;
   const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';
   const activeStage = proofStage ? 'proof' : 'tasks';
@@ -103,67 +85,27 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const latestReason = humanizeSavedReason(latestReview?.reason ?? null, 'The proof needs a clearer or corrected replacement.');
 
   const client = await createPassageServerClient();
-  const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], events: [], error: null };
-  const partnerOrganizationOptions = partnerContext.partnerOrganizations
-    .filter((organization) => organization.status === 'active')
-    .map((organization) => ({
-      ...organization,
-      categoryLabel: humanPartnerCategory(organization.category),
-    }));
-  const partnerSentReceipts = new Map(partnerContext.requests.flatMap((request) => {
-    const event = partnerContext.events.find((candidate) => (
-      candidate.partner_request_id === request.id && candidate.name === 'partner_request.sent'
-    ));
-    if (!event) return [];
-    const actorMember = members.find((member) => member.id === event.actor_organization_member_id);
-    const partnerName = partnerContext.partnerOrganizations.find(
-      (organization) => organization.id === request.partner_organization_id,
-    )?.name;
-    return [[request.id, vendorRequestSentReceipt({
-      eventId: event.id,
-      savedAt: event.occurred_at,
-      actorName: actorMember?.display_name,
-      actorEmail: actorMember?.email,
-      actorRole: actorMember?.role ?? 'director',
-      requestTitle: request.title,
-      partnerName,
-    })] as const];
+  const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+  const partnerOrganizationOptions = partnerContext.partnerOrganizations.map((organization) => ({
+    ...organization,
+    categoryLabel: humanPartnerCategory(organization.category),
   }));
-  const partnerVerificationReceipts = new Map(partnerContext.requests.flatMap((request) => {
-    const event = partnerContext.events.find((candidate) => (
-      candidate.partner_request_id === request.id && candidate.name === 'partner_request.verified'
-    ));
-    if (!event) return [];
-    const actorMember = members.find((member) => member.id === event.actor_organization_member_id);
-    const changedBy = actorMember
-      ? humanizePreviewIdentity(displayMember(actorMember), actorMember.role)
-      : 'Authorized Northstar director';
-    const partnerName = humanizePreviewLabel(
-      partnerContext.partnerOrganizations.find((organization) => organization.id === request.partner_organization_id)?.name ?? '',
-      'the vendor assigned to this request',
-    );
-    const requestTitle = humanizePreviewLabel(request.title, 'Memorial flowers');
-    return [[request.id, durableReceipt({
-      eventId: event.id,
-      heading: 'Delivery verified.',
-      changedBy,
-      savedAt: event.occurred_at,
-      result: `${changedBy} verified ${requestTitle} from ${partnerName}. No payment was created and no family message was sent.`,
-      visibleTo: `Northstar directors and ${partnerName}. Not visible to the Rivera family.`,
-      savedIn: 'Case and vendor request history',
-      next: 'The request is complete.',
-    })] as const];
-  }));
+  const messagesResult = client
+    ? await loadWorkflowMessages(client, workflow.id)
+    : { ok: false as const, message: 'Passage could not load messages for this case.' };
+  const messageRecoveryHref = query.task
+    ? `/director/cases/${workflow.id}?task=${selectedTask.id}#messages`
+    : `/director/cases/${workflow.id}#messages`;
 
   return (
-    <AppFrame active="director" identity={frame.identity} mode="verified" role={frame.role}>
+    <AppFrame active="case" identity={frame.identity} mode="verified" role={frame.role}>
       <Link className={styles.backLink} href="/director">← Today</Link>
       <Orientation active={activeStage} />
       <header className={styles.hero}>
         <div>
-          <p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Case')} · {humanizePreviewLabel(location?.name ?? '', 'Your location')} · {humanWorkflowPhase(workflow.phase)}</p>
+          <p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Authorized case')} · {humanizePreviewLabel(location?.name ?? '', 'Managed location')} · {humanWorkflowPhase(workflow.phase)}</p>
           <h1>{humanizePreviewLabel(workflow.person_name ?? '', 'Person withheld')}</h1>
-          <span>{humanFamilyName(workflow.family_name)} · {isUnassigned ? 'assignment needed' : selectedTask.status === 'proof_submitted' ? 'proof review' : selectedTask.status === 'completed' ? 'task complete' : 'task in progress'}</span>
+          <span>{humanizePreviewLabel(workflow.family_name ?? '', 'Family')} family · {isUnassigned ? 'assignment needed' : selectedTask.status === 'proof_submitted' ? 'proof review' : selectedTask.status === 'completed' ? 'task complete' : 'task in progress'}</span>
         </div>
         <strong className={styles.status} data-state={isUnassigned ? 'unassigned' : selectedTask.status}>{isUnassigned ? 'Unassigned' : humanTaskStatus(selectedTask.status)}</strong>
       </header>
@@ -172,11 +114,13 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         <div className={styles.layout}>
           <section className={styles.panel} aria-labelledby="assignment-heading">
             <p className={styles.eyebrow}>Tasks · Now</p>
-            <h2 id="assignment-heading">Choose who owns the first commitment.</h2>
-            <p>Assign an active staff member who has access to {humanizePreviewLabel(location?.name ?? '', 'this case location')}. Passage will save the owner change in team activity; nothing is sent automatically.</p>
+            <h2 id="assignment-heading">Choose who owns the first task.</h2>
+            <p>Choose an active team member who can work at {humanizePreviewLabel(location?.name ?? '', 'this location')}. Passage saves the assignment in team activity. Nothing is sent to the family.</p>
             <AssignTaskForm
+              assignmentKind="first-task"
               candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))}
               currentOwner="Unassigned"
+              locationName={humanizePreviewLabel(location?.name ?? '', 'this location')}
               requestId={randomUUID()}
               taskId={selectedTask.id}
               version={selectedTask.version}
@@ -207,14 +151,6 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         </div>
       )}
 
-      {assignmentReceipt && (
-        <section className={styles.panel} aria-labelledby="assignment-receipt-heading" style={{ marginTop: 18 }}>
-          <p className={styles.eyebrow}>Assignment receipt</p>
-          <h2 id="assignment-receipt-heading">Saved ownership.</h2>
-          <DurableReceipt receipt={assignmentReceipt} />
-        </section>
-      )}
-
       {(proofStage || taskProofs.length > 0) && (
         <section className={styles.panel} aria-labelledby="history-heading" style={{ marginTop: 18 }}>
           <p className={styles.eyebrow}>Proof history</p>
@@ -229,18 +165,29 @@ export default async function DirectorCasePage({ params, searchParams }: { param
           <ol className={styles.history}>
             {partnerContext.requests.map((request) => (
               <li key={request.id}>
-                <h3>{humanizePreviewLabel(request.title, 'Memorial flowers')}</h3>
+                <h3>{request.title}</h3>
                 <p>{humanPartnerCategory(request.category)} · {humanPartnerRequestStatus(request.status)}{request.quote_amount_cents !== null ? ` · ${formatPartnerAmount(request.quote_amount_cents)}` : ''}</p>
-                {request.proof_summary && <p>Delivery proof: {humanizePreviewLabel(request.proof_summary, 'Delivery proof is saved.')}</p>}
+                {request.proof_summary && <p>Delivery proof: {request.proof_summary}</p>}
                 <small>Sent {formatPartnerTime(request.sent_at)}</small>
-                {partnerSentReceipts.get(request.id) && <DurableReceipt receipt={partnerSentReceipts.get(request.id)!} />}
-                {partnerVerificationReceipts.get(request.id) && <DurableReceipt receipt={partnerVerificationReceipts.get(request.id)!} />}
                 {request.status === 'proof_submitted' && <VerifyPartnerRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} workflowId={workflow.id} />}
               </li>
             ))}
           </ol>
         )}
         <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
+      </section>
+
+      <section className={styles.panel} id="messages" aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
+        <p className={styles.eyebrow}>Messages</p>
+        <h2 id="messages-heading">Messages with the family.</h2>
+        <MessageThread
+          loadError={messagesResult.ok ? undefined : messagesResult.message}
+          messages={messagesResult.ok ? messagesResult.messages : []}
+          postAction={postWorkflowMessage}
+          recoveryHref={messageRecoveryHref}
+          requestId={randomUUID()}
+          workflowId={workflow.id}
+        />
       </section>
     </AppFrame>
   );

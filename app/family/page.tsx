@@ -1,25 +1,29 @@
 import type { Metadata } from 'next';
-import { Callout, PublicPage } from '@/components/public/PublicPage';
+import FamilyIntentJourney from '../../components/family/FamilyIntentJourney';
+import styles from '../../components/family/FamilyJourney.module.css';
 
 export const metadata: Metadata = {
-  title: 'Family help',
-  description: 'Start with private guidance or explore the family experience with example information.',
+  title: 'Create a family handoff | Passage',
+  description: 'Choose who can receive a temporary handoff and exactly what they can open.',
 };
 
 export default function FamilyPage() {
   return (
-    <PublicPage
-      eyebrow="Family help"
-      title="Explore the next step without opening a family account."
-      lead="Family account and invitation access is not available from this page today. You can start the private help flow or use the browser demo with example information. Neither option sends a message, creates a real family record, makes a purchase, or processes a payment."
-      actions={[
-        { href: '/start', label: 'Start private help' },
-        { href: '/demo/family', label: 'Try the browser demo', secondary: true },
-      ]}
-    >
-      <Callout title="What is available now?">
-        <p>The help flow explains each step before anything is saved. The browser demo stays on this device and uses example information only. Funeral-home team sign-in is separate and does not grant family access.</p>
-      </Callout>
-    </PublicPage>
+    <main className={styles.familyPage}>
+      <a className={styles.skipLink} href="#family-journey">Skip to handoff</a>
+      <header className={styles.familyHeader}>
+        <a className={styles.wordmark} href="/family" aria-label="Passage family home">
+          <span aria-hidden="true">P</span>
+          Passage
+        </a>
+        <div className={styles.headerContext}>
+          <span>Rivera family</span>
+          <i aria-hidden="true" />
+          <strong>Sofia's record</strong>
+        </div>
+        <span className={styles.familyProfile} aria-label="Signed in preview identity: Sofia Torres">ST</span>
+      </header>
+      <FamilyIntentJourney />
+    </main>
   );
 }

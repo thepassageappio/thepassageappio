@@ -1,16 +1,6 @@
-import {
-  containsInternalPreviewText,
-  humanizeMemberIdentity,
-  humanizePreviewIdentity,
-  humanizePreviewLabel,
-} from './member-identity.js';
+import { containsInternalPreviewText } from './member-identity.js';
 
-export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel };
-
-export function humanFamilyName(value: string | null | undefined, fallback = 'Family') {
-  const safe = humanizePreviewLabel(value ?? '', fallback).trim();
-  return /\bfamily$/i.test(safe) ? safe : `${safe} family`;
-}
+export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel } from './member-identity.js';
 
 export function humanizeSavedReason(value: string | null, fallback: string) {
   if (!value) return null;
@@ -18,13 +8,13 @@ export function humanizeSavedReason(value: string | null, fallback: string) {
   return value;
 }
 
-const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';
-const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';
+const urgentFirstTaskLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';
+const urgentFirstTaskOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';
 
 export function humanTaskOwnerAction(value: string | null | undefined, fallback = 'Complete the assigned work') {
   if (!value) return fallback;
   const normalized = value.trim();
-  if (normalized === urgentFirstCommitmentLegacyAction) return urgentFirstCommitmentOwnerAction;
+  if (normalized === urgentFirstTaskLegacyAction) return urgentFirstTaskOwnerAction;
   if (containsInternalPreviewText(normalized)) return fallback;
   return normalized;
 }

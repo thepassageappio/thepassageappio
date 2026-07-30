@@ -8,7 +8,7 @@ import { createPassageServerClient } from '@/lib/supabase/server';
 export type UrgentDirectorCommandState = {
   status: 'idle' | 'saved' | 'validation' | 'denied' | 'unavailable' | 'conflict';
   message?: string;
-  receipt?: { occurredAt: string; replayed: boolean; workflowId?: string; firstTaskId?: string };
+  receipt?: { replayed: boolean; workflowId?: string; firstTaskId?: string };
 };
 
 type ClaimReceipt = { urgent_intake_request_id: string; status: string; version: number; replayed: boolean };
@@ -48,7 +48,7 @@ export async function claimUrgentIntake(_previous: UrgentDirectorCommandState, f
   return {
     status: 'saved',
     message: receipt.replayed ? 'You already claimed this request.' : 'Claimed. Create the case when ready.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
+    receipt: { replayed: receipt.replayed },
   };
 }
 
@@ -87,15 +87,21 @@ export async function createCaseFromUrgentIntake(_previous: UrgentDirectorComman
     return { status: 'unavailable', message: 'Passage could not create the case. Nothing changed.' };
   }
   const receipt = firstRpcRow<CaseReceipt>(result.data);
-  if (!receipt?.workflow_id || !receipt.first_task_id) return { status: 'unavailable', message: 'We could not confirm the case and its first commitment were created. Reload before trying again.' };
+  if (!receipt?.workflow_id || !receipt.first_task_id) {
+    return {
+      status: 'unavailable',
+      message: 'The case may be open, but its first task is unavailable. Reload before trying again.',
+    };
+  }
   revalidatePath('/director/urgent');
   revalidatePath(`/director/urgent/${requestUiId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This case and its first commitment were already created.' : 'Case created with its first commitment ready to assign.',
+    message: receipt.replayed
+      ? 'This case and first task were already saved. Open the saved case.'
+      : 'Case and first task saved.',
     receipt: {
-      occurredAt: new Date().toISOString(),
       replayed: receipt.replayed,
       workflowId: receipt.workflow_id,
       firstTaskId: receipt.first_task_id,

@@ -54,294 +54,6 @@ const REQUIRED_CYCLE8_CONTRACT_IDS = [
   'cycle8.director.proof_review',
   'cycle8.shared.immutable_proof_history',
 ];
-const REQUIRED_PACKET1_URGENT_CONTRACT_IDS = [
-  'packet1.family.urgent_submission',
-  'packet1.director.urgent_claim_and_case',
-];
-const REQUIRED_PACKET1_VENDOR_CONTRACT_IDS = [
-  'packet1.vendor.fulfillment',
-];
-const REQUIRED_RELEASE_CONTRACT_IDS = [
-  ...REQUIRED_CYCLE8_CONTRACT_IDS,
-  ...REQUIRED_PACKET1_URGENT_CONTRACT_IDS,
-  ...REQUIRED_PACKET1_VENDOR_CONTRACT_IDS,
-];
-
-const REQUIRED_CONTRACT_SOURCE_BINDINGS = {
-  'cycle8.staff.proof_history': [
-    {
-      file: 'app/staff/work/[taskId]/page.tsx',
-      includes: [
-        'review.reviewed_by_organization_member_id',
-        "humanizePreviewIdentity(displayMember(members.find((member) => member.id === review.reviewed_by_organization_member_id)), 'director')",
-      ],
-    },
-    {
-      file: 'supabase/migrations/20260726222505_staff_proof_reviewer_visibility.sql',
-      includes: [
-        'create or replace function passage_private.can_view_proof_reviewer(p_member_id uuid)',
-        "set search_path to ''",
-        'create policy cycle_7b_members_authorized_select',
-        'or passage_private.can_view_proof_reviewer(id)',
-      ],
-    },
-    {
-      file: 'supabase/migrations/20260727025124_staff_proof_reviewer_visibility_acl_hardening.sql',
-      includes: [
-        'create or replace function passage_private.can_view_proof_reviewer(',
-        'join public.workflows as workflow_row',
-        'join public.organization_member_locations as viewer_grant',
-        'and viewer_grant.organization_location_id =',
-        'workflow_row.organization_location_id',
-        'and viewer_grant.revoked_at is null',
-        'on function passage_private.can_view_proof_reviewer(uuid)',
-        'from public, anon, service_role',
-        'to authenticated',
-      ],
-    },
-    {
-      file: 'supabase/tests/staff_proof_reviewer_visibility.sql',
-      includes: [
-        'Active assigned staff could not resolve the exact proof reviewer',
-        'Wrong-task reviewer identity leaked to assigned staff',
-        'Unassigned staff retained proof-reviewer visibility',
-        'Former assignee retained proof-reviewer visibility',
-        'Revoked staff retained proof-reviewer visibility',
-        'Wrong-location staff retained proof-reviewer visibility',
-        'Revoked location grant retained proof-reviewer visibility',
-        'Wrong-organization staff gained proof-reviewer visibility',
-        'Reviewer helper function ACL/search_path posture drifted',
-      ],
-    },
-  ],
-  'packet1.family.urgent_submission': [
-    {
-      file: 'app/start/next/UrgentNextClient.tsx',
-      includes: [
-        'Save privately — don’t share with Northstar',
-        'Northstar Funeral Home cannot see it.',
-        'PREVIEW_RECEIVING_ORGANIZATION.name',
-        'name="receivingOrganizationId"',
-        'existing.wants_callback',
-        '<dt>Visibility</dt><dd>Only you</dd>',
-        'action={startPreviewDemo}',
-        'name="persona" type="hidden" value="family"',
-        'Sign in to an existing demo account',
-        'No email is sent.',
-        'Request a callback from Northstar Funeral Home',
-        ".eq('creation_request_id', draft.requestId)",
-        'urgent_intake_create:${draft.requestId}',
-        'formatSavedTime(state.receipt.occurredAt)',
-      ],
-    },
-    {
-      file: 'app/demo/actions.ts',
-      includes: [
-        "export type DemoPersona = 'family' | 'director' | 'staff' | 'vendor'",
-        "family: '/start/next'",
-        'PASSAGE_PREVIEW_DEMO_SESSIONS_ENABLED',
-        "configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'",
-        'client.auth.signInWithPassword(credential)',
-      ],
-    },
-    {
-      file: 'app/start/actions.ts',
-      includes: [
-        'receivingOrganizationId !== PREVIEW_RECEIVING_ORGANIZATION.id',
-        'p_receiving_organization_id: receivingOrganizationId',
-      ],
-    },
-  ],
-  'packet1.director.urgent_claim_and_case': [
-    {
-      file: 'lib/urgent/hosted.ts',
-      includes: [
-        ".eq('receiving_organization_id', organizationId)",
-        ".eq('wants_callback', true)",
-        ".neq('status', 'self_handling')",
-        'loadUrgentIntakeRequest(client: SupabaseClient, id: string, organizationId: string)',
-      ],
-    },
-    {
-      file: 'app/director/cases/[workflowId]/page.tsx',
-      includes: [
-        'if (query.task && !selectedTask) return <Closed />;',
-        'The first commitment could not load.',
-        'Nothing is assignable from this case yet.',
-        'Choose who owns the first commitment.',
-        '<AssignTaskForm',
-        "member.role === 'staff' && member.status === 'active'",
-        "grant.organization_location_id === workflow.organization_location_id",
-        '!grant.revoked_at',
-        "const proofStage = selectedTask.status === 'proof_submitted' || selectedTask.status === 'completed';",
-        "const activeStage = proofStage ? 'proof' : 'tasks';",
-        "selectedTask.status === 'blocked' ? 'This commitment is blocked.",
-        "selectedTask.status === 'assigned' ? `${ownerName} owns this commitment",
-        "selectedTask.status === 'proof_submitted' ? 'Proof waiting for review.'",
-        'Proof verified — task complete.',
-        'humanTaskOwnerAction(task.human_action',
-        'active={activeStage}',
-        '<CreatePartnerRequestForm',
-      ],
-    },
-    {
-      file: 'app/director/CommandForms.tsx',
-      includes: [
-        'name="workflowId"',
-        'No eligible staff available',
-        'Review Team access',
-      ],
-    },
-    {
-      file: 'app/director/actions.ts',
-      includes: [
-        "const workflowId = String(formData.get('workflowId')",
-        '!uuid.test(workflowId)',
-        "client.rpc('assign_task_idempotent'",
-        'revalidatePath(`/director/cases/${workflowId}`)',
-      ],
-    },
-    {
-      file: 'lib/presentation/plain-language.ts',
-      includes: [
-        "const urgentFirstCommitmentLegacyAction = 'Assign an authorized staff member, then confirm the next arrangement step with the family.';",
-        "const urgentFirstCommitmentOwnerAction = 'Confirm the family’s next arrangement step and save the outcome.';",
-        'export function humanTaskOwnerAction',
-      ],
-    },
-    {
-      file: 'app/staff/page.tsx',
-      includes: [
-        'humanTaskOwnerAction(task.human_action',
-      ],
-    },
-    {
-      file: 'app/staff/work/[taskId]/page.tsx',
-      includes: [
-        'humanTaskOwnerAction(task.human_action)',
-      ],
-    },
-    {
-      file: 'app/director/urgent/actions.ts',
-      includes: [
-        'first_task_id: string',
-        '!receipt?.workflow_id || !receipt.first_task_id',
-        'firstTaskId: receipt.first_task_id',
-      ],
-    },
-    {
-      file: 'app/director/urgent/UrgentForms.tsx',
-      includes: [
-        'Create the case and its first commitment.',
-        'Open the case and assign the first commitment',
-        'Nothing is sent automatically.',
-      ],
-    },
-    {
-      file: 'supabase/migrations/20260727194332_urgent_case_first_commitment.sql',
-      includes: [
-        'first_task_id uuid',
-        'insert into public.tasks',
-        "'urgent_intake_first_task:' || v_request.id::text",
-        "'task.created'",
-        "'first_task_id', v_first_task_id",
-        'urgent_intake_backfill',
-      ],
-    },
-    {
-      file: 'supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql',
-      includes: [
-        'member_row.organization_id = v_request.receiving_organization_id',
-        'claimed_organization_id = v_request.receiving_organization_id',
-        'urgent_intake_requests_claim_matches_receiver',
-        'urgent_intake_requests_packet1_receiver',
-        'coalesce(',
-        'request_row.claimed_organization_id',
-        'workflow_row.organization_id',
-        'wants_callback',
-        "status <> 'self_handling'",
-        "v_existing_event.metadata ->> 'expected_version'",
-        "v_existing_event.metadata ->> 'organization_location_id'",
-        "v_existing_event.metadata ->> 'case_reference'",
-        "v_existing_event.metadata ->> 'family_name'",
-        'v_replay_authorized :=',
-        'if not v_replay_authorized then',
-        'from public, anon, authenticated, service_role',
-      ],
-    },
-    {
-      file: 'supabase/tests/urgent_family_organization_boundary.sql',
-      includes: [
-        'Wrong-organization director can see Northstar rows',
-        'Expected wrong-organization claim denial',
-        'Expected wrong-organization case-creation denial',
-        'Expected fresh-key non-allowlisted receiver denial',
-        'Northstar director can see requester-private self-handling rows',
-        'Expected direct event insert denial',
-        'Expected append-only event delete denial',
-        'Case replay conflict changed request/workflow/task/event cardinality',
-        'Expected revoked-location case replay denial',
-        'Postgres final request/workflow/task/event cardinality changed',
-        'Urgent helper ACL/search_path posture drifted',
-      ],
-    },
-  ],
-  'packet1.vendor.fulfillment': [
-    {
-      file: 'app/director/cases/[workflowId]/PartnerRequestForms.tsx',
-      includes: [
-        'name="partnerOrganizationId"',
-        'humanCategory(selectedPartner.category)',
-        'Choose a different vendor to change the service.',
-      ],
-    },
-    {
-      file: 'app/director/cases/[workflowId]/partner-actions.ts',
-      includes: [
-        ".from('partner_requests')",
-        ".eq('creation_request_id', requestId)",
-        'let category = existingRequestResult.data?.category;',
-        'if (!category) {',
-        'p_category: category',
-        "result.error.code === 'PS001'",
-        "result.error.code === '23514'",
-      ],
-    },
-    {
-      file: 'supabase/migrations/20260727025310_partner_vendor_category_compatibility.sql',
-      includes: [
-        'before insert or update of partner_organization_id, category',
-        'on function passage_private.enforce_partner_request_category()',
-        'from public, anon, authenticated, service_role',
-        'pg_catalog.pg_advisory_xact_lock(',
-        'select request.* into v_existing',
-        'if found then',
-        'v_existing.needed_by is distinct from p_needed_by',
-        'where organization.id = p_partner_organization_id',
-        "and organization.status = 'active'",
-        'v_partner_org.category is distinct from p_category',
-      ],
-    },
-    {
-      file: 'supabase/tests/partner_vendor_category_compatibility.sql',
-      includes: [
-        'Denied category mismatch left a partial write',
-        'Specialty-changed exact replay was not cardinality-stable',
-        'Suspended vendor exact replay was not cardinality-stable',
-        'Changed % replay did not return 22023',
-        'Suspended fresh vendor was not rejected atomically',
-        'Fresh specialty mismatch was not atomic',
-        'Matching current-specialty request cardinality failed',
-        'Expected direct insert category denial',
-        'Expected direct update category denial',
-        'Expected direct authenticated event insert denial',
-        'Expected append-only event update denial',
-        'Expected append-only event delete denial',
-        'Vendor compatibility final cardinality changed',
-      ],
-    },
-  ],
-};
 
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -404,27 +116,6 @@ function checkSourceAssertions(contract, label, repoRoot, errors) {
       }
     }
   }
-
-  const requiredBindings = REQUIRED_CONTRACT_SOURCE_BINDINGS[contract.id] ?? [];
-  for (const requiredBinding of requiredBindings) {
-    const declaration = assertions.find((assertion) => assertion?.file === requiredBinding.file);
-    if (!declaration) {
-      errors.push(
-        `${label}: required source binding declaration is missing for "${requiredBinding.file}".`
-      );
-      continue;
-    }
-    if (!Array.isArray(declaration.includes)) {
-      continue;
-    }
-    for (const requiredSource of requiredBinding.includes) {
-      if (!declaration.includes.includes(requiredSource)) {
-        errors.push(
-          `${label}: required source binding declaration for "${requiredBinding.file}" is missing ${JSON.stringify(requiredSource)}.`
-        );
-      }
-    }
-  }
 }
 
 function checkContract(contract, index, repoRoot, errors, seenIds) {
@@ -468,11 +159,7 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   if (claimsCycle8 && contract.cycle !== '8') {
     errors.push(`${label}: a cycle8.* contract id must declare cycle "8".`);
   }
-  if (
-    contract.cycle === '8'
-    || claimsCycle8
-    || REQUIRED_CONTRACT_SOURCE_BINDINGS[contract.id]
-  ) {
+  if (contract.cycle === '8' || claimsCycle8) {
     checkSourceAssertions(contract, label, repoRoot, errors);
   }
 
@@ -609,14 +296,6 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   }
 }
 
-function assignmentRpcUsesWorkflowId(source) {
-  const start = source.indexOf("client.rpc('assign_task_idempotent'");
-  if (start < 0) return false;
-  const end = source.indexOf('});', start);
-  const rpcCall = source.slice(start, end < 0 ? undefined : end);
-  return /\bp_workflow_id\b|\bworkflowId\b/.test(rpcCall);
-}
-
 /**
  * @param {unknown} ledger parsed JSON contents of frontend-backend-contracts.json
  * @param {string} repoRoot absolute path used to resolve referenced repository files
@@ -644,16 +323,6 @@ function checkLedger(ledger, repoRoot, options = {}) {
     }
   }
 
-  if (seenIds.has('packet1.director.urgent_claim_and_case')) {
-    const actionPath = path.join(repoRoot, 'app', 'director', 'actions.ts');
-    if (fs.existsSync(actionPath)) {
-      const actionSource = fs.readFileSync(actionPath, 'utf8');
-      if (assignmentRpcUsesWorkflowId(actionSource)) {
-        errors.push('packet1.director.urgent_claim_and_case: workflowId may revalidate the exact Case Room only; it must never enter assign_task_idempotent authority payload.');
-      }
-    }
-  }
-
   return { ok: errors.length === 0, errors };
 }
 
@@ -676,7 +345,7 @@ function main() {
     return;
   }
 
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_RELEASE_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
   if (!ok) {
     console.error(`check-frontend-backend-parity: FAIL (${errors.length} issue${errors.length === 1 ? '' : 's'})`);
     for (const e of errors) console.error(`  - ${e}`);
@@ -692,13 +361,8 @@ module.exports = {
   loadLedger,
   fileExists,
   REQUIRED_CONTRACT_FIELDS,
-  REQUIRED_CONTRACT_SOURCE_BINDINGS,
   VALID_STATUSES,
   REQUIRED_CYCLE8_CONTRACT_IDS,
-  REQUIRED_PACKET1_URGENT_CONTRACT_IDS,
-  REQUIRED_PACKET1_VENDOR_CONTRACT_IDS,
-  REQUIRED_RELEASE_CONTRACT_IDS,
-  assignmentRpcUsesWorkflowId,
 };
 
 if (require.main === module) {

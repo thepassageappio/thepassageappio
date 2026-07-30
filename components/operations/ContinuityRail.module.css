@@ -18,10 +18,8 @@
 .compact { min-height: 78px; }
 .compact .label { padding-block: 13px; }
 @media (max-width: 720px) {
-  .rail { margin-inline: 0; grid-template-columns: 1fr; border-radius: 12px; overflow: hidden; }
-  .label { padding: 14px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .rail ol { min-width: 0; grid-template-columns: 1fr; padding: 6px 14px; }
-  .rail li { min-height: 52px; padding: 10px 4px; }
-  .rail li:not(:last-child)::after { top: calc(100% - 7px); left: 16px; width: 1px; height: 14px; }
-  .rail li strong, .rail li small { white-space: normal; overflow: visible; text-overflow: clip; }
+  .rail { margin-inline: -16px; grid-template-columns: 94px 1fr; border-radius: 0; overflow-x: auto; }
+  .rail ol { min-width: 520px; }
+  .label { position: sticky; left: 0; z-index: 2; padding: 14px; }
+  .rail li { padding-inline: 12px; }
 }

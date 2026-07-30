@@ -15,7 +15,7 @@ type ContinuityRailProps = {
 export function ContinuityRail({ compact = false, label = 'Continuity', steps }: ContinuityRailProps) {
   return (
     <section className={`${styles.rail} ${compact ? styles.compact : ''}`} aria-label={label}>
-      <div className={styles.label}><span>SAVED PROGRESS</span><strong>{label}</strong></div>
+      <div className={styles.label}><span>LIVE RECORD</span><strong>{label}</strong></div>
       <ol>
         {steps.map((step, index) => (
           <li className={styles[step.state || 'pending']} key={`${step.label}-${index}`}>

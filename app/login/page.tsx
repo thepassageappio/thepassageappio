@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { safeInternalPath } from '@/lib/auth/redirects';
-import { getRuntimeConfiguration } from '@/lib/runtime-config';
+import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
 import { LoginClient } from './LoginClient';
 import styles from './Auth.module.css';
 
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className={styles.shell} id="main-content">
       <header className={styles.brandBar}>
         <Link href="/" aria-label="Passage home">PASSAGE</Link>
-        <span>PRIVATE WORKSPACE</span>
+        <span>{publicRuntimeLabel(configuration.runtime)}</span>
       </header>
       <section className={styles.panel} aria-labelledby="login-title">
         <p className={styles.eyebrow}>FUNERAL-HOME WORKSPACE</p>
@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {!configuration.available || !configuration.supabaseUrl || !configuration.supabasePublishableKey ? (
           <div className={styles.unavailable} role="status">
             <strong>Secure sign-in is not available here.</strong>
-            <p>Your invitation remains unchanged. Try again later or ask your funeral-home administrator for help.</p>
+            <p>{configuration.reason} Your invitation remains unchanged. Try the approved Passage environment or ask your funeral-home administrator for help.</p>
           </div>
         ) : (
           <LoginClient emailEnabled={configuration.emailAuthEnabled} googleEnabled={configuration.googleAuthEnabled} next={next} passwordEnabled={configuration.passwordAuthEnabled} publishableKey={configuration.supabasePublishableKey} supabaseUrl={configuration.supabaseUrl} />

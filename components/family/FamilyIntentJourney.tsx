@@ -12,13 +12,13 @@ const intentCopy: Record<FamilyIntent, { eyebrow: string; title: string; emphasi
     eyebrow: 'PLANNING AHEAD',
     title: 'Prepare at your pace.',
     emphasis: 'Keep control.',
-    body: 'Build an example handoff at your pace. Reviewing and activating it changes only this device; nothing is sent or shared.',
+    body: 'Create a calm, private handoff now so your family can repeat less later. Nothing is shared until you review and activate it.',
   },
   urgent: {
     eyebrow: 'HELP NEEDED TODAY',
-    title: 'Choose what they need.',
+    title: 'Share what they need.',
     emphasis: 'Keep the rest private.',
-    body: 'Practice choosing what a funeral home could receive. This browser demo does not contact anyone, create a case, or send a handoff—even after you finish.',
+    body: 'Prepare one bounded handoff for the funeral home that is expecting you. Passage does not contact anyone or create a case until the handoff is accepted.',
   },
 };
 
@@ -43,16 +43,16 @@ export default function FamilyIntentJourney() {
     <>
       <section className={styles.familyIntro} id="family-journey">
         <div>
-          <p>{copy?.eyebrow ?? 'PRIVATE BROWSER DEMO'}</p>
+          <p>{copy?.eyebrow ?? 'YOUR FAMILY SPACE'}</p>
           <h1>{copy?.title ?? 'What brings you here?'}<br /><span>{copy?.emphasis ?? 'Choose the path that fits.'}</span></h1>
         </div>
         <div className={styles.familyEntry}>
-          <p>{copy?.body ?? 'Choose planning ahead or immediate help. You will review an example before anything changes on this device; nothing is sent or shared.'}</p>
+          <p>{copy?.body ?? 'Choose planning ahead or immediate help. You will review exactly what this preview shares before anything changes on this device.'}</p>
           <div className={styles.entryPaths} aria-label="Choose how to begin">
-            <button aria-pressed={intent === 'planning'} onClick={() => chooseIntent('planning')} type="button"><span>Planning ahead</span><small>Build an example private handoff</small></button>
-            <button aria-pressed={intent === 'urgent'} onClick={() => chooseIntent('urgent')} type="button"><span>I need help today</span><small>Choose example details</small></button>
+            <button aria-pressed={intent === 'planning'} onClick={() => chooseIntent('planning')} type="button"><span>Planning ahead</span><small>Prepare a calm, private handoff</small></button>
+            <button aria-pressed={intent === 'urgent'} onClick={() => chooseIntent('urgent')} type="button"><span>I need help today</span><small>Share essential details now</small></button>
           </div>
-          {restored && <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}Private browser demo: this choice stays on this device. It does not create an account, contact anyone, or change a real family record.</small>}
+          {restored && <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}Preview demo: this choice stays on this device. It does not create an account, contact anyone, or change a real family record.</small>}
         </div>
       </section>
       <TransferComposer />

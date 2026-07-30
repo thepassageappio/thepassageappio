@@ -1,7 +1,6 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { DurableReceipt } from '@/components/operations/DurableReceipt';
 import { respondToPartnerRequest, type PartnerCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
@@ -24,16 +23,14 @@ export function RespondToRequestForm({ partnerRequestId, requestId, version }: {
       </div>
       {decision === 'accept' ? (
         <>
-          <label>Quote amount (USD)<input defaultValue="185.00" disabled={pending} inputMode="decimal" min="0" name="quoteAmountDollars" placeholder="185.00" required step="0.01" type="number" /></label>
+          <label>Quote amount (USD)<input disabled={pending} inputMode="decimal" min="0" name="quoteAmountDollars" placeholder="150.00" required step="0.01" type="number" /></label>
           <label>Note to the funeral home <span>Optional</span><textarea disabled={pending} maxLength={2000} name="note" /></label>
         </>
       ) : (
         <label>Reason for declining<textarea disabled={pending} maxLength={500} name="note" required /></label>
       )}
-      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Saving…' : decision === 'accept' ? 'Save sample quote for Northstar' : 'Decline request'}</button>
-      {state.status === 'saved' && state.durable
-        ? <DurableReceipt announce receipt={state.durable} />
-        : state.message && <div className={styles.commandError} role="alert"><strong>Nothing changed</strong><p>{state.message}</p></div>}
+      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Saving…' : decision === 'accept' ? 'Accept and send quote' : 'Decline request'}</button>
+      {state.message && <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}><strong>{state.status === 'saved' ? 'Response saved' : 'Nothing changed'}</strong><p>{state.message}</p></div>}
     </form>
   );
 }

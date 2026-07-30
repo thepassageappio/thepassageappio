@@ -3,16 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import type { DurableReceiptData } from '@/components/operations/DurableReceipt';
-import { durableReceipt } from '@/lib/presentation/durable-receipts';
-import { humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type PartnerCommandState = {
   status: 'idle' | 'validation' | 'denied' | 'conflict' | 'unavailable' | 'saved';
   message?: string;
   receipt?: { occurredAt: string; replayed: boolean };
-  durable?: DurableReceiptData;
 };
 
 type RespondReceipt = { partner_request_id: string; status: string; version: number; replayed: boolean };
@@ -65,46 +61,13 @@ export async function respondToPartnerRequest(_previous: PartnerCommandState, fo
   }
   const receipt = firstRpcRow<RespondReceipt>(result.data);
   if (!receipt?.partner_request_id) return { status: 'unavailable', message: 'We could not confirm your response was saved. Reload before trying again.' };
-  const [eventResult, requestResult] = await Promise.all([
-    client
-      .from('partner_request_events')
-      .select('id, occurred_at')
-      .eq('partner_request_id', partnerRequestId)
-      .eq('idempotency_key', `partner_request_respond:${requestId}`)
-      .maybeSingle(),
-    client
-      .from('partner_requests')
-      .select('title, quote_amount_cents')
-      .eq('id', partnerRequestId)
-      .maybeSingle(),
-  ]);
-  if (eventResult.error || !eventResult.data?.id || !eventResult.data.occurred_at || requestResult.error || !requestResult.data) {
-    return { status: 'unavailable', message: 'Your response may be saved, but Passage could not confirm its receipt. Reload this request before trying again.' };
-  }
-  const title = humanizePreviewLabel(requestResult.data.title ?? '', 'Memorial flowers');
-  const quote = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((requestResult.data.quote_amount_cents ?? quoteAmountCents ?? 0) / 100);
-  const partnerName = humanizePreviewLabel(viewer.viewer.partnerOrganizationName, 'Cascade Floral & Keepsakes');
-  const changedBy = humanizePreviewLabel(viewer.viewer.displayName, `${partnerName} team member`);
   revalidatePath('/partner');
   revalidatePath(`/partner/requests/${partnerRequestId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'The original response is shown below.' : decision === 'accept' ? 'The quote was saved.' : 'The decline was saved.',
-    durable: durableReceipt({
-      eventId: eventResult.data.id,
-      heading: decision === 'accept' ? `${quote} sample quote saved.` : 'Request declined.',
-      changedBy,
-      savedAt: eventResult.data.occurred_at,
-      result: decision === 'accept'
-        ? `${changedBy} accepted ${title} with a ${quote} sample quote. No purchase or payment occurred.`
-        : `${changedBy} declined ${title}.`,
-      visibleTo: `${partnerName} and authorized Northstar directors. Not visible to the Rivera family.`,
-      savedIn: 'Vendor request history',
-      next: decision === 'accept'
-        ? 'Northstar reviews the quote and coordinates the next step.'
-        : 'Northstar chooses another way to complete the request.',
-    }),
+    message: receipt.replayed ? 'This response was already saved. The original decision is shown below.' : decision === 'accept' ? 'Quote accepted and saved. The funeral home can see your response.' : 'Request declined and saved.',
+    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
   };
 }
 
@@ -140,40 +103,12 @@ export async function submitPartnerRequestProof(_previous: PartnerCommandState, 
   }
   const receipt = firstRpcRow<ProofReceipt>(result.data);
   if (!receipt?.partner_request_id) return { status: 'unavailable', message: 'We could not confirm your proof was saved. Reload before trying again.' };
-  const [eventResult, requestResult] = await Promise.all([
-    client
-      .from('partner_request_events')
-      .select('id, occurred_at')
-      .eq('partner_request_id', partnerRequestId)
-      .eq('idempotency_key', `partner_request_proof:${requestId}`)
-      .maybeSingle(),
-    client
-      .from('partner_requests')
-      .select('title')
-      .eq('id', partnerRequestId)
-      .maybeSingle(),
-  ]);
-  if (eventResult.error || !eventResult.data?.id || !eventResult.data.occurred_at || requestResult.error || !requestResult.data) {
-    return { status: 'unavailable', message: 'The proof may be saved, but Passage could not confirm its receipt. Reload this request before trying again.' };
-  }
-  const partnerName = humanizePreviewLabel(viewer.viewer.partnerOrganizationName, 'Cascade Floral & Keepsakes');
-  const changedBy = humanizePreviewLabel(viewer.viewer.displayName, `${partnerName} team member`);
-  const title = humanizePreviewLabel(requestResult.data.title ?? '', 'Memorial flowers');
   revalidatePath('/partner');
   revalidatePath(`/partner/requests/${partnerRequestId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'The original delivery proof is shown below.' : 'Delivery proof was saved for review.',
-    durable: durableReceipt({
-      eventId: eventResult.data.id,
-      heading: 'Delivery proof saved.',
-      changedBy,
-      savedAt: eventResult.data.occurred_at,
-      result: `${changedBy} submitted delivery proof for ${title}.`,
-      visibleTo: `${partnerName} and authorized Northstar directors. Not visible to the Rivera family.`,
-      savedIn: 'Vendor request history',
-      next: 'An authorized Northstar director reviews the proof. The request is not complete yet.',
-    }),
+    message: receipt.replayed ? 'This delivery proof was already saved.' : 'Delivery proof submitted for director review.',
+    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
   };
 }
