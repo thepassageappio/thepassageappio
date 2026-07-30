@@ -75,16 +75,20 @@
       "persona": "staff",
       "frontend": {
         "user_visible": true,
-        "route": "/invite/[token]",
-        "component": "app/invite/[token]/page.tsx",
+        "route": "/invite/continue",
+        "component": "app/invite/continue/page.tsx",
         "files": [
           "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
           "lib/auth/invitations.ts"
         ],
-        "note": "Server component renders the inspection result via public.inspect_organization_invitation before any sign-in is required, and fails closed on invalid/malformed tokens (validInvitationToken)."
+        "note": "The raw URL is immediately exchanged for a secure httpOnly intent and an opaque continue route. The Server Component renders the staff branch of public.inspect_passage_invitation before sign-in and fails closed without carrying the bearer into authentication redirects."
       },
       "action_status": "invitation_state resolves to one of available | accepted | revoked | expired on every page load",
-      "server_command": "public.inspect_organization_invitation(raw_token text) -> passage_private.inspect_organization_invitation",
+      "server_command": "public.inspect_passage_invitation(p_raw_token text) -> bounded staff or participant inspection",
       "backend_files": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
         "lib/auth/invitations.ts"
@@ -117,19 +121,22 @@
       "persona": "staff",
       "frontend": {
         "user_visible": true,
-        "route": "/invite/[token]",
+        "route": "/invite/continue",
         "component": [
-          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
           "app/invite/[token]/actions.ts"
         ],
         "files": [
-          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
           "app/invite/[token]/actions.ts",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
           "lib/auth/invitations.ts",
           "lib/auth/redirects.ts",
           "lib/auth/session.ts"
         ],
-        "note": "acceptInvitation is a deliberate POST Server Action bound to a <form>; a GET receipt view may only replay an already-accepted invitation, never perform the first acceptance."
+        "note": "acceptInvitation is a deliberate POST Server Action that reads the bearer only from the server-held intent; an accepted-state GET may only replay an already-accepted invitation, never perform first acceptance."
       },
       "action_status": "pending_acceptance -> accepted (idempotent: a same-user replay RPC call returns the same receipt with replayed=true and no duplicate rows)",
       "server_command": "public.accept_organization_invitation(raw_token text) -> passage_private.accept_organization_invitation",
@@ -1457,6 +1464,212 @@
             "rollback;"
           ]
         }
+      ]
+    },
+    {
+      "id": "participant.coordinator.create_invitation",
+      "cycle": "P1",
+      "capability": "A signed-in family coordinator creates one purpose-limited participant invitation and receives a truthful one-time manual-share receipt",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/InviteParticipantForm.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/InviteParticipantForm.tsx",
+          "app/family/people/actions.ts",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The authenticated owner sees only their continuity space, active people, waiting invitations, and history. P1 enables Family updates only and returns a non-prefetchable raw link once."
+      },
+      "action_status": "ready -> creating -> created one-time receipt, or stable replay without another raw token",
+      "server_command": "public.create_family_space_idempotent(text,uuid) when needed; public.create_participant_invitation_idempotent(uuid,text,text,text,text,text[],timestamptz,uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260723080309_participant_advisor_hardening.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "continuity_spaces", "cardinality": "at most one active owned space selected by the coordinator projection" },
+        { "table": "participant_invitations", "cardinality": "one invitation per continuity-space/request UUID and no second live invitation for the same space/email" },
+        { "table": "workflow_events", "cardinality": "one participant_invitation.created event per successful invitation" }
+      ],
+      "rls_authority_predicate": "The public command derives auth.uid() server-side and requires passage_private.can_manage_continuity_space for the exact active space; the owner projection RPCs return no rows to participants, unrelated users, funeral-home members, or vendors.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.created",
+        "idempotency_key": "participant_invitation:<invitation id>:created"
+      },
+      "failure_recovery_states": [
+        "signed-out and unavailable environments create nothing and retain no token",
+        "invalid input, wrong owner, active participant, live invitation, and changed-payload replay fail without a partial row",
+        "same-key replay preserves the original invitation and time, creates no duplicate, and returns no raw token",
+        "a lost first raw link is not reconstructed; replacement-link recovery remains Packet P2"
+      ],
+      "persona_projection": "The coordinator sees human name, relationship, purpose, Family updates scope, named email, manual-delivery truth, timestamps, and history. Raw identifiers, token digest/hint, event keys, and other family spaces are not rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "participant.invited.inspect_invitation",
+      "cycle": "P1",
+      "capability": "Anyone holding a valid secure link inspects a bounded participant or staff invitation without changing access",
+      "status": "source_partial",
+      "persona": ["participant", "staff"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": "app/invite/continue/page.tsx",
+        "files": [
+          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
+          "lib/auth/invitations.ts",
+          "lib/presentation/participant-labels.ts"
+        ],
+        "note": "The raw invitation URL is exchanged immediately for a secure httpOnly intent and an opaque continue route. The continue route calls one unified inspection RPC and branches into typed staff or participant copy and actions without carrying the bearer into login or provider redirects."
+      },
+      "action_status": "read-only available, accepted, expired, revoked, access-ended, invalid, or temporarily unavailable state",
+      "server_command": "public.inspect_passage_invitation(p_raw_token text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/continue/page.tsx",
+        "lib/supabase/proxy.ts"
+      ],
+      "durable_tables": [
+        { "table": "participant_invitations or organization_invitations", "cardinality": "zero or one digest-matched invitation returned through a bounded union projection" }
+      ],
+      "rls_authority_predicate": "The public read wrapper exposes only the bounded inspection fields to anon/authenticated callers who possess the valid bearer token; direct private helper/table access remains revoked.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Inspection is deliberately read-only and is not claimed as viewed, delivered, or opened."
+      },
+      "failure_recovery_states": [
+        "malformed or unknown tokens reveal no invitation details",
+        "expired, revoked, accepted, and access-ended states remove first-acceptance controls",
+        "temporary failures state that nothing was joined or changed",
+        "staff inspection retains its organization, location, role, purpose, and POST-only acceptance path"
+      ],
+      "persona_projection": "Participant inspection shows inviter display name, family-space name, relationship, Family updates label, purpose, expiry, and Not sent by Passage. It never exposes either email, roster, case, document, message, token metadata, or Auth existence.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.accept_invitation",
+      "cycle": "P1",
+      "capability": "The exact verified invited account deliberately accepts once and receives a durable bounded-access receipt",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": [
+          "app/invite/continue/page.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/invite/[token]/AcceptInvitationButton.tsx",
+          "app/login/page.tsx"
+        ],
+        "files": [
+          "app/invite/continue/page.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/invite/[token]/AcceptInvitationButton.tsx",
+          "app/login/page.tsx",
+          "app/login/LoginClient.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts"
+        ],
+        "note": "First acceptance is a participant-specific POST Server Action that reads the bearer only from the server-held intent. The accepted-state GET can replay only an already-accepted invitation, and a wrong account receives truthful sign-out recovery without losing the intent."
+      },
+      "action_status": "available -> accepting -> accepted receipt; same-user replay preserves the original authority and time",
+      "server_command": "public.accept_participant_invitation(p_raw_token text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/[token]/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "continuity_participants", "cardinality": "exactly one active participant row for the accepted invitation/account/space" },
+        { "table": "participant_invitations", "cardinality": "accepted user, participant, and timestamp set once" },
+        { "table": "workflow_events", "cardinality": "one participant_invitation.accepted event" }
+      ],
+      "rls_authority_predicate": "The command requires auth.uid(), derives the verified Auth email server-side, and requires an exact invited-email match, active space, available token, and no conflicting active access.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.accepted",
+        "idempotency_key": "participant_invitation:<invitation id>:accepted"
+      },
+      "failure_recovery_states": [
+        "wrong account, another accepting account, expired, revoked, access-ended, and existing-active-access attempts add no participant/event",
+        "pending UI prevents duplicate submit and reports no optimistic success",
+        "same-user replay returns the original participant, space, scope, time, and event",
+        "verification mismatch leaves the route closed and directs a reload"
+      ],
+      "persona_projection": "The receipt shows family-space name, relationship, human category labels, the signed-in account, original acceptance time, audience, proof destination, and /participant next action. It does not grant family decision authority or operations access.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.open_shared_updates",
+      "cycle": "P1",
+      "capability": "An active updates-scoped participant reloads every permitted family space through one bounded human-readable update projection",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/participant",
+        "component": "app/participant/page.tsx",
+        "files": [
+          "app/participant/page.tsx",
+          "app/participant/Participant.module.css",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The landing reconstructs active access from the participant projection RPCs and uses list_participant_family_updates for human-readable updates across every active space. It never queries raw workflow, task, event, proof, or review tables."
+      },
+      "action_status": "active updates participant -> bounded multi-space landing; revoked, missing, or non-updates access closes",
+      "server_command": "public.list_participant_continuity_spaces(); public.list_continuity_participant_projection(); public.list_participant_family_updates()",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260726040000_family_case_workflow_grant.sql",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "lib/continuity/participants.ts"
+      ],
+      "durable_tables": [
+        { "table": "continuity_participants", "cardinality": "only the signed-in user's active participant row" },
+        { "table": "continuity_spaces", "cardinality": "only spaces reached by that active row" },
+        { "table": "workflows/tasks/workflow_events", "cardinality": "queried only inside the security-definer bounded projection; no raw identifier or row grant reaches the participant" }
+      ],
+      "rls_authority_predicate": "Participant projection RPCs require an active auth.uid()-bound updates row. can_view_workflow_as_family remains owner-only, so participants receive zero direct workflow, task, event, proof, and review rows. The public family-updates function re-derives auth.uid(), active space, active participant, and updates scope before returning only human fields.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Landing and case navigation are read-only; invitation acceptance owns the access proof."
+      },
+      "failure_recovery_states": [
+        "signed-out redirects to invitation-aware sign-in",
+        "missing or revoked access renders no stale family detail and names the coordinator recovery",
+        "a space with no linked workflow renders a calm empty state",
+        "non-updates scope receives no family-update projection and no raw table rows",
+        "multiple active family spaces are listed without silently selecting the first",
+        "reload and a separate authenticated session reconstruct from durable rows instead of the token or browser storage"
+      ],
+      "persona_projection": "The participant sees each permitted family-space name, relationship, purpose, human Can see labels, own account, acceptance time, coordinator boundary, current step summary, and the latest eligible progress event mapped into plain language. The coordinator granted the high-level updates category; this source packet does not claim a separate publication approval predicate. No raw workflow/task/event/proof/review identifier, roster, invitation management, organization, vendor, or operator data appears.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "supabase/tests/participant_updates_case_scope.sql"
       ]
     }
   ]

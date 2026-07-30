@@ -23,7 +23,7 @@
 .unavailable strong { color: var(--ink); }
 .unavailable p { margin: 7px 0 0; }
 .privacy { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.55; }
-.textLink { min-height: 44px; display: inline-flex; align-items: center; margin-top: 8px; color: var(--signal-strong); font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.textLink { min-height: 48px; display: inline-flex; align-items: center; margin-top: 8px; color: var(--signal-strong); font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
 .primaryLink { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 3px; padding: 12px 18px; background: var(--signal-strong); color: var(--surface-raised); font-weight: 720; text-align: center; }
 .inviteDetails { min-width: 0; margin: 0 0 24px; border-top: 1px solid var(--line); }
 .inviteDetails div { min-width: 0; display: grid; grid-template-columns: minmax(100px, .42fr) minmax(0, 1fr); gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--line); }
@@ -37,4 +37,5 @@
 .receipt h2 { margin: 8px 0 20px; font-family: var(--font-display); font-size: 32px; font-weight: 650; line-height: 1; }
 .receipt dl { min-width: 0; margin: 0 0 20px; display: grid; gap: 12px; }
 .receipt dl div { min-width: 0; display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 14px; }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 480px) { .shell { padding-inline: 14px; } .brandBar { min-height: 60px; } .panel { margin-top: 28px; padding: 28px 20px; } .panel h1 { font-size: 44px; } .inviteDetails div, .receipt dl div { grid-template-columns: 1fr; gap: 5px; } .receipt { padding: 20px 16px; } }

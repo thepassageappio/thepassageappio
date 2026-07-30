@@ -19,7 +19,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { checkLedger, REQUIRED_CYCLE8_CONTRACT_IDS } = require('./check-frontend-backend-parity');
+const {
+  checkLedger,
+  REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  REQUIRED_ACTIVE_CONTRACT_IDS,
+} = require('./check-frontend-backend-parity');
 
 let passCount = 0;
 let failCount = 0;
@@ -289,6 +294,18 @@ function testRequiredCycle8CoverageCannotBeEmpty(repoRoot) {
   report('failing fixture: zero Cycle 8 contract coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
 }
 
+function testRequiredParticipantCoverageCannotBePartial(repoRoot) {
+  const { ok, errors } = checkLedger(
+    { contracts: [baseImplementedContract()] },
+    repoRoot,
+    { requiredContractIds: REQUIRED_PARTICIPANT_CONTRACT_IDS }
+  );
+  const expected = REQUIRED_PARTICIPANT_CONTRACT_IDS.every((id) =>
+    errors.some((error) => error.includes(`Required contract id "${id}" is missing`))
+  );
+  report('failing fixture: incomplete participant journey coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
 // ---------------------------------------------------------------------
 // 3. Integration check against the real ledger
 // ---------------------------------------------------------------------
@@ -303,7 +320,7 @@ function testRealLedger() {
     report('integration: real ledger is valid JSON and readable', false, err.message);
     return;
   }
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_ACTIVE_CONTRACT_IDS });
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
@@ -441,6 +458,7 @@ function main() {
     testCycle8SourceDrift(repoRoot);
     testCycle8IdentityCannotMasquerade(repoRoot);
     testRequiredCycle8CoverageCannotBeEmpty(repoRoot);
+    testRequiredParticipantCoverageCannotBePartial(repoRoot);
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();

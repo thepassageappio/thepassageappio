@@ -13,6 +13,7 @@
     "test:agent-context": "node scripts/check-agent-context.js",
     "test:runtime-config": "node scripts/test-runtime-config.js",
     "test:messaging-security": "node scripts/test-workflow-messaging-security.js",
+    "test:participant-invitation": "node scripts/test-participant-invitation-security.js",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",

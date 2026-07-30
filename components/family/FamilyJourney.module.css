@@ -90,8 +90,8 @@
   justify-self: end;
   display: grid;
   place-items: center;
-  min-width: 44px;
-  height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -101,6 +101,8 @@
   font-weight: 760;
   text-decoration: none;
 }
+
+.familyProfile { width: auto; padding: 0 14px; }
 
 .exitPass { width: auto; padding: 0 14px; }
 
