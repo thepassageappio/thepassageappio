@@ -39,11 +39,11 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
     || coordinatorName.length < 1 || coordinatorName.length > 200
     || (!coordinatorPhone && !coordinatorEmail)
     || !uuid.test(requestId)) {
-    return { status: 'validation', message: 'A few details are missing. Nothing was sent — go back and check each step.' };
+    return { status: 'validation', message: 'A few details are missing. Nothing was sent. Go back and check each step.' };
   }
 
   const client = await createPassageServerClient();
-  if (!client) return { status: 'unavailable', message: 'Passage could not save this right now. Nothing changed — try again in a moment.' };
+  if (!client) return { status: 'unavailable', message: 'Passage could not save this right now. Nothing changed. Try again in a moment.' };
   const user = await verifiedUser(client);
   if (!user) return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
 

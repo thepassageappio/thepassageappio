@@ -1,5 +1,24 @@
 # Passage Zero - Agent Operating Context
 
+## Product Lane A - Public conversion and Steve demo - QA-return Engineering correction - 2026-08-10 15:57 -07:00
+
+Status: **ENGINEERING CORRECTION COMPLETE / SOURCE AND 390-PIXEL RECOVERY JOURNEY PASS / DISTINCT EXACT-HEAD QA REQUIRED / NON-PRODUCTION**.
+
+- **Role and received handoff:** bounded Development Engineer `/root/eng_public_demo_8ff_return` received the fresh QA rejection of exact Bot-authored head `8ff74afceb4847a5cb1070d7ec7100008c76b240` on branch `feature/public-demo-launch`, worktree `.release-train-clean/.public-demo-build`. QA proved that the real `/start` to `/start/situation` to `/start/people` journey reached an unavailable `/start/next` state at 390 pixels with no recovery control. QA also found em dash characters in five reachable urgent sources. The prior Source QA verdict for `8ff74af...` is rejected. No hosted claim or owner gate exists.
+- **Bounded correction:** the unavailable `/start/next` state now states that the save and callback step cannot open, that the browser-held answers remain available, and that nothing was sent or saved. A native `Review your details` link returns to `/start/people`. Its exact rendered size at 390 pixels is 358 by 48 CSS pixels. The recovery preserves the entered coordinator name and phone and leaves zero horizontal overflow.
+- **Language correction:** em dash characters were replaced with direct sentences in `app/start/next/UrgentNextClient.tsx`, `app/start/actions.ts`, `lib/urgent/hosted.ts`, and `lib/urgent/situations.ts`. The unavailable server component no longer renders an internal runtime-configuration reason. `scripts/test-public-conversion.js` now requires the `/start/people` recovery destination, its literal label, its 48-pixel target floor, and absence of U+2013 and U+2014 from every reachable `/start` source named by the guard.
+- **Files changed:** `app/start/next/page.tsx`, `app/start/Start.module.css`, `app/start/next/UrgentNextClient.tsx`, `app/start/actions.ts`, `lib/urgent/hosted.ts`, `lib/urgent/situations.ts`, `scripts/test-public-conversion.js`, and this living context. The unrelated untracked zero-byte file `({tag` was preserved and excluded. No migration, database, Auth, Vercel, environment, Production, pricing, governance, or roadmap file changed.
+- **Source verification:** public conversion PASS; participant invitation P1/P2 `37/37` PASS; workflow messaging `23/23` PASS; parity fixture/integration `19/19` PASS; Server Action export guard PASS; persona-language PASS; release-governance PASS; operational-route PASS; runtime-isolation PASS; deploy-gate PASS; TypeScript PASS; optimized Next.js 16.1.6 build PASS with all public, demo, and urgent routes compiled; and the known multi-lockfile root warning only.
+- **Local browser verification:** a fresh built-server session at 390 by 844 completed `/start`, `/start/situation`, `/start/people`, and `Continue` to `/start/next`. The unavailable result rendered one H1, the enabled `Review your details` link, no framework overlay, no browser errors, no console output, and zero overflow. Activating the link returned to `/start/people` with `Jordan Morgan` and `555-010-1111` preserved. The link measured 358 by 48 CSS pixels. Browser and server were closed after the check.
+- **React and Next.js review:** the recovery remains a Server Component link and adds no client state, effect, hydration boundary, request, or bundle dependency. The changed client control remains a native form button. Existing server-side authentication and urgent RPC authority are unchanged.
+- **Roadmap classification:** **NO**. This correction restores an already-required recovery path and copy gate. It changes no direction, milestone order, persona scope, architecture, readiness doctrine, or score. The canonical roadmap does not need a new entry.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT EXACT-HEAD QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / LOCAL ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- **Atomic handoff:** freeze the Bot-authored `[skip deploy]` head containing this entry and hand it immediately to a fresh distinct QA role. QA must rerun source and build gates plus the real 390-pixel unavailable and recovery journey before any non-production Preview is authorized. No owner prompt is required.
+
 ## Product Lane A - Public conversion and Steve demo - Engineering implementation handoff - 2026-08-10 15:31 -07:00
 
 Status: **ENGINEERING COMPLETE / SOURCE AND LOCAL BROWSER GATES PASS / DISTINCT EXACT-HEAD QA REQUIRED / NON-PRODUCTION**.

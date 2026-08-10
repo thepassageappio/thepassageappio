@@ -60,7 +60,7 @@ export function situationGuidance(value: SituationCategory): { heading: string; 
       };
     case 'already_handled':
       return {
-        heading: 'Good — the first steps are done.',
+        heading: 'Good. The first steps are done.',
         steps: [
           'Tell us what has already been confirmed.',
           'We will help you organize what is still open.',

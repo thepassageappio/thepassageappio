@@ -41,7 +41,7 @@ export function humanUrgentStatus(status: string): string {
   switch (status) {
     case 'submitted': return 'Waiting to be claimed';
     case 'self_handling': return 'No callback requested';
-    case 'claimed': return 'Claimed — case not started yet';
+    case 'claimed': return 'Claimed. Case not started yet';
     case 'case_created': return 'Case created';
     default: return 'Status unavailable';
   }

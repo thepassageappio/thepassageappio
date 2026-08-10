@@ -38,6 +38,8 @@ const repository = read('lib/sandbox/repository.ts');
 const layout = read('app/layout.tsx');
 const packageJson = JSON.parse(read('package.json'));
 const globals = read('app/globals.css');
+const startNextPage = read('app/start/next/page.tsx');
+const startStyles = read('app/start/Start.module.css');
 
 assert(home.includes('Everyone knows what happens next.'));
 for (const route of ['/start', '/funeral-home', '/demo']) assert(home.includes(`href: '${route}'`));
@@ -121,6 +123,22 @@ assert(!/fonts\.googleapis|fonts\.gstatic/.test(`${layout}\n${globals}`));
 assert(/min-height:\s*48px/.test(publicStyles));
 assert(globals.includes('.gateway__help a { min-height: 48px;'));
 assert(!/suppressHydrationWarning/.test(`${familyIntent}\n${transferComposer}\n${activePass}`));
+
+assert(startNextPage.includes('href="/start/people"'), 'unavailable urgent step must return to the saved details');
+assert(startNextPage.includes('Review your details'), 'unavailable urgent step must name its recovery action');
+assert(/\.recoveryLink\s*\{[\s\S]*?min-height:\s*48px/.test(startStyles), 'urgent recovery link must meet the 48px target floor');
+
+const reachableStartSources = [
+  'app/start/page.tsx',
+  'app/start/situation/page.tsx',
+  'app/start/people/page.tsx',
+  'app/start/next/page.tsx',
+  'app/start/next/UrgentNextClient.tsx',
+  'app/start/actions.ts',
+  'lib/urgent/hosted.ts',
+  'lib/urgent/situations.ts',
+].map(read).join('\n');
+assert(!/[\u2013\u2014]/u.test(reachableStartSources), 'reachable urgent copy must not contain em dash or en dash characters');
 
 const userFacing = routeFiles.concat([
   'components/public/PublicPage.tsx',
