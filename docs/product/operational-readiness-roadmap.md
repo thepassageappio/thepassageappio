@@ -4,7 +4,17 @@ Status: canonical internal roadmap for the greenfield Passage Zero rebuild.
 
 Owner audience: Passage System Admin, Product, UX, Engineering, QA, and Deploy roles. This document is not a public or persona-facing roadmap and its percentages, sprint language, founder goals, and readiness evidence must never appear on family, funeral-home, staff, participant, or vendor surfaces.
 
-Last updated: 2026-07-26 (America/Los_Angeles)
+Last updated: 2026-08-10 (America/Los_Angeles)
+
+## Active launch Lane A - public conversion and Steve demo integration - 2026-08-10
+
+- Exact implementation base: `02a743e3adfa4c7bfaf8db14750dab9be15d6496`, which includes the current combined product and participant P2 source candidate.
+- Current hosted state: the existing Preview head lacks the public/conversion package; `/pricing` and `/demo` return 404. No hosted launch claim is valid.
+- Active packet: restore the planned public route set and private family demo without the historical 81-file combined release; close the six recorded UX blockers for demo routing, visible local reset, browser failure truth, close-confirm focus, page-specific actions, and literal family instructions; remove the external Google Font build dependency; then freeze one exact source head for independent QA.
+- Demo reset boundary: this packet restores a deterministic family example in the current browser. It does not claim to reset the shared hosted director, staff, or vendor data. The page must say that before and after reset. A complete isolated hosted seed/reset remains required for the deterministic-demo domain floor.
+- Source QA: NOT RUN. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: PM COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION.
+- Certified whole-platform checkpoint remains `0`. Public source existence, a local browser result, or a Vercel READY build cannot advance it.
+- Exact scope, file allowlist, frontend/backend matrix, three-width and 200 percent text matrix, risks, non-goals, and hosted plan are recorded in the 2026-08-10 Product Lane A PM Sprint Brief in `docs/agent-operating-context.md`.
 
 ## Canonical product decision — owner-approved 2026-07-18
 

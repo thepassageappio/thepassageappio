@@ -1,5 +1,160 @@
 # Passage Zero - Agent Operating Context
 
+## Product Lane A - Public conversion and Steve demo launch integration - PM Sprint Brief - 2026-08-10
+
+Status: **PM COMPLETE / PRIOR UX FAIL RECEIVED AS BINDING FIX LIST / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION**.
+
+### Role, handoff, and exact integration boundary
+
+- Product Manager: `/root/pm_public_demo_build_r2`, distinct from the prior public implementer, prior UX reviewer, new Engineering, QA, Independent Agent Reviewer, Development Head, Deploy, hosted QA, and Production roles.
+- Prior handoff received: the read-only Product Lane A audit from `/root/product_lane_public_demo` and the exact six-item UX FAIL from `/root/product_lane_public_demo/ux_public_demo_launch` against older public candidate `9a95d825dec5c21df2127a10e0f94d647179b828`.
+- Current hosted truth received: Preview head `d80c9f7` has no usable public/conversion package; `/pricing` and `/demo` return 404. The older public candidate passed its source/build/parity and local three-width browser checks, but it is not launch ready because the six UX blockers below remain.
+- Exact clean implementation base: `02a743e3adfa4c7bfaf8db14750dab9be15d6496`, the Bot-authored participant P2 source candidate, on isolated worktree `.release-train-clean/.public-demo-build`, branch `feature/public-demo-launch`.
+- Historical reference only: `9a95d825dec5c21df2127a10e0f94d647179b828`. It is an ancestor of the current combined candidate, but later integration deleted its public routes. Engineering may inspect or restore only the exact deleted public files named below. It must not cherry-pick the historical 81-file combined release, restore the full tree, revert current participant/messaging/urgent/vendor work, or copy historical governance and migration changes.
+- Material Product Direction or Scope Change: **YES, planned persona coverage restoration**. This packet does not change Passage strategy, pricing doctrine, architecture, or milestone order, but it materially restores public/conversion and demo coverage to the current candidate. Engineering must update the canonical roadmap and this living context in the same packet. No readiness score may move from source work.
+- UX Review: prior exact six-item FAIL is accepted as the complete binding UX translation. A second UX planning loop is not required before Engineering because the fixes, copy, focus behavior, failure states, route destinations, and responsive matrix are already explicit. Fresh distinct UX or accessibility review remains part of exact-head QA.
+- Owner gate: **NONE**. This is ordinary product, source, test, non-production Preview, and hosted QA work. It changes no Production project, Production alias, destructive data, pricing, spend, or material legal/privacy/security judgment.
+- Governance scope: **NONE**. Do not modify trusted-review scripts, repository protection, merge identity, release attestation, Production gates, or R25/R26 work in this lane.
+- Certified whole-platform checkpoint: **0**. This packet earns no operational credit until its exact hosted artifact and the complete cross-domain checkpoint matrix pass.
+
+### Sprint goal
+
+Ship one coherent, pitch-usable public website and truthful demo entry on top of the current product candidate. A family, funeral-home buyer, care provider, or Steve must be able to understand Passage, choose the correct next step, enter the private family example or a hosted team example, reset the local example, recover from blocked browser capabilities, and leave every page without guessing. The packet must preserve the current participant P2, urgent, messaging, director, staff, and vendor contracts.
+
+### Fix-now requirements from the completed audit and UX FAIL
+
+1. **Restore the public route set without the historical combined release.** The current candidate must serve `/`, `/funeral-home`, `/pricing`, `/guides`, `/guides/first-funeral-home-conversation`, `/story`, `/trust`, `/care-providers`, and `/demo`. `/blog` and `/resources` permanently redirect to `/guides`; `/our-story` and `/mission` permanently redirect to `/story`. Every destination must have truthful metadata, one H1, a clear next action, and no public path may expose a protected persona route without its existing authorization boundary.
+2. **Separate family demo from real help.** The Family card on `/demo` opens `/demo/family` with a literal label such as `Try the family demo`. A separate `Get help now` action opens `/start`. No label may say `Start without signing in` and then enter the real urgent flow. The family demo must continue to say that it uses example information in this browser and does not contact anyone, create a real record, send a message, make a purchase, or process a payment.
+3. **Add one visible deterministic local reset.** `/demo` must include `Reset the family demo`. It restores the canonical browser sandbox, clears the family intent and handoff session state, reports what was reset, moves focus to the result, and leaves a usable in-memory canonical example if storage is blocked. It must also say plainly that this reset affects the family example in this browser only. Hosted director, staff, and vendor examples use shared saved example activity and are not reset by this control. Do not claim a complete hosted seed/reset mechanism that does not exist.
+4. **Make every browser failure truthful.** Family intent restore/save, sandbox read/cleanup/write/reset, handoff activation, copy, and close must catch blocked or failed browser storage and clipboard operations. Each error names what did not happen, what remained unchanged, and the next safe action. No control may remain stuck in a pending label. Copy success appears only after `clipboard.writeText` succeeds. Copy failure selects the visible read-only code and tells the user to use the device Copy command. A failed close must not claim access closed. A failed persistent save may continue as an explicitly in-memory example without claiming it will survive reload.
+5. **Complete close-confirm focus.** When `Close this handoff` reveals confirmation, focus moves to the confirmation heading or the first safe action, the new state is announced once, Escape or `Keep open` closes it, and focus returns to the trigger. After verified close, focus moves to the closed-state heading. All controls remain at least 48 by 48 CSS pixels.
+6. **Give every public page a specific next step.** `/story`, `/trust`, and `/care-providers` end with a visible action that names its destination and expected result. `/guides` links the available first guide and labels every unavailable card `Coming soon`; unavailable cards are not links or buttons. Guides ends with an available next step. Global header navigation does not substitute for these page-specific actions.
+7. **Use literal family instructions.** Replace `How long should the bridge stay open?` with `How long should they have access?`. Replace `One receiver. A clear boundary.` with `Review who can open what.` Continue removing abstract marketing phrasing where a direct sentence can explain the action. No em dash, en dash, mojibake, raw identifier, internal release language, or generated-sounding filler may render.
+8. **Keep hosted team entry honest.** Director, staff, and vendor forms remain Preview-only and use the existing branch-scoped demo credentials through `startPreviewDemo`. Sign-out, credential, configuration, and sign-in failures return to `/demo` with a specific human recovery state. The page says no team session opened and no record changed when that is what is known. It never claims that opening a shared example reset its durable state. Family remains browser-local and never invokes hosted credential login.
+9. **Remove the external font build dependency.** Adapt the reviewed local `@fontsource/cormorant-garamond` and `@fontsource/montserrat` package pattern from the historical candidate so optimized builds do not depend on a Google font request. Preserve Passage Zero typography and verify computed family at all widths. This closes the exact combined-head font-fetch infrastructure cell only if a fresh optimized build passes on the new exact head.
+
+### Exact implementation file packet
+
+Engineering may restore these deleted files from the historical reference and must then adapt them to the current head:
+
+- `app/blog/page.tsx`
+- `app/care-providers/page.tsx`
+- `app/demo/actions.ts`
+- `app/demo/family/page.tsx`
+- `app/demo/family/pass/page.tsx`
+- `app/demo/page.tsx`
+- `app/favicon.ico`
+- `app/funeral-home/page.tsx`
+- `app/guides/first-funeral-home-conversation/page.tsx`
+- `app/guides/page.tsx`
+- `app/icon.svg`
+- `app/mission/page.tsx`
+- `app/our-story/page.tsx`
+- `app/pricing/page.tsx`
+- `app/resources/page.tsx`
+- `app/story/page.tsx`
+- `app/trust/page.tsx`
+- `components/public/PublicPage.module.css`
+- `components/public/PublicPage.tsx`
+- `components/public/PublicShell.module.css`
+- `components/public/PublicShell.tsx`
+- `lib/presentation/demo-expiry.d.ts`
+- `lib/presentation/demo-expiry.js`
+- `scripts/test-public-conversion.js`
+
+Engineering may change these current files only for the named integration need:
+
+- `app/page.tsx`: replace the internal sample gateway with the public home.
+- `app/layout.tsx`, `package.json`, and `pnpm-lock.yaml`: local font packages and metadata only.
+- `app/globals.css`: public/demo comprehension, focus, target, and responsive support only; do not restyle operational personas.
+- `lib/demo.ts`: family route/copy and team demo labels only.
+- `app/demo/DemoReset.tsx` and a focused colocated CSS module if needed: new visible local reset and result/focus handling.
+- `components/family/FamilyIntentJourney.tsx`, `TransferComposer.tsx`, `ActivePass.tsx`, `FamilyJourney.module.css`, and `types.ts`: only the six UX fixes, literal copy, storage/clipboard truth, focus, and responsive recovery.
+- `lib/sandbox/provider.tsx` and `lib/sandbox/repository.ts`: safe read, cleanup, write, reset, in-memory fallback, and typed result only. Do not change authority logic or canonical example facts.
+- `scripts/check-persona-language.js`, `scripts/test-operational-route-gate.js`, `scripts/test-use-server-exports.js`, and `scripts/test-frontend-backend-parity.js`: only if required to classify and test the restored reachable files. No broad exclusion or weakening is permitted.
+- `docs/product/frontend-backend-contracts.json`, `docs/product/operational-readiness-roadmap.md`, and `docs/agent-operating-context.md`: parity, roadmap status, and exact Engineering handoff only.
+
+Any additional file requires a source-proven dependency recorded in the Engineering handoff before it is changed. `supabase/migrations/`, Production configuration, current participant P2 files, messaging schema, urgent schema, vendor schema, and trusted governance files are outside this packet.
+
+### Frontend and backend contract matrix
+
+| Surface and action | Reachable UI | Command or query | State and authority | Proof, replay, and recovery |
+| --- | --- | --- | --- | --- |
+| Public learning and conversion | `/`, `/funeral-home`, `/pricing`, `/guides`, `/story`, `/trust`, `/care-providers` through `PublicShell` and `PublicPage` | Server-rendered public route navigation only | No Auth, database row, RLS predicate, message, purchase, or lead write | Browser history and final destination are the only result. Broken destination or misleading label is FAIL. |
+| Canonical redirects | `/blog`, `/resources`, `/our-story`, `/mission` | Next.js `permanentRedirect` to canonical public route | No durable product state | Final URL and page-specific action must be correct on direct load and client navigation. |
+| Family demo entry | Family card on `/demo` to `/demo/family`; separate real-help link to `/start` | Public navigation only | Family example is browser-local; real urgent help retains its current signed-in server contract | Wrong route mixing is FAIL. Back, reload, missing state, and reset remain usable and truthful. |
+| Family example choices and activation | `FamilyIntentJourney` and `TransferComposer` | Browser-local sandbox command plus local/session storage attempt | No Supabase command, RLS grant, outbound effect, family record, or durable server proof | Success must distinguish saved in this browser from in-memory only. Storage failure keeps a usable example or explicit retry and never strands pending state. |
+| Copy example handoff code | `ActivePass` | Clipboard API only | No message, server request, token grant, or navigation | Copied appears only after success. Failure selects the visible value and gives manual Copy recovery. |
+| Close example handoff | `ActivePass` confirmation | Browser-local `revoke_transfer_pass` sandbox command and session cleanup | Local example only; no real access or server record changes | Close state appears only after in-memory command completion. Cleanup failure is reported separately and recovery remains available. |
+| Reset family demo | `DemoReset` on `/demo` | Browser-local `reset_sandbox` plus bounded local/session cleanup | Restores canonical local example. It does not reset hosted director, staff, vendor, isolated database, Auth users, or Production | Result names exactly what reset. Blocked persistence uses honest in-memory state. Repeat reset is stable. Focus moves to result. |
+| Open hosted director, staff, or vendor example | `/demo` persona form to `startPreviewDemo` | Preview-only Supabase Auth sign-out/sign-in using existing branch-scoped credentials | Downstream page authority remains the existing authenticated membership and RLS contract in isolated project `uyacxqtsiwlvtmhxvoxr` | Successful Auth redirects to the role route. Failure opens no claimed session, changes no claimed record, returns a specific recovery state, and offers retry or family demo. No hosted data reset is claimed. |
+
+No new database command, table, RLS policy, event, migration, invitation, message, purchase, lead, or outbound delivery belongs in this packet. Existing role routes must retain their current authority and denial behavior. Public/browser-only rows may be classified truthfully in the parity ledger but may not be called `implemented` as durable operations.
+
+### Source and build acceptance
+
+- `scripts/test-public-conversion.js` is rewritten as a focused current-head contract, not copied as a false-green historical suite. It asserts every canonical route and redirect, family `/demo/family` routing, separate `/start` help, reset boundary and result, page-specific closing actions, Guides availability labels, literal family copy, truthful failure states, local fonts, one H1 per page, target-size/focus styles, and prohibited-copy exclusions.
+- Add focused adversarial tests for blocked localStorage/sessionStorage read, write, remove, and reset; clipboard rejection; activation failure; close cleanup failure; malformed stored demo state; repeated reset; direct `/demo/family/pass` with no saved handoff; and hosted Auth/configuration/sign-out/sign-in failure mapping.
+- Run `pnpm test:public-conversion`, `pnpm test:participant-invitation`, `pnpm test:messaging-security`, `pnpm test:parity`, `pnpm test:server-actions`, `pnpm test:persona-language`, `pnpm test:agent-context`, `pnpm test:release-governance`, `pnpm test:operational-route-gate`, `pnpm test:runtime-config`, `pnpm test:deploy-gate`, `pnpm typecheck`, a clean `pnpm build`, and `git diff --check` on one exact head.
+- Inspect every restored diff against `02a743e`. The final file list must show a bounded public/demo package, not the historical 81-file release. Current participant, urgent, messaging, vendor, director, and staff behavior must retain their focused source tests.
+- Optimized build must complete without a network request for Google Fonts. Compiled route inventory must contain all canonical public/demo routes and redirects.
+
+### Local and hosted browser acceptance
+
+Fresh browser QA must run direct navigation and applicable client navigation at `1440 x 900`, `390 x 844`, and `360 x 800`, then deterministic 200 percent text zoom for every restored public/demo route. At minimum, cover `/`, `/funeral-home`, `/pricing`, `/guides`, `/guides/first-funeral-home-conversation`, `/story`, `/trust`, `/care-providers`, `/demo`, `/demo/family`, `/demo/family/pass`, `/start`, and all four redirects.
+
+For each applicable cell record final URL, rendered purpose, unique H1, primary/page-specific action and destination, header and mobile-menu behavior, `document.scrollWidth` versus `document.clientWidth`, focus order, visible focus, skip-link transfer, 48 by 48 enabled targets, text wrapping, computed fonts, console warnings/errors, hydration errors, page errors, unhandled rejections, failed requests, and runtime logs. There must be no horizontal overflow, clipped confirmation, inaccessible action, focus loss, stale success, raw identifier, mojibake, em dash, en dash, or internal QA/deploy wording.
+
+Required interaction stories:
+
+1. From `/demo`, Family opens `/demo/family`; `Get help now` separately opens `/start`.
+2. Family chooses a path, recipient, categories, and access duration; activation works with storage and falls back honestly when storage is blocked.
+3. Clipboard success and rejection produce different truthful states. Rejection selects the visible code.
+4. Close confirmation receives focus, safe exit restores trigger focus, Escape restores trigger focus, verified close moves focus to the closed heading, and a cleanup failure never claims closure.
+5. Reset restores the family example on first use and replay, announces the result once, and states that shared hosted team activity was not reset.
+6. Director, staff, and vendor demo entry succeeds only under the exact approved Preview configuration. Misconfiguration and Auth failure return to human recovery without a false session or reset claim.
+7. Story, Trust, Care Providers, and Guides each end with one working page-specific next step. Unavailable guide cards say `Coming soon` and are not interactive.
+
+### Hosted plan and evidence truth
+
+- Engineering freezes one Bot-authored `[skip deploy]` source head. Distinct Source QA and Independent Agent Review verify that exact head before Development Head review.
+- After exact-head source and build PASS plus Development Head approval, Deploy publishes one branch-only non-production Preview using the canonical Vercel project and existing isolated project `uyacxqtsiwlvtmhxvoxr`. Preserve the owner's signed-in Vercel and Supabase tabs and all branch-only Preview configuration.
+- Distinct hosted QA repeats the full route, interaction, 1440/390/360, 200 percent text, console, hydration, runtime, focus, overflow, reset/replay, blocked storage, blocked clipboard, and Auth failure matrix against the exact deployment. Commit only timestamped screenshots and redacted evidence. Do not capture credentials, raw tokens, cookies, request headers, emails beyond synthetic labels, UUIDs, or secrets.
+- `[qa-approved]` remains prohibited before exact hosted PASS. Vercel `READY`, HTTP 200, source tests, local screenshots, or empty logs do not substitute for hosted browser proof.
+- Production project `qsveqfchwylsbncsfgxe`, Production configuration, Production alias, Production data, and external communications remain untouched.
+
+### Risks and recovery
+
+- Restoring historical public files can silently overwrite newer product and security work. Recovery: restore only the deleted allowlist, inspect every diff against `02a743e`, and rerun all participant, messaging, urgent, vendor, route, and parity gates.
+- A local reset can be mistaken for a hosted data reset. Recovery: label it `Reset the family demo`, state its browser-only boundary before and after action, and never describe shared team state as canonical after reset.
+- Storage APIs can fail independently. Recovery: treat read, write, remove, and clipboard as separate fallible operations, preserve usable in-memory state, and report exactly which result persisted.
+- Server redirects can collapse distinct hosted Auth failures into vague copy. Recovery: map only safe public failure codes to specific human states and keep credentials and provider diagnostics server-only.
+- Restoring local fonts can alter layout. Recovery: verify computed fonts, CLS, wrapping, target sizes, and overflow at all widths and zoom before hosted approval.
+- Public pages can look complete while pointing to missing or protected destinations. Recovery: crawl every enabled link and assert final route, status, heading, and expected boundary.
+
+### Non-goals
+
+- No wholesale cherry-pick of `9a95d825`, `e1996f5`, or any historical combined release.
+- No new Supabase project, demo environment, schema, migration, seed RPC, admin reset endpoint, credential rotation, Production setting, or external communication.
+- No numeric pricing, checkout, payment, lead-capture form, CRM integration, care-provider account, new guide inventory, SEO campaign, or legal/privacy claim expansion.
+- No redesign of current director, staff, vendor, urgent, messaging, participant P2, or invitation flows.
+- No claim that the shared hosted team examples are deterministically reset by the browser control.
+- No readiness increase, Production launch, merge, or deploy authorization from this PM brief.
+
+### Exit criteria and next roles
+
+- Every required public/demo route exists on the exact current product head and every enabled action reaches the named result.
+- All six UX blockers are closed in source and proven in the complete local browser matrix.
+- Public, family demo, and hosted team boundaries are literal and cannot be confused with real help, Production, or a durable hosted reset.
+- All source, security, parity, TypeScript, local-font optimized build, route, language, and diff gates pass on one clean exact head.
+- Distinct Source QA, accessibility/UX QA, Independent Agent Review, and Development Head approval follow Engineering. Deploy and distinct hosted QA then own the single non-production Preview.
+- Source QA: NOT RUN on this new packet.
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: PM COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- Auto-advance target: distinct Engineering receives this exact brief now and implements the bounded file packet on `.public-demo-build`. No owner prompt and no governance detour are permitted.
+
 ## Product Lane B - Participant invitation P2 reachable lifecycle controls - PM Sprint Brief - 2026-08-09
 
 Status: **PM COMPLETE / UX REVIEW PASS WITH BINDING CONDITIONS / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION**.
