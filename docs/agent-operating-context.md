@@ -2,7 +2,7 @@
 
 ## Product Lane B - Participant invitation P2 reachable lifecycle controls - PM Sprint Brief - 2026-08-09
 
-Status: **PM COMPLETE / UX REVIEW REQUIRED / ENGINEERING NOT STARTED / SOURCE ONLY / NON-PRODUCTION**.
+Status: **PM COMPLETE / UX REVIEW PASS WITH BINDING CONDITIONS / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION**.
 
 ### Role, input, and product decision
 
@@ -10,7 +10,7 @@ Status: **PM COMPLETE / UX REVIEW REQUIRED / ENGINEERING NOT STARTED / SOURCE ON
 - Prior handoff received: the owner-approved 2026-08-09 launch-delivery recovery controls and exact clean combined participant head `12939632aeaaebb00cc066d7468448321cae9c7c` on `integrate/participant-87c-combined`.
 - Exact PM worktree: `.release-train-clean/.participant-p2-plan` on branch `plan/participant-p2-lifecycle`, created from that exact clean head. This worktree may change only the living context for the PM handoff.
 - Material Product Direction or Scope Change: **NO**. This implements the already-queued P2 participant lifecycle in the canonical roadmap. No roadmap or readiness-score change is authorized.
-- UX Review: **REQUIRED** before Engineering because `/family/people` and `/invite/continue` gain reachable controls, receipts, destructive confirmations, recovery copy, focus behavior, and mobile layouts.
+- UX Review: **PASS WITH BINDING CONDITIONS** by distinct `/root/pm_participant_p2_build/ux_participant_p2` against exact PM head `55e76585e96ce48e7d8b5618925524e8bd7e0f15`. The reviewer changed no file, branch, database, or deployment.
 - Owner gate: **NONE**. This uses existing isolated non-production authority, changes no pricing, spend, Production data, or material legal/privacy/security decision, and requires no routine founder review.
 - Certified whole-platform checkpoint: **0**. This packet earns no credit until the applicable complete checkpoint matrix passes.
 
@@ -47,7 +47,7 @@ Engineering may change only the following product surface unless a source-proven
 - `app/family/people/actions.ts`: add `rotateParticipantInvitation`, `cancelParticipantInvitation`, and `endParticipantAccess`. Validate UUIDs, request IDs, expiry choice, and fixed bounded action reasons; verify the current user; call only the existing public RPCs; inspect exact receipts; revalidate `/family/people` and affected dynamic persona paths; never accept or return a bearer except the first rotation receipt returned by the RPC.
 - `app/family/people/People.module.css`: accessible responsive action groups, confirmations, receipts, error focus, and at least 48 by 48 CSS-pixel enabled targets.
 - `app/invite/continue/ParticipantInvitationDecision.tsx` as a new client component: own Accept and Decline together so a successful decline removes every acceptance control immediately and presents the saved result.
-- `app/invite/[token]/actions.ts`: add `declineParticipantInvitation` that reads the raw token only through `readInvitationIntent`, rechecks participant type and available state, validates a short human decline reason, calls the existing decline RPC, verifies stable replay against the same receipt, and returns typed state without placing the token or reason in a URL.
+- `app/invite/[token]/actions.ts`: add `declineParticipantInvitation` that reads the raw token only through `readInvitationIntent`, rechecks participant type and available state, uses the fixed private decline reason below, calls the existing decline RPC, verifies stable replay against the same receipt, and returns typed state without placing the token or reason in a URL.
 - `app/invite/continue/page.tsx`: render the unified participant decision component only for an actionable participant invitation; retain minimum-safe terminal states and existing staff behavior.
 - `lib/auth/invitations.ts` and `lib/continuity/participants.ts`: add only receipt/projection types needed by the controls. Do not widen participant data or return protected identifiers to visible copy.
 
@@ -60,7 +60,7 @@ Action contracts:
 | Cancel pending invitation | `cancelParticipantInvitation` | `public.revoke_participant_invitation(p_invitation_id, p_reason)` | Pending invitation revoked by the coordinator; zero participant grant | One `participant_invitation.revoked` event |
 | End active access | `endParticipantAccess` | `public.revoke_continuity_participant_idempotent(p_participant_id, p_reason, p_request_id)` | Active participant row changes to revoked with actor, time, and reason; invitation acceptance history remains | One `continuity_participant.revoked` event |
 
-The coordinator cancellation and access-ending reasons should be fixed product text, not free-form sensitive notes. The decline reason should use a short constrained set of human choices plus an optional bounded explanation only if UX and Engineering can keep replay deterministic and private. If not, use one fixed decline statement for P2.
+The reasons are fixed server-side product text and are never accepted from a visible or hidden form: decline uses `Invited person declined the invitation`; cancellation uses `Family coordinator canceled the invitation`; access ending uses `Family coordinator ended participant access`. Human history translates the outcome and never displays the stored reason text.
 
 ### Frontend and backend parity ledger
 
@@ -129,6 +129,31 @@ Commit only timestamped replacement screenshots and redacted database/audit evid
 - Frontend/backend parity rows, source gates, exact SQL lifecycle matrix, advisors, optimized build, and the complete three-viewport multi-session hosted matrix all pass on one exact head.
 - Source QA, Hosted Preview QA, Production Deployment, Production QA, and Overall release state are reported separately. `[qa-approved]` remains prohibited until exact hosted PASS.
 
+### Binding UI/UX Review handoff
+
+The distinct UI/UX Review verdict is **PASS TO ENGINEERING WITH CONDITIONS**. These conditions are acceptance requirements, not optional polish:
+
+- Use inline disclosures, not browser confirmation prompts or mobile modals. The trigger is a native button with `aria-expanded` and `aria-controls`. Only one confirmation is open at a time. Safe exit precedes the committing action in DOM and visual order. Escape closes the disclosure and returns focus to its trigger.
+- Replacement uses low-saturation purple. Decline, cancellation, and access ending use muted red only for the final committing action. Accept remains primary; Decline appears below it as a lower-emphasis secondary action on every viewport.
+- Pending disables the complete related action set. No row moves and no success appears before the durable receipt is verified.
+- A first rotation receipt must live in a stable page-level client region outside the Waiting row so revalidation cannot unmount and destroy the only raw replacement link. The link appears in a read-only input, never an anchor. Clipboard failure focuses and selects the input for manual copying. Reload, back restoration, reconnect, or navigation removes the raw link.
+- Add a `Past access` section using revoked rows already returned by `list_owned_continuity_participant_projection`. No new RPC or migration is required. It shows human name, relationship, access-began time, access-ended time, former category labels, and `Access ended`, with no restore control.
+- Invitation history distinguishes `Invitation accepted`, `Invitation declined`, `Invitation canceled`, `Invitation expired`, and `Invitation replaced`. It never displays stored reason text or raw lifecycle enums.
+- Minimum-safe terminal copy after rotation, decline, or cancellation is `This invitation is no longer available.` followed by `Ask the family coordinator if you still need access.` Expiry and access-ended states keep their separately named recovery. No terminal screen exposes inviter, family, relationship, purpose, scope, email, account identity, reason, case, message, or token metadata.
+- Opening a confirmation keeps focus on the trigger, with the disclosure next in DOM order. Cancel returns focus to the trigger. Verified mutation moves focus to a stable receipt heading with `tabIndex={-1}`. Error moves focus to a persistent `role="alert"` summary. Use one concise polite live region for pending and success, never on the raw-link receipt itself.
+- At 1440 by 900, keep one restrained content column and attach controls to the relevant record. At 390 by 844 and 360 by 800, use one column, stack fact labels over values, stack safe and committing actions full width, wrap all long values, contain the read-only link, and prohibit sticky actions or horizontal overflow. At 200 percent text zoom, all content and focus remain available by vertical scrolling and `document.scrollWidth` equals `document.clientWidth`.
+
+Required action language:
+
+| Control | Confirmation heading | Safe action | Commit action | Success heading |
+| --- | --- | --- | --- | --- |
+| Replace link | `Create a replacement link for {name}?` | `Keep current link` | `Create replacement link` | `Replacement link created.` |
+| Decline | `Decline this invitation?` | `Go back` | `Decline invitation` | `Invitation declined.` |
+| Cancel | `Cancel {name}'s invitation?` | `Keep invitation` | `Cancel invitation` | `Invitation canceled.` |
+| End access | `End {name}'s access?` | `Keep access` | `End access` | `Access ended.` |
+
+Error copy must distinguish three truths: known failure before mutation says nothing changed; stale race says the invitation changed in another session and requires reload; verification uncertainty says Passage could not confirm the saved result and must not claim nothing changed.
+
 ### Risks and mitigations
 
 - Rotation can expose a second bearer. Mitigation: one-time action receipt only, no anchor/prefetch, no replay token, old digest terminal immediately, token-containment source guard, and redacted evidence.
@@ -146,7 +171,7 @@ Commit only timestamped replacement screenshots and redacted database/audit evid
 
 ### Handoff and release truth
 
-- Next role: a fresh distinct UI/UX Review Agent defines the exact destructive-action hierarchy, confirmation, receipt, focus, mobile, and plain-language acceptance bar. After UX PASS, a fresh Development Engineer creates `.release-train-clean/.participant-p2-build` on `feature/participant-p2-lifecycle` from the exact Bot-authored PM context commit that descends directly from `12939632aeaaebb00cc066d7468448321cae9c7c`.
+- Next role: a fresh Development Engineer creates `.release-train-clean/.participant-p2-build` on `feature/participant-p2-lifecycle` from this exact Bot-authored PM and UX context head, which descends directly from `12939632aeaaebb00cc066d7468448321cae9c7c`.
 - Engineering must not edit the combined-candidate, root, P1 participant, R25 gateway, loop-recovery, or migration worktrees. It must inventory branch/head/status before editing and stop on overlap.
 - Deploy plan: source integration uses `[skip deploy]`. After exact-head Source QA, Data QA, Independent Agent Review, and Development Head approval, one reviewed non-production Preview may be published for the hosted matrix. Production is not authorized.
 - Customer-visible capability delta: none in this PM-only packet.
@@ -155,7 +180,7 @@ Commit only timestamped replacement screenshots and redacted database/audit evid
 - Hosted Preview QA: NOT RUN.
 - Production Deployment: NOT DEPLOYED.
 - Production QA: NOT RUN.
-- Overall release state: PM BRIEF ONLY / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- Overall release state: PM AND UX HANDOFF COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
 
 Last updated: 2026-08-09 (America/Los_Angeles)
 
