@@ -17,6 +17,17 @@
 .familyPage *,
 .activePageRoot * { box-sizing: border-box; }
 
+.demoBoundary {
+  max-width: 1180px;
+  margin: 18px auto 0;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--human-soft);
+  color: var(--ink-soft);
+  font: 650 14px/1.55 var(--font-sans);
+}
+
 .skipLink {
   position: fixed;
   top: -80px;
@@ -90,8 +101,8 @@
   justify-self: end;
   display: grid;
   place-items: center;
-  min-width: 48px;
-  min-height: 48px;
+  min-width: 44px;
+  height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -101,8 +112,6 @@
   font-weight: 760;
   text-decoration: none;
 }
-
-.familyProfile { width: auto; padding: 0 14px; }
 
 .exitPass { width: auto; padding: 0 14px; }
 
@@ -130,7 +139,7 @@
 }
 
 .familyIntro h1,
-.stageIntro h1,
+.stageIntro h2,
 .passCopy h1,
 .closedPage h1,
 .ledgerIntro h2,
@@ -255,7 +264,7 @@
 .stageInner { padding: clamp(26px, 4vw, 54px); }
 .stageIntro { display: grid; grid-template-columns: minmax(0, .95fr) minmax(220px, .4fr); column-gap: 40px; align-items: end; margin-bottom: 44px; }
 .stageIntro > p { grid-column: 1 / -1; }
-.stageIntro h1 { max-width: 770px; font-size: clamp(38px, 5vw, 72px); }
+.stageIntro h2 { max-width: 770px; font-size: clamp(38px, 5vw, 72px); }
 .stageIntro > span {
   max-width: 300px;
   padding-bottom: 5px;
@@ -709,7 +718,7 @@
   .familyHeader { grid-template-columns: 1fr auto; min-height: 66px; padding: 0 20px; }
   .headerContext { display: none; }
   .familyIntro { grid-template-columns: 1fr; gap: 18px; padding: 38px 20px 30px; }
-  .familyIntro h1 { font-size: clamp(54px, 17vw, 78px); }
+  .familyIntro h1 { font-size: clamp(42px, 13vw, 60px); line-height: 1; }
   .familyEntry > p { font-size: 15px; }
   .entryPaths { max-width: 620px; }
   .journey { padding: 0 0 70px; }
@@ -726,7 +735,7 @@
   .stage { order: -1; width: 100%; }
   .stageInner { padding: 28px 18px 30px; }
   .stageIntro { margin-bottom: 30px; }
-  .stageIntro h1 { font-size: clamp(38px, 11vw, 52px); }
+  .stageIntro h2 { font-size: clamp(38px, 11vw, 52px); }
   .stageIntro > span { font-size: 13px; }
 
   .signal,
@@ -765,10 +774,19 @@
   .reviewBoundary > section:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
 
   .passPage { padding: 20px 20px 70px; }
-  .passStatus > span:last-child { overflow: hidden; max-width: 150px; text-overflow: ellipsis; white-space: nowrap; }
+  .passStatus { align-items: flex-start; padding-block: 12px; }
+  .passStatus > span:last-child {
+    flex: 1 1 150px;
+    min-width: 0;
+    max-width: 55%;
+    overflow-wrap: anywhere;
+    text-align: right;
+    white-space: normal;
+    line-height: 1.4;
+  }
   .passHero { display: flex; flex-direction: column; min-height: 0; padding: 48px 0 60px; }
   .passCopy { width: 100%; }
-  .passCopy h1 { font-size: clamp(56px, 17vw, 78px); }
+  .passCopy h1 { font-size: clamp(44px, 13vw, 62px); line-height: 1; }
   .passCopy > span { font-size: 14px; }
   .destinationLine { margin-top: 32px; }
   .passObject { order: -1; width: 100%; min-height: 580px; }
@@ -787,8 +805,8 @@
 
 @media (max-width: 420px) {
   .entryPaths { grid-template-columns: 1fr; }
-  .familyIntro h1 { font-size: 52px; }
-  .stageIntro h1 { font-size: 39px; }
+  .familyIntro h1 { font-size: 44px; }
+  .stageIntro h2 { font-size: 36px; }
   .caseLabel { gap: 7px; }
   .caseLabel span { font-size: 8px; }
   .caseLabel strong { font-size: 10px; }
@@ -813,3 +831,73 @@
   .activePageRoot *::before,
   .activePageRoot *::after { scroll-behavior: auto !important; }
 }
+
+/* The private browser demo is used under stress and at high zoom. These
+   explicit overrides keep helper/status text readable and controls tappable
+   after every responsive rule above. */
+.skipLink,
+.wordmark,
+.familyProfile,
+.steps button,
+.stageActions button,
+.passObject > button,
+.revokeButton,
+.exitPass,
+.revokePanel button,
+.closedPage > a { min-height: 48px; }
+
+.skipLink,
+.headerContext,
+.familyProfile,
+.familyIntro > div > p,
+.entryPaths small,
+.intentBoundary,
+.caseLabel span,
+.caseLabel strong,
+.saveState,
+.steps button > span,
+.steps button > strong,
+.stageIntro > p,
+.stageIntro > span,
+.recipientIndex,
+.recipientMain small,
+.recipientPerson small,
+.scopeIndex,
+.scopeMain small,
+.scopeState,
+.privacyReadout,
+.expiry > span,
+.expirySelected > span,
+.expiry small,
+.expirySelected small,
+.timingNote > span,
+.timingNote p,
+.stageActions button,
+.signalContents > span,
+.signalDestination small,
+.signalCounts span,
+.signalContents li,
+.signalContents p,
+.signalNote,
+.reviewRoute > div > span,
+.reviewRoute > div > strong,
+.reviewRoute > div > small,
+.ledgerColumns header span,
+.reviewBoundary li,
+.reviewFacts dt,
+.reviewFacts dd,
+.passStatus,
+.destinationLine span,
+.destinationLine small,
+.passObjectHead,
+.scanLabel,
+.manualCode span,
+.passObject > button,
+.ledgerColumns li strong,
+.ledgerColumns li small,
+.passControls > div > span,
+.revokePanel > strong,
+.revokePanel > span,
+.revokePanel button,
+.closedPage > p,
+.closedPage > a { font-size: 14px; }

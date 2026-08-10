@@ -15,6 +15,7 @@ Last updated: 2026-08-10 (America/Los_Angeles)
 - Source QA: NOT RUN. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: PM COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION.
 - Certified whole-platform checkpoint remains `0`. Public source existence, a local browser result, or a Vercel READY build cannot advance it.
 - Exact scope, file allowlist, frontend/backend matrix, three-width and 200 percent text matrix, risks, non-goals, and hosted plan are recorded in the 2026-08-10 Product Lane A PM Sprint Brief in `docs/agent-operating-context.md`.
+- Engineering update, 2026-08-10: the bounded current-head source candidate now restores every named public route and redirect, separates the family example from real help, adds the visible browser-only family reset, adds truthful browser and hosted-entry recovery, completes close-confirm focus, adds page-specific next actions, uses literal family copy, and self-hosts both Passage fonts. The public conversion guard, all retained persona and security regressions, TypeScript, optimized build, and local 1440/390/360 plus deterministic 200 percent reflow checks pass. This is source and local evidence only. Distinct exact-head QA, review, Development Head approval, branch-only Preview, and hosted QA remain required. The certified checkpoint remains `0`.
 
 ## Canonical product decision — owner-approved 2026-07-18
 

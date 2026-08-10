@@ -6,6 +6,7 @@ import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
 import { DEFAULT_DRAFT, EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
+import { deriveDemoExpiry, formatDemoExpiry } from '../../lib/presentation/demo-expiry';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -16,10 +17,11 @@ const STEPS = [
 
 export default function TransferComposer() {
   const router = useRouter();
-  const { dispatch } = usePassageZero();
+  const { dispatch, persistenceIssue } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
   const [activating, setActivating] = useState(false);
+  const [activationMessage, setActivationMessage] = useState('');
   const stageHeading = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
 
@@ -59,16 +61,37 @@ export default function TransferComposer() {
   function activate() {
     if (!recipient || !expiry || included.length === 0) return;
     setActivating(true);
-    const activated: TransferDraft = { ...draft, activatedAt: new Date().toISOString() };
-    window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
-    dispatch({
-      type: 'issue_transfer_pass',
-      actorId: 'maya-rivera',
-      idempotencyKey: `family:issue:${activated.activatedAt}`,
-      scope: included.map((item) => ({ name: item.label, detail: item.detail })),
-      expiresLabel: expiry.moment,
-    });
-    router.push('/family/pass');
+    const activatedAt = new Date().toISOString();
+    const expiresAt = deriveDemoExpiry(activatedAt, expiry.id);
+    if (!expiresAt) {
+      setActivating(false);
+      return;
+    }
+    const activated: TransferDraft = { ...draft, activatedAt, expiresAt };
+    let sessionSaved = false;
+    try {
+      window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
+      sessionSaved = true;
+    } catch {
+      setActivationMessage('This example could not be saved for reload. It remains available for this visit only.');
+    }
+
+    try {
+      const sandboxResult = dispatch({
+        type: 'issue_transfer_pass',
+        actorId: 'maya-rivera',
+        idempotencyKey: `family:issue:${activated.activatedAt}`,
+        scope: included.map((item) => ({ name: item.label, detail: item.detail })),
+        expiresLabel: formatDemoExpiry(expiresAt) ?? expiry.moment,
+      });
+      if (!sandboxResult.persisted || !sessionSaved) {
+        setActivationMessage('The example was created for this visit, but this browser could not save it for reload. Continue to review it now.');
+      }
+      router.push('/demo/family/pass');
+    } catch {
+      setActivating(false);
+      setActivationMessage('The example handoff was not created. Your choices are unchanged. Try again.');
+    }
   }
 
   return (
@@ -78,7 +101,7 @@ export default function TransferComposer() {
           <span>SOFIA RIVERA</span>
           <strong>Family handoff</strong>
         </div>
-        <div className={styles.saveState}><span aria-hidden="true" /> Saved in this family space</div>
+        <div className={styles.saveState}><span aria-hidden="true" /> Saved in this browser demo</div>
       </div>
 
       <nav className={styles.steps} aria-label="Handoff steps">
@@ -109,7 +132,7 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>01 / RECEIVER</p>
-                <h1 ref={stageHeading} tabIndex={-1}>Who is expecting this handoff?</h1>
+                <h2 ref={stageHeading} tabIndex={-1}>Who is expecting this handoff?</h2>
                 <span>Choose one named organization. The pass will be made for them alone.</span>
               </div>
               <fieldset className={styles.recipientList}>
@@ -127,7 +150,7 @@ export default function TransferComposer() {
                       </span>
                       <span className={styles.recipientPerson}>
                         <strong>{item.person}</strong>
-                        <small>{available ? item.role : 'Available in a later partner slice'}</small>
+                        <small>{available ? item.role : 'Not available in this browser demo'}</small>
                       </span>
                       <span className={styles.radioMark} aria-hidden="true"><i /></span>
                     </label>
@@ -141,7 +164,7 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>02 / ACCESS</p>
-                <h1 ref={stageHeading} tabIndex={-1}>Choose exactly what they can open.</h1>
+                <h2 ref={stageHeading} tabIndex={-1}>Choose exactly what they can open.</h2>
                 <span>Every category starts private. Turn on only what this handoff needs.</span>
               </div>
               <fieldset className={styles.scopeList}>
@@ -172,8 +195,8 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>03 / TIMING</p>
-                <h1 ref={stageHeading} tabIndex={-1}>How long should the bridge stay open?</h1>
-                <span>The pass closes at the time shown. You can close it earlier from your family space.</span>
+                <h2 ref={stageHeading} tabIndex={-1}>How long should they have access?</h2>
+                <span>The example handoff closes at the time shown. You can close it earlier from this browser demo.</span>
               </div>
               <fieldset className={styles.expiryList}>
                 <legend className={styles.srOnly}>Access duration</legend>
@@ -206,7 +229,7 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>04 / REVIEW</p>
-                <h1 ref={stageHeading} tabIndex={-1}>One receiver. A clear boundary.</h1>
+                <h2 ref={stageHeading} tabIndex={-1}>Review who can open what.</h2>
                 <span>Check the complete handoff before it becomes available.</span>
               </div>
 
@@ -243,10 +266,11 @@ export default function TransferComposer() {
               </button>
             ) : (
               <button className={styles.activate} disabled={activating} onClick={activate} type="button">
-                {activating ? 'Creating preview pass...' : 'Create preview pass'} <span aria-hidden="true">-&gt;</span>
+                {activating ? 'Creating example handoff...' : 'Create example handoff'} <span aria-hidden="true">-&gt;</span>
               </button>
             )}
           </footer>
+          <p className={styles.liveRegion} aria-live="polite">{activationMessage || persistenceIssue || ''}</p>
         </section>
 
         <BoundarySignal recipient={recipient} included={included} excluded={excluded} expiry={expiry} />
