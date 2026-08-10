@@ -437,6 +437,50 @@ function testRealUrgentReceiverEvidenceScope() {
   );
 }
 
+function testRealParticipantLifecycleBindings() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const peopleComponent = fs.readFileSync(
+    path.join(repoRoot, 'app', 'family', 'people', 'ParticipantLifecycleControls.tsx'),
+    'utf8'
+  );
+  const peopleActions = fs.readFileSync(
+    path.join(repoRoot, 'app', 'family', 'people', 'actions.ts'),
+    'utf8'
+  );
+  const decision = fs.readFileSync(
+    path.join(repoRoot, 'app', 'invite', 'continue', 'ParticipantInvitationDecision.tsx'),
+    'utf8'
+  );
+  const inviteActions = fs.readFileSync(
+    path.join(repoRoot, 'app', 'invite', '[token]', 'actions.ts'),
+    'utf8'
+  );
+  const ledger = JSON.parse(fs.readFileSync(
+    path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json'),
+    'utf8'
+  ));
+  const contractIds = new Set(ledger.contracts.map((contract) => contract.id));
+  const required = [
+    'participant.coordinator.rotate_invitation',
+    'participant.invited.decline_invitation',
+    'participant.coordinator.cancel_invitation',
+    'participant.coordinator.revoke_access',
+  ];
+  const bound = peopleComponent.includes('action={rotateAction}')
+    && peopleComponent.includes('action={cancelAction}')
+    && peopleComponent.includes('action={accessAction}')
+    && decision.includes('action={declineAction}')
+    && peopleActions.includes("client.rpc('rotate_participant_invitation_idempotent'")
+    && peopleActions.includes("client.rpc('revoke_participant_invitation'")
+    && peopleActions.includes("client.rpc('revoke_continuity_participant_idempotent'")
+    && inviteActions.includes("client.rpc('decline_participant_invitation'");
+  report(
+    'integration: participant P2 lifecycle UI, Server Actions, RPCs, and ledger rows stay bound',
+    bound && required.every((id) => contractIds.has(id)),
+    `bound=${bound} ids=${required.filter((id) => contractIds.has(id)).length}/${required.length}`
+  );
+}
+
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
@@ -465,6 +509,7 @@ function main() {
     testRealPendingInvitationProjection();
     testRealUrgentReceiverBinding();
     testRealUrgentReceiverEvidenceScope();
+    testRealParticipantLifecycleBindings();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }

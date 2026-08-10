@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   acceptInvitation,
-  acceptParticipantInvitation,
   useAnotherInvitationAccount,
 } from '../[token]/actions';
 import {
@@ -21,6 +20,7 @@ import {
 } from '@/lib/presentation/participant-labels';
 import { createPassageServerClient } from '@/lib/supabase/server';
 import { AcceptInvitationButton } from '../[token]/AcceptInvitationButton';
+import { ParticipantInvitationDecision } from './ParticipantInvitationDecision';
 import styles from '../../login/Auth.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -226,11 +226,7 @@ export default async function InvitationPage({
               </div>
             )}
             {user && isParticipant && (
-              <form action={acceptParticipantInvitation} className={styles.nextStep}>
-                <strong>Accept this family invitation?</strong>
-                <p>Passage will save this account and the acceptance time. You will see only the items listed above.</p>
-                <AcceptInvitationButton />
-              </form>
+              <ParticipantInvitationDecision />
             )}
             {user && !isParticipant && (
               <form action={acceptInvitation} className={styles.nextStep}>
@@ -242,7 +238,11 @@ export default async function InvitationPage({
           </>
         )}
         {showTerminalState && invitation && (
-          <TerminalInvitationState state={invitation.invitation_state} userSignedIn={Boolean(user)} />
+          <TerminalInvitationState
+            participantInvitation={isParticipant}
+            state={invitation.invitation_state}
+            userSignedIn={Boolean(user)}
+          />
         )}
         <footer className={styles.privacy}>
           {canIdentifyInvitation && isParticipant
@@ -293,9 +293,11 @@ function FailureRecovery({
 }
 
 function TerminalInvitationState({
+  participantInvitation,
   state,
   userSignedIn,
 }: {
+  participantInvitation: boolean;
   state: PassageInvitationInspection['invitation_state'];
   userSignedIn: boolean;
 }) {
@@ -339,7 +341,7 @@ function TerminalInvitationState({
   return (
     <div className={styles.alert} role="status">
       <strong>This invitation is no longer available.</strong>
-      <p>Ask the inviter if you still need access.</p>
+      <p>Ask the {participantInvitation ? 'family coordinator' : 'inviter'} if you still need access.</p>
       <Link className={styles.textLink} href="/">Return to Passage</Link>
     </div>
   );

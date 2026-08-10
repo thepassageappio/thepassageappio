@@ -19,6 +19,7 @@ export type ContinuityParticipant = {
   status: 'active' | 'revoked';
   accepted_at: string;
   revoked_at: string | null;
+  outcome_note?: string | null;
 };
 
 export type ParticipantInvitation = {
@@ -35,6 +36,7 @@ export type ParticipantInvitation = {
   revoked_at: string | null;
   created_at: string;
   lifecycle_state: 'available' | 'accepted' | 'declined' | 'revoked' | 'expired';
+  outcome_note: string | null;
 };
 
 export type FamilyPeopleProjection =

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { firstRpcRow } from '@/lib/auth/invitations';
+import { firstRpcRow, validInvitationToken } from '@/lib/auth/invitations';
 import { verifiedUser } from '@/lib/auth/session';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
@@ -17,6 +17,72 @@ type InvitationReceipt = {
   delivery_state: 'not_sent';
   replayed: boolean;
 };
+
+type RotationReceipt = {
+  invitation_id: string;
+  raw_token: string | null;
+  invitation_expires_at: string;
+  invitation_created_at: string;
+  invitation_state: 'available' | 'accepted' | 'revoked' | 'expired';
+  delivery_state: 'not_sent';
+  replayed: boolean;
+};
+
+type InvitationRevocationReceipt = {
+  invitation_id: string;
+  revoked_at: string;
+  event_id: string;
+  replayed: boolean;
+};
+
+type ParticipantRevocationReceipt = {
+  participant_id: string;
+  revoked_at: string;
+  event_id: string;
+  replayed: boolean;
+};
+
+type LifecycleErrorKind = 'known_failure' | 'stale' | 'verification';
+
+export type CoordinatorLifecycleState =
+  | { status: 'idle' }
+  | { status: 'error'; kind: LifecycleErrorKind; message: string }
+  | {
+      status: 'rotated';
+      previousInvitationId: string;
+      invitationId: string;
+      rawToken: string | null;
+      createdAt: string;
+      expiresAt: string;
+      replayed: boolean;
+    }
+  | { status: 'canceled'; invitationId: string; changedAt: string; replayed: boolean }
+  | { status: 'access-ended'; participantId: string; changedAt: string; replayed: boolean };
+
+const CANCELLATION_REASON = 'Family coordinator canceled the invitation';
+const ACCESS_END_REASON = 'Family coordinator ended participant access';
+
+function lifecycleError(message: string, fallback: string): CoordinatorLifecycleState {
+  const normalized = message.toLowerCase();
+  const stale = normalized.includes('conflict')
+    || normalized.includes('accepted invitation')
+    || normalized.includes('no longer available')
+    || normalized.includes('cannot be rotated')
+    || normalized.includes('instead of revoking')
+    || normalized.includes('invitation is unavailable')
+    || normalized.includes('participant access is unavailable');
+  return stale
+    ? {
+        status: 'error',
+        kind: 'stale',
+        message: 'This access changed in another session. Reload People to see the current state before acting again.',
+      }
+    : { status: 'error', kind: 'known_failure', message: fallback };
+}
+
+function verifiedTimestamp(value: unknown) {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
 
 export type InviteParticipantState =
   | { status: 'idle' }
@@ -129,5 +195,149 @@ export async function createParticipantInvitation(
     categoryScope,
     createdAt: receipt.invitation_created_at,
     expiresAt: receipt.invitation_expires_at,
+  };
+}
+
+export async function rotateParticipantInvitation(
+  _previous: CoordinatorLifecycleState,
+  formData: FormData,
+): Promise<CoordinatorLifecycleState> {
+  const invitationId = String(formData.get('invitationId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const requestedAt = String(formData.get('requestedAt') ?? '');
+  const expiryDays = Number(formData.get('expiryDays') ?? 7);
+  const requestedAtMs = Date.parse(requestedAt);
+  const now = Date.now();
+  if (!UUID.test(invitationId) || !UUID.test(requestId)) {
+    return { status: 'error', kind: 'stale', message: 'Reload People before creating a replacement link.' };
+  }
+  if (![7, 14, 30].includes(expiryDays)
+      || !Number.isFinite(requestedAtMs)
+      || requestedAtMs > now + 5 * 60 * 1000
+      || requestedAtMs < now - 24 * 60 * 60 * 1000) {
+    return { status: 'error', kind: 'known_failure', message: 'Choose a new link length of 7, 14, or 30 days.' };
+  }
+
+  const expiresAt = new Date(requestedAtMs + expiryDays * 24 * 60 * 60 * 1000).toISOString();
+  const client = await createPassageServerClient();
+  if (!client || !await verifiedUser(client)) {
+    return { status: 'error', kind: 'known_failure', message: 'Sign in again before creating a replacement link. Nothing changed.' };
+  }
+  const result = await client.rpc('rotate_participant_invitation_idempotent', {
+    p_invitation_id: invitationId,
+    p_expires_at: expiresAt,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    return lifecycleError(result.error.message, 'Passage could not create the replacement link. Nothing changed; try again.');
+  }
+  const receipt = firstRpcRow<RotationReceipt>(result.data);
+  if (!receipt
+      || receipt.invitation_id === invitationId
+      || !UUID.test(receipt.invitation_id)
+      || !verifiedTimestamp(receipt.invitation_created_at)
+      || !verifiedTimestamp(receipt.invitation_expires_at)
+      || receipt.invitation_state !== 'available'
+      || receipt.delivery_state !== 'not_sent'
+      || (receipt.replayed
+        ? receipt.raw_token !== null
+        : !receipt.raw_token || !validInvitationToken(receipt.raw_token))) {
+    return {
+      status: 'error',
+      kind: 'verification',
+      message: 'Passage could not confirm the saved replacement. Reload People before sharing any link.',
+    };
+  }
+  revalidatePath('/family/people');
+  return {
+    status: 'rotated',
+    previousInvitationId: invitationId,
+    invitationId: receipt.invitation_id,
+    rawToken: receipt.raw_token,
+    createdAt: receipt.invitation_created_at,
+    expiresAt: receipt.invitation_expires_at,
+    replayed: receipt.replayed,
+  };
+}
+
+export async function cancelParticipantInvitation(
+  _previous: CoordinatorLifecycleState,
+  formData: FormData,
+): Promise<CoordinatorLifecycleState> {
+  const invitationId = String(formData.get('invitationId') ?? '');
+  if (!UUID.test(invitationId)) {
+    return { status: 'error', kind: 'stale', message: 'Reload People before canceling this invitation.' };
+  }
+  const client = await createPassageServerClient();
+  if (!client || !await verifiedUser(client)) {
+    return { status: 'error', kind: 'known_failure', message: 'Sign in again before canceling this invitation. Nothing changed.' };
+  }
+  const result = await client.rpc('revoke_participant_invitation', {
+    p_invitation_id: invitationId,
+    p_reason: CANCELLATION_REASON,
+  });
+  if (result.error) {
+    return lifecycleError(result.error.message, 'Passage could not cancel the invitation. Nothing changed; try again.');
+  }
+  const receipt = firstRpcRow<InvitationRevocationReceipt>(result.data);
+  if (!receipt
+      || receipt.invitation_id !== invitationId
+      || !UUID.test(receipt.event_id)
+      || !verifiedTimestamp(receipt.revoked_at)) {
+    return {
+      status: 'error',
+      kind: 'verification',
+      message: 'Passage could not confirm whether the invitation was canceled. Reload People before acting again.',
+    };
+  }
+  revalidatePath('/family/people');
+  return {
+    status: 'canceled',
+    invitationId,
+    changedAt: receipt.revoked_at,
+    replayed: receipt.replayed,
+  };
+}
+
+export async function endParticipantAccess(
+  _previous: CoordinatorLifecycleState,
+  formData: FormData,
+): Promise<CoordinatorLifecycleState> {
+  const participantId = String(formData.get('participantId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  if (!UUID.test(participantId) || !UUID.test(requestId)) {
+    return { status: 'error', kind: 'stale', message: 'Reload People before ending this access.' };
+  }
+  const client = await createPassageServerClient();
+  if (!client || !await verifiedUser(client)) {
+    return { status: 'error', kind: 'known_failure', message: 'Sign in again before ending this access. Nothing changed.' };
+  }
+  const result = await client.rpc('revoke_continuity_participant_idempotent', {
+    p_participant_id: participantId,
+    p_reason: ACCESS_END_REASON,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    return lifecycleError(result.error.message, 'Passage could not end this access. Nothing changed; try again.');
+  }
+  const receipt = firstRpcRow<ParticipantRevocationReceipt>(result.data);
+  if (!receipt
+      || receipt.participant_id !== participantId
+      || !UUID.test(receipt.event_id)
+      || !verifiedTimestamp(receipt.revoked_at)) {
+    return {
+      status: 'error',
+      kind: 'verification',
+      message: 'Passage could not confirm whether access ended. Reload People before acting again.',
+    };
+  }
+  revalidatePath('/family/people');
+  revalidatePath('/participant');
+  revalidatePath('/case/[id]/messages', 'page');
+  return {
+    status: 'access-ended',
+    participantId,
+    changedAt: receipt.revoked_at,
+    replayed: receipt.replayed,
   };
 }

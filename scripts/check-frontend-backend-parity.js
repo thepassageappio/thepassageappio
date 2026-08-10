@@ -60,6 +60,10 @@ const REQUIRED_PARTICIPANT_CONTRACT_IDS = [
   'participant.invited.inspect_invitation',
   'participant.invited.accept_invitation',
   'participant.invited.open_shared_updates',
+  'participant.coordinator.rotate_invitation',
+  'participant.invited.decline_invitation',
+  'participant.coordinator.cancel_invitation',
+  'participant.coordinator.revoke_access',
 ];
 const REQUIRED_ACTIVE_CONTRACT_IDS = [
   ...REQUIRED_CYCLE8_CONTRACT_IDS,

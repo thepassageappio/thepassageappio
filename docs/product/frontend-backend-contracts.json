@@ -1078,7 +1078,9 @@
       "evidence_test_references": [
         "supabase/tests/workflow_messages_client_projection.sql",
         "scripts/test-workflow-messaging-security.js",
-        "scripts/test-frontend-backend-parity.js"
+        "scripts/test-frontend-backend-parity.js",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql",
+        "scripts/test-participant-invitation-lifecycle-races.mjs"
       ]
     },
     {
@@ -1660,6 +1662,7 @@
       "failure_recovery_states": [
         "signed-out redirects to invitation-aware sign-in",
         "missing or revoked access renders no stale family detail and names the coordinator recovery",
+        "after committed coordinator revocation the next request returns zero space, participant, and family-update rows without relying on browser state",
         "a space with no linked workflow renders a calm empty state",
         "non-updates scope receives no family-update projection and no raw table rows",
         "multiple active family spaces are listed without silently selecting the first",
@@ -1669,7 +1672,220 @@
       "evidence_test_references": [
         "scripts/test-participant-invitation-security.js",
         "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
-        "supabase/tests/participant_updates_case_scope.sql"
+        "supabase/tests/participant_updates_case_scope.sql",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.rotate_invitation",
+      "cycle": "P2",
+      "capability": "A family coordinator replaces an available or expired participant invitation and receives one new manual-share link while the old link closes",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/ParticipantLifecycleControls.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css"
+        ],
+        "note": "The coordinator confirms replacement beside the affected invitation. A page-level receipt shows the raw replacement once in a read-only copy field, never as a navigation link, and the old invitation leaves the actionable list only after the durable receipt is verified."
+      },
+      "action_status": "available or expired -> confirmed replacement -> old invitation revoked and one available child invitation created; exact replay returns no bearer and conflict requires reload",
+      "server_command": "public.rotate_participant_invitation_idempotent(p_invitation_id uuid, p_expires_at timestamptz, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "participant_invitations", "cardinality": "one old invitation changes from available or expired to revoked and exactly one replacement row references it through rotates_invitation_id" },
+        { "table": "workflow_events", "cardinality": "exactly one participant_invitation.rotated event for the old row and one participant_invitation.created event for the replacement" }
+      ],
+      "rls_authority_predicate": "The command derives auth.uid() and requires passage_private.can_manage_continuity_space for the old invitation's exact active space. Accepted, declined, canceled, unrelated, and malformed invitations remain closed.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.rotated and participant_invitation.created",
+        "idempotency_key": "participant_invitation:<old invitation id>:rotated and participant_invitation:<replacement invitation id>:created"
+      },
+      "failure_recovery_states": [
+        "validation or authority failure states that nothing changed",
+        "a stale terminal-state or altered-request conflict directs the coordinator to reload People",
+        "a malformed receipt makes no success claim and directs reload before sharing",
+        "same request and expiry returns the saved replacement with no raw token or duplicate row/event",
+        "clipboard denial focuses and selects the read-only link for manual copy; reload, navigation, back restoration, or reconnect removes it"
+      ],
+      "persona_projection": "The coordinator sees the person's human name, relationship, category, expiration, old-link consequence, one-time replacement link, proof destination, audience, and recovery. UUIDs, token hints, event keys, and stored reason text are never rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.decline_invitation",
+      "cycle": "P2",
+      "capability": "The exact verified invited account declines an available participant invitation without receiving family access",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": "app/invite/continue/ParticipantInvitationDecision.tsx",
+        "files": [
+          "app/invite/continue/page.tsx",
+          "app/invite/continue/ParticipantInvitationDecision.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/login/Auth.module.css",
+          "lib/auth/invitations.ts"
+        ],
+        "note": "Accept remains the primary decision. Decline opens a lower-emphasis inline confirmation and, after verified success, replaces every decision control with a saved receipt for the current interaction."
+      },
+      "action_status": "available -> declining -> declined receipt with zero participant grant; same actor and fixed reason replay returns the original receipt",
+      "server_command": "public.decline_participant_invitation(p_raw_token text, p_reason text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/[token]/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "participant_invitations", "cardinality": "one invitation is revoked by the exact verified invited account" },
+        { "table": "continuity_participants", "cardinality": "zero participant rows are added by decline" },
+        { "table": "workflow_events", "cardinality": "exactly one participant_invitation.declined event" }
+      ],
+      "rls_authority_predicate": "The Server Action reads the bearer only from the secure httpOnly intent. The RPC derives auth.uid() and verified email and requires an exact available invitation/email match under a row lock.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.declined",
+        "idempotency_key": "participant_invitation:<invitation id>:declined"
+      },
+      "failure_recovery_states": [
+        "wrong account, expired, accepted, canceled, and unknown invitation attempts add no grant or event",
+        "changed stored state requires reload and reveals no protected invitation detail",
+        "verification uncertainty makes no claim that nothing changed and requires reload",
+        "same actor and fixed reason returns the original time/event with no duplicate"
+      ],
+      "persona_projection": "The verified current-interaction receipt shows only declined outcome, saved time, audience, proof destination, zero-access truth, and recovery. Terminal reload shows no inviter, family, relationship, purpose, scope, email, case, message, or token detail.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.cancel_invitation",
+      "cycle": "P2",
+      "capability": "A family coordinator cancels one pending participant invitation before access is granted",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/ParticipantLifecycleControls.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css"
+        ],
+        "note": "Cancellation is available only beside a waiting invitation, uses an inline consequence confirmation, and removes the waiting control only after a verified saved receipt."
+      },
+      "action_status": "available -> confirmed cancellation -> invitation revoked and retained as Invitation canceled history with zero grant",
+      "server_command": "public.revoke_participant_invitation(p_invitation_id uuid, p_reason text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "participant_invitations", "cardinality": "one pending invitation changes to revoked with server actor/time and the fixed cancellation reason" },
+        { "table": "continuity_participants", "cardinality": "zero participant rows are added" },
+        { "table": "workflow_events", "cardinality": "exactly one participant_invitation.revoked event" }
+      ],
+      "rls_authority_predicate": "The RPC derives auth.uid() and requires passage_private.can_manage_continuity_space for the invitation. Accepted invitations and unrelated coordinators cannot use this command.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.revoked",
+        "idempotency_key": "participant_invitation:<invitation id>:revoked"
+      },
+      "failure_recovery_states": [
+        "signed-out, unrelated owner, participant, staff, vendor, accepted, and malformed requests make no partial write",
+        "same fixed reason returns the original receipt without another event",
+        "changed reason or a competing acceptance requires reload",
+        "old-link inspection becomes minimum-safe and exposes no action or protected detail"
+      ],
+      "persona_projection": "The coordinator sees Invitation canceled in history without stored reason text. The invited person sees only that the invitation is no longer available and should ask the family coordinator if access is still needed.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.revoke_access",
+      "cycle": "P2",
+      "capability": "A family coordinator ends one active participant's access while preserving append-only invitation and access history",
+      "status": "source_partial",
+      "persona": ["family", "participant"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people and /participant",
+        "component": [
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/participant/page.tsx"
+        ],
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css",
+          "app/participant/page.tsx",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The coordinator confirms the exact person and immediate consequence. Verified success moves the person out of active access and Past access preserves human relationship, prior categories, began time, and ended time without a restore control."
+      },
+      "action_status": "active -> confirmed access ending -> revoked; next participant update and message request is denied while prior invitation/activity history remains",
+      "server_command": "public.revoke_continuity_participant_idempotent(p_participant_id uuid, p_reason text, p_request_id uuid); revocation is enforced by list_participant_continuity_spaces(), list_continuity_participant_projection(), list_participant_family_updates(), list_workflow_messages_client_safe(uuid), and post_workflow_message_idempotent(uuid,text,uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "app/family/people/actions.ts",
+        "lib/continuity/participants.ts"
+      ],
+      "durable_tables": [
+        { "table": "continuity_participants", "cardinality": "exactly one active row changes to revoked with actor, time, and fixed reason" },
+        { "table": "participant_invitations", "cardinality": "accepted invitation remains accepted and linked; no invitation row is deleted" },
+        { "table": "workflow_events", "cardinality": "exactly one continuity_participant.revoked event" },
+        { "table": "workflow_messages", "cardinality": "a participant post begun after committed revocation adds zero message rows" }
+      ],
+      "rls_authority_predicate": "The revocation command derives auth.uid() and requires coordinator authority for the participant's exact active space. Every participant update and message predicate independently requires the same auth.uid()-bound participant row to remain active with updates scope.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "continuity_participant.revoked",
+        "idempotency_key": "continuity_participant:<participant id>:revoked"
+      },
+      "failure_recovery_states": [
+        "unrelated coordinator, participant self-revocation, staff, vendor, and malformed requests make no partial write",
+        "same request and reason returns the original receipt without another event",
+        "changed reason conflicts and directs reload",
+        "verification uncertainty makes no claim that access ended",
+        "the revoked account receives empty participant projections, message list/post denial, and no raw workflow/task/event/proof/review rows on its next request"
+      ],
+      "persona_projection": "The coordinator sees Access ended and a Past access record with human labels and times. The revoked participant sees a closed Shared with me state and no stale family or message detail. No restore action, internal identifier, event key, or stored reason is rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql",
+        "supabase/tests/participant_updates_case_scope.sql",
+        "supabase/tests/workflow_messages_client_projection.sql"
       ]
     }
   ]

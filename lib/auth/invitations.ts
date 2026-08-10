@@ -41,6 +41,13 @@ export type ParticipantInvitationAcceptance = {
   replayed: boolean;
 };
 
+export type ParticipantInvitationDeclineReceipt = {
+  invitation_id: string;
+  declined_at: string;
+  event_id: string;
+  replayed: boolean;
+};
+
 export function validInvitationToken(value: string) {
   return /^[A-Za-z0-9_-]{32,256}$/.test(value);
 }

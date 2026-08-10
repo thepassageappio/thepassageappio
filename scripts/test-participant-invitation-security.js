@@ -19,13 +19,17 @@ const files = {
   familyPage: read('app/family/page.tsx'),
   peoplePage: read('app/family/people/page.tsx'),
   peopleForm: read('app/family/people/InviteParticipantForm.tsx'),
+  peopleLifecycle: read('app/family/people/ParticipantLifecycleControls.tsx'),
   peopleActions: read('app/family/people/actions.ts'),
+  participantDecision: read('app/invite/continue/ParticipantInvitationDecision.tsx'),
   participantPage: read('app/participant/page.tsx'),
   participantLoader: read('lib/continuity/participants.ts'),
   labels: read('lib/presentation/participant-labels.ts'),
   contracts: read('docs/product/frontend-backend-contracts.json'),
   migration: read('supabase/migrations/20260730021524_participant_updates_case_scope.sql'),
   sqlMatrix: read('supabase/tests/participant_updates_case_scope.sql'),
+  lifecycleMatrix: read('supabase/tests/participant_invitation_lifecycle_p2.sql'),
+  lifecycleRaces: read('scripts/test-participant-invitation-lifecycle-races.mjs'),
 };
 
 const combinedPersona = [
@@ -34,6 +38,8 @@ const combinedPersona = [
   files.loginPage,
   files.peoplePage,
   files.peopleForm,
+  files.peopleLifecycle,
+  files.participantDecision,
   files.participantPage,
 ].join('\n');
 const participantProjectionSignature = files.migration.match(
@@ -199,12 +205,80 @@ const assertions = [
       && !combinedPersona.includes('runtime binding')],
   ['central human category labels remain on coordinator and invitation surfaces',
     files.labels.includes("updates: 'Family updates'")
-      && files.peoplePage.includes('participantCategoryLabels')
+      && files.peopleLifecycle.includes('participantCategoryLabels')
       && files.continuePage.includes('participantCategoryLabels')],
-  ['P2 mutation controls remain absent from P1',
-    !/(rotateParticipant|revokeParticipant|declineParticipant|revokeContinuity)/.test(
-      files.peoplePage + files.peopleActions + files.continuePage + files.inviteActions,
-    )],
+  ['P2 coordinator controls bind only the existing authoritative commands',
+    files.peopleActions.includes('export async function rotateParticipantInvitation(')
+      && files.peopleActions.includes('export async function cancelParticipantInvitation(')
+      && files.peopleActions.includes('export async function endParticipantAccess(')
+      && files.peopleActions.includes("client.rpc('rotate_participant_invitation_idempotent'")
+      && files.peopleActions.includes("client.rpc('revoke_participant_invitation'")
+      && files.peopleActions.includes("client.rpc('revoke_continuity_participant_idempotent'")
+      && files.peopleActions.includes("const CANCELLATION_REASON = 'Family coordinator canceled the invitation'")
+      && files.peopleActions.includes("const ACCESS_END_REASON = 'Family coordinator ended participant access'")],
+  ['P2 decline reads only the server-held intent and uses one fixed private reason',
+    files.inviteActions.includes('export async function declineParticipantInvitation(')
+      && files.inviteActions.includes('const token = await readInvitationIntent()')
+      && files.inviteActions.includes("const DECLINE_REASON = 'Invited person declined the invitation'")
+      && files.inviteActions.includes("client.rpc('decline_participant_invitation'")
+      && !files.participantDecision.includes('p_raw_token')
+      && !files.participantDecision.includes('DECLINE_REASON')],
+  ['P2 lifecycle controls render only in valid states and never offer restore',
+    files.peopleLifecycle.includes("invitation.lifecycle_state === 'available'")
+      && files.peopleLifecycle.includes("const canReplace = invitation.lifecycle_state === 'expired'")
+      && files.peopleLifecycle.includes("participant.status === 'active'")
+      && files.peopleLifecycle.includes('ParticipantLifecycleControls')
+      && !/restore|reinstate/i.test(files.peopleLifecycle)],
+  ['P2 one-time replacement bearer stays in a stable non-navigation copy receipt',
+    files.peoplePage.includes('<ParticipantLifecycleControls')
+      && files.peopleLifecycle.indexOf('replacementReceipt') < files.peopleLifecycle.indexOf('WAITING FOR A RESPONSE')
+      && files.peopleLifecycle.includes('readOnly ref={secureLinkInput} value={secureLink}')
+      && files.peopleLifecycle.includes('navigator.clipboard.writeText(secureLink)')
+      && files.peopleLifecycle.includes("window.addEventListener('pageshow'")
+      && files.peopleLifecycle.includes("window.addEventListener('online'")
+      && !files.peopleLifecycle.includes('<Link')
+      && !/(localStorage|sessionStorage|indexedDB|document\.cookie|analytics|console\.)/.test(files.peopleLifecycle)],
+  ['P2 participant decision removes both controls after verified decline',
+    files.participantDecision.includes("if (declineState.status === 'declined')")
+      && files.participantDecision.includes('Invitation declined.')
+      && files.participantDecision.includes('No family access was added')
+      && files.participantDecision.includes('action={acceptParticipantInvitation}')
+      && files.participantDecision.includes('action={declineAction}')
+      && files.participantDecision.indexOf("if (declineState.status === 'declined')")
+        < files.participantDecision.indexOf('action={acceptParticipantInvitation}')],
+  ['P2 human history and past access omit stored reason text and restore controls',
+    files.peopleLifecycle.includes("return 'Invitation declined'")
+      && files.peopleLifecycle.includes("return 'Invitation canceled'")
+      && files.peopleLifecycle.includes("return 'Invitation replaced'")
+      && files.peopleLifecycle.includes('PAST ACCESS')
+      && files.peopleLifecycle.includes('Former access')
+      && !files.peopleLifecycle.includes('{invitation.outcome_note}')
+      && !files.peopleLifecycle.includes('{person.outcome_note}')],
+  ['P2 terminal participant copy is minimum-safe and excludes protected fields',
+    terminalStateComponent.includes("participantInvitation ? 'family coordinator' : 'inviter'")
+      && terminalStateComponent.includes('This invitation is no longer available.')
+      && !/(inviter_display_name|space_name|invitation_role|scope_labels|invitation_purpose|invitation_expires_at)/.test(terminalStateComponent)],
+  ['P2 rollback matrix is isolated, guarded, lifecycle-complete, and rollback-only',
+    files.lifecycleMatrix.includes("set passage.test_project_ref = 'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleMatrix.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleMatrix.includes("where name = 'participant_invitation_thin_slice'")
+      && files.lifecycleMatrix.includes('rotate_participant_invitation_idempotent')
+      && files.lifecycleMatrix.includes('decline_participant_invitation')
+      && files.lifecycleMatrix.includes('revoke_participant_invitation')
+      && files.lifecycleMatrix.includes('revoke_continuity_participant_idempotent')
+      && files.lifecycleMatrix.includes('list_participant_family_updates')
+      && files.lifecycleMatrix.includes('list_workflow_messages_client_safe')
+      && files.lifecycleMatrix.includes('post_workflow_message_idempotent')
+      && files.lifecycleMatrix.trimEnd().endsWith('rollback;')],
+  ['P2 race harness covers every frozen competing command',
+    files.lifecycleRaces.includes('rotate versus accept')
+      && files.lifecycleRaces.includes('rotate versus cancel')
+      && files.lifecycleRaces.includes('decline versus accept')
+      && files.lifecycleRaces.includes('cancel versus accept')
+      && files.lifecycleRaces.includes('message post after committed revocation')
+      && files.lifecycleRaces.includes('Promise.all')
+      && files.lifecycleRaces.includes("'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")],
   ['participant invitation copy makes no unsupported delivery claim',
     !/\b(received|resend|delivered|opened)\b/i.test(
       files.peoplePage + files.peopleForm + files.participantPage,
@@ -228,4 +302,4 @@ for (const [name, passed] of assertions) {
   }
 }
 if (failed) process.exit(1);
-console.log(`PASS participant invitation P1 security/source guard (${assertions.length}/${assertions.length})`);
+console.log(`PASS participant invitation P1 and P2 security/source guard (${assertions.length}/${assertions.length})`);

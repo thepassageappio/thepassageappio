@@ -2,24 +2,13 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { signOut } from '@/app/auth/actions';
 import { loadFamilyPeople } from '@/lib/continuity/participants';
-import { participantCategoryLabels } from '@/lib/presentation/participant-labels';
 import { createFamilySpace } from './actions';
 import { InviteParticipantForm } from './InviteParticipantForm';
+import { ParticipantLifecycleControls } from './ParticipantLifecycleControls';
 import styles from './People.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-function dateTime(value: string) {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  }).format(new Date(value));
-}
 
 export default async function FamilyPeoplePage({
   searchParams,
@@ -37,7 +26,16 @@ export default async function FamilyPeoplePage({
 
   const active = projection.participants.filter((participant) => participant.status === 'active');
   const waiting = projection.invitations.filter((invitation) => invitation.lifecycle_state === 'available');
-  const history = projection.invitations.filter((invitation) => invitation.lifecycle_state !== 'available');
+  const rotationRequestedAt = new Date().toISOString();
+  const participantControls = projection.participants.map((participant) => ({
+    ...participant,
+    revocationRequestId: randomUUID(),
+  }));
+  const invitationControls = projection.invitations.map((invitation) => ({
+    ...invitation,
+    rotationRequestId: randomUUID(),
+    rotationRequestedAt,
+  }));
   const notice = query.notice === 'family-created'
     ? 'Your private family space is ready. No one else has access yet.'
     : null;
@@ -82,43 +80,12 @@ export default async function FamilyPeoplePage({
               <div className={styles.sectionHeading}><div><p>INVITE SOMEONE</p><h2 id="invite-title">Give one person one clear purpose.</h2></div><span>Not sent by Passage</span></div>
               <InviteParticipantForm continuitySpaceId={projection.ownedSpace.id} requestId={randomUUID()} />
             </section>
-            <PeopleSection count={active.length} eyebrow="PEOPLE WITH ACCESS" title="People who can open shared information now.">
-              {active.length ? active.map((person) => (
-                <article className={styles.personCard} key={person.id}>
-                  <header><div><strong>{person.display_name}</strong><span>{person.relationship}</span></div><b>Access active</b></header>
-                  <dl className={styles.facts}><div><dt>Purpose</dt><dd>{person.purpose}</dd></div><div><dt>Can see</dt><dd>{participantCategoryLabels(person.category_scope).join(', ')}</dd></div><div><dt>Access began</dt><dd><time dateTime={person.accepted_at}>{dateTime(person.accepted_at)}</time></dd></div><div><dt>Who controls access</dt><dd>The family coordinator</dd></div></dl>
-                </article>
-              )) : <Empty title="No one else has access." body="Create an invitation when you are ready to ask someone for help." />}
-            </PeopleSection>
-            <PeopleSection count={waiting.length} eyebrow="WAITING FOR A RESPONSE" title="Invitations that can still be accepted.">
-              {waiting.length ? waiting.map((invitation) => (
-                <article className={styles.personCard} key={invitation.id}>
-                  <header><div><strong>{invitation.display_name}</strong><span>{invitation.relationship}</span></div><b>Not sent by Passage</b></header>
-                  <dl className={styles.facts}><div><dt>Email named for this invitation</dt><dd>{invitation.invited_email}</dd></div><div><dt>Purpose</dt><dd>{invitation.purpose}</dd></div><div><dt>Can see</dt><dd>{participantCategoryLabels(invitation.category_scope).join(', ')}</dd></div><div><dt>Expires</dt><dd><time dateTime={invitation.expires_at}>{dateTime(invitation.expires_at)}</time></dd></div><div><dt>Next</dt><dd>Share the secure link you copied when the invitation was created</dd></div></dl>
-                </article>
-              )) : <Empty title="No one is waiting." body="Accepted and ended invitations never appear here." />}
-            </PeopleSection>
-            <PeopleSection count={history.length} eyebrow="INVITATION HISTORY" title="Earlier invitation outcomes saved here.">
-              {history.length ? history.map((invitation) => (
-                <article className={styles.historyRow} key={invitation.id}>
-                  <div><strong>{invitation.display_name}</strong><span>{invitation.relationship}</span></div>
-                  <p>{invitation.lifecycle_state === 'accepted' ? 'Invitation accepted' : invitation.lifecycle_state === 'expired' ? 'Invitation expired' : 'Invitation no longer available'}</p>
-                </article>
-              )) : <Empty title="No earlier invitation outcomes." body="Accepted, expired, or ended invitations will stay here as history." />}
-            </PeopleSection>
+            <ParticipantLifecycleControls invitations={invitationControls} participants={participantControls} />
           </>
         )}
       </div>
     </main>
   );
-}
-
-function PeopleSection({ count, eyebrow, title, children }: { count: number; eyebrow: string; title: string; children: React.ReactNode }) {
-  return <section className={styles.section}><div className={styles.sectionHeading}><div><p>{eyebrow}</p><h2>{title}</h2></div><span>{count}</span></div><div className={styles.list}>{children}</div></section>;
-}
-
-function Empty({ title, body }: { title: string; body: string }) {
-  return <div className={styles.empty} role="status"><strong>{title}</strong><p>{body}</p></div>;
 }
 
 function Closed({ title, body, href, action }: { title: string; body: string; href: string; action: string }) {

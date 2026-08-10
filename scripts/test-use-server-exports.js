@@ -11,8 +11,12 @@ const requiredCycle8ServerActions = [
 const requiredParticipantServerActions = [
   { file: 'app/family/people/actions.ts', exportName: 'createFamilySpace' },
   { file: 'app/family/people/actions.ts', exportName: 'createParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'rotateParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'cancelParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'endParticipantAccess' },
   { file: 'app/invite/[token]/actions.ts', exportName: 'acceptInvitation' },
   { file: 'app/invite/[token]/actions.ts', exportName: 'acceptParticipantInvitation' },
+  { file: 'app/invite/[token]/actions.ts', exportName: 'declineParticipantInvitation' },
   { file: 'app/invite/[token]/actions.ts', exportName: 'useAnotherInvitationAccount' },
 ];
 
