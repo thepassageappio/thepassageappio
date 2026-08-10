@@ -1,6 +1,163 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-29 (America/Los_Angeles)
+## Product Lane B - Participant invitation P2 reachable lifecycle controls - PM Sprint Brief - 2026-08-09
+
+Status: **PM COMPLETE / UX REVIEW REQUIRED / ENGINEERING NOT STARTED / SOURCE ONLY / NON-PRODUCTION**.
+
+### Role, input, and product decision
+
+- Product Manager: `/root/pm_participant_p2_build`, distinct from the P1 implementer, future P2 UX, Engineering, QA, Independent Agent Reviewer, Development Head, Deploy, and Production roles.
+- Prior handoff received: the owner-approved 2026-08-09 launch-delivery recovery controls and exact clean combined participant head `12939632aeaaebb00cc066d7468448321cae9c7c` on `integrate/participant-87c-combined`.
+- Exact PM worktree: `.release-train-clean/.participant-p2-plan` on branch `plan/participant-p2-lifecycle`, created from that exact clean head. This worktree may change only the living context for the PM handoff.
+- Material Product Direction or Scope Change: **NO**. This implements the already-queued P2 participant lifecycle in the canonical roadmap. No roadmap or readiness-score change is authorized.
+- UX Review: **REQUIRED** before Engineering because `/family/people` and `/invite/continue` gain reachable controls, receipts, destructive confirmations, recovery copy, focus behavior, and mobile layouts.
+- Owner gate: **NONE**. This uses existing isolated non-production authority, changes no pricing, spend, Production data, or material legal/privacy/security decision, and requires no routine founder review.
+- Certified whole-platform checkpoint: **0**. This packet earns no credit until the applicable complete checkpoint matrix passes.
+
+### Completed P1 findings that control P2
+
+- P1 is incorporated in the exact base. Its secure raw-link exchange, server-held httpOnly invitation intent, exact-user acceptance, bounded multi-space participant projection, owner-only raw case authority, append-only invitation events, RLS denials, and corrected SQL artifacts must not regress.
+- The combined P1 source gates passed except that the exact combined-head optimized build remained PARTIAL because the restricted runner could not fetch the configured Google fonts. Hosted Preview QA remains NOT RUN on this base. P2 cannot inherit or restate a hosted or build PASS from another head.
+- The existing schema already provides all four required lifecycle commands: `public.rotate_participant_invitation_idempotent`, `public.decline_participant_invitation`, `public.revoke_participant_invitation`, and `public.revoke_continuity_participant_idempotent`.
+- Those commands already bind the authenticated actor, coordinator or invited-email authority, row locks, terminal-state constraints, idempotency or stable replay behavior, and append-only `workflow_events` proof.
+- The owner projection already distinguishes `available`, `accepted`, `declined`, `revoked`, and `expired`, and returns active and revoked participant history. The participant, bounded case-update, and message predicates already require an active participant row.
+- PM decision: **no migration is justified for this packet**. Engineering must begin with the existing RPCs and must not modify `supabase/migrations/`. If an exact source or SQL test proves a missing server guarantee, Engineering stops, records the table/function change, frontend reason, skipped-change breakage, reversibility, grants, RLS impact, and isolated test plan before creating any migration.
+
+### Sprint goal
+
+Give the family coordinator and invited participant complete, plain-language control over an invitation after creation: replace a lost or expiring link, decline without joining, cancel a pending invitation, and end active participant access. Every action must show what changes, what does not change, what proof was saved, who can see the result, and how to recover. A committed access revocation must remove participant update and message authority on the next request without exposing or reconstructing the raw invitation bearer.
+
+### Bounded requirements
+
+1. A coordinator can replace an `available` or `expired` invitation from `/family/people`. The first successful rotation shows one new copyable link. The previous link becomes unusable immediately. A same-request replay returns the saved replacement without another raw token or duplicate rows/events.
+2. The exact verified invited account can decline an `available` participant invitation from `/invite/continue`. Decline creates no `continuity_participants` grant. The UI replaces both Accept and Decline controls with a verified saved receipt for the current interaction.
+3. A coordinator can cancel an `available` invitation from `/family/people`. Cancellation grants no access, moves the invitation into history, removes all waiting controls, and makes the old link disclose no protected invitation detail.
+4. A coordinator can end an active participant's access from `/family/people`. The participant row becomes revoked, earlier invitation and activity history remain append-only, and the next participant request loses bounded family updates and message list/post authority.
+5. Every mutation rechecks the signed-in user and server authority inside the RPC. Client state, hidden identifiers, displayed lifecycle text, and browser history are never authorization.
+6. The raw invitation token may exist only in the existing server-held intent and the one-time successful create or rotation receipt. It must never be bound into a Server Action argument, form field, query string, login return, OAuth redirect, OTP redirect, rendered anchor, log, analytics event, error, history row, or replay receipt. The one-time client receipt may construct a non-navigation copy value exactly as P1 does.
+7. Coordinator controls render only for their valid lifecycle states. Accepted invitations cannot rotate or cancel. Revoked or declined invitations cannot rotate. Revoked participants cannot be restored in this packet.
+8. User-facing copy contains no raw enum, UUID, token hint, event key, infrastructure narration, readiness language, em dash, en dash, or vague generated prose. Buttons name the action and consequence.
+
+### Components and Server Actions
+
+Engineering may change only the following product surface unless a source-proven dependency is recorded first:
+
+- `app/family/people/page.tsx`: render lifecycle-appropriate controls in Waiting, Invitation history, and People with access. Keep raw identifiers out of visible copy.
+- `app/family/people/ParticipantLifecycleControls.tsx` as a new client component: own rotation, cancellation, and access-ending pending, success, conflict, and recovery states; show one-time copy fallback without a navigation link; suppress stale controls after success.
+- `app/family/people/actions.ts`: add `rotateParticipantInvitation`, `cancelParticipantInvitation`, and `endParticipantAccess`. Validate UUIDs, request IDs, expiry choice, and fixed bounded action reasons; verify the current user; call only the existing public RPCs; inspect exact receipts; revalidate `/family/people` and affected dynamic persona paths; never accept or return a bearer except the first rotation receipt returned by the RPC.
+- `app/family/people/People.module.css`: accessible responsive action groups, confirmations, receipts, error focus, and at least 48 by 48 CSS-pixel enabled targets.
+- `app/invite/continue/ParticipantInvitationDecision.tsx` as a new client component: own Accept and Decline together so a successful decline removes every acceptance control immediately and presents the saved result.
+- `app/invite/[token]/actions.ts`: add `declineParticipantInvitation` that reads the raw token only through `readInvitationIntent`, rechecks participant type and available state, validates a short human decline reason, calls the existing decline RPC, verifies stable replay against the same receipt, and returns typed state without placing the token or reason in a URL.
+- `app/invite/continue/page.tsx`: render the unified participant decision component only for an actionable participant invitation; retain minimum-safe terminal states and existing staff behavior.
+- `lib/auth/invitations.ts` and `lib/continuity/participants.ts`: add only receipt/projection types needed by the controls. Do not widen participant data or return protected identifiers to visible copy.
+
+Action contracts:
+
+| User action | Server Action | Existing authoritative command | Exact durable result | Append-only proof |
+| --- | --- | --- | --- | --- |
+| Replace secure link | `rotateParticipantInvitation` | `public.rotate_participant_invitation_idempotent(p_invitation_id, p_expires_at, p_request_id)` | Old invitation revoked with reason `Replaced with a new secure link`; one new invitation linked by `rotates_invitation_id`; raw token returned once | One `participant_invitation.rotated` event for the old row and one `participant_invitation.created` event for the replacement |
+| Decline invitation | `declineParticipantInvitation` | `public.decline_participant_invitation(p_raw_token, p_reason)` | Invitation revoked by the exact invited user; zero participant grant | One `participant_invitation.declined` event |
+| Cancel pending invitation | `cancelParticipantInvitation` | `public.revoke_participant_invitation(p_invitation_id, p_reason)` | Pending invitation revoked by the coordinator; zero participant grant | One `participant_invitation.revoked` event |
+| End active access | `endParticipantAccess` | `public.revoke_continuity_participant_idempotent(p_participant_id, p_reason, p_request_id)` | Active participant row changes to revoked with actor, time, and reason; invitation acceptance history remains | One `continuity_participant.revoked` event |
+
+The coordinator cancellation and access-ending reasons should be fixed product text, not free-form sensitive notes. The decline reason should use a short constrained set of human choices plus an optional bounded explanation only if UX and Engineering can keep replay deterministic and private. If not, use one fixed decline statement for P2.
+
+### Frontend and backend parity ledger
+
+Engineering adds these contracts to `docs/product/frontend-backend-contracts.json` as `source_partial` only after the reachable UI and exact Server Action exist:
+
+- `participant.coordinator.rotate_invitation`
+- `participant.invited.decline_invitation`
+- `participant.coordinator.cancel_invitation`
+- `participant.coordinator.revoke_access`
+
+Each row must name the route/component, action state, exact RPC signature, `participant_invitations`, `continuity_participants`, and `workflow_events` cardinality, actor predicate, event key, retry/conflict behavior, privacy projection, and evidence references. Engineering also updates `participant.invited.open_shared_updates` and `m3.shared.workflow_messages` to bind the committed-revocation denial evidence. No row becomes `implemented` from source existence alone.
+
+P2 must preserve this deliberate P1 boundary:
+
+- `/participant` is the participant's reachable bounded case-update surface through `public.list_participant_family_updates()`.
+- `/case/[id]/today` remains an owner-authorized raw case projection and is not widened to participants merely to manufacture a positive revocation test.
+- Message authority is separately provided by `passage_private.can_message_workflow`. The current `/case/[id]/messages` loader first performs a workflow SELECT through the owner-only predicate, so participant browser reachability is not proven by P1. P2 must not claim that route as a working participant feature. For this packet, QA proves message authority loss through the exact list/post RPCs using the isolated synthetic workflow and proves any stale direct browser request reveals no message. A later PM packet must resolve participant message discovery and a non-UUID route if that capability remains in the product contract.
+
+### SQL lifecycle and cardinality evidence
+
+Add one rollback-only, idempotent test at `supabase/tests/participant_invitation_lifecycle_p2.sql`. It must run only against isolated project `uyacxqtsiwlvtmhxvoxr`, reject Production ref `qsveqfchwylsbncsfgxe`, verify the exact prerequisite migration names and function catalog/ACL state, use reserved synthetic identities, and end in unconditional rollback.
+
+Required per-scenario deltas:
+
+- Rotation: one old invitation changes from available to revoked, one replacement invitation is added with `rotates_invitation_id = old.id`, and exactly two events are added, `participant_invitation.rotated` and replacement `participant_invitation.created`. Same request ID and same expiry adds zero rows/events and returns no token. Same request ID with changed expiry returns conflict and adds zero rows/events.
+- Decline: the invitation becomes revoked by the exact invited user, exactly one `participant_invitation.declined` event is added, and participant-row delta remains zero. Same actor and reason replay adds zero rows/events. Wrong email, wrong user, expired, accepted, cancelled, and altered-reason replay all fail without a partial write.
+- Pending cancellation: the invitation becomes revoked by the coordinator, exactly one `participant_invitation.revoked` event is added, and participant-row delta remains zero. Same reason replay adds zero rows/events. Unrelated owner, participant, vendor, staff, accepted invitation, and altered-reason replay fail without a partial write.
+- Active-access revocation: exactly one existing participant row changes from active to revoked and exactly one `continuity_participant.revoked` event is added. Same request ID and reason adds zero rows/events. Changed reason conflicts. Unrelated coordinator, participant self-revocation, staff, and vendor fail without a partial write.
+- After committed revocation, the revoked account receives zero rows from `list_participant_continuity_spaces`, `list_continuity_participant_projection`, and `list_participant_family_updates`; receives `42501` or the exact documented denial from both message list and post RPCs; and cannot read the five raw workflow/task/event/proof/review relations. The coordinator still sees the revoked participant and terminal invitation history.
+- Old-link denial after rotation, decline, or cancellation must return the correct terminal state from the bounded inspection command, reject acceptance and decline mutations as applicable, and suppress inviter, family, relationship, purpose, scope, email, token metadata, case, and message detail from the terminal persona response.
+
+SQL QA must also run the retained P1 invitation, advisor-hardening, participant-update, messaging, RLS, race, reversibility, ACL, and Supabase advisor checks. Do not edit a historical migration to make the test pass. Current Supabase breaking-change review on 2026-08-09 found no change to these existing RPC signatures. The Data API default now requires explicit grants in applicable projects, so the test must continue to assert exact authenticated execute grants and denied direct table access rather than relying on platform defaults.
+
+### Source, concurrency, and regression tests
+
+- Extend `scripts/test-participant-invitation-security.js` for all four UI/action/RPC bindings, lifecycle-state control suppression, one-time token containment, fixed reason bounds, old-link denial copy, protected terminal-field exclusion, and no raw token in form/action/auth/navigation paths.
+- Extend `scripts/test-use-server-exports.js` so all four new Server Actions are exported, server-only, and reachable from the intended components.
+- Extend parity fixtures and `scripts/test-frontend-backend-parity.js` for the four new ledger rows plus revocation denial updates.
+- Add focused race coverage for rotate versus accept, rotate versus cancel, decline versus accept, cancel versus accept, and participant message post begun after committed revocation. Each race must prove one valid terminal result, exact event counts, no duplicate participant, and no orphan replacement.
+- Run `pnpm test:participant-invitation`, `pnpm test:parity`, `pnpm test:server-actions`, `pnpm test:messaging-security`, `pnpm test:persona-language`, `pnpm test:agent-context`, `pnpm test:release-governance`, `pnpm test:operational-route-gate`, `pnpm test:runtime-config`, `pnpm test:deploy-gate`, `pnpm typecheck`, `pnpm build`, and `git diff --check` on the exact candidate.
+- The exact combined-head font/build failure remains a named QA-infrastructure cell. A clean authorized Preview builder must produce a fresh optimized build PASS for the P2 exact head. Prior-head build evidence cannot close it.
+
+### Hosted multi-session plan at 1440, 390, and 360
+
+Deploy may publish only a reviewed non-production Preview bound to isolated project `uyacxqtsiwlvtmhxvoxr` with branch-only Preview configuration. Preserve existing signed-in owner Vercel and Supabase tabs. Do not touch Production project `qsveqfchwylsbncsfgxe`, Production configuration, or Production aliases.
+
+Use at least four clean storage contexts at every viewport: family coordinator, exact invited participant, wrong invited account, and unrelated coordinator. Use a deterministic reset between viewport matrices and retain redacted row/event cardinality.
+
+For each of 1440, 390, and 360:
+
+1. Create an available invitation, open the old link in the participant context, rotate it in the coordinator context, and prove the coordinator receives one new copyable link. Reload and POST against the old link to prove generic denial with no Accept or Decline control. Open the replacement link and prove the exact invited account can inspect it. Deny clipboard permission once and prove manual copy recovery without navigation.
+2. Create a second invitation. Prove the wrong account cannot decline. Switch to the exact verified account without losing the server-held intent, decline, and prove a saved receipt, zero grant, coordinator history, terminal reload, stable replay, and no protected terminal details.
+3. Create a third invitation, cancel it as coordinator, and prove it leaves Waiting, appears in history, creates no grant, and the old participant tab loses all actionable detail on its next request.
+4. Accept a fourth invitation. Prove `/participant` reconstructs the bounded update from durable state in a second session. Establish the pre-revocation message RPC positive result against the isolated workflow, end access as coordinator, then on the participant's next request prove `/participant` is closed, the bounded case-update projection is empty, message list/post are denied, a stale direct message route shows no message body, and reload or reconnect restores no access.
+5. At every state, record direct and applicable client navigation, final URL, heading and purpose, primary/destructive action, result, proof destination, visibility boundary, recovery instruction, keyboard order, focus after validation or success, 48-pixel targets, 200% zoom where applicable, scroll width versus client width, console warnings/errors, hydration/runtime errors, unhandled rejections, failed requests, and Vercel runtime logs.
+
+Commit only timestamped replacement screenshots and redacted database/audit evidence. Raw tokens, emails beyond synthetic labels, UUIDs, cookies, request headers, and secrets must be removed from evidence.
+
+### Acceptance criteria
+
+- All four controls are reachable only in their valid state and complete through their existing authoritative RPC.
+- Every success is verified from a durable receipt and append-only event before the UI claims completion.
+- Rotation makes the old link unusable, never reconstructs a token, and reveals a new token only once.
+- Decline creates no participant access. Cancellation creates no participant access. Revocation removes participant updates and message authority on the next request.
+- Replay, conflict, wrong-user, wrong-owner, expired, accepted, cancelled, former-participant, staff, vendor, and unrelated-organization paths preserve exact cardinality and reveal no protected detail.
+- Frontend/backend parity rows, source gates, exact SQL lifecycle matrix, advisors, optimized build, and the complete three-viewport multi-session hosted matrix all pass on one exact head.
+- Source QA, Hosted Preview QA, Production Deployment, Production QA, and Overall release state are reported separately. `[qa-approved]` remains prohibited until exact hosted PASS.
+
+### Risks and mitigations
+
+- Rotation can expose a second bearer. Mitigation: one-time action receipt only, no anchor/prefetch, no replay token, old digest terminal immediately, token-containment source guard, and redacted evidence.
+- Destructive controls can be pressed accidentally. Mitigation: explicit consequence copy, secondary visual treatment, confirm step within the component, pending lock, verified receipt, and no optimistic removal.
+- Open tabs can look stale after revocation. Mitigation: dynamic no-cache persona routes, server recheck on every command/query, revalidation after coordinator mutation, and next-request browser proof.
+- Decline and accept can race. Mitigation: existing row lock and terminal constraints plus a committed race test with exact event/cardinality assertions.
+- The current participant messaging contract overstates browser reachability. Mitigation: do not widen raw case RLS or claim participant message UI in P2; prove backend message revocation and create a later bounded reachability packet.
+- Existing source contains mojibake in historical copy. P2 may correct touched user-facing strings but must not expand into a repository-wide copy rewrite.
+
+### Non-goals and classification
+
+- **Fix now:** four P2 lifecycle controls, their parity rows, exact SQL lifecycle/race evidence, three-viewport hosted proof, and any defect that lets a revoked identity retain participant update or message authority.
+- **Follow-up product packet:** participant message discovery and a non-UUID, least-privilege route; participant self-leave; reinstatement; scope editing; real email/SMS delivery; delivery/open tracking; notifications; bulk access management; and general history export.
+- **Non-goals:** new tables or RPCs without source proof, broad workflow RLS for participants, raw case-detail access, new category scopes, Production data/configuration, pricing, external communications, legal/privacy policy decisions, roadmap-score changes, public launch, or governance-validator work.
+
+### Handoff and release truth
+
+- Next role: a fresh distinct UI/UX Review Agent defines the exact destructive-action hierarchy, confirmation, receipt, focus, mobile, and plain-language acceptance bar. After UX PASS, a fresh Development Engineer creates `.release-train-clean/.participant-p2-build` on `feature/participant-p2-lifecycle` from the exact Bot-authored PM context commit that descends directly from `12939632aeaaebb00cc066d7468448321cae9c7c`.
+- Engineering must not edit the combined-candidate, root, P1 participant, R25 gateway, loop-recovery, or migration worktrees. It must inventory branch/head/status before editing and stop on overlap.
+- Deploy plan: source integration uses `[skip deploy]`. After exact-head Source QA, Data QA, Independent Agent Review, and Development Head approval, one reviewed non-production Preview may be published for the hosted matrix. Production is not authorized.
+- Customer-visible capability delta: none in this PM-only packet.
+- Hosted output: `No hosted output`. This packet defines the product slice but changes no hosted artifact.
+- Source QA: NOT RUN for future P2 implementation.
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: PM BRIEF ONLY / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+
+Last updated: 2026-08-09 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
