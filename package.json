@@ -14,6 +14,7 @@
     "test:runtime-config": "node scripts/test-runtime-config.js",
     "test:messaging-security": "node scripts/test-workflow-messaging-security.js",
     "test:participant-invitation": "node scripts/test-participant-invitation-security.js",
+    "test:participant-invitation-races": "node scripts/test-participant-invitation-lifecycle-races.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",

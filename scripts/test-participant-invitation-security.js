@@ -30,6 +30,7 @@ const files = {
   sqlMatrix: read('supabase/tests/participant_updates_case_scope.sql'),
   lifecycleMatrix: read('supabase/tests/participant_invitation_lifecycle_p2.sql'),
   lifecycleRaces: read('scripts/test-participant-invitation-lifecycle-races.mjs'),
+  lifecycleRaceFixture: read('supabase/test-fixtures/participant_p2_race_reset.sql'),
 };
 
 const combinedPersona = [
@@ -270,6 +271,9 @@ const assertions = [
       && files.lifecycleMatrix.includes('list_workflow_messages_client_safe')
       && files.lifecycleMatrix.includes('post_workflow_message_idempotent')
       && files.lifecycleMatrix.trimEnd().endsWith('rollback;')],
+  ['P2 rotated-link decline expects the authoritative conflict SQLSTATE',
+    files.lifecycleMatrix.includes("raise exception 'Expected old rotated-link decline denial';\n  exception when sqlstate '22023' then null;")
+      && !files.lifecycleMatrix.includes("raise exception 'Expected old rotated-link decline denial';\n  exception when sqlstate '42501' then null;")],
   ['P2 race harness covers every frozen competing command',
     files.lifecycleRaces.includes('rotate versus accept')
       && files.lifecycleRaces.includes('rotate versus cancel')
@@ -278,7 +282,20 @@ const assertions = [
       && files.lifecycleRaces.includes('message post after committed revocation')
       && files.lifecycleRaces.includes('Promise.all')
       && files.lifecycleRaces.includes("'uyacxqtsiwlvtmhxvoxr'")
-      && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")],
+      && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaces.includes("signInWithPassword")
+      && !/(SERVICE_ROLE|service_role|OWNER_JWT|PARTICIPANT_JWT)/.test(files.lifecycleRaces)],
+  ['P2 race reset is deterministic, cleanup-capable, and isolated-only',
+    files.lifecycleRaceFixture.includes("current_user <> 'postgres'")
+      && files.lifecycleRaceFixture.includes("'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleRaceFixture.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaceFixture.includes("v_mode not in ('reset', 'cleanup')")
+      && files.lifecycleRaceFixture.includes("participant-p2-race-isolated-reset-approved")
+      && files.lifecycleRaceFixture.includes("six unique verified Auth Admin accounts are required")
+      && files.lifecycleRaceFixture.includes("delete from public.workflow_events")
+      && files.lifecycleRaceFixture.includes("delete from public.continuity_spaces")
+      && files.lifecycleRaceFixture.includes("select fixture_key, fixture_value")
+      && !/insert\s+into\s+auth\./i.test(files.lifecycleRaceFixture)],
   ['participant invitation copy makes no unsupported delivery claim',
     !/\b(received|resend|delivered|opened)\b/i.test(
       files.peoplePage + files.peopleForm + files.participantPage,
