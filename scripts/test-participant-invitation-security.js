@@ -31,6 +31,7 @@ const files = {
   lifecycleMatrix: read('supabase/tests/participant_invitation_lifecycle_p2.sql'),
   lifecycleRaces: read('scripts/test-participant-invitation-lifecycle-races.mjs'),
   lifecycleRaceFixture: read('supabase/test-fixtures/participant_p2_race_reset.sql'),
+  lifecycleRaceVerifier: read('supabase/tests/participant_invitation_lifecycle_races_verify.sql'),
 };
 
 const combinedPersona = [
@@ -284,6 +285,10 @@ const assertions = [
       && files.lifecycleRaces.includes("'uyacxqtsiwlvtmhxvoxr'")
       && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")
       && files.lifecycleRaces.includes("signInWithPassword")
+      && files.lifecycleRaces.includes("'list_participant_invitation_projection'")
+      && files.lifecycleRaces.includes("'list_owned_continuity_participant_projection'")
+      && files.lifecycleRaces.includes("rpcRows(revokeParticipant, 'list_participant_continuity_spaces'")
+      && !/\.from\(['"](?:workflow_events|participant_invitations|continuity_participants)['"]\)/.test(files.lifecycleRaces)
       && !/(SERVICE_ROLE|service_role|OWNER_JWT|PARTICIPANT_JWT)/.test(files.lifecycleRaces)],
   ['P2 race reset is deterministic, cleanup-capable, and isolated-only',
     files.lifecycleRaceFixture.includes("current_user <> 'postgres'")
@@ -296,6 +301,15 @@ const assertions = [
       && files.lifecycleRaceFixture.includes("delete from public.continuity_spaces")
       && files.lifecycleRaceFixture.includes("select fixture_key, fixture_value")
       && !/insert\s+into\s+auth\./i.test(files.lifecycleRaceFixture)],
+  ['P2 race cardinality verifier is read-only, privileged, isolated, and redacted',
+    files.lifecycleRaceVerifier.includes("session_user <> 'postgres'")
+      && files.lifecycleRaceVerifier.includes("'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleRaceVerifier.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaceVerifier.includes('participant-p2-race-read-only-verification-approved')
+      && files.lifecycleRaceVerifier.includes('orphan replacement detected')
+      && files.lifecycleRaceVerifier.includes('continuity_participant.revoked')
+      && !/\b(?:insert\s+into|update\s+public\.|delete\s+from|truncate|alter\s+table|drop\s+table|create\s+table)\b/i.test(files.lifecycleRaceVerifier)
+      && !/(auth\.users|invited_email|raw_token|token_digest|message_row\.body)/.test(files.lifecycleRaceVerifier)],
   ['participant invitation copy makes no unsupported delivery claim',
     !/\b(received|resend|delivered|opened)\b/i.test(
       files.peoplePage + files.peopleForm + files.participantPage,

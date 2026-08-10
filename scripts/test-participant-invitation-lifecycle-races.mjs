@@ -101,40 +101,26 @@ async function invitationState(token) {
   return one(await anon.rpc('inspect_passage_invitation', { p_raw_token: token }), 'inspect invitation');
 }
 
-async function eventNames(owner, invitationId) {
-  const result = await owner
-    .from('workflow_events')
-    .select('id,name,participant_invitation_id,continuity_participant_id')
-    .eq('participant_invitation_id', invitationId);
-  if (result.error) throw new Error(`event cardinality query failed: ${result.error.message}`);
-  return result.data.map((row) => row.name);
+async function rpcRows(actor, command, args, label) {
+  const result = args === undefined
+    ? await actor.rpc(command)
+    : await actor.rpc(command, args);
+  if (result.error) throw new Error(`${label}: ${result.error.code ?? 'RPC'} ${result.error.message}`);
+  return Array.isArray(result.data) ? result.data : [];
 }
 
-async function participantRows(owner, invitationId) {
-  const result = await owner
-    .from('continuity_participants')
-    .select('id,status,accepted_from_invitation_id')
-    .eq('accepted_from_invitation_id', invitationId);
-  if (result.error) throw new Error(`participant cardinality query failed: ${result.error.message}`);
-  return result.data;
+async function ownerSnapshot(owner) {
+  const [invitations, participants] = await Promise.all([
+    rpcRows(owner, 'list_participant_invitation_projection', undefined, 'owner invitation projection'),
+    rpcRows(owner, 'list_owned_continuity_participant_projection', undefined, 'owner participant projection'),
+  ]);
+  return { invitations, participants };
 }
 
-async function replacementRows(owner, invitationId) {
-  const result = await owner
-    .from('participant_invitations')
-    .select('id,rotates_invitation_id')
-    .eq('rotates_invitation_id', invitationId);
-  if (result.error) throw new Error(`replacement cardinality query failed: ${result.error.message}`);
-  return result.data;
-}
-
-async function participantEventNames(owner, participantId) {
-  const result = await owner
-    .from('workflow_events')
-    .select('id,name,continuity_participant_id')
-    .eq('continuity_participant_id', participantId);
-  if (result.error) throw new Error(`participant event query failed: ${result.error.message}`);
-  return result.data.map((row) => row.name);
+function rowById(rows, id, label) {
+  const row = rows.find((candidate) => candidate.id === id);
+  assert.ok(row, `${label}: expected row is absent`);
+  return row;
 }
 
 const ownerA = await ordinarySession('p2-race-owner@passage.test');
@@ -160,13 +146,17 @@ assert.deepEqual(
   ].sort(),
   'fixture reset did not prepare the four actionable invitations',
 );
-const fixtureParticipants = await participantRows(ownerA, '82a10005-82a1-42a1-82a1-000000000005');
-assert.equal(fixtureParticipants.length, 1, 'fixture reset did not prepare one accepted participant');
-assert.equal(fixtureParticipants[0].id, fixture.revokeParticipantId, 'fixture participant identity drifted');
-assert.equal(fixtureParticipants[0].status, 'active', 'fixture participant is not active before the race');
+const fixtureOwnerProjection = await ownerSnapshot(ownerA);
+const fixtureParticipant = rowById(
+  fixtureOwnerProjection.participants,
+  fixture.revokeParticipantId,
+  'fixture participant projection',
+);
+assert.equal(fixtureParticipant.status, 'active', 'fixture participant is not active before the race');
 
 // rotate versus accept
 {
+  const before = await ownerSnapshot(ownerA);
   const args = {
     p_invitation_id: fixture.rotateAcceptInvitationId,
     p_expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
@@ -179,22 +169,23 @@ assert.equal(fixtureParticipants[0].status, 'active', 'fixture participant is no
   const { winner, firstWon } = assertOneWinner(results, 'rotate versus accept');
   const terminal = await invitationState(fixture.rotateAcceptToken);
   assert.equal(terminal.invitation_state, firstWon ? 'revoked' : 'accepted', 'rotate/accept terminal state disagrees with winner');
-  const names = await eventNames(ownerA, fixture.rotateAcceptInvitationId);
-  assert.equal(names.filter((name) => ['participant_invitation.rotated', 'participant_invitation.accepted'].includes(name)).length, 1, 'rotate/accept wrote duplicate terminal events');
-  assert.equal((await participantRows(ownerA, fixture.rotateAcceptInvitationId)).length, firstWon ? 0 : 1, 'rotate/accept participant cardinality disagrees with winner');
-  const replacements = await replacementRows(ownerA, fixture.rotateAcceptInvitationId);
-  assert.equal(replacements.length, firstWon ? 1 : 0, 'rotate/accept replacement cardinality disagrees with winner');
+  const after = await ownerSnapshot(ownerA);
+  const original = rowById(after.invitations, fixture.rotateAcceptInvitationId, 'rotate/accept original invitation');
+  assert.equal(original.lifecycle_state, firstWon ? 'revoked' : 'accepted', 'rotate/accept owner projection disagrees with winner');
+  assert.equal(after.invitations.length - before.invitations.length, firstWon ? 1 : 0, 'rotate/accept invitation delta disagrees with winner');
+  assert.equal(after.participants.length - before.participants.length, firstWon ? 0 : 1, 'rotate/accept participant delta disagrees with winner');
   if (firstWon) {
     assert.ok(winner.raw_token, 'winning rotation did not return the one-time bearer');
-    const projection = one({ data: (await ownerA.rpc('list_participant_invitation_projection')).data?.filter((row) => row.id === winner.invitation_id), error: null }, 'rotation child projection');
+    const projection = rowById(after.invitations, winner.invitation_id, 'rotation child projection');
     assert.equal(projection.lifecycle_state, 'available', 'winning rotation left an orphan replacement');
-    const childNames = await eventNames(ownerA, winner.invitation_id);
-    assert.equal(childNames.filter((name) => name === 'participant_invitation.created').length, 1, 'winning rotation did not write exactly one child creation event');
+  } else {
+    assert.ok(winner.participant_id, 'winning acceptance did not return the participant receipt');
   }
 }
 
 // rotate versus cancel
 {
+  const before = await ownerSnapshot(ownerA);
   const invitationId = fixture.rotateCancelInvitationId;
   const results = await Promise.all([
     ownerA.rpc('rotate_participant_invitation_idempotent', {
@@ -208,20 +199,22 @@ assert.equal(fixtureParticipants[0].status, 'active', 'fixture participant is no
     }),
   ]);
   const { winner, firstWon } = assertOneWinner(results, 'rotate versus cancel');
-  const names = await eventNames(ownerA, invitationId);
-  assert.equal(names.filter((name) => ['participant_invitation.rotated', 'participant_invitation.revoked'].includes(name)).length, 1, 'rotate/cancel wrote duplicate terminal events');
-  const replacements = await replacementRows(ownerA, invitationId);
-  assert.equal(replacements.length, firstWon ? 1 : 0, 'rotate/cancel replacement cardinality disagrees with winner');
+  const after = await ownerSnapshot(ownerA);
+  assert.equal(rowById(after.invitations, invitationId, 'rotate/cancel original invitation').lifecycle_state, 'revoked', 'rotate/cancel did not close the original invitation');
+  assert.equal(after.invitations.length - before.invitations.length, firstWon ? 1 : 0, 'rotate/cancel invitation delta disagrees with winner');
+  assert.equal(after.participants.length, before.participants.length, 'rotate/cancel changed participant cardinality');
   if (firstWon) {
-    const projection = one({ data: (await ownerA.rpc('list_participant_invitation_projection')).data?.filter((row) => row.id === winner.invitation_id), error: null }, 'rotate/cancel child projection');
+    assert.ok(winner.raw_token, 'winning rotation did not return the one-time bearer');
+    const projection = rowById(after.invitations, winner.invitation_id, 'rotate/cancel child projection');
     assert.equal(projection.lifecycle_state, 'available', 'rotate/cancel left an orphan replacement');
-    const childNames = await eventNames(ownerA, winner.invitation_id);
-    assert.equal(childNames.filter((name) => name === 'participant_invitation.created').length, 1, 'winning rotate/cancel did not write exactly one child creation event');
+  } else {
+    assert.ok(winner.event_id, 'winning cancellation did not return its event receipt');
   }
 }
 
 // decline versus accept
 {
+  const before = await ownerSnapshot(ownerA);
   const token = fixture.declineAcceptToken;
   const results = await Promise.all([
     declineAcceptParticipantA.rpc('decline_participant_invitation', { p_raw_token: token, p_reason: fixedDeclineReason }),
@@ -230,29 +223,41 @@ assert.equal(fixtureParticipants[0].status, 'active', 'fixture participant is no
   const { winner, firstWon } = assertOneWinner(results, 'decline versus accept');
   const terminal = await invitationState(token);
   assert.equal(terminal.invitation_state, firstWon ? 'revoked' : 'accepted', 'decline/accept terminal state disagrees with winner');
-  const names = await eventNames(ownerA, fixture.declineAcceptInvitationId);
-  assert.equal(names.filter((name) => ['participant_invitation.declined', 'participant_invitation.accepted'].includes(name)).length, 1, 'decline/accept wrote duplicate terminal events');
-  assert.equal((await participantRows(ownerA, fixture.declineAcceptInvitationId)).length, firstWon ? 0 : 1, 'decline/accept participant cardinality disagrees with winner');
+  const after = await ownerSnapshot(ownerA);
+  assert.equal(rowById(after.invitations, fixture.declineAcceptInvitationId, 'decline/accept invitation').lifecycle_state, firstWon ? 'declined' : 'accepted', 'decline/accept owner projection disagrees with winner');
+  assert.equal(after.invitations.length, before.invitations.length, 'decline/accept changed invitation cardinality');
+  assert.equal(after.participants.length - before.participants.length, firstWon ? 0 : 1, 'decline/accept participant delta disagrees with winner');
+  assert.ok(winner.event_id, 'decline/accept winner did not return its event receipt');
 }
 
 // cancel versus accept
 {
+  const before = await ownerSnapshot(ownerA);
   const token = fixture.cancelAcceptToken;
   const invitationId = fixture.cancelAcceptInvitationId;
   const results = await Promise.all([
     ownerA.rpc('revoke_participant_invitation', { p_invitation_id: invitationId, p_reason: fixedCancellationReason }),
     cancelAcceptParticipant.rpc('accept_participant_invitation', { p_raw_token: token }),
   ]);
-  const { firstWon } = assertOneWinner(results, 'cancel versus accept');
+  const { winner, firstWon } = assertOneWinner(results, 'cancel versus accept');
   const terminal = await invitationState(token);
   assert.equal(terminal.invitation_state, firstWon ? 'revoked' : 'accepted', 'cancel/accept terminal state disagrees with winner');
-  const names = await eventNames(ownerA, invitationId);
-  assert.equal(names.filter((name) => ['participant_invitation.revoked', 'participant_invitation.accepted'].includes(name)).length, 1, 'cancel/accept wrote duplicate terminal events');
-  assert.equal((await participantRows(ownerA, invitationId)).length, firstWon ? 0 : 1, 'cancel/accept participant cardinality disagrees with winner');
+  const after = await ownerSnapshot(ownerA);
+  assert.equal(rowById(after.invitations, invitationId, 'cancel/accept invitation').lifecycle_state, firstWon ? 'revoked' : 'accepted', 'cancel/accept owner projection disagrees with winner');
+  assert.equal(after.invitations.length, before.invitations.length, 'cancel/accept changed invitation cardinality');
+  assert.equal(after.participants.length - before.participants.length, firstWon ? 0 : 1, 'cancel/accept participant delta disagrees with winner');
+  assert.ok(winner.event_id, 'cancel/accept winner did not return its event receipt');
 }
 
 // message post after committed revocation
 {
+  const participantSpacesBefore = await rpcRows(revokeParticipant, 'list_participant_continuity_spaces', undefined, 'participant space precheck');
+  const participantProjectionBefore = await rpcRows(revokeParticipant, 'list_continuity_participant_projection', undefined, 'participant projection precheck');
+  assert.equal(participantSpacesBefore.length, 1, 'participant has no bounded space before revocation');
+  assert.equal(participantProjectionBefore.length, 1, 'participant has no bounded projection before revocation');
+  const participantMessagesBefore = await rpcRows(revokeParticipant, 'list_workflow_messages_client_safe', {
+    p_workflow_id: fixture.workflowId,
+  }, 'participant message precheck');
   one(await ownerA.rpc('revoke_continuity_participant_idempotent', {
     p_participant_id: fixture.revokeParticipantId,
     p_reason: fixedAccessEndReason,
@@ -270,20 +275,22 @@ assert.equal(fixtureParticipants[0].status, 'active', 'fixture participant is no
   });
   assert.ok(denied.error, 'message post after committed revocation unexpectedly succeeded');
   assert.ok(['42501', 'PGRST202'].includes(denied.error.code), `unexpected revoked-message denial ${denied.error.code}`);
+  const deniedList = await revokeParticipant.rpc('list_workflow_messages_client_safe', {
+    p_workflow_id: fixture.workflowId,
+  });
+  assert.ok(deniedList.error, 'message list after committed revocation unexpectedly succeeded');
+  assert.ok(['42501', 'PGRST202'].includes(deniedList.error.code), `unexpected revoked-message list denial ${deniedList.error.code}`);
+  assert.equal((await rpcRows(revokeParticipant, 'list_participant_continuity_spaces', undefined, 'participant spaces after revocation')).length, 0, 'revoked participant retained a space projection');
+  assert.equal((await rpcRows(revokeParticipant, 'list_continuity_participant_projection', undefined, 'participant projection after revocation')).length, 0, 'revoked participant retained participant projection');
+  assert.equal((await rpcRows(revokeParticipant, 'list_participant_family_updates', undefined, 'participant updates after revocation')).length, 0, 'revoked participant retained family updates');
   const afterResult = await ownerA.rpc('list_workflow_messages_client_safe', {
     p_workflow_id: fixture.workflowId,
   });
   if (afterResult.error) throw new Error(`message cardinality postcheck failed: ${afterResult.error.message}`);
+  assert.equal(beforeCount, participantMessagesBefore.length, 'owner and participant message projections disagreed before revocation');
   assert.equal(afterResult.data.length, beforeCount, 'revoked message attempt changed message cardinality');
-  const revocationEvents = await participantEventNames(ownerA, fixture.revokeParticipantId);
-  assert.equal(revocationEvents.filter((name) => name === 'continuity_participant.revoked').length, 1, 'participant revocation did not write exactly one event');
-  const participantAfter = await ownerA
-    .from('continuity_participants')
-    .select('id,status')
-    .eq('id', fixture.revokeParticipantId);
-  if (participantAfter.error) throw new Error(`revoked participant postcheck failed: ${participantAfter.error.message}`);
-  assert.equal(participantAfter.data.length, 1, 'revoked participant row was lost');
-  assert.equal(participantAfter.data[0].status, 'revoked', 'participant revocation did not persist');
+  const ownerParticipantsAfter = await rpcRows(ownerA, 'list_owned_continuity_participant_projection', undefined, 'owner participant projection after revocation');
+  assert.equal(rowById(ownerParticipantsAfter, fixture.revokeParticipantId, 'revoked participant owner projection').status, 'revoked', 'participant revocation did not persist in the authorized owner projection');
 }
 
-console.log('PASS participant P2 true-concurrency lifecycle races');
+console.log('PASS participant P2 true-concurrency lifecycle races through ordinary authorized projections');
