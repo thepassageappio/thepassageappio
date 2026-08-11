@@ -1012,6 +1012,102 @@
       ]
     },
     {
+      "id": "participant.family.bounded_case_today",
+      "cycle": "PR78 repair",
+      "capability": "An invited participant sees the current family update without receiving the family's raw operational case record",
+      "status": "implemented",
+      "persona": ["family", "participant"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/today",
+        "component": [
+          "app/case/[id]/today/page.tsx",
+          "lib/family/case-view.ts"
+        ],
+        "files": [
+          "app/case/[id]/today/page.tsx",
+          "lib/family/case-view.ts",
+          "app/proof-loop.module.css"
+        ],
+        "note": "The continuity-space owner keeps the existing family case view. An active participant with updates scope falls back to one privacy-minimizing update for the exact case id; all denied callers receive the closed state without case detail."
+      },
+      "action_status": "read-only: owner raw view or active updates-scoped participant bounded projection; denial and temporary failure do not mutate state",
+      "server_command": "public.get_family_case_update_for_workflow(p_workflow_id uuid)",
+      "backend_files": [
+        "lib/family/case-view.ts",
+        "supabase/migrations/20260810230000_participant_case_update_for_workflow.sql",
+        "supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql",
+        "supabase/migrations/20260811162128_participant_case_scope_source_reconciliation.sql"
+      ],
+      "durable_tables": [
+        { "table": "continuity_spaces", "cardinality": "one active owner-scoped space linked to the requested workflow" },
+        { "table": "continuity_participants", "cardinality": "one active exact-user participant with updates in category_scope" },
+        { "table": "workflows", "cardinality": "one exact requested workflow linked to that continuity space" },
+        { "table": "tasks", "cardinality": "zero or one current step returned through the bounded projection" },
+        { "table": "workflow_events", "cardinality": "zero or one latest plain-language update returned through the bounded projection" }
+      ],
+      "rls_authority_predicate": "Raw workflow, task, proof, proof-review, and workflow-event SELECT remains owner-only through passage_private.can_view_workflow_as_family(workflow_id), which requires the active continuity-space owner to equal auth.uid(). The participant RPC separately requires auth.uid(), the exact requested workflow, an active continuity space, an active exact-user participant, and updates in category_scope. PUBLIC, anon, service_role, revoked, wrong-user, wrong-workflow, and wrong-category access is denied.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This slice is a read-only persona projection. It neither mutates the case nor creates an event; existing task and workflow-event history remains append-only."
+      },
+      "failure_recovery_states": [
+        "an empty owner-only workflow read attempts the bounded participant RPC for the same workflow id",
+        "a missing bounded row returns not-authorized and the route shows no case detail",
+        "an RPC error returns unavailable and the route states that nothing changed",
+        "revoked, wrong-user, wrong-workflow, wrong-category, and anon callers receive no projection",
+        "the rollback-only authority test restores the exact function definitions and ACLs and leaves zero fixture rows",
+        "reload and cross-session reads repeat the same durable owner or participant projection without mutation"
+      ],
+      "persona_projection": "The owner sees the existing family-facing current step and recent updates. An active updates participant sees only family/person names, one current-step summary and care-team label, and one latest plain-language update. Neither path exposes raw proof, review, event metadata, staff identity, UUID, or operator status; denied callers see no case detail.",
+      "evidence_test_references": [
+        "supabase/tests/participant_case_scope_source_reconciliation.sql",
+        "scripts/test-participant-case-scope-source.mjs",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "lib/family/case-view.ts",
+          "includes": [
+            "if (!workflowResult.data) return loadFamilyCaseViewAsParticipant(client, workflowId);",
+            "client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId })",
+            "if (!row) return { ok: false, reason: 'not-authorized' };",
+            "return { ok: true, data: buildParticipantCaseView(workflowId, row) };"
+          ]
+        },
+        {
+          "file": "app/case/[id]/today/page.tsx",
+          "includes": [
+            "const result: FamilyCaseViewResult = await loadFamilyCaseView(id);",
+            "This case is not available to your account.",
+            "Nothing changed, and no case details were shown."
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260811162128_participant_case_scope_source_reconciliation.sql",
+          "includes": [
+            "space_row.owner_user_id = (select auth.uid())",
+            "set search_path = ''",
+            "from public, anon, service_role",
+            "to authenticated"
+          ]
+        },
+        {
+          "file": "supabase/tests/participant_case_scope_source_reconciliation.sql",
+          "includes": [
+            "owner_matrix",
+            "active_updates_participant_matrix",
+            "revoked_matrix",
+            "wrong_category_matrix",
+            "wrong_user_matrix",
+            "c7b10002-7b00-47b0-87b0-000000000002",
+            "anon_matrix",
+            "rollback;"
+          ]
+        }
+      ]
+    },
+    {
       "id": "urgent.family.receiver_bound_submission",
       "cycle": "Urgent P1",
       "capability": "A signed-in family requests a Northstar callback or saves the same guidance privately",
@@ -1037,7 +1133,7 @@
       "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "app/start/actions.ts"
       ],
       "durable_tables": [
@@ -1090,7 +1186,7 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
             "add column receiving_organization_id uuid",
             "p_receiving_organization_id uuid",

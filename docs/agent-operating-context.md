@@ -4,6 +4,46 @@ Last updated: 2026-08-10 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
+## PR #78 failed-check participant authority repair - PM and Engineering contract - 2026-08-11
+
+Status: **FIX NOW / ENGINEERING ACTIVE / SOURCE ONLY / NON-PRODUCTION**.
+
+- Product Manager handoff: `/root/pm_pr78_failed_merge_recovery`. Development Engineer: `/root/engineering_cycle9ar25`, reassigned exclusively to this repair. UX Review: N/A because the visible participant projection and copy do not change.
+- Exact starting head: invalidated greenfield merge `72a526ba6d53af2f9028773bf3448d51837e8efb`, containing PR #78 head `ed6d8e7ba8889b60445b0c59d630a7e84f50605f`.
+- Problem: committed migration `20260726040000_family_case_workflow_grant.sql` grants every active continuity participant the raw workflow, task, proof, review, and workflow-event SELECT path through `passage_private.can_view_workflow_as_family()`. The isolated project has a later `participant_updates_case_scope` migration that correctly makes the raw family workflow predicate owner-only and exposes `public.list_participant_family_updates()` for the bounded participant projection, but that migration is absent from the greenfield source. PR #78 added the workflow-scoped bounded RPC and application fallback without committing the authority prerequisite or a current-head database matrix.
+- Required schema correction: commit the missing owner-only definition of `passage_private.can_view_workflow_as_family(uuid)`. Preserve continuity-space owner access. Active participants with `updates` scope may use only `public.get_family_case_update_for_workflow(uuid)`. Keep its `SECURITY DEFINER` body fully qualified with `search_path = ''`, revoke default `PUBLIC` and `anon` execution, and grant only `authenticated`.
+- What breaks if skipped: any active participant can bypass the bounded projection and read raw case workflow, task, task proof, proof review, and workflow-event records through existing RLS predicates. Source replay also recreates authority that differs from the shared isolated database.
+- Recovery: the correction is replace-only function DDL plus explicit ACLs. Rollback restores the prior broad predicate and prior RPC ACL in a transaction for proof only. No data is rewritten. A forward recovery reapplies the owner-only predicate and authenticated-only RPC grants.
+- Required matrix: continuity-space owner raw access retained; active `updates` participant receives one bounded workflow projection; participant raw workflow, task, proof, review, and case-event reads are zero; revoked, wrong user, wrong workflow, wrong category, and anon are denied; function body, security mode, empty search path, ACLs, and migration replay are exact; transaction rollback restores the pre-test catalog digest.
+- Project boundary: isolated Supabase `uyacxqtsiwlvtmhxvoxr` only after an exact project guard. Production project `qsveqfchwylsbncsfgxe` is prohibited. No Preview or Production action is authorized.
+- Material Product Direction or Scope Change: NO. This is a security and source-reproducibility correction to already approved participant scope. Canonical milestone order, persona coverage, and readiness scores do not change.
+- QA and deploy plan: run rollback-only SQL/RLS/ACL/reversibility tests, source guards, security scans, parity, Server Action exports, TypeScript, optimized build, routes, runtime, deploy-decision gate, advisors, context guard, and `git diff --check`. Commit through Passage Release Bot with `[skip deploy]`, then hand the exact head to fresh Independent QA and Independent Agent Review. Deploy is not authorized in this slice.
+
+Release truth at Engineering start:
+
+- Source QA: NOT RUN.
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: SOURCE ONLY.
+
+Engineering handoff, 2026-08-11:
+
+- Implementation: added `20260811162128_participant_case_scope_source_reconciliation.sql`, the permanent source guard, and a rollback-only SQL authority/reversibility matrix. The migration is replace-only function DDL and ACL hardening. It changes no row data. It was applied through migration tooling to the exact isolated project `uyacxqtsiwlvtmhxvoxr`; Production `qsveqfchwylsbncsfgxe` was not accessed.
+- Database proof: the owner retained raw workflow, task, proof, proof-review, and workflow-event reads. The active `updates` participant received exactly one bounded projection for the linked workflow and zero raw reads. The wrong-workflow, revoked, wrong-category, unrelated-authenticated-user, and anon paths returned no data or lacked function execution. The test reproduced the historical broad-predicate escape inside a savepoint, rolled it back, and proved the exact function definitions and ACLs were restored. Final rollback residue was zero users and zero participants.
+- ACL proof: `authenticated` can execute only the bounded public projection; `anon` and `service_role` cannot. `authenticated` cannot execute the private raw-record predicate. Both functions are `SECURITY DEFINER` with an empty search path and fully qualified relations.
+- Parity reconciliation: a new `participant.family.bounded_case_today` contract binds `/case/[id]/today`, `lib/family/case-view.ts`, the exact workflow RPC, durable source tables, owner-only raw authority, bounded participant authority, denial/recovery states, persona projection, source assertions, and the rollback matrix. The required gate also found that the urgent receiver contract still named the superseded `20260727030000` migration filename while the source replay file is `20260727042651`. Both urgent contract references now bind the actual committed file; no urgent behavior or schema changed.
+- Engineering gates: participant source guard PASS 25 assertions; isolated rollback SQL/RLS/ACL/reversibility matrix PASS; post-rollback catalog/data check PASS; frontend/backend parity PASS 18/18; Server Action export guard PASS; runtime configuration PASS; operational route gate PASS; deploy-decision gate PASS; persona-language guard PASS; context guard PASS; optimized Next build PASS; TypeScript PASS; release-train non-PR check N/A by design; `git diff --check` PASS. Supabase advisors reported no new object or performance finding. The bounded authenticated `SECURITY DEFINER` RPC is intentionally visible as an advisor warning and is covered by the exact-user, active-status, `updates`-scope, exact-workflow, empty-search-path, and ACL matrix.
+- Fresh QA target: a distinct Independent QA role must inspect and rerun the exact committed head. No implementer approval, hosted Preview, Deploy, merge, or Production claim is present.
+
+Release truth at Engineering handoff:
+
+- Source QA: PASS (Engineering gates; Independent QA pending).
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: SOURCE ONLY / READY FOR INDEPENDENT QA.
+
 ## Fresh-chat kickoff
 
 Paste this into a new Codex chat:

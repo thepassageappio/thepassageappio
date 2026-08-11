@@ -360,6 +360,58 @@ function testRealUrgentReceiverBinding() {
   );
 }
 
+function testRealParticipantCaseAuthorityRepair() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const ledger = JSON.parse(fs.readFileSync(
+    path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json'),
+    'utf8'
+  ));
+  const contract = ledger.contracts.find((entry) => entry.id === 'participant.family.bounded_case_today');
+  const familySource = fs.readFileSync(path.join(repoRoot, 'lib', 'family', 'case-view.ts'), 'utf8');
+  const migrationSource = fs.readFileSync(path.join(
+    repoRoot,
+    'supabase',
+    'migrations',
+    '20260811162128_participant_case_scope_source_reconciliation.sql'
+  ), 'utf8');
+  const matrixSource = fs.readFileSync(path.join(
+    repoRoot,
+    'supabase',
+    'tests',
+    'participant_case_scope_source_reconciliation.sql'
+  ), 'utf8');
+
+  const fallbackIsBound = familySource.includes(
+    'if (!workflowResult.data) return loadFamilyCaseViewAsParticipant(client, workflowId);'
+  ) && familySource.includes(
+    "client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId })"
+  );
+  const rawAuthorityIsOwnerOnly = migrationSource.includes(
+    'space_row.owner_user_id = (select auth.uid())'
+  ) && !migrationSource.match(
+    /create or replace function passage_private\.can_view_workflow_as_family[\s\S]*?\$\$;/
+  )?.[0].includes('continuity_participants');
+  const denialMatrixIsPermanent = [
+    'owner_matrix',
+    'active_updates_participant_matrix',
+    'revoked_matrix',
+    'wrong_category_matrix',
+    'wrong_user_matrix',
+    'anon_matrix',
+    'rollback;',
+  ].every((token) => matrixSource.includes(token));
+  const ledgerBindsSlice = contract?.frontend?.route === '/case/[id]/today'
+    && contract.server_command === 'public.get_family_case_update_for_workflow(p_workflow_id uuid)'
+    && contract.backend_files.includes('lib/family/case-view.ts')
+    && contract.failure_recovery_states.some((state) => state.includes('wrong-workflow'));
+
+  report(
+    'integration: participant case Today view binds bounded projection and owner-only raw authority',
+    fallbackIsBound && rawAuthorityIsOwnerOnly && denialMatrixIsPermanent && ledgerBindsSlice,
+    `fallbackIsBound=${fallbackIsBound} rawAuthorityIsOwnerOnly=${rawAuthorityIsOwnerOnly} denialMatrixIsPermanent=${denialMatrixIsPermanent} ledgerBindsSlice=${ledgerBindsSlice}`
+  );
+}
+
 function testRealUrgentReceiverEvidenceScope() {
   const repoRoot = path.resolve(__dirname, '..');
   const narrowTestPath = path.join(
@@ -438,6 +490,7 @@ function main() {
     console.log('Integration test (real repository ledger):');
     testRealLedger();
     testRealPendingInvitationProjection();
+    testRealParticipantCaseAuthorityRepair();
     testRealUrgentReceiverBinding();
     testRealUrgentReceiverEvidenceScope();
   } finally {

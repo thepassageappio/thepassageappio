@@ -14,7 +14,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
-    "test:server-actions": "node scripts/test-use-server-exports.js"
+    "test:server-actions": "node scripts/test-use-server-exports.js",
+    "test:participant-case-scope": "node scripts/test-participant-case-scope-source.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",
