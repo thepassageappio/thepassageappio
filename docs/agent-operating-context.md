@@ -1,6 +1,6 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-28 (America/Los_Angeles)
+Last updated: 2026-08-10 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
@@ -1820,3 +1820,13 @@ Release truth:
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
 - Auto-advance target: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA. No Claude-in-Chrome or other external-agent assistance was used by this Development Engineer.
+
+
+## Participant case-detail access fix - 2026-08-10
+
+- Bug (found in docs/evidence/passage-zero/qa-2026-08-10-full-sweep.md, P0, tested against the release/10h-delivery superset preview): every active continuity_participants family member who isn't the continuity-space owner was locked out of /case/[id]/today (and, on branches carrying the not-yet-merged messaging feature, /case/[id]/messages too -- this branch, greenfield/passage-zero, has no messaging feature yet, so only the case-detail half applies here). Root cause: migration participant_updates_case_scope (2026-07-30, applied to the shared isolated project this branch's preview also reads from) correctly narrowed passage_private.can_view_workflow_as_family() to owner-only and shipped public.list_participant_family_updates() as the participant-safe replacement, but that function has no workflow_id in its input or output, and lib/family/case-view.ts still gated on the now-owner-only raw `workflows` table read.
+- Fix (branch `fix/participant-case-access-greenfield`, off `greenfield/passage-zero`; same fix also landed separately as `fix/participant-case-access` off `release/10h-delivery`, PR #77, for the messaging half):
+  - `supabase/migrations/20260810230000_participant_case_update_for_workflow.sql` -- adds public.get_family_case_update_for_workflow(p_workflow_id uuid), an additive, workflow-id-scoped sibling to list_participant_family_updates(). Does not modify any existing function or RLS policy.
+  - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
+  - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
+- Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
