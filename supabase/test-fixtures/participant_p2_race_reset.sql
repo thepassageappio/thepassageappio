@@ -63,10 +63,15 @@ begin
 end
 $p2_race_project_guard$;
 
--- The existing isolated-lab append-only trigger exposes this transaction-local
--- reset escape. No persistent bypass is created, and the project guard above
--- executes before it is set.
-select set_config('passage.fixture_reset', 'cycle_7b_isolated_lab', true);
+-- The reviewed append-only trigger exposes this transaction-local escape only
+-- for the exact reserved participant race events. No persistent bypass is
+-- created, and the project/role/attestation guard above executes first.
+select set_config('passage.fixture_reset', 'participant_p2_race_isolated_cleanup', true);
+select set_config(
+  'passage.p2_race_cleanup_attestation',
+  'participant-p2-race-event-cleanup-approved',
+  true
+);
 
 delete from public.workflow_events
 where continuity_space_id = '82a00001-82a0-42a0-82a0-000000000001'
@@ -104,6 +109,7 @@ delete from public.continuity_spaces
 where id = '82a00001-82a0-42a0-82a0-000000000001';
 
 select set_config('passage.fixture_reset', '', true);
+select set_config('passage.p2_race_cleanup_attestation', '', true);
 
 do $p2_race_identity_guard$
 declare
