@@ -1,6 +1,6 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-29 (America/Los_Angeles)
+Last updated: 2026-08-10 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
@@ -2333,3 +2333,13 @@ Status: **ENGINEERING SOURCE FIX COMPLETE / FROZEN UNCOMMITTED HANDOFF TO DISTIN
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE FIX COMPLETE / UNCOMMITTED / NON-PRODUCTION PARTIAL / NOT QA-APPROVED.
 - Auto-advance target: distinct Independent QA reviews this complete uncommitted diff and executes source plus local 1440/390/360 normal/200% reflow checks. Any frozen replacement head then requires fresh exact-head Independent Agent Review, Development Head approval, one replacement non-production Preview, and the complete hosted matrix from the PM re-scope. No owner/founder prompt is required.
+
+
+## Participant case-detail + messaging access fix - 2026-08-10
+
+- Bug (found in docs/evidence/passage-zero/qa-2026-08-10-full-sweep.md, P0): every active continuity_participants family member who isn't the continuity-space owner was locked out of /case/[id]/today and /case/[id]/messages. Root cause: migration participant_updates_case_scope (2026-07-30) correctly narrowed passage_private.can_view_workflow_as_family() to owner-only and shipped public.list_participant_family_updates() as the participant-safe replacement, but that function has no workflow_id in its input or output, and nothing in the app called it -- lib/family/case-view.ts and lib/family/messages-view.ts both still gated on the now-owner-only raw `workflows` table read. Messaging's own RPC layer (can_message_workflow / list_workflow_messages_client_safe) was already participant-correct and untouched; only the page-level authorization gate in front of it was missing this consumer.
+- Fix (branch `fix/participant-case-access`, off `release/10h-delivery`):
+  - `supabase/migrations/20260810230000_participant_case_update_for_workflow.sql` -- adds public.get_family_case_update_for_workflow(p_workflow_id uuid), an additive, workflow-id-scoped sibling to list_participant_family_updates() with the identical bounded projection and predicate (active participant, 'updates' in category_scope, active continuity_space). Does not modify any existing function or RLS policy.
+  - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default, matching every other participant/messaging RPC's authenticated-only convention (caught via get_advisors after applying the first migration).
+  - `lib/family/case-view.ts` / `lib/family/messages-view.ts` -- both now fall back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view (no case reference/phase/task id, at most one recent update) from the bounded projection rather than loosening the owner-only RLS predicate.
+- Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying -- active updates-scoped participant (Dana) gets exactly one row for her own workflow; owner gets zero from this fn (handled by the existing owner path instead); revoked participant gets zero; a mismatched workflow id gets zero. Hosted QA with the real dana-family-participant@passage.test identity pending (see task tracker).
