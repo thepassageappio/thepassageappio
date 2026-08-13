@@ -24,7 +24,6 @@ const intentCopy: Record<FamilyIntent, { eyebrow: string; title: string; emphasi
 
 export default function FamilyIntentJourney(props: ProviderDiscoveryModeProps) {
   const [intent, setIntent] = useState<FamilyIntent | null>(null);
-  const [restored, setRestored] = useState(false);
   const [storageMessage, setStorageMessage] = useState('');
 
   useEffect(() => {
@@ -34,7 +33,6 @@ export default function FamilyIntentJourney(props: ProviderDiscoveryModeProps) {
     } catch {
       setStorageMessage('Your earlier choice could not be read. You can still use this example for this visit.');
     }
-    setRestored(true);
   }, []);
 
   function chooseIntent(next: FamilyIntent) {
@@ -62,7 +60,7 @@ export default function FamilyIntentJourney(props: ProviderDiscoveryModeProps) {
             <button aria-pressed={intent === 'planning'} onClick={() => chooseIntent('planning')} type="button"><span>Planning ahead</span><small>Build an example private handoff</small></button>
             <button aria-pressed={intent === 'urgent'} onClick={() => chooseIntent('urgent')} type="button"><span>I need help today</span><small>Choose example details</small></button>
           </div>
-          {restored && <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}Private browser demo: this choice stays on this device. It does not create an account, contact anyone, or change a real family record.</small>}
+          <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}Private browser demo: this choice stays on this device. It does not create an account, contact anyone, or change a real family record.</small>
           <p className={styles.liveRegion} aria-live="polite">{storageMessage}</p>
         </div>
       </section>

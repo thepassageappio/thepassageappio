@@ -24,6 +24,7 @@
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
     "test:server-actions": "node scripts/test-use-server-exports.js",
     "test:participant-case-scope": "node scripts/test-participant-case-scope-source.mjs",
+    "test:hydration-determinism": "node scripts/test-hydration-determinism.mjs",
     "test:provider-discovery": "node scripts/test-family-provider-discovery.mjs"
   },
   "dependencies": {
