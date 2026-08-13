@@ -12,6 +12,12 @@ const demoTargets: Record<DemoPersona, string> = {
   vendor: '/partner',
 };
 
+const guidedDemoTargets: Record<DemoPersona, string> = {
+  director: '/demo/operator/director',
+  staff: '/demo/operator/staff',
+  vendor: '/demo/operator/vendor',
+};
+
 function demoCredential(persona: DemoPersona) {
   const prefix = `PASSAGE_PREVIEW_DEMO_${persona.toUpperCase()}`;
   return {
@@ -23,21 +29,21 @@ function demoCredential(persona: DemoPersona) {
 export async function startPreviewDemo(formData: FormData) {
   const persona = String(formData.get('persona') ?? '') as DemoPersona;
   const configuration = getRuntimeConfiguration();
+  if (!Object.hasOwn(demoTargets, persona)) redirect('/demo?demo=configuration');
   if (
-    !Object.hasOwn(demoTargets, persona)
-    || process.env.VERCEL_ENV !== 'preview'
+    process.env.VERCEL_ENV !== 'preview'
     || process.env.PASSAGE_PREVIEW_DEMO_SESSIONS_ENABLED !== 'true'
     || !configuration.available
     || configuration.runtime !== 'preview'
     || configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'
     || !configuration.passwordAuthEnabled
   ) {
-    redirect('/demo?demo=configuration');
+    redirect(guidedDemoTargets[persona]);
   }
 
   const credential = demoCredential(persona);
   if (!credential.email || credential.password.length < 24) {
-    redirect('/demo?demo=credentials');
+    redirect(guidedDemoTargets[persona]);
   }
   let client;
   try {

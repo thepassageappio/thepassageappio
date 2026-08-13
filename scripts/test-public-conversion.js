@@ -9,6 +9,7 @@ const routeFiles = [
   'app/demo/page.tsx',
   'app/demo/family/page.tsx',
   'app/demo/family/pass/page.tsx',
+  'app/demo/operator/[persona]/page.tsx',
   'app/funeral-home/page.tsx',
   'app/pricing/page.tsx',
   'app/guides/page.tsx',
@@ -25,6 +26,8 @@ const publicPage = read('components/public/PublicPage.tsx');
 const publicStyles = `${read('components/public/PublicShell.module.css')}\n${read('components/public/PublicPage.module.css')}`;
 const demo = read('app/demo/page.tsx');
 const demoAction = read('app/demo/actions.ts');
+const operatorDemo = read('app/demo/operator/OperatorDemo.tsx');
+const operatorDemoStyles = read('app/demo/operator/OperatorDemo.module.css');
 const demoReset = read('app/demo/DemoReset.tsx');
 const demoResetStyles = read('app/demo/DemoReset.module.css');
 const demoModel = read('lib/demo.ts');
@@ -53,8 +56,14 @@ assert(demo.includes('href="/start"') && demo.includes('Get help now'));
 assert(demo.includes('<DemoReset />'));
 assert(demo.includes('No team session opened and no record changed.'));
 for (const code of ['configuration', 'credentials', 'signout', 'signin', 'identity']) assert(demo.includes(`${code}:`));
-for (const code of ['configuration', 'credentials', 'signout', 'signin', 'identity']) assert(demoAction.includes(`demo=${code}`));
+for (const code of ['configuration', 'signout', 'signin', 'identity']) assert(demoAction.includes(`demo=${code}`));
 assert(!demoAction.includes("family: '/start"));
+for (const persona of ['director', 'staff', 'vendor']) assert(demoAction.includes(`${persona}: '/demo/operator/${persona}'`));
+for (const identity of ['Elena Torres', 'Maya Chen', 'Jordan Lee']) assert(operatorDemo.includes(identity));
+for (const boundary of ['Guided browser demo.', 'Nothing is saved to a real record or sent to anyone.', 'Family details', 'Not shared']) assert(operatorDemo.includes(boundary));
+assert(operatorDemo.includes('receiptRef.current?.focus()'));
+assert(/min-height:\s*48px/.test(operatorDemoStyles));
+assert(/@media \(max-width:\s*720px\)/.test(operatorDemoStyles));
 assert(topShell.includes('FAMILY EXAMPLE STAYS IN THIS BROWSER · TEAM EXAMPLE ACTIVITY IS SHARED'));
 assert(!topShell.includes('CHANGES STAY ON THIS DEVICE'));
 
@@ -79,7 +88,7 @@ assert(transferComposer.includes('activationRecovery.current?.focus()'));
 assert(transferComposer.includes('ref={activationRecovery} role="alert" tabIndex={-1}'));
 const activationStorageFailure = transferComposer.indexOf("window.sessionStorage.setItem('passage.family.transfer.v1'");
 const activationDispatch = transferComposer.indexOf("type: 'issue_transfer_pass'");
-const activationFailureReturn = transferComposer.indexOf('focusActivationRecovery();\n      return;', activationStorageFailure);
+const activationFailureReturn = transferComposer.slice(activationStorageFailure).search(/focusActivationRecovery\(\);\r?\n\s+return;/) + activationStorageFailure;
 assert(activationStorageFailure >= 0 && activationFailureReturn > activationStorageFailure && activationDispatch > activationFailureReturn, 'failed activation storage must return before dispatch');
 
 assert(activePass.includes('await navigator.clipboard.writeText'));
@@ -93,7 +102,7 @@ assert(activePass.includes('closeRecovery.current?.focus()'));
 assert(activePass.includes('ref={closeRecovery} role="alert" tabIndex={-1}'));
 const closeStorageCleanup = activePass.indexOf("window.sessionStorage.removeItem('passage.family.transfer.v1')", activePass.indexOf('function revoke()'));
 const closeDispatch = activePass.indexOf("type: 'revoke_transfer_pass'", activePass.indexOf('function revoke()'));
-const closeFailureReturn = activePass.indexOf('closeRecovery.current?.focus());\n      return;', closeStorageCleanup);
+const closeFailureReturn = activePass.slice(closeStorageCleanup).search(/closeRecovery\.current\?\.focus\(\)\);\r?\n\s+return;/) + closeStorageCleanup;
 assert(closeStorageCleanup >= 0 && closeFailureReturn > closeStorageCleanup && closeDispatch > closeFailureReturn, 'failed close storage must return before dispatch');
 assert(activePass.includes('closedHeading.current?.focus()'));
 assert(/\.revokePanel button[\s\S]*min-height:\s*48px/.test(familyStyles));
