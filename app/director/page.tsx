@@ -46,11 +46,13 @@ export default async function DirectorPage() {
                 <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'CASE'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Authorized location'}</span><b data-state={task.status}>{task.assigned_organization_member_id ? humanTaskStatus(task.status) : 'Unassigned'}</b></div>
                 <div className={styles.cardBody}>
                   <p>{humanWorkflowPhase(workflow?.phase)}</p><h3>{task.title ?? 'Untitled commitment'}</h3>
-                  <dl className={styles.facts}>
+                  <dl aria-label="Decision context" className={styles.primaryFacts}>
                     <div><dt>Case</dt><dd>{workflow?.family_name ?? 'Family'} family · {workflow?.person_name ?? 'Person withheld'}</dd></div>
                     <div><dt>Owner</dt><dd>{currentOwner}</dd></div>
                     <div><dt>Waiting</dt><dd>{task.waiting_party ?? 'Nobody recorded'}</dd></div>
                     <div><dt>Due</dt><dd>{formatOperationalTime(task.due_at)}</dd></div>
+                  </dl>
+                  <dl aria-label="Execution and proof" className={styles.supportingFacts}>
                     <div><dt>Visible to</dt><dd>{humanAudience(task.audience)}</dd></div>
                     <div><dt>How Passage helps</dt><dd>{humanAutomationLevel(task.automation_level)}</dd></div>
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>

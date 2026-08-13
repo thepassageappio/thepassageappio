@@ -15,6 +15,30 @@ export default async function TeamPage() {
   const { viewer, members, grants, tasks, invitations, invitationLocations } = result.data;
   const locationById = new Map(viewer.locations.map((location) => [location.id, humanizePreviewLabel(location.name)]));
   const staffMembers = members.filter((member) => member.role === 'staff');
+  const staffCards = staffMembers.map((member) => {
+    const memberLocations = grants
+      .filter((grant) => grant.organization_member_id === member.id && !grant.revoked_at)
+      .map((grant) => locationById.get(grant.organization_location_id) ?? 'Authorized location');
+    const activeAssignments = tasks.filter((task) => task.assigned_organization_member_id === member.id && ['assigned', 'in_progress', 'blocked'].includes(task.status)).length;
+    const primaryName = displayMember(member);
+    const locationSummary = memberLocations.join(' · ') || 'No active location';
+    const commitmentSummary = `${activeAssignments} active ${activeAssignments === 1 ? 'commitment' : 'commitments'}`;
+    const discriminator = `${humanMemberStatus(member.status)} · ${locationSummary} · ${commitmentSummary}`;
+    return { activeAssignments, discriminator, member, memberLocations, primaryName };
+  });
+  const collisionCounts = new Map<string, number>();
+  for (const card of staffCards) {
+    const key = `${card.primaryName}\u0000${card.discriminator}`;
+    collisionCounts.set(key, (collisionCounts.get(key) ?? 0) + 1);
+  }
+  const collisionOrdinals = new Map<string, number>();
+  const renderedStaffCards = staffCards.map((card) => {
+    const collisionKey = `${card.primaryName}\u0000${card.discriminator}`;
+    const nextOrdinal = (collisionOrdinals.get(collisionKey) ?? 0) + 1;
+    collisionOrdinals.set(collisionKey, nextOrdinal);
+    const visibleDiscriminator = collisionCounts.get(collisionKey)! > 1 ? `${card.discriminator} · Staff access ${nextOrdinal}` : card.discriminator;
+    return { ...card, visibleDiscriminator };
+  });
   const now = Date.now();
   const pendingInvitations = invitations.filter((invitation) => !invitation.accepted_at && !invitation.revoked_at && new Date(invitation.expires_at).getTime() > now);
 
@@ -33,10 +57,8 @@ export default async function TeamPage() {
 
       <section className={styles.workList} aria-labelledby="members-title">
         <div className={styles.sectionHeading}><div><p>TEAM ACCESS</p><h2 id="members-title">People with access by location.</h2></div><span>{staffMembers.filter((member) => member.status === 'active').length} active</span></div>
-        {staffMembers.map((member) => {
-          const memberLocations = grants.filter((grant) => grant.organization_member_id === member.id).map((grant) => locationById.get(grant.organization_location_id) ?? 'Authorized location');
-          const activeAssignments = tasks.filter((task) => task.assigned_organization_member_id === member.id && ['assigned', 'in_progress', 'blocked'].includes(task.status)).length;
-          return <article className={styles.teamCard} key={member.id}><div><p>{humanMemberStatus(member.status)}</p><h3>{displayMember(member)}</h3><dl className={styles.facts}><div><dt>Role</dt><dd>Staff</dd></div><div><dt>Locations</dt><dd>{memberLocations.join(' · ') || 'No active location'}</dd></div><div><dt>Account</dt><dd>{member.user_id ? `${displayMember(member)} · sign-in linked` : 'No sign-in account linked'}</dd></div><div><dt>Active commitments</dt><dd>{activeAssignments}</dd></div></dl></div>{member.status === 'active' && <RevokeMemberForm activeAssignmentCount={activeAssignments} memberId={member.id} memberName={displayMember(member)} requestId={randomUUID()} />}</article>;
+        {renderedStaffCards.map(({ activeAssignments, member, memberLocations, primaryName, visibleDiscriminator }) => {
+          return <article className={styles.teamCard} key={member.id}><div><p>{humanMemberStatus(member.status)}</p><h3>{primaryName}</h3><span className={styles.teamDiscriminator}>{visibleDiscriminator}</span><dl className={styles.facts}><div><dt>Role</dt><dd>Staff</dd></div><div><dt>Locations</dt><dd>{memberLocations.join(' · ') || 'No active location'}</dd></div><div><dt>Account</dt><dd>{member.user_id ? 'Sign-in linked' : 'No sign-in account linked'}</dd></div><div><dt>Active commitments</dt><dd>{activeAssignments}</dd></div></dl></div>{member.status === 'active' && <RevokeMemberForm activeAssignmentCount={activeAssignments} memberId={member.id} memberName={primaryName} requestId={randomUUID()} />}</article>;
         })}
       </section>
     </AppFrame>

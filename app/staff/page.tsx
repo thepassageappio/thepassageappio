@@ -38,13 +38,15 @@ export default async function StaffPage() {
                 <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'CASE'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Authorized location'}</span><b data-state={task.status}>{humanTaskStatus(task.status)}</b></div>
                 <div className={styles.cardBody}>
                   <p>NEXT OWNED COMMITMENT · {formatOperationalTime(task.due_at)}</p><h3>{task.title ?? 'Untitled commitment'}</h3>
-                  <dl className={styles.facts}>
+                  <dl aria-label="What to do now" className={styles.primaryFacts}>
                     <div><dt>Owner</dt><dd>{displayMember(owner)}</dd></div>
                     <div><dt>Waiting</dt><dd>{task.waiting_party ?? 'Nobody recorded'}</dd></div>
                     <div><dt>Case boundary</dt><dd>{workflow?.person_name ?? 'Person withheld'} · {workflow?.family_name ?? 'Family'} family</dd></div>
+                    <div><dt>Human action</dt><dd>{humanTaskOwnerAction(task.human_action, 'Start the assigned work')}</dd></div>
+                  </dl>
+                  <dl aria-label="Visibility and proof" className={styles.supportingFacts}>
                     <div><dt>Visible to</dt><dd>{humanAudience(task.audience)}</dd></div>
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>
-                    <div><dt>What you do</dt><dd>{humanTaskOwnerAction(task.human_action, 'Start the assigned work')}</dd></div>
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                     <div><dt>Next state</dt><dd>{humanNextStep(task.status)}</dd></div>
                   </dl>

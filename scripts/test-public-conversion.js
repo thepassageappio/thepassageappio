@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const read = (file) => fs.readFileSync(file, 'utf8');
+const read = (file) => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
 const routeFiles = [
   'app/page.tsx',
   'app/demo/page.tsx',
