@@ -9,6 +9,7 @@ type SandboxContextValue = {
   hydrated: boolean;
   persistenceIssue: string | null;
   dispatch: (command: SandboxCommand) => SandboxStorageResult;
+  dispatchAtomic: (command: SandboxCommand) => SandboxStorageResult;
   reset: () => SandboxStorageResult;
 };
 
@@ -47,8 +48,21 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
+  const dispatchAtomic = useCallback((command: SandboxCommand) => {
+    const next = applySandboxCommand(recordRef.current, command);
+    const result = writeSandbox(window.localStorage, next);
+    if (!result.persisted) {
+      setPersistenceIssue(result.detail ?? 'This change was not saved.');
+      return result;
+    }
+    recordRef.current = next;
+    setRecord(next);
+    setPersistenceIssue(null);
+    return result;
+  }, []);
+
   const reset = useCallback(() => dispatch({ type: 'reset_sandbox' }), [dispatch]);
-  const value = useMemo(() => ({ record, hydrated, persistenceIssue, dispatch, reset }), [record, hydrated, persistenceIssue, dispatch, reset]);
+  const value = useMemo(() => ({ record, hydrated, persistenceIssue, dispatch, dispatchAtomic, reset }), [record, hydrated, persistenceIssue, dispatch, dispatchAtomic, reset]);
   return <SandboxContext.Provider value={value}>{children}</SandboxContext.Provider>;
 }
 
