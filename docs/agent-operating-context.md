@@ -1957,3 +1957,41 @@ Verdict: **PASS WITH CONDITIONS FOR ENGINEERING**. This approves the bounded pre
 - UX acceptance requires primary facts to be perceptibly dominant without hiding supporting authority/proof context; Team records must be distinguishable without treating an ordinal as a name or access fact; generic Team/Activity facts must not regress.
 - Source QA: **NOT RUN**. Hosted Preview QA: **NOT RUN**. Production Deployment: **NOT DEPLOYED**. Production QA: **NOT RUN**. Overall release state: **SOURCE ONLY / UX PASS WITH CONDITIONS / NON-PRODUCTION PARTIAL**.
 - Auto-advance target: distinct Engineering on `feature/director-staff-responsive-polish`, followed by distinct Independent QA. No owner gate is reached. No Claude-in-Chrome or other external-agent assistance was used.
+
+## Development Engineering - director and staff responsive hierarchy polish - 2026-08-12
+
+Status: **IMPLEMENTATION COMPLETE / SOURCE CHECKS PARTIAL / INDEPENDENT QA REQUIRED**. Production is untouched and no Preview deployment was created.
+
+### Role, received handoff, and collision reconciliation
+
+- Development Engineer and final reconciliation/commit owner: `/root/eng_director_staff_polish`, distinct from Product Manager, UI/UX Review, Independent QA, Independent Agent Reviewer, Development Head, Deploy, and Production Reviewer.
+- Received the PM Sprint Brief at `04b77b7ef3aef7ba336ffe0e49a017774018510a` and UI/UX PASS WITH CONDITIONS at `3256d9665ada7709a757ba7ce474e7884a3ca388` on clean branch `feature/director-staff-responsive-polish` in `.release-train-clean/.director-staff-polish`.
+- A coordination collision occurred when the completed UX role was separately reassigned into Development on the same worktree. Both editors stopped before commit, exchanged exact file ownership, and the root release-train role designated `/root/eng_director_staff_polish` as sole reconciliation owner. No reset, stash, deletion of product work, or blind overwrite was used. The compatible TSX/CSS work was inspected as one diff; duplicate test coverage was reduced to one canonical `scripts/test-responsive-hierarchy.js` and one package script.
+- Roadmap classification remains **NO material change** to product direction, scope, milestone order, readiness doctrine, persona coverage, or architecture. This presentation-only repair does not change a readiness score or the canonical roadmap.
+
+### Implementation and preserved contract
+
+- `app/director/page.tsx`: the work-card facts are two labelled description lists. `Decision context` contains Case, Owner, Waiting, and Due; `Execution and proof` contains Visible to, How Passage helps, Passage prepared, and Proof destination. Existing values, loader, assignment form, review link, and DOM action order remain unchanged.
+- `app/staff/page.tsx`: `What to do now` contains Owner, Waiting, Case boundary, and Human action; `Visibility and proof` contains Visible to, Passage prepared, Proof destination, and Next state. Existing assigned-only query/projection, start action, proof/history link, and recovery copy remain unchanged.
+- `app/operations-beta.module.css`: only `.workCard :is(.primaryFacts, .supportingFacts)` receives the new 4-column above 980, 2-column from 980 through 761, and 1-column at 760 and below hierarchy. Generic `.facts`, Team facts, and Activity facts keep their prior responsive rules. Both new groups use `minmax(0, 1fr)`, safe wrapping, a restrained 1180-pixel maximum, 14-pixel group separation, perceptibly stronger primary values, quieter fully visible supporting values, and 76/68-pixel focus scroll margins. Existing changed controls retain the shared 48-pixel minimum-height rule; grid children now have `min-width: 0` for long controls and receipts.
+- `app/director/team/page.tsx`: each safe primary name is derived once and rendered once. Account now says `Sign-in linked` or `No sign-in account linked`. The visible discriminator uses human access status, non-revoked authorized locations or `No active location`, and a correctly pluralized active-commitment count. Only exact collisions on safe name plus the full discriminator receive `Staff access 1`, `Staff access 2`, and so on in the stable loader-rendered order. The ordinal is display-only; member IDs remain command keys and no query, mutation argument, durable row, event, or authority predicate changed.
+- `scripts/test-responsive-hierarchy.js` plus `test:responsive-hierarchy` enforce fact grouping/order, route-local 760-pixel reflow, 48-pixel target source, unchanged Activity facts, safe Team account/discriminator/collision behavior, exclusion of revoked location grants, and absence of visible email/ID leakage.
+- No data, schema, migration, Supabase, RLS, RPC, Server Action, event/proof, fixture, navigation, environment, Vercel, or Production change is included. The frontend/backend parity ledger correctly remains unchanged.
+
+### Engineering verification
+
+- PASS: `pnpm test:responsive-hierarchy`, `pnpm test:persona-language`, `pnpm test:server-actions`, `pnpm test:release-governance`, `pnpm test:operational-route-gate`, `pnpm test:runtime-config`, and `pnpm test:deploy-gate`.
+- PASS: `pnpm typecheck`.
+- PASS: optimized `pnpm run build`; all 27 App Router routes compiled and page data completed. Next emitted only the existing multi-lockfile workspace-root warning for this nested clean clone.
+- PASS: `git diff --check` after configuring this sandbox-owned clean clone as the command-local safe directory.
+- PARTIAL: `pnpm test:parity` produced 16 PASS and one baseline failure because `docs/product/frontend-backend-contracts.json` references absent `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql`. This file was already absent at UX head `3256d96`; the presentation diff neither adds nor changes the contract row. It remains a named unrelated parity-source debt for the owning release lane and prevents an unqualified Source QA PASS.
+- Local authenticated responsive browser cells were **not run**: this clean clone intentionally contains only `.env.example`, with no local Supabase/auth binding or real persona sessions. Starting it with invented values would render a fail-closed shell rather than the changed data-backed cards. Independent QA must use the controlled exact-head hosted Preview and fresh real director/staff identities for the required 1440/640/390/360/320/200-percent matrix.
+
+### Handoff and release truth
+
+- Files changed: `app/director/page.tsx`, `app/staff/page.tsx`, `app/director/team/page.tsx`, `app/operations-beta.module.css`, `scripts/test-responsive-hierarchy.js`, `package.json`, and this context.
+- Recovery is a presentation-only revert of this exact commit; no data or schema recovery exists or is required.
+- Next role: fresh distinct Independent QA. QA must verify the exact committed head, classify the unrelated parity baseline separately, and run the full PM/UX source plus hosted responsive/accessibility matrix. A stuck or inferred viewport remains PARTIAL and creates the named QA-infrastructure fix-it item required by the PM brief.
+- No Claude-in-Chrome or other external-agent assistance was used. The train auto-advances to QA after the Bot-authored `[skip deploy]` commit. No owner gate is reached.
+
+Release truth: **Source QA: ENGINEERING CHECKS PARTIAL (focused/type/build PASS; unrelated baseline parity reference FAIL). Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE ONLY / ENGINEERING COMPLETE / INDEPENDENT QA REQUIRED / NON-PRODUCTION PARTIAL.**
