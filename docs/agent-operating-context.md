@@ -1995,3 +1995,18 @@ Status: **IMPLEMENTATION COMPLETE / SOURCE CHECKS PARTIAL / INDEPENDENT QA REQUI
 - No Claude-in-Chrome or other external-agent assistance was used. The train auto-advances to QA after the Bot-authored `[skip deploy]` commit. No owner gate is reached.
 
 Release truth: **Source QA: ENGINEERING CHECKS PARTIAL (focused/type/build PASS; unrelated baseline parity reference FAIL). Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE ONLY / ENGINEERING COMPLETE / INDEPENDENT QA REQUIRED / NON-PRODUCTION PARTIAL.**
+
+## Engineering QA return - stale urgent parity reference - 2026-08-12
+
+Status: **BOUNDED SOURCE-INTEGRITY CORRECTION COMPLETE / FRESH QA REQUIRED**. Product source, Preview, Supabase, and Production remain untouched.
+
+- Fresh Independent QA evaluated exact polish head `5bc5854eb2ee4cf6da7d17cbfccbb5e060eea213`. It reported that the polish-specific, language, route, runtime, Server Action, governance, TypeScript, build, context, and diff gates passed, while parity retained the previously recorded single failure.
+- QA returned the failure to Engineering after identifying its bounded owning cause: `urgent.family.receiver_bound_submission` referenced absent migration filename `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql`, while the authoritative checked-in migration is `supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql`.
+- Engineering changed only both filepath bindings in `docs/product/frontend-backend-contracts.json`: the contract's `backend_files` entry and its existing migration `source_assertions.file`. Assertion content, status, route, server command, tables, RLS description, event, failure states, persona projection, and evidence references remain unchanged.
+- Classification: **FIX NOW / repository-integrity correction**, with **NO material roadmap change**. Leaving the stale path would make the parity gate fail despite the authoritative migration being present; correcting it changes no runtime, product capability, database structure, authority, or release score.
+- Recovery is a one-line logical path revert in two JSON locations. No data or deployment recovery applies.
+- Verification PASS: focused responsive hierarchy, persona language, agent context, TypeScript, optimized Next.js build, and diff checks. Complete parity now passes **17/17**, including the real-ledger integration and Server Action export checks. The optimized build compiled all 27 App Router routes and emitted only the known nested-worktree multi-lockfile root warning.
+- Commit scope is exactly this context plus `docs/product/frontend-backend-contracts.json`; there is no product/runtime source diff after exact polish head `5bc5854`.
+- Next action: create a Bot-authored `[skip deploy]` descendant of `5bc5854`, freeze the clean head, and hand its exact hash to fresh distinct Independent QA.
+
+Release truth: **Source QA: ENGINEERING CHECKS PASS / FRESH INDEPENDENT QA NOT RUN. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE ONLY / QA RETURN CORRECTED / INDEPENDENT QA REQUIRED / NON-PRODUCTION PARTIAL.**
