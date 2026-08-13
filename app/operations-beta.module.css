@@ -6,7 +6,7 @@
 .pageHeading dl { display: flex; margin: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
 .pageHeading dl div { min-width: 88px; padding: 13px 16px; border-left: 1px solid var(--line); }
 .pageHeading dl div:first-child { border-left: 0; }
-.pageHeading dt, .facts dt { color: var(--muted); font-size: 12px; font-weight: 780; letter-spacing: .06em; text-transform: uppercase; }
+.pageHeading dt, .facts dt, .workCard :is(.primaryFacts, .supportingFacts) dt { color: var(--muted); font-size: 12px; font-weight: 780; letter-spacing: .06em; text-transform: uppercase; }
 .pageHeading dd { margin: 5px 0 0; font-size: 22px; font-weight: 760; }
 .scopeBand { display: grid; grid-template-columns: auto auto 1fr; gap: 16px; align-items: center; min-height: 58px; margin-bottom: 30px; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--signal) 22%, var(--line)); border-radius: 10px; background: var(--signal-soft); }
 .scopeBand strong, .scopeBand span, .scopeBand small { font-size: 13px; line-height: 1.45; }
@@ -26,10 +26,19 @@
 .cardBody { padding: clamp(22px, 3vw, 38px); }
 .cardBody h3, .teamCard h3 { margin: 0 0 24px; max-width: 980px; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
 .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.workCard :is(.primaryFacts, .supportingFacts) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; max-width: 1180px; margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.workCard .supportingFacts { margin-top: 14px; background: color-mix(in srgb, var(--canvas) 45%, var(--surface)); }
 .facts div { min-width: 0; min-height: 84px; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .facts div:nth-child(4n) { border-right: 0; }
 .facts dd { min-width: 0; margin: 8px 0 0; color: var(--ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.workCard :is(.primaryFacts, .supportingFacts) div { min-width: 0; min-height: 84px; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.workCard :is(.primaryFacts, .supportingFacts) div:nth-child(4n) { border-right: 0; }
+.workCard :is(.primaryFacts, .supportingFacts) dd { min-width: 0; margin: 8px 0 0; color: var(--ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.workCard .primaryFacts dd { font-size: 15px; font-weight: 650; }
+.workCard .supportingFacts dd { color: color-mix(in srgb, var(--ink) 82%, var(--muted)); }
+.workCard :is(a, button, input, select), .teamCard :is(a, button, input, select) { scroll-margin-top: 76px; }
 .commandForm { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(180px, .65fr) minmax(240px, 1fr) auto; gap: 12px; align-items: end; padding: 18px; border-top: 1px solid var(--line); background: var(--human-soft); }
+.commandForm > * { min-width: 0; }
 .commandForm > p { align-self: center; margin: 0; }
 .commandForm > p strong, .commandForm > p span { display: block; font-size: 13px; line-height: 1.5; }
 .commandForm > p span { color: var(--muted); }
@@ -50,6 +59,7 @@
 .teamCard { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .65fr); }
 .teamCard > div:first-child { padding: 24px; }
 .teamCard h3 { margin-bottom: 18px; font-size: clamp(24px, 3vw, 36px); overflow-wrap: anywhere; }
+.teamDiscriminator { display: block; min-width: 0; margin: -8px 0 18px; color: var(--muted); font-size: 13px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
 .teamCard .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .teamCard .facts div:nth-child(2n) { border-right: 0; }
 .compactForm { align-content: center; display: grid; gap: 12px; padding: 22px; border-left: 1px solid var(--line); background: var(--human-soft); }
@@ -73,10 +83,20 @@
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .facts div:nth-child(4n) { border-right: 1px solid var(--line); }
   .facts div:nth-child(2n) { border-right: 0; }
+  .workCard :is(.primaryFacts, .supportingFacts) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workCard :is(.primaryFacts, .supportingFacts) div:nth-child(4n) { border-right: 1px solid var(--line); }
+  .workCard :is(.primaryFacts, .supportingFacts) div:nth-child(2n) { border-right: 0; }
   .commandForm { grid-template-columns: 1fr 1fr; }
   .commandForm > p, .commandForm > button { grid-column: 1 / -1; }
   .teamCard { grid-template-columns: 1fr; }
   .compactForm { border-left: 0; border-top: 1px solid var(--line); }
+}
+
+@media (max-width: 760px) {
+  .workCard :is(.primaryFacts, .supportingFacts) { grid-template-columns: 1fr; }
+  .workCard :is(.primaryFacts, .supportingFacts) div,
+  .workCard :is(.primaryFacts, .supportingFacts) div:nth-child(2n),
+  .workCard :is(.primaryFacts, .supportingFacts) div:nth-child(4n) { min-height: 0; border-right: 0; }
 }
 
 @media (max-width: 620px) {
@@ -98,4 +118,5 @@
   .teamCard > div:first-child, .compactForm { padding: 18px 16px; }
   .activityList article > div { align-items: start; flex-direction: column; gap: 3px; }
   .activityList > li { grid-template-columns: 12px minmax(0, 1fr); gap: 12px; }
+  .workCard :is(a, button, input, select), .teamCard :is(a, button, input, select) { scroll-margin-top: 68px; }
 }
