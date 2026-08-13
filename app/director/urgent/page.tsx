@@ -19,7 +19,7 @@ export default async function DirectorUrgentPage() {
   if (!queue) return <Closed />;
 
   return (
-    <AppFrame active="director" identity={humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role)} mode="verified" role={`${viewer.viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.viewer.organizationName)}`}>
+    <AppFrame active="urgent" identity={humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role)} mode="verified" role={`${viewer.viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.viewer.organizationName)}`}>
       <header className={styles.pageHeading}>
         <div><p>URGENT REQUESTS</p><h1>Families who need help right now.</h1><span>Claim a request to take it on, then create the case.</span></div>
       </header>

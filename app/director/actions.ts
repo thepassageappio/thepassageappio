@@ -40,11 +40,12 @@ function rpcFailure(error: { code?: string } | null, noun: string): DirectorComm
 
 export async function assignTask(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
   const taskId = String(formData.get('taskId') ?? '');
+  const workflowId = String(formData.get('workflowId') ?? '');
   const assigneeId = String(formData.get('assigneeId') ?? '');
   const expectedVersion = Number(formData.get('expectedVersion'));
   const reason = String(formData.get('reason') ?? '').trim();
   const requestId = String(formData.get('requestId') ?? '');
-  if (!uuid.test(taskId) || !uuid.test(assigneeId) || !uuid.test(requestId) || !Number.isInteger(expectedVersion) || expectedVersion < 1 || !reason) {
+  if (!uuid.test(taskId) || !uuid.test(workflowId) || !uuid.test(assigneeId) || !uuid.test(requestId) || !Number.isInteger(expectedVersion) || expectedVersion < 1 || !reason) {
     return failure('validation', 'Choose authorized staff and explain why ownership is changing. Nothing changed.');
   }
   const authority = await directorClient();
@@ -60,6 +61,7 @@ export async function assignTask(_previous: DirectorCommandState, formData: Form
   const receipt = firstRpcRow<CommandReceipt>(result.data);
   if (!receipt?.event_id || !receipt.occurred_at) return failure('unavailable', 'We could not confirm that the owner changed. Reload before trying again.');
   revalidatePath('/director');
+  revalidatePath(`/director/cases/${workflowId}`);
   revalidatePath('/staff');
   revalidatePath('/director/activity');
   return { status: 'saved', message: receipt.replayed ? 'This ownership change was already saved. The original saved time is shown below.' : 'Ownership was saved in team activity.', receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed } };

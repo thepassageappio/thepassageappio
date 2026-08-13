@@ -12,7 +12,7 @@ const FAMILY_NAV = [
   { segment: 'today', label: 'Today', available: true },
   { segment: 'decisions', label: 'Decisions', available: false },
   { segment: 'tasks', label: 'Tasks', available: false },
-  { segment: 'messages', label: 'Messages', available: false },
+  { segment: 'messages', label: 'Messages', available: true },
   { segment: 'service', label: 'Service', available: false },
   { segment: 'costs', label: 'Costs', available: false },
 ] as const;

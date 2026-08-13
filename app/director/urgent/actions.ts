@@ -8,11 +8,11 @@ import { createPassageServerClient } from '@/lib/supabase/server';
 export type UrgentDirectorCommandState = {
   status: 'idle' | 'saved' | 'validation' | 'denied' | 'unavailable' | 'conflict';
   message?: string;
-  receipt?: { occurredAt: string; replayed: boolean; workflowId?: string };
+  receipt?: { replayed: boolean; workflowId?: string; firstTaskId?: string };
 };
 
 type ClaimReceipt = { urgent_intake_request_id: string; status: string; version: number; replayed: boolean };
-type CaseReceipt = { urgent_intake_request_id: string; workflow_id: string; status: string; version: number; replayed: boolean };
+type CaseReceipt = { urgent_intake_request_id: string; workflow_id: string; first_task_id: string; status: string; version: number; replayed: boolean };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function claimUrgentIntake(_previous: UrgentDirectorCommandState, formData: FormData): Promise<UrgentDirectorCommandState> {
@@ -48,7 +48,7 @@ export async function claimUrgentIntake(_previous: UrgentDirectorCommandState, f
   return {
     status: 'saved',
     message: receipt.replayed ? 'You already claimed this request.' : 'Claimed. Create the case when ready.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
+    receipt: { replayed: receipt.replayed },
   };
 }
 
@@ -87,13 +87,24 @@ export async function createCaseFromUrgentIntake(_previous: UrgentDirectorComman
     return { status: 'unavailable', message: 'Passage could not create the case. Nothing changed.' };
   }
   const receipt = firstRpcRow<CaseReceipt>(result.data);
-  if (!receipt?.workflow_id) return { status: 'unavailable', message: 'We could not confirm the case was created. Reload before trying again.' };
+  if (!receipt?.workflow_id || !receipt.first_task_id) {
+    return {
+      status: 'unavailable',
+      message: 'The case may be open, but its first task is unavailable. Reload before trying again.',
+    };
+  }
   revalidatePath('/director/urgent');
   revalidatePath(`/director/urgent/${requestUiId}`);
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This case was already created.' : 'Case created.',
-    receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed, workflowId: receipt.workflow_id },
+    message: receipt.replayed
+      ? 'This case and first task were already saved. Open the saved case.'
+      : 'Case and first task saved.',
+    receipt: {
+      replayed: receipt.replayed,
+      workflowId: receipt.workflow_id,
+      firstTaskId: receipt.first_task_id,
+    },
   };
 }

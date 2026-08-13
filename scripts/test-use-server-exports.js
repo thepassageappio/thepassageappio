@@ -8,6 +8,17 @@ const requiredCycle8ServerActions = [
   { file: 'app/staff/actions.ts', exportName: 'submitTaskProof' },
   { file: 'app/director/actions.ts', exportName: 'reviewTaskProof' },
 ];
+const requiredParticipantServerActions = [
+  { file: 'app/family/people/actions.ts', exportName: 'createFamilySpace' },
+  { file: 'app/family/people/actions.ts', exportName: 'createParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'rotateParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'cancelParticipantInvitation' },
+  { file: 'app/family/people/actions.ts', exportName: 'endParticipantAccess' },
+  { file: 'app/invite/[token]/actions.ts', exportName: 'acceptInvitation' },
+  { file: 'app/invite/[token]/actions.ts', exportName: 'acceptParticipantInvitation' },
+  { file: 'app/invite/[token]/actions.ts', exportName: 'declineParticipantInvitation' },
+  { file: 'app/invite/[token]/actions.ts', exportName: 'useAnotherInvitationAccount' },
+];
 
 function isExported(statement) {
   return Boolean(statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword));
@@ -120,9 +131,21 @@ for (const required of requiredCycle8ServerActions) {
     errors.push(`${required.file}: required Cycle 8 Server Action ${required.exportName} must remain an exported async function`);
   }
 }
+for (const required of requiredParticipantServerActions) {
+  const absolute = path.join(repositoryRoot, required.file);
+  if (!fs.existsSync(absolute)) {
+    errors.push(`${required.file}: required participant invitation Server Action module is missing`);
+    continue;
+  }
+  const source = fs.readFileSync(absolute, 'utf8');
+  const sourceFile = ts.createSourceFile(required.file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  if (!hasExportedAsyncFunction(sourceFile, required.exportName)) {
+    errors.push(`${required.file}: required participant invitation Server Action ${required.exportName} must remain an exported async function`);
+  }
+}
 if (errors.length) {
   errors.forEach((error) => console.error(`FAIL ${error}`));
   process.exit(1);
 }
 
-console.log(`PASS use-server modules export async functions only (${failingFixtures.length} prohibited fixtures rejected; ${requiredCycle8ServerActions.length} Cycle 8 actions bound)`);
+console.log(`PASS use-server modules export async functions only (${failingFixtures.length} prohibited fixtures rejected; ${requiredCycle8ServerActions.length} Cycle 8 actions and ${requiredParticipantServerActions.length} participant invitation actions bound)`);

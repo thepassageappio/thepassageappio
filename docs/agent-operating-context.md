@@ -1,9 +1,5 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-08-10 (America/Los_Angeles)
-
-This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
-
 ## PR #78 failed-check participant authority repair - PM and Engineering contract - 2026-08-11
 
 Status: **FIX NOW / ENGINEERING ACTIVE / SOURCE ONLY / NON-PRODUCTION**.
@@ -44,11 +40,441 @@ Release truth at Engineering handoff:
 - Production QA: NOT RUN.
 - Overall release state: SOURCE ONLY / READY FOR INDEPENDENT QA.
 
+## Participant case-detail access fix - 2026-08-10
+
+- Bug (found in docs/evidence/passage-zero/qa-2026-08-10-full-sweep.md, P0, tested against the release/10h-delivery superset preview): every active continuity_participants family member who isn't the continuity-space owner was locked out of /case/[id]/today (and, on branches carrying the not-yet-merged messaging feature, /case/[id]/messages too -- this branch, greenfield/passage-zero, has no messaging feature yet, so only the case-detail half applies here). Root cause: migration participant_updates_case_scope (2026-07-30, applied to the shared isolated project this branch's preview also reads from) correctly narrowed passage_private.can_view_workflow_as_family() to owner-only and shipped public.list_participant_family_updates() as the participant-safe replacement, but that function has no workflow_id in its input or output, and lib/family/case-view.ts still gated on the now-owner-only raw `workflows` table read.
+- Fix (branch `fix/participant-case-access-greenfield`, off `greenfield/passage-zero`; same fix also landed separately as `fix/participant-case-access` off `release/10h-delivery`, PR #77, for the messaging half):
+  - `supabase/migrations/20260810230000_participant_case_update_for_workflow.sql` -- adds public.get_family_case_update_for_workflow(p_workflow_id uuid), an additive, workflow-id-scoped sibling to list_participant_family_updates(). Does not modify any existing function or RLS policy.
+  - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
+  - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
+- Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
+
+## Public and Steve demo atomic recovery - Engineering handoff - 2026-08-12 17:51 -07:00
+
+Status: **ENGINEERING GATES PASS / DISTINCT EXACT-HEAD SOURCE QA REQUIRED / HOSTED PREVIEW FAIL / NON-PRODUCTION**.
+
+- **Role and received handoff:** distinct Development Engineer `/root/eng_public_demo_atomic_repair` received the PM FIX NOW and existing binding UX acceptance against exact clean public/demo base `ab430f2369c4b8cbba2d8ab489dff1b6993a45e7` in collision-safe worktree `.release-train-clean/.public-demo-build`. The unrelated untracked `({tag` file was preserved and excluded. The prior hosted verdict for Preview deployment `MzsuJ1wdeNP1cF8uFLyEz8DESmyH` is **INVALIDATED / FAIL** because failure injection proved false activation success, false close state, and missing configured team entry.
+- **Activation correction:** `TransferComposer` now attempts its session save before issuing any handoff command. A blocked save returns before dispatch or navigation, keeps the editable choices, shows that no handoff was created or saved, retains retry, and focuses a visible persistent recovery status. A new atomic sandbox dispatch writes browser persistence before committing React or in-memory state. If that write fails, the command does not become visible as successful and the incomplete session copy is removed or a truthful reset instruction is shown.
+- **Close correction:** `ActivePass` now verifies session cleanup before issuing the close command. A blocked cleanup returns before dispatch, leaves the handoff active, preserves the confirmation and both retry choices, states that nothing changed, and focuses the visible recovery. The close command uses the same atomic sandbox dispatch. If its durable browser write fails, the active in-memory state remains and the prior session copy is restored when possible. Closed copy and the closed heading render only after both persistence steps succeed.
+- **Source-proven dependency:** `lib/sandbox/provider.tsx` adds `dispatchAtomic` alongside the existing in-memory-fallback `dispatch`. Only handoff activation and close use the atomic path. Reset and the other browser-demo actions retain their existing safe in-memory fallback behavior.
+- **Team demo boundary:** Director, Staff, and Vendor remain a separate Deploy configuration obligation. They must use the existing `startPreviewDemo`, isolated synthetic accounts in project `uyacxqtsiwlvtmhxvoxr`, real role routes, and existing Auth/RLS. No browser-local operator fallback, Auth bypass, source credential, Supabase change, or Production configuration was added. Deterministic Steve demo acceptance still requires functional family, director, staff, and vendor entries on the replacement branch-only Preview.
+- **Files changed:** `components/family/TransferComposer.tsx`, `components/family/ActivePass.tsx`, `components/family/FamilyJourney.module.css`, `lib/sandbox/provider.tsx`, `scripts/test-public-conversion.js`, and this living context only. No migration, roadmap, pricing, Auth, database, environment, Vercel, trusted governance, or Production file changed.
+- **Local browser proof:** fresh failure injection covered activation and close at 1440 by 900, 390 by 844, and 360 by 800. Activation remained on `/demo/family`, showed the exact recovery, focused it instead of `BODY`, kept retry, and had zero horizontal overflow. Close remained on the active `/demo/family/pass` view with `Ready for the handoff`, retained `Keep open` and `Yes, close it`, focused the recovery instead of `BODY`, and had zero horizontal overflow. No page error or console error was observed. Development-server informational and refresh logs were not counted as hosted runtime proof.
+- **Engineering verification:** public conversion PASS; participant invitation P1/P2 `37/37` PASS; workflow messaging `23/23` PASS; parity `19/19` plus Server Actions PASS; persona language PASS; context PASS; release governance PASS; operational route gate PASS; runtime isolation PASS; deploy gate PASS; TypeScript PASS; optimized Next.js 16.1.6 build PASS with the complete route inventory; diff check PASS. The only build warning was the known multiple-lockfile workspace-root warning.
+- **Roadmap classification:** **NO**. This is a bounded defect correction that restores the already-approved public/demo recovery contract. It changes no product direction, persona coverage, milestone order, architecture, readiness doctrine, or score.
+- **Owner gate:** **NONE**. No owner prompt is permitted for source QA, branch-only Preview configuration, isolated synthetic demo accounts, Deploy, or hosted verification.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT EXACT-HEAD QA NOT RUN.
+- **Hosted Preview QA:** FAIL on stale deployment `MzsuJ1wdeNP1cF8uFLyEz8DESmyH`; replacement Preview QA NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** ACTIVE REPAIR / SOURCE PARTIAL / HOSTED FAIL / NON-PRODUCTION / NOT QA-APPROVED.
+- **Atomic next handoff:** freeze one Passage Release Bot `[skip deploy]` head and send it to distinct Source QA. If exact-head Source QA passes, Deploy configures the three isolated team demo sessions, publishes one replacement branch-only Preview, and distinct hosted QA reruns the complete family/team and responsive failure matrix. Production remains prohibited.
+
+## Product Lane A - Public conversion and Steve demo - QA-return Engineering correction - 2026-08-10 15:57 -07:00
+
+Status: **ENGINEERING CORRECTION COMPLETE / SOURCE AND 390-PIXEL RECOVERY JOURNEY PASS / DISTINCT EXACT-HEAD QA REQUIRED / NON-PRODUCTION**.
+
+- **Role and received handoff:** bounded Development Engineer `/root/eng_public_demo_8ff_return` received the fresh QA rejection of exact Bot-authored head `8ff74afceb4847a5cb1070d7ec7100008c76b240` on branch `feature/public-demo-launch`, worktree `.release-train-clean/.public-demo-build`. QA proved that the real `/start` to `/start/situation` to `/start/people` journey reached an unavailable `/start/next` state at 390 pixels with no recovery control. QA also found em dash characters in five reachable urgent sources. The prior Source QA verdict for `8ff74af...` is rejected. No hosted claim or owner gate exists.
+- **Bounded correction:** the unavailable `/start/next` state now states that the save and callback step cannot open, that the browser-held answers remain available, and that nothing was sent or saved. A native `Review your details` link returns to `/start/people`. Its exact rendered size at 390 pixels is 358 by 48 CSS pixels. The recovery preserves the entered coordinator name and phone and leaves zero horizontal overflow.
+- **Language correction:** em dash characters were replaced with direct sentences in `app/start/next/UrgentNextClient.tsx`, `app/start/actions.ts`, `lib/urgent/hosted.ts`, and `lib/urgent/situations.ts`. The unavailable server component no longer renders an internal runtime-configuration reason. `scripts/test-public-conversion.js` now requires the `/start/people` recovery destination, its literal label, its 48-pixel target floor, and absence of U+2013 and U+2014 from every reachable `/start` source named by the guard.
+- **Files changed:** `app/start/next/page.tsx`, `app/start/Start.module.css`, `app/start/next/UrgentNextClient.tsx`, `app/start/actions.ts`, `lib/urgent/hosted.ts`, `lib/urgent/situations.ts`, `scripts/test-public-conversion.js`, and this living context. The unrelated untracked zero-byte file `({tag` was preserved and excluded. No migration, database, Auth, Vercel, environment, Production, pricing, governance, or roadmap file changed.
+- **Source verification:** public conversion PASS; participant invitation P1/P2 `37/37` PASS; workflow messaging `23/23` PASS; parity fixture/integration `19/19` PASS; Server Action export guard PASS; persona-language PASS; release-governance PASS; operational-route PASS; runtime-isolation PASS; deploy-gate PASS; TypeScript PASS; optimized Next.js 16.1.6 build PASS with all public, demo, and urgent routes compiled; and the known multi-lockfile root warning only.
+- **Local browser verification:** a fresh built-server session at 390 by 844 completed `/start`, `/start/situation`, `/start/people`, and `Continue` to `/start/next`. The unavailable result rendered one H1, the enabled `Review your details` link, no framework overlay, no browser errors, no console output, and zero overflow. Activating the link returned to `/start/people` with `Jordan Morgan` and `555-010-1111` preserved. The link measured 358 by 48 CSS pixels. Browser and server were closed after the check.
+- **React and Next.js review:** the recovery remains a Server Component link and adds no client state, effect, hydration boundary, request, or bundle dependency. The changed client control remains a native form button. Existing server-side authentication and urgent RPC authority are unchanged.
+- **Roadmap classification:** **NO**. This correction restores an already-required recovery path and copy gate. It changes no direction, milestone order, persona scope, architecture, readiness doctrine, or score. The canonical roadmap does not need a new entry.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT EXACT-HEAD QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / LOCAL ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- **Atomic handoff:** freeze the Bot-authored `[skip deploy]` head containing this entry and hand it immediately to a fresh distinct QA role. QA must rerun source and build gates plus the real 390-pixel unavailable and recovery journey before any non-production Preview is authorized. No owner prompt is required.
+
+## Product Lane A - Public conversion and Steve demo - Engineering implementation handoff - 2026-08-10 15:31 -07:00
+
+Status: **ENGINEERING COMPLETE / SOURCE AND LOCAL BROWSER GATES PASS / DISTINCT EXACT-HEAD QA REQUIRED / NON-PRODUCTION**.
+
+- **Role and handoff:** Development Engineer `/root/pm_public_demo_build_r2/eng_public_demo_launch` received the completed PM brief at `ddc3fe341609cf01bb2a0144139950af64ca6ecd` on isolated worktree `.release-train-clean/.public-demo-build`, branch `feature/public-demo-launch`. The implementation base was current product head `02a743e3adfa4c7bfaf8db14750dab9be15d6496`. Prior six-item UX FAIL was binding. UX planning was not repeated.
+- **Bounded restoration:** Engineering restored only the PM allowlisted deleted public files from historical reference `9a95d825dec5c21df2127a10e0f94d647179b828`, then adapted them. No historical release, migration, governance file, participant file, messaging file, urgent file, vendor file, director file, staff file, database state, Auth state, Vercel state, or Production state was restored or changed.
+- **Implemented result:** `/`, `/funeral-home`, `/pricing`, `/guides`, the first guide, `/story`, `/trust`, `/care-providers`, and `/demo` are present. `/blog` and `/resources` redirect to `/guides`; `/our-story` and `/mission` redirect to `/story`. Every canonical public page has one H1 and a page-specific available action. Five unavailable guide cards render noninteractive `Coming soon` labels.
+- **Family and real-help boundary:** the Family demo card opens `/demo/family` with `Try the family demo`; a separate `Get help now` link opens `/start`. The family path remains browser-only and says it creates no real record, contact, message, purchase, or payment. Director, staff, and vendor remain Preview-only Server Action forms.
+- **Visible reset and failure truth:** `DemoReset` restores the canonical family example, clears family intent and handoff session state, focuses its announced result, and states that shared director, staff, and vendor activity was not reset. Sandbox read, cleanup, write, and reset return typed persistence results and preserve a usable in-memory example. Family intent read/write, handoff session save, activation, clipboard copy, close, and cleanup each report the exact failed effect and safe recovery. Copy success appears only after Clipboard success; rejection selects the visible code for the device Copy command.
+- **Focus and literal copy:** close confirmation focuses its heading. Escape and `Keep open` return focus to `Close this handoff`. Completed close focuses the closed H1. All related controls retain the 48 CSS pixel floor. Family timing now asks `How long should they have access?`; review says `Review who can open what.` No em dash or en dash renders in the restored public/demo packet.
+- **Source-proven additional dependency:** `components/core/TopShell.tsx` was outside the initial allowlist but is the sole shell imported by `/demo`. Local browser inspection proved its old global `CHANGES STAY ON THIS DEVICE` label falsely described the hosted team forms. The one-line replacement now says the family example stays in this browser while team example activity is shared. No structural shell behavior changed.
+- **Local fonts:** `@fontsource/cormorant-garamond` and `@fontsource/montserrat` 5.3.0 replace `next/font/google`. The clean optimized Next.js 16.1.6 build compiled every required public/demo route without a Google font request. The only build warning was the known multiple-lockfile workspace-root warning.
+- **Focused and regression results:** public conversion and adversarial source guard PASS; participant invitation P1/P2 `37/37` PASS; workflow messaging `23/23` PASS; parity fixture/integration `19/19` PASS; Server Action export guard PASS; persona-language PASS; agent-context PASS; release-governance PASS; operational-route PASS; runtime-isolation PASS; deploy-gate PASS; direct TypeScript PASS; optimized build PASS; and `git diff --check` PASS.
+- **Local browser results:** fresh built-server direct navigation at 1440 by 900, 390 by 844, and 360 by 800 covered every required public/demo/start route and all four redirects. Every cell rendered one H1, meaningful content, local Montserrat, the correct final URL, and zero horizontal overflow. A deterministic 200 percent text run first found 129 pixels of public footer overflow; Engineering changed the footer to one column below 1040 pixels, rebuilt, and the complete primary route rerun returned zero overflow. Family and real-help links reached their separate destinations. Reset focus and result passed. The full family choose, review, activate, copy, confirm, Escape, and close story passed. Completed close focused the closed H1. The local shared-team configuration failure returned `/demo?demo=configuration` and said no team session opened and no record changed. Browser page errors and console output were empty after the interaction story.
+- **Diff isolation:** intended product changes are limited to the restored public route packet, `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, the named family components, `lib/demo.ts`, sandbox persistence result handling, local font dependencies and lockfile, focused public test, canonical roadmap, living context, and the source-proven one-line TopShell boundary correction. `supabase/migrations/` is untouched.
+- **Roadmap classification:** **YES, planned persona coverage restoration**. The canonical roadmap and living context are updated together. Product direction, pricing, architecture, milestone order, and readiness doctrine are unchanged.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT EXACT-HEAD QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / LOCAL ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- **Next role:** distinct Source and accessibility QA verifies the frozen Bot-authored head, followed by distinct Independent Agent Review and Development Head. If they pass, Deploy publishes one branch-only non-production Preview and distinct hosted QA runs the complete matrix. No owner prompt is required.
+
+## Product Lane A - Public conversion and Steve demo launch integration - PM Sprint Brief - 2026-08-10
+
+Status: **PM COMPLETE / PRIOR UX FAIL RECEIVED AS BINDING FIX LIST / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION**.
+
+### Role, handoff, and exact integration boundary
+
+- Product Manager: `/root/pm_public_demo_build_r2`, distinct from the prior public implementer, prior UX reviewer, new Engineering, QA, Independent Agent Reviewer, Development Head, Deploy, hosted QA, and Production roles.
+- Prior handoff received: the read-only Product Lane A audit from `/root/product_lane_public_demo` and the exact six-item UX FAIL from `/root/product_lane_public_demo/ux_public_demo_launch` against older public candidate `9a95d825dec5c21df2127a10e0f94d647179b828`.
+- Current hosted truth received: Preview head `d80c9f7` has no usable public/conversion package; `/pricing` and `/demo` return 404. The older public candidate passed its source/build/parity and local three-width browser checks, but it is not launch ready because the six UX blockers below remain.
+- Exact clean implementation base: `02a743e3adfa4c7bfaf8db14750dab9be15d6496`, the Bot-authored participant P2 source candidate, on isolated worktree `.release-train-clean/.public-demo-build`, branch `feature/public-demo-launch`.
+- Historical reference only: `9a95d825dec5c21df2127a10e0f94d647179b828`. It is an ancestor of the current combined candidate, but later integration deleted its public routes. Engineering may inspect or restore only the exact deleted public files named below. It must not cherry-pick the historical 81-file combined release, restore the full tree, revert current participant/messaging/urgent/vendor work, or copy historical governance and migration changes.
+- Material Product Direction or Scope Change: **YES, planned persona coverage restoration**. This packet does not change Passage strategy, pricing doctrine, architecture, or milestone order, but it materially restores public/conversion and demo coverage to the current candidate. Engineering must update the canonical roadmap and this living context in the same packet. No readiness score may move from source work.
+- UX Review: prior exact six-item FAIL is accepted as the complete binding UX translation. A second UX planning loop is not required before Engineering because the fixes, copy, focus behavior, failure states, route destinations, and responsive matrix are already explicit. Fresh distinct UX or accessibility review remains part of exact-head QA.
+- Owner gate: **NONE**. This is ordinary product, source, test, non-production Preview, and hosted QA work. It changes no Production project, Production alias, destructive data, pricing, spend, or material legal/privacy/security judgment.
+- Governance scope: **NONE**. Do not modify trusted-review scripts, repository protection, merge identity, release attestation, Production gates, or R25/R26 work in this lane.
+- Certified whole-platform checkpoint: **0**. This packet earns no operational credit until its exact hosted artifact and the complete cross-domain checkpoint matrix pass.
+
+### Sprint goal
+
+Ship one coherent, pitch-usable public website and truthful demo entry on top of the current product candidate. A family, funeral-home buyer, care provider, or Steve must be able to understand Passage, choose the correct next step, enter the private family example or a hosted team example, reset the local example, recover from blocked browser capabilities, and leave every page without guessing. The packet must preserve the current participant P2, urgent, messaging, director, staff, and vendor contracts.
+
+### Fix-now requirements from the completed audit and UX FAIL
+
+1. **Restore the public route set without the historical combined release.** The current candidate must serve `/`, `/funeral-home`, `/pricing`, `/guides`, `/guides/first-funeral-home-conversation`, `/story`, `/trust`, `/care-providers`, and `/demo`. `/blog` and `/resources` permanently redirect to `/guides`; `/our-story` and `/mission` permanently redirect to `/story`. Every destination must have truthful metadata, one H1, a clear next action, and no public path may expose a protected persona route without its existing authorization boundary.
+2. **Separate family demo from real help.** The Family card on `/demo` opens `/demo/family` with a literal label such as `Try the family demo`. A separate `Get help now` action opens `/start`. No label may say `Start without signing in` and then enter the real urgent flow. The family demo must continue to say that it uses example information in this browser and does not contact anyone, create a real record, send a message, make a purchase, or process a payment.
+3. **Add one visible deterministic local reset.** `/demo` must include `Reset the family demo`. It restores the canonical browser sandbox, clears the family intent and handoff session state, reports what was reset, moves focus to the result, and leaves a usable in-memory canonical example if storage is blocked. It must also say plainly that this reset affects the family example in this browser only. Hosted director, staff, and vendor examples use shared saved example activity and are not reset by this control. Do not claim a complete hosted seed/reset mechanism that does not exist.
+4. **Make every browser failure truthful.** Family intent restore/save, sandbox read/cleanup/write/reset, handoff activation, copy, and close must catch blocked or failed browser storage and clipboard operations. Each error names what did not happen, what remained unchanged, and the next safe action. No control may remain stuck in a pending label. Copy success appears only after `clipboard.writeText` succeeds. Copy failure selects the visible read-only code and tells the user to use the device Copy command. A failed close must not claim access closed. A failed persistent save may continue as an explicitly in-memory example without claiming it will survive reload.
+5. **Complete close-confirm focus.** When `Close this handoff` reveals confirmation, focus moves to the confirmation heading or the first safe action, the new state is announced once, Escape or `Keep open` closes it, and focus returns to the trigger. After verified close, focus moves to the closed-state heading. All controls remain at least 48 by 48 CSS pixels.
+6. **Give every public page a specific next step.** `/story`, `/trust`, and `/care-providers` end with a visible action that names its destination and expected result. `/guides` links the available first guide and labels every unavailable card `Coming soon`; unavailable cards are not links or buttons. Guides ends with an available next step. Global header navigation does not substitute for these page-specific actions.
+7. **Use literal family instructions.** Replace `How long should the bridge stay open?` with `How long should they have access?`. Replace `One receiver. A clear boundary.` with `Review who can open what.` Continue removing abstract marketing phrasing where a direct sentence can explain the action. No em dash, en dash, mojibake, raw identifier, internal release language, or generated-sounding filler may render.
+8. **Keep hosted team entry honest.** Director, staff, and vendor forms remain Preview-only and use the existing branch-scoped demo credentials through `startPreviewDemo`. Sign-out, credential, configuration, and sign-in failures return to `/demo` with a specific human recovery state. The page says no team session opened and no record changed when that is what is known. It never claims that opening a shared example reset its durable state. Family remains browser-local and never invokes hosted credential login.
+9. **Remove the external font build dependency.** Adapt the reviewed local `@fontsource/cormorant-garamond` and `@fontsource/montserrat` package pattern from the historical candidate so optimized builds do not depend on a Google font request. Preserve Passage Zero typography and verify computed family at all widths. This closes the exact combined-head font-fetch infrastructure cell only if a fresh optimized build passes on the new exact head.
+
+### Exact implementation file packet
+
+Engineering may restore these deleted files from the historical reference and must then adapt them to the current head:
+
+- `app/blog/page.tsx`
+- `app/care-providers/page.tsx`
+- `app/demo/actions.ts`
+- `app/demo/family/page.tsx`
+- `app/demo/family/pass/page.tsx`
+- `app/demo/page.tsx`
+- `app/favicon.ico`
+- `app/funeral-home/page.tsx`
+- `app/guides/first-funeral-home-conversation/page.tsx`
+- `app/guides/page.tsx`
+- `app/icon.svg`
+- `app/mission/page.tsx`
+- `app/our-story/page.tsx`
+- `app/pricing/page.tsx`
+- `app/resources/page.tsx`
+- `app/story/page.tsx`
+- `app/trust/page.tsx`
+- `components/public/PublicPage.module.css`
+- `components/public/PublicPage.tsx`
+- `components/public/PublicShell.module.css`
+- `components/public/PublicShell.tsx`
+- `lib/presentation/demo-expiry.d.ts`
+- `lib/presentation/demo-expiry.js`
+- `scripts/test-public-conversion.js`
+
+Engineering may change these current files only for the named integration need:
+
+- `app/page.tsx`: replace the internal sample gateway with the public home.
+- `app/layout.tsx`, `package.json`, and `pnpm-lock.yaml`: local font packages and metadata only.
+- `app/globals.css`: public/demo comprehension, focus, target, and responsive support only; do not restyle operational personas.
+- `lib/demo.ts`: family route/copy and team demo labels only.
+- `app/demo/DemoReset.tsx` and a focused colocated CSS module if needed: new visible local reset and result/focus handling.
+- `components/family/FamilyIntentJourney.tsx`, `TransferComposer.tsx`, `ActivePass.tsx`, `FamilyJourney.module.css`, and `types.ts`: only the six UX fixes, literal copy, storage/clipboard truth, focus, and responsive recovery.
+- `lib/sandbox/provider.tsx` and `lib/sandbox/repository.ts`: safe read, cleanup, write, reset, in-memory fallback, and typed result only. Do not change authority logic or canonical example facts.
+- `scripts/check-persona-language.js`, `scripts/test-operational-route-gate.js`, `scripts/test-use-server-exports.js`, and `scripts/test-frontend-backend-parity.js`: only if required to classify and test the restored reachable files. No broad exclusion or weakening is permitted.
+- `docs/product/frontend-backend-contracts.json`, `docs/product/operational-readiness-roadmap.md`, and `docs/agent-operating-context.md`: parity, roadmap status, and exact Engineering handoff only.
+
+Any additional file requires a source-proven dependency recorded in the Engineering handoff before it is changed. `supabase/migrations/`, Production configuration, current participant P2 files, messaging schema, urgent schema, vendor schema, and trusted governance files are outside this packet.
+
+### Frontend and backend contract matrix
+
+| Surface and action | Reachable UI | Command or query | State and authority | Proof, replay, and recovery |
+| --- | --- | --- | --- | --- |
+| Public learning and conversion | `/`, `/funeral-home`, `/pricing`, `/guides`, `/story`, `/trust`, `/care-providers` through `PublicShell` and `PublicPage` | Server-rendered public route navigation only | No Auth, database row, RLS predicate, message, purchase, or lead write | Browser history and final destination are the only result. Broken destination or misleading label is FAIL. |
+| Canonical redirects | `/blog`, `/resources`, `/our-story`, `/mission` | Next.js `permanentRedirect` to canonical public route | No durable product state | Final URL and page-specific action must be correct on direct load and client navigation. |
+| Family demo entry | Family card on `/demo` to `/demo/family`; separate real-help link to `/start` | Public navigation only | Family example is browser-local; real urgent help retains its current signed-in server contract | Wrong route mixing is FAIL. Back, reload, missing state, and reset remain usable and truthful. |
+| Family example choices and activation | `FamilyIntentJourney` and `TransferComposer` | Browser-local sandbox command plus local/session storage attempt | No Supabase command, RLS grant, outbound effect, family record, or durable server proof | Success must distinguish saved in this browser from in-memory only. Storage failure keeps a usable example or explicit retry and never strands pending state. |
+| Copy example handoff code | `ActivePass` | Clipboard API only | No message, server request, token grant, or navigation | Copied appears only after success. Failure selects the visible value and gives manual Copy recovery. |
+| Close example handoff | `ActivePass` confirmation | Browser-local `revoke_transfer_pass` sandbox command and session cleanup | Local example only; no real access or server record changes | Close state appears only after in-memory command completion. Cleanup failure is reported separately and recovery remains available. |
+| Reset family demo | `DemoReset` on `/demo` | Browser-local `reset_sandbox` plus bounded local/session cleanup | Restores canonical local example. It does not reset hosted director, staff, vendor, isolated database, Auth users, or Production | Result names exactly what reset. Blocked persistence uses honest in-memory state. Repeat reset is stable. Focus moves to result. |
+| Open hosted director, staff, or vendor example | `/demo` persona form to `startPreviewDemo` | Preview-only Supabase Auth sign-out/sign-in using existing branch-scoped credentials | Downstream page authority remains the existing authenticated membership and RLS contract in isolated project `uyacxqtsiwlvtmhxvoxr` | Successful Auth redirects to the role route. Failure opens no claimed session, changes no claimed record, returns a specific recovery state, and offers retry or family demo. No hosted data reset is claimed. |
+
+No new database command, table, RLS policy, event, migration, invitation, message, purchase, lead, or outbound delivery belongs in this packet. Existing role routes must retain their current authority and denial behavior. Public/browser-only rows may be classified truthfully in the parity ledger but may not be called `implemented` as durable operations.
+
+### Source and build acceptance
+
+- `scripts/test-public-conversion.js` is rewritten as a focused current-head contract, not copied as a false-green historical suite. It asserts every canonical route and redirect, family `/demo/family` routing, separate `/start` help, reset boundary and result, page-specific closing actions, Guides availability labels, literal family copy, truthful failure states, local fonts, one H1 per page, target-size/focus styles, and prohibited-copy exclusions.
+- Add focused adversarial tests for blocked localStorage/sessionStorage read, write, remove, and reset; clipboard rejection; activation failure; close cleanup failure; malformed stored demo state; repeated reset; direct `/demo/family/pass` with no saved handoff; and hosted Auth/configuration/sign-out/sign-in failure mapping.
+- Run `pnpm test:public-conversion`, `pnpm test:participant-invitation`, `pnpm test:messaging-security`, `pnpm test:parity`, `pnpm test:server-actions`, `pnpm test:persona-language`, `pnpm test:agent-context`, `pnpm test:release-governance`, `pnpm test:operational-route-gate`, `pnpm test:runtime-config`, `pnpm test:deploy-gate`, `pnpm typecheck`, a clean `pnpm build`, and `git diff --check` on one exact head.
+- Inspect every restored diff against `02a743e`. The final file list must show a bounded public/demo package, not the historical 81-file release. Current participant, urgent, messaging, vendor, director, and staff behavior must retain their focused source tests.
+- Optimized build must complete without a network request for Google Fonts. Compiled route inventory must contain all canonical public/demo routes and redirects.
+
+### Local and hosted browser acceptance
+
+Fresh browser QA must run direct navigation and applicable client navigation at `1440 x 900`, `390 x 844`, and `360 x 800`, then deterministic 200 percent text zoom for every restored public/demo route. At minimum, cover `/`, `/funeral-home`, `/pricing`, `/guides`, `/guides/first-funeral-home-conversation`, `/story`, `/trust`, `/care-providers`, `/demo`, `/demo/family`, `/demo/family/pass`, `/start`, and all four redirects.
+
+For each applicable cell record final URL, rendered purpose, unique H1, primary/page-specific action and destination, header and mobile-menu behavior, `document.scrollWidth` versus `document.clientWidth`, focus order, visible focus, skip-link transfer, 48 by 48 enabled targets, text wrapping, computed fonts, console warnings/errors, hydration errors, page errors, unhandled rejections, failed requests, and runtime logs. There must be no horizontal overflow, clipped confirmation, inaccessible action, focus loss, stale success, raw identifier, mojibake, em dash, en dash, or internal QA/deploy wording.
+
+Required interaction stories:
+
+1. From `/demo`, Family opens `/demo/family`; `Get help now` separately opens `/start`.
+2. Family chooses a path, recipient, categories, and access duration; activation works with storage and falls back honestly when storage is blocked.
+3. Clipboard success and rejection produce different truthful states. Rejection selects the visible code.
+4. Close confirmation receives focus, safe exit restores trigger focus, Escape restores trigger focus, verified close moves focus to the closed heading, and a cleanup failure never claims closure.
+5. Reset restores the family example on first use and replay, announces the result once, and states that shared hosted team activity was not reset.
+6. Director, staff, and vendor demo entry succeeds only under the exact approved Preview configuration. Misconfiguration and Auth failure return to human recovery without a false session or reset claim.
+7. Story, Trust, Care Providers, and Guides each end with one working page-specific next step. Unavailable guide cards say `Coming soon` and are not interactive.
+
+### Hosted plan and evidence truth
+
+- Engineering freezes one Bot-authored `[skip deploy]` source head. Distinct Source QA and Independent Agent Review verify that exact head before Development Head review.
+- After exact-head source and build PASS plus Development Head approval, Deploy publishes one branch-only non-production Preview using the canonical Vercel project and existing isolated project `uyacxqtsiwlvtmhxvoxr`. Preserve the owner's signed-in Vercel and Supabase tabs and all branch-only Preview configuration.
+- Distinct hosted QA repeats the full route, interaction, 1440/390/360, 200 percent text, console, hydration, runtime, focus, overflow, reset/replay, blocked storage, blocked clipboard, and Auth failure matrix against the exact deployment. Commit only timestamped screenshots and redacted evidence. Do not capture credentials, raw tokens, cookies, request headers, emails beyond synthetic labels, UUIDs, or secrets.
+- `[qa-approved]` remains prohibited before exact hosted PASS. Vercel `READY`, HTTP 200, source tests, local screenshots, or empty logs do not substitute for hosted browser proof.
+- Production project `qsveqfchwylsbncsfgxe`, Production configuration, Production alias, Production data, and external communications remain untouched.
+
+### Risks and recovery
+
+- Restoring historical public files can silently overwrite newer product and security work. Recovery: restore only the deleted allowlist, inspect every diff against `02a743e`, and rerun all participant, messaging, urgent, vendor, route, and parity gates.
+- A local reset can be mistaken for a hosted data reset. Recovery: label it `Reset the family demo`, state its browser-only boundary before and after action, and never describe shared team state as canonical after reset.
+- Storage APIs can fail independently. Recovery: treat read, write, remove, and clipboard as separate fallible operations, preserve usable in-memory state, and report exactly which result persisted.
+- Server redirects can collapse distinct hosted Auth failures into vague copy. Recovery: map only safe public failure codes to specific human states and keep credentials and provider diagnostics server-only.
+- Restoring local fonts can alter layout. Recovery: verify computed fonts, CLS, wrapping, target sizes, and overflow at all widths and zoom before hosted approval.
+- Public pages can look complete while pointing to missing or protected destinations. Recovery: crawl every enabled link and assert final route, status, heading, and expected boundary.
+
+### Non-goals
+
+- No wholesale cherry-pick of `9a95d825`, `e1996f5`, or any historical combined release.
+- No new Supabase project, demo environment, schema, migration, seed RPC, admin reset endpoint, credential rotation, Production setting, or external communication.
+- No numeric pricing, checkout, payment, lead-capture form, CRM integration, care-provider account, new guide inventory, SEO campaign, or legal/privacy claim expansion.
+- No redesign of current director, staff, vendor, urgent, messaging, participant P2, or invitation flows.
+- No claim that the shared hosted team examples are deterministically reset by the browser control.
+- No readiness increase, Production launch, merge, or deploy authorization from this PM brief.
+
+### Exit criteria and next roles
+
+- Every required public/demo route exists on the exact current product head and every enabled action reaches the named result.
+- All six UX blockers are closed in source and proven in the complete local browser matrix.
+- Public, family demo, and hosted team boundaries are literal and cannot be confused with real help, Production, or a durable hosted reset.
+- All source, security, parity, TypeScript, local-font optimized build, route, language, and diff gates pass on one clean exact head.
+- Distinct Source QA, accessibility/UX QA, Independent Agent Review, and Development Head approval follow Engineering. Deploy and distinct hosted QA then own the single non-production Preview.
+- Source QA: NOT RUN on this new packet.
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: PM COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+- Auto-advance target: distinct Engineering receives this exact brief now and implements the bounded file packet on `.public-demo-build`. No owner prompt and no governance detour are permitted.
+
+## Product Lane B - Participant invitation P2 reachable lifecycle controls - PM Sprint Brief - 2026-08-09
+
+Status: **PM COMPLETE / UX REVIEW PASS WITH BINDING CONDITIONS / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION**.
+
+### Role, input, and product decision
+
+- Product Manager: `/root/pm_participant_p2_build`, distinct from the P1 implementer, future P2 UX, Engineering, QA, Independent Agent Reviewer, Development Head, Deploy, and Production roles.
+- Prior handoff received: the owner-approved 2026-08-09 launch-delivery recovery controls and exact clean combined participant head `12939632aeaaebb00cc066d7468448321cae9c7c` on `integrate/participant-87c-combined`.
+- Exact PM worktree: `.release-train-clean/.participant-p2-plan` on branch `plan/participant-p2-lifecycle`, created from that exact clean head. This worktree may change only the living context for the PM handoff.
+- Material Product Direction or Scope Change: **NO**. This implements the already-queued P2 participant lifecycle in the canonical roadmap. No roadmap or readiness-score change is authorized.
+- UX Review: **PASS WITH BINDING CONDITIONS** by distinct `/root/pm_participant_p2_build/ux_participant_p2` against exact PM head `55e76585e96ce48e7d8b5618925524e8bd7e0f15`. The reviewer changed no file, branch, database, or deployment.
+- Owner gate: **NONE**. This uses existing isolated non-production authority, changes no pricing, spend, Production data, or material legal/privacy/security decision, and requires no routine founder review.
+- Certified whole-platform checkpoint: **0**. This packet earns no credit until the applicable complete checkpoint matrix passes.
+
+### Completed P1 findings that control P2
+
+- P1 is incorporated in the exact base. Its secure raw-link exchange, server-held httpOnly invitation intent, exact-user acceptance, bounded multi-space participant projection, owner-only raw case authority, append-only invitation events, RLS denials, and corrected SQL artifacts must not regress.
+- The combined P1 source gates passed except that the exact combined-head optimized build remained PARTIAL because the restricted runner could not fetch the configured Google fonts. Hosted Preview QA remains NOT RUN on this base. P2 cannot inherit or restate a hosted or build PASS from another head.
+- The existing schema already provides all four required lifecycle commands: `public.rotate_participant_invitation_idempotent`, `public.decline_participant_invitation`, `public.revoke_participant_invitation`, and `public.revoke_continuity_participant_idempotent`.
+- Those commands already bind the authenticated actor, coordinator or invited-email authority, row locks, terminal-state constraints, idempotency or stable replay behavior, and append-only `workflow_events` proof.
+- The owner projection already distinguishes `available`, `accepted`, `declined`, `revoked`, and `expired`, and returns active and revoked participant history. The participant, bounded case-update, and message predicates already require an active participant row.
+- PM decision: **no migration is justified for this packet**. Engineering must begin with the existing RPCs and must not modify `supabase/migrations/`. If an exact source or SQL test proves a missing server guarantee, Engineering stops, records the table/function change, frontend reason, skipped-change breakage, reversibility, grants, RLS impact, and isolated test plan before creating any migration.
+
+### Sprint goal
+
+Give the family coordinator and invited participant complete, plain-language control over an invitation after creation: replace a lost or expiring link, decline without joining, cancel a pending invitation, and end active participant access. Every action must show what changes, what does not change, what proof was saved, who can see the result, and how to recover. A committed access revocation must remove participant update and message authority on the next request without exposing or reconstructing the raw invitation bearer.
+
+### Bounded requirements
+
+1. A coordinator can replace an `available` or `expired` invitation from `/family/people`. The first successful rotation shows one new copyable link. The previous link becomes unusable immediately. A same-request replay returns the saved replacement without another raw token or duplicate rows/events.
+2. The exact verified invited account can decline an `available` participant invitation from `/invite/continue`. Decline creates no `continuity_participants` grant. The UI replaces both Accept and Decline controls with a verified saved receipt for the current interaction.
+3. A coordinator can cancel an `available` invitation from `/family/people`. Cancellation grants no access, moves the invitation into history, removes all waiting controls, and makes the old link disclose no protected invitation detail.
+4. A coordinator can end an active participant's access from `/family/people`. The participant row becomes revoked, earlier invitation and activity history remain append-only, and the next participant request loses bounded family updates and message list/post authority.
+5. Every mutation rechecks the signed-in user and server authority inside the RPC. Client state, hidden identifiers, displayed lifecycle text, and browser history are never authorization.
+6. The raw invitation token may exist only in the existing server-held intent and the one-time successful create or rotation receipt. It must never be bound into a Server Action argument, form field, query string, login return, OAuth redirect, OTP redirect, rendered anchor, log, analytics event, error, history row, or replay receipt. The one-time client receipt may construct a non-navigation copy value exactly as P1 does.
+7. Coordinator controls render only for their valid lifecycle states. Accepted invitations cannot rotate or cancel. Revoked or declined invitations cannot rotate. Revoked participants cannot be restored in this packet.
+8. User-facing copy contains no raw enum, UUID, token hint, event key, infrastructure narration, readiness language, em dash, en dash, or vague generated prose. Buttons name the action and consequence.
+
+### Components and Server Actions
+
+Engineering may change only the following product surface unless a source-proven dependency is recorded first:
+
+- `app/family/people/page.tsx`: render lifecycle-appropriate controls in Waiting, Invitation history, and People with access. Keep raw identifiers out of visible copy.
+- `app/family/people/ParticipantLifecycleControls.tsx` as a new client component: own rotation, cancellation, and access-ending pending, success, conflict, and recovery states; show one-time copy fallback without a navigation link; suppress stale controls after success.
+- `app/family/people/actions.ts`: add `rotateParticipantInvitation`, `cancelParticipantInvitation`, and `endParticipantAccess`. Validate UUIDs, request IDs, expiry choice, and fixed bounded action reasons; verify the current user; call only the existing public RPCs; inspect exact receipts; revalidate `/family/people` and affected dynamic persona paths; never accept or return a bearer except the first rotation receipt returned by the RPC.
+- `app/family/people/People.module.css`: accessible responsive action groups, confirmations, receipts, error focus, and at least 48 by 48 CSS-pixel enabled targets.
+- `app/invite/continue/ParticipantInvitationDecision.tsx` as a new client component: own Accept and Decline together so a successful decline removes every acceptance control immediately and presents the saved result.
+- `app/invite/[token]/actions.ts`: add `declineParticipantInvitation` that reads the raw token only through `readInvitationIntent`, rechecks participant type and available state, uses the fixed private decline reason below, calls the existing decline RPC, verifies stable replay against the same receipt, and returns typed state without placing the token or reason in a URL.
+- `app/invite/continue/page.tsx`: render the unified participant decision component only for an actionable participant invitation; retain minimum-safe terminal states and existing staff behavior.
+- `lib/auth/invitations.ts` and `lib/continuity/participants.ts`: add only receipt/projection types needed by the controls. Do not widen participant data or return protected identifiers to visible copy.
+
+Action contracts:
+
+| User action | Server Action | Existing authoritative command | Exact durable result | Append-only proof |
+| --- | --- | --- | --- | --- |
+| Replace secure link | `rotateParticipantInvitation` | `public.rotate_participant_invitation_idempotent(p_invitation_id, p_expires_at, p_request_id)` | Old invitation revoked with reason `Replaced with a new secure link`; one new invitation linked by `rotates_invitation_id`; raw token returned once | One `participant_invitation.rotated` event for the old row and one `participant_invitation.created` event for the replacement |
+| Decline invitation | `declineParticipantInvitation` | `public.decline_participant_invitation(p_raw_token, p_reason)` | Invitation revoked by the exact invited user; zero participant grant | One `participant_invitation.declined` event |
+| Cancel pending invitation | `cancelParticipantInvitation` | `public.revoke_participant_invitation(p_invitation_id, p_reason)` | Pending invitation revoked by the coordinator; zero participant grant | One `participant_invitation.revoked` event |
+| End active access | `endParticipantAccess` | `public.revoke_continuity_participant_idempotent(p_participant_id, p_reason, p_request_id)` | Active participant row changes to revoked with actor, time, and reason; invitation acceptance history remains | One `continuity_participant.revoked` event |
+
+The reasons are fixed server-side product text and are never accepted from a visible or hidden form: decline uses `Invited person declined the invitation`; cancellation uses `Family coordinator canceled the invitation`; access ending uses `Family coordinator ended participant access`. Human history translates the outcome and never displays the stored reason text.
+
+### Frontend and backend parity ledger
+
+Engineering adds these contracts to `docs/product/frontend-backend-contracts.json` as `source_partial` only after the reachable UI and exact Server Action exist:
+
+- `participant.coordinator.rotate_invitation`
+- `participant.invited.decline_invitation`
+- `participant.coordinator.cancel_invitation`
+- `participant.coordinator.revoke_access`
+
+Each row must name the route/component, action state, exact RPC signature, `participant_invitations`, `continuity_participants`, and `workflow_events` cardinality, actor predicate, event key, retry/conflict behavior, privacy projection, and evidence references. Engineering also updates `participant.invited.open_shared_updates` and `m3.shared.workflow_messages` to bind the committed-revocation denial evidence. No row becomes `implemented` from source existence alone.
+
+P2 must preserve this deliberate P1 boundary:
+
+- `/participant` is the participant's reachable bounded case-update surface through `public.list_participant_family_updates()`.
+- `/case/[id]/today` remains an owner-authorized raw case projection and is not widened to participants merely to manufacture a positive revocation test.
+- Message authority is separately provided by `passage_private.can_message_workflow`. The current `/case/[id]/messages` loader first performs a workflow SELECT through the owner-only predicate, so participant browser reachability is not proven by P1. P2 must not claim that route as a working participant feature. For this packet, QA proves message authority loss through the exact list/post RPCs using the isolated synthetic workflow and proves any stale direct browser request reveals no message. A later PM packet must resolve participant message discovery and a non-UUID route if that capability remains in the product contract.
+
+### SQL lifecycle and cardinality evidence
+
+Add one rollback-only, idempotent test at `supabase/tests/participant_invitation_lifecycle_p2.sql`. It must run only against isolated project `uyacxqtsiwlvtmhxvoxr`, reject Production ref `qsveqfchwylsbncsfgxe`, verify the exact prerequisite migration names and function catalog/ACL state, use reserved synthetic identities, and end in unconditional rollback.
+
+Required per-scenario deltas:
+
+- Rotation: one old invitation changes from available to revoked, one replacement invitation is added with `rotates_invitation_id = old.id`, and exactly two events are added, `participant_invitation.rotated` and replacement `participant_invitation.created`. Same request ID and same expiry adds zero rows/events and returns no token. Same request ID with changed expiry returns conflict and adds zero rows/events.
+- Decline: the invitation becomes revoked by the exact invited user, exactly one `participant_invitation.declined` event is added, and participant-row delta remains zero. Same actor and reason replay adds zero rows/events. Wrong email, wrong user, expired, accepted, cancelled, and altered-reason replay all fail without a partial write.
+- Pending cancellation: the invitation becomes revoked by the coordinator, exactly one `participant_invitation.revoked` event is added, and participant-row delta remains zero. Same reason replay adds zero rows/events. Unrelated owner, participant, vendor, staff, accepted invitation, and altered-reason replay fail without a partial write.
+- Active-access revocation: exactly one existing participant row changes from active to revoked and exactly one `continuity_participant.revoked` event is added. Same request ID and reason adds zero rows/events. Changed reason conflicts. Unrelated coordinator, participant self-revocation, staff, and vendor fail without a partial write.
+- After committed revocation, the revoked account receives zero rows from `list_participant_continuity_spaces`, `list_continuity_participant_projection`, and `list_participant_family_updates`; receives `42501` or the exact documented denial from both message list and post RPCs; and cannot read the five raw workflow/task/event/proof/review relations. The coordinator still sees the revoked participant and terminal invitation history.
+- Old-link denial after rotation, decline, or cancellation must return the correct terminal state from the bounded inspection command, reject acceptance and decline mutations as applicable, and suppress inviter, family, relationship, purpose, scope, email, token metadata, case, and message detail from the terminal persona response.
+
+SQL QA must also run the retained P1 invitation, advisor-hardening, participant-update, messaging, RLS, race, reversibility, ACL, and Supabase advisor checks. Do not edit a historical migration to make the test pass. Current Supabase breaking-change review on 2026-08-09 found no change to these existing RPC signatures. The Data API default now requires explicit grants in applicable projects, so the test must continue to assert exact authenticated execute grants and denied direct table access rather than relying on platform defaults.
+
+### Source, concurrency, and regression tests
+
+- Extend `scripts/test-participant-invitation-security.js` for all four UI/action/RPC bindings, lifecycle-state control suppression, one-time token containment, fixed reason bounds, old-link denial copy, protected terminal-field exclusion, and no raw token in form/action/auth/navigation paths.
+- Extend `scripts/test-use-server-exports.js` so all four new Server Actions are exported, server-only, and reachable from the intended components.
+- Extend parity fixtures and `scripts/test-frontend-backend-parity.js` for the four new ledger rows plus revocation denial updates.
+- Add focused race coverage for rotate versus accept, rotate versus cancel, decline versus accept, cancel versus accept, and participant message post begun after committed revocation. Each race must prove one valid terminal result, exact event counts, no duplicate participant, and no orphan replacement.
+- Run `pnpm test:participant-invitation`, `pnpm test:parity`, `pnpm test:server-actions`, `pnpm test:messaging-security`, `pnpm test:persona-language`, `pnpm test:agent-context`, `pnpm test:release-governance`, `pnpm test:operational-route-gate`, `pnpm test:runtime-config`, `pnpm test:deploy-gate`, `pnpm typecheck`, `pnpm build`, and `git diff --check` on the exact candidate.
+- The exact combined-head font/build failure remains a named QA-infrastructure cell. A clean authorized Preview builder must produce a fresh optimized build PASS for the P2 exact head. Prior-head build evidence cannot close it.
+
+### Hosted multi-session plan at 1440, 390, and 360
+
+Deploy may publish only a reviewed non-production Preview bound to isolated project `uyacxqtsiwlvtmhxvoxr` with branch-only Preview configuration. Preserve existing signed-in owner Vercel and Supabase tabs. Do not touch Production project `qsveqfchwylsbncsfgxe`, Production configuration, or Production aliases.
+
+Use at least four clean storage contexts at every viewport: family coordinator, exact invited participant, wrong invited account, and unrelated coordinator. Use a deterministic reset between viewport matrices and retain redacted row/event cardinality.
+
+For each of 1440, 390, and 360:
+
+1. Create an available invitation, open the old link in the participant context, rotate it in the coordinator context, and prove the coordinator receives one new copyable link. Reload and POST against the old link to prove generic denial with no Accept or Decline control. Open the replacement link and prove the exact invited account can inspect it. Deny clipboard permission once and prove manual copy recovery without navigation.
+2. Create a second invitation. Prove the wrong account cannot decline. Switch to the exact verified account without losing the server-held intent, decline, and prove a saved receipt, zero grant, coordinator history, terminal reload, stable replay, and no protected terminal details.
+3. Create a third invitation, cancel it as coordinator, and prove it leaves Waiting, appears in history, creates no grant, and the old participant tab loses all actionable detail on its next request.
+4. Accept a fourth invitation. Prove `/participant` reconstructs the bounded update from durable state in a second session. Establish the pre-revocation message RPC positive result against the isolated workflow, end access as coordinator, then on the participant's next request prove `/participant` is closed, the bounded case-update projection is empty, message list/post are denied, a stale direct message route shows no message body, and reload or reconnect restores no access.
+5. At every state, record direct and applicable client navigation, final URL, heading and purpose, primary/destructive action, result, proof destination, visibility boundary, recovery instruction, keyboard order, focus after validation or success, 48-pixel targets, 200% zoom where applicable, scroll width versus client width, console warnings/errors, hydration/runtime errors, unhandled rejections, failed requests, and Vercel runtime logs.
+
+Commit only timestamped replacement screenshots and redacted database/audit evidence. Raw tokens, emails beyond synthetic labels, UUIDs, cookies, request headers, and secrets must be removed from evidence.
+
+### Acceptance criteria
+
+- All four controls are reachable only in their valid state and complete through their existing authoritative RPC.
+- Every success is verified from a durable receipt and append-only event before the UI claims completion.
+- Rotation makes the old link unusable, never reconstructs a token, and reveals a new token only once.
+- Decline creates no participant access. Cancellation creates no participant access. Revocation removes participant updates and message authority on the next request.
+- Replay, conflict, wrong-user, wrong-owner, expired, accepted, cancelled, former-participant, staff, vendor, and unrelated-organization paths preserve exact cardinality and reveal no protected detail.
+- Frontend/backend parity rows, source gates, exact SQL lifecycle matrix, advisors, optimized build, and the complete three-viewport multi-session hosted matrix all pass on one exact head.
+- Source QA, Hosted Preview QA, Production Deployment, Production QA, and Overall release state are reported separately. `[qa-approved]` remains prohibited until exact hosted PASS.
+
+### Binding UI/UX Review handoff
+
+The distinct UI/UX Review verdict is **PASS TO ENGINEERING WITH CONDITIONS**. These conditions are acceptance requirements, not optional polish:
+
+- Use inline disclosures, not browser confirmation prompts or mobile modals. The trigger is a native button with `aria-expanded` and `aria-controls`. Only one confirmation is open at a time. Safe exit precedes the committing action in DOM and visual order. Escape closes the disclosure and returns focus to its trigger.
+- Replacement uses low-saturation purple. Decline, cancellation, and access ending use muted red only for the final committing action. Accept remains primary; Decline appears below it as a lower-emphasis secondary action on every viewport.
+- Pending disables the complete related action set. No row moves and no success appears before the durable receipt is verified.
+- A first rotation receipt must live in a stable page-level client region outside the Waiting row so revalidation cannot unmount and destroy the only raw replacement link. The link appears in a read-only input, never an anchor. Clipboard failure focuses and selects the input for manual copying. Reload, back restoration, reconnect, or navigation removes the raw link.
+- Add a `Past access` section using revoked rows already returned by `list_owned_continuity_participant_projection`. No new RPC or migration is required. It shows human name, relationship, access-began time, access-ended time, former category labels, and `Access ended`, with no restore control.
+- Invitation history distinguishes `Invitation accepted`, `Invitation declined`, `Invitation canceled`, `Invitation expired`, and `Invitation replaced`. It never displays stored reason text or raw lifecycle enums.
+- Minimum-safe terminal copy after rotation, decline, or cancellation is `This invitation is no longer available.` followed by `Ask the family coordinator if you still need access.` Expiry and access-ended states keep their separately named recovery. No terminal screen exposes inviter, family, relationship, purpose, scope, email, account identity, reason, case, message, or token metadata.
+- Opening a confirmation keeps focus on the trigger, with the disclosure next in DOM order. Cancel returns focus to the trigger. Verified mutation moves focus to a stable receipt heading with `tabIndex={-1}`. Error moves focus to a persistent `role="alert"` summary. Use one concise polite live region for pending and success, never on the raw-link receipt itself.
+- At 1440 by 900, keep one restrained content column and attach controls to the relevant record. At 390 by 844 and 360 by 800, use one column, stack fact labels over values, stack safe and committing actions full width, wrap all long values, contain the read-only link, and prohibit sticky actions or horizontal overflow. At 200 percent text zoom, all content and focus remain available by vertical scrolling and `document.scrollWidth` equals `document.clientWidth`.
+
+Required action language:
+
+| Control | Confirmation heading | Safe action | Commit action | Success heading |
+| --- | --- | --- | --- | --- |
+| Replace link | `Create a replacement link for {name}?` | `Keep current link` | `Create replacement link` | `Replacement link created.` |
+| Decline | `Decline this invitation?` | `Go back` | `Decline invitation` | `Invitation declined.` |
+| Cancel | `Cancel {name}'s invitation?` | `Keep invitation` | `Cancel invitation` | `Invitation canceled.` |
+| End access | `End {name}'s access?` | `Keep access` | `End access` | `Access ended.` |
+
+Error copy must distinguish three truths: known failure before mutation says nothing changed; stale race says the invitation changed in another session and requires reload; verification uncertainty says Passage could not confirm the saved result and must not claim nothing changed.
+
+### Risks and mitigations
+
+- Rotation can expose a second bearer. Mitigation: one-time action receipt only, no anchor/prefetch, no replay token, old digest terminal immediately, token-containment source guard, and redacted evidence.
+- Destructive controls can be pressed accidentally. Mitigation: explicit consequence copy, secondary visual treatment, confirm step within the component, pending lock, verified receipt, and no optimistic removal.
+- Open tabs can look stale after revocation. Mitigation: dynamic no-cache persona routes, server recheck on every command/query, revalidation after coordinator mutation, and next-request browser proof.
+- Decline and accept can race. Mitigation: existing row lock and terminal constraints plus a committed race test with exact event/cardinality assertions.
+- The current participant messaging contract overstates browser reachability. Mitigation: do not widen raw case RLS or claim participant message UI in P2; prove backend message revocation and create a later bounded reachability packet.
+- Existing source contains mojibake in historical copy. P2 may correct touched user-facing strings but must not expand into a repository-wide copy rewrite.
+
+### Non-goals and classification
+
+- **Fix now:** four P2 lifecycle controls, their parity rows, exact SQL lifecycle/race evidence, three-viewport hosted proof, and any defect that lets a revoked identity retain participant update or message authority.
+- **Follow-up product packet:** participant message discovery and a non-UUID, least-privilege route; participant self-leave; reinstatement; scope editing; real email/SMS delivery; delivery/open tracking; notifications; bulk access management; and general history export.
+- **Non-goals:** new tables or RPCs without source proof, broad workflow RLS for participants, raw case-detail access, new category scopes, Production data/configuration, pricing, external communications, legal/privacy policy decisions, roadmap-score changes, public launch, or governance-validator work.
+
+### Handoff and release truth
+
+- Next role: a fresh Development Engineer creates `.release-train-clean/.participant-p2-build` on `feature/participant-p2-lifecycle` from this exact Bot-authored PM and UX context head, which descends directly from `12939632aeaaebb00cc066d7468448321cae9c7c`.
+- Engineering must not edit the combined-candidate, root, P1 participant, R25 gateway, loop-recovery, or migration worktrees. It must inventory branch/head/status before editing and stop on overlap.
+- Deploy plan: source integration uses `[skip deploy]`. After exact-head Source QA, Data QA, Independent Agent Review, and Development Head approval, one reviewed non-production Preview may be published for the hosted matrix. Production is not authorized.
+- Customer-visible capability delta: none in this PM-only packet.
+- Hosted output: `No hosted output`. This packet defines the product slice but changes no hosted artifact.
+- Source QA: NOT RUN for future P2 implementation.
+- Hosted Preview QA: NOT RUN.
+- Production Deployment: NOT DEPLOYED.
+- Production QA: NOT RUN.
+- Overall release state: PM AND UX HANDOFF COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION / NO READINESS CREDIT.
+
+### Development Engineer handoff - 2026-08-09 20:34 -07:00
+
+- Role instance: distinct Development Engineer `/root/pm_participant_p2_build/eng_participant_p2`. Prior handoff received: the complete Product Lane B PM Sprint Brief and binding UX acceptance bar at exact Bot-authored head `f57cb7787c0f9c5cfcf01b46fa9e11ba8df385f9`, descended from clean combined participant head `12939632aeaaebb00cc066d7468448321cae9c7c`.
+- Isolated implementation: `.release-train-clean/.participant-p2-build` on `feature/participant-p2-lifecycle`. The worktree was clean at the required head before implementation. No combined-candidate, root, P1, R25, governance, or existing migration worktree was edited.
+- Material Product Direction or Scope Change: **NO**. This implements the canonical roadmap's already-scoped P2 participant lifecycle. The roadmap and whole-platform readiness score remain unchanged.
+- Engineering decision: the existing four authoritative RPCs satisfy the frozen acceptance criteria, so no migration was created or modified. Source research used the current official Supabase RLS, database-function, and breaking-change guidance plus the current Next.js Server Action security model. It confirmed that every action must authenticate internally and that explicit function grants and row-level authority remain required; no current platform change alters the retained RPC signatures.
+- Implemented reachable controls: `/family/people` now supports replacement-link rotation, pending invitation cancellation, active access ending, human invitation history, and `Past access`; `/invite/continue` now owns participant Accept and Decline in one action group. Rotation returns a raw bearer only in the first verified client receipt, never as an anchor or replay token, and clears it on reload, navigation, back restoration, or reconnect. Decline, cancel, and access-ending reasons are fixed only in Server Actions. The staff invitation branch and P1 server-held raw intent remain unchanged.
+- UX acceptance implementation: confirmations are inline disclosures with one open state, safe action before commit, Escape and cancel focus recovery, complete pending lock, verified receipt focus, persistent alert focus, plain-language outcomes, 48-pixel responsive action targets, muted replacement and destructive treatments, and mobile one-column containment. The React best-practices review found no blocking issue: Server Actions re-authenticate, RLS/RPC authority stays server-side, client props are bounded, action pending state uses React action state, and the page-scoped global listeners have cleanup.
+- Files changed: `app/family/people/actions.ts`, `app/family/people/page.tsx`, `app/family/people/ParticipantLifecycleControls.tsx`, `app/family/people/People.module.css`, `app/invite/[token]/actions.ts`, `app/invite/continue/page.tsx`, `app/invite/continue/ParticipantInvitationDecision.tsx`, `app/login/Auth.module.css`, `lib/auth/invitations.ts`, `lib/continuity/participants.ts`, `docs/product/frontend-backend-contracts.json`, `scripts/check-frontend-backend-parity.js`, `scripts/test-frontend-backend-parity.js`, `scripts/test-participant-invitation-security.js`, `scripts/test-use-server-exports.js`, `scripts/test-participant-invitation-lifecycle-races.mjs`, and `supabase/tests/participant_invitation_lifecycle_p2.sql`.
+- Durable evidence added: four `source_partial` parity rows bind the reachable UI, Server Actions, exact RPCs, tables, actor predicates, append-only events, replay/conflict behavior, and privacy projections. The retained message and shared-update rows now bind committed-revocation denial. The rollback-only guarded P2 SQL source covers exact cardinality, replay, conflict, wrong-persona denial, old-link terminal behavior, zero-grant decline/cancel, owner history, and post-revocation update/message/raw-relation denial. A separate ordinary-JWT race harness covers rotate versus accept, rotate versus cancel, decline versus accept, cancel versus accept, and message post after committed revocation.
+- Source QA executed on this Engineering worktree: `pnpm typecheck` PASS; `pnpm test:participant-invitation` PASS 37/37; `pnpm test:parity` PASS 19/19 with 9 participant Server Actions; `pnpm test:server-actions` PASS; `pnpm test:messaging-security` PASS 23/23; `pnpm test:persona-language` PASS; `pnpm test:agent-context` PASS before this context update; `pnpm test:release-governance` PASS; `pnpm test:operational-route-gate` PASS; `pnpm test:runtime-config` PASS; and `pnpm test:deploy-gate` PASS. Final context, diff, and targeted regression gates are rerun after this entry.
+- Optimized build: **PARTIAL / ENVIRONMENT BLOCKED**. `pnpm build` reached Next.js optimized compilation and failed only because the restricted runner could not connect to Google Fonts for the existing `Cormorant Garamond` and `Montserrat` imports in `app/layout.tsx`. This exact head has no optimized build PASS. A clean authorized Preview builder remains the named recovery path.
+- Data QA: **NOT RUN**. Neither the rollback-only P2 SQL file nor the ordinary-JWT race harness was executed against Supabase in this role. No database apply occurred. Independent Data QA must run them only against isolated project `uyacxqtsiwlvtmhxvoxr` with deterministic reset and retained cardinality/advisor evidence.
+- Hosted output: `No hosted output`. Hosted Preview QA: **NOT RUN**. Production Deployment: **NOT DEPLOYED**. Production QA: **NOT RUN**. Overall release state: **ENGINEERING IMPLEMENTED / SOURCE QA PARTIAL / BUILD ENVIRONMENT BLOCKED / DATA QA NOT RUN / HOSTED PREVIEW QA NOT RUN / NON-PRODUCTION / NO READINESS CREDIT**.
+- Failures and queued work: no product-source gate failed. The only executed failure is the restricted font-fetch build cell. Fresh QA must challenge the exact committed head, execute the rollback-only SQL and race harness in the isolated project, rerun all source gates on that head, and then hand off separately to Independent Agent Review, Development Head, and non-production Deploy for the 1440, 390, and 360 hosted matrix. `[qa-approved]` remains prohibited.
+- External assistance: no Claude-in-Chrome or external agent assistance was used. The train auto-advances to fresh QA through the parent PM after the bounded `[skip deploy]` commit; no owner gate exists.
+
+Last updated: 2026-08-09 (America/Los_Angeles)
+
+This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
+
 ## Fresh-chat kickoff
 
 Paste this into a new Codex chat:
 
-> Passage Release Train: start the loop. Continue Passage Zero on `greenfield/passage-zero`, draft PR #24, from the latest recorded head and dirty-state inventory. Read `AGENTS.md`, `docs/agent-operating-context.md`, `docs/release-train.md`, the canonical roadmap, persona architecture, and role briefs completely. Passage Zero is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Never push directly to main. After the one-time PR #25 bootstrap, agents author only through the dedicated Passage GitHub App/Bot; a distinct agent reviews the exact head, the founder reviews Bot-authored pull requests, and Production separately requires founder authorization through the protected environment. Preserve the proven Cycle 7A/7B isolated authority/work evidence and unchanged readiness scores. Cycle 8 remains FAIL/PARTIAL until its rollback-only SQL/RLS matrix passes. Enforce the seven-question plain-language gate, truthful Demo versus Secure Preview labels, human event/status copy, and 1440/390/360 comprehension. Production hydration on six public routes remains a separate P1 hotfix. Continue without asking Steve except for explicit owner gates.
+> Passage Release Train: start the loop. Continue Passage Zero on `greenfield/passage-zero`, draft PR #24, from the latest recorded head and dirty-state inventory. Read `AGENTS.md`, `docs/agent-operating-context.md`, `docs/release-train.md`, the canonical roadmap, persona architecture, and role briefs completely. Passage Zero is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Never push directly to `main`. Agents author only through the dedicated Passage GitHub App/Bot. A distinct Independent Agent Reviewer challenges the exact head; a separate Development Head / Release Authority approves or rejects it through `Passage Review Agent / merge-review`; reversible Production promotion separately requires exact-head authorization from the distinct Production Reviewer. There is no routine founder or human review gate. Ask the owner only for destructive Production data work, spending, or material legal/privacy/security judgment. Preserve the proven Cycle 7A/7B isolated authority/work evidence and unchanged legacy readiness scores, but do not award a whole-platform checkpoint until the complete six-domain matrix passes. Enforce the seven-question plain-language gate, truthful Demo versus Secure Preview labels, human event/status copy, and 1440/390/360 comprehension. Continue without asking Steve except for explicit `AGENTS.md` owner gates.
 
 ## Founder mandate
 
@@ -1610,7 +2036,7 @@ Role instances and decisions:
 - Product Manager `/root/pm_governance_consolidation`: **COMPLETE**. Passage Zero/PR #24 is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Direct-main agent/schedule pushes, silent red CI, self-review, overlapping greenfield merges, and architecture narration are FIX NOW. Readiness remains funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**.
 - UX Review `/root/ux_plain_language_audit`: current preview **FAIL for release / PASS for Engineering start**. Every page must answer where the user is, what needs attention, what to do, what happens next, what is saved, who can see it, and recovery. Browser-only Demo and Secure Preview require distinct truthful labels. Raw enums, UUIDs, internal architecture, fixture/cycle/QA/deploy language, and raw backend errors are prohibited.
 - Documentation/Engineering `/root/engineering_governance_docs`: **COMPLETE**. It updated `AGENTS.md`, `docs/release-train.md`, the canonical roadmap, cutover plan, persona architecture, and new `docs/product/release-governance-and-plain-language-policy.md` without changing Cycle 8 implementation.
-- Engineering `/root`: implemented greenfield release-train controls and the first reachable-copy correction. New PR structure distinguishes drafts from merge-ready evidence, serializes same-target release-train runs, requires context, and blocks the confirmed persona vocabulary regressions. It replaced the mixed environment language, internal director/staff/team/activity copy, UUID activity fallback, and ambiguous browser-only Demo actions on the sampled routes. The original non-author `User` review inference recorded here was later rejected by the dedicated reviewer and superseded by the owner-approved Bot-author/founder-review model below. Direct-main prevention belongs to required GitHub branch rules; a post-push workflow cannot prevent a push.
+- Historical Engineering record `/root`: implemented greenfield release-train controls and the first reachable-copy correction. New PR structure distinguished drafts from merge-ready evidence, serialized same-target release-train runs, required context, and blocked confirmed persona vocabulary regressions. It replaced mixed environment language, internal director/staff/team/activity copy, UUID activity fallback, and ambiguous browser-only Demo actions on the sampled routes. The original non-author `User` inference and subsequent Bot-author/founder-review model are both superseded by the 2026-07-22 Development Head / Production Reviewer correction. Direct-main prevention belongs to required GitHub branch rules; a post-push workflow cannot prevent a push.
 - Independent QA `/root/qa_governance_language`: first returned **PARTIAL/FAIL** because the scanner missed raw enum rendering, historical Threshold language remained executable-sounding, the roadmap reintroduced two-initiative framing, the reviewer check lacked account-type/current-head proof, and candidate-head checkers were tamperable. PM re-scoped FIX NOW; Engineering added explicit human maps and regression fixtures, archived the historical directives, corrected the one-lane roadmap, required current-head `User` approval, and added a trusted base-branch immutable governance workflow. QA re-review is **PASS** for the bounded governance/roadmap/plain-language source slice and authorizes one `[skip deploy]` commit only. It does not authorize Preview, Production, `[qa-approved]`, Cycle 8 migration, or PR #24 merge.
 
 Files and contract changes:
@@ -1618,7 +2044,7 @@ Files and contract changes:
 - Governance/docs: `AGENTS.md`, `docs/release-train.md`, `docs/product/operational-readiness-roadmap.md`, `docs/product/passage-zero-cutover-plan.md`, `docs/product/persona-action-architecture.md`, `docs/product/release-governance-and-plain-language-policy.md`, and this context.
 - Enforceable repo controls: `.github/workflows/agent-release-train.yml`, `.github/workflows/governance-integrity.yml`, `.github/pull_request_template.md`, `scripts/check-agent-context.js`, `scripts/check-release-train.js`, `scripts/check-persona-language.js`, `scripts/test-release-governance.js`, and `package.json` scripts. The rejected custom review-identity inference script is removed by the solo-founder correction below.
 - Plain-language source: gateway/environment shell, family intent/pass action, receive Preview flow, director intake, hosted director/team/activity, staff landing, invitation entry/creation, and operational access boundary. Existing Cycle 8 proof-loop files remain dirty and uncommitted; no migration was applied.
-- Repository branch protection/rules must require Bot-authored pull requests after bootstrap, current-head checks, Independent Agent Review, founder approval, stale-approval dismissal, resolved conversations, restricted bypass, and blocked force-push/deletion. The protected Production environment separately requires founder authorization. These external controls remain explicit gates, not source-file claims.
+- Historical branch-protection target, superseded: the then-current plan required founder approval and authorization. The active model instead requires Bot-authored pull requests, current-head checks, Independent Agent Review, Development Head / Release Authority approval, distinct Production Reviewer authorization, stale-approval dismissal, resolved conversations, restricted bypass, and blocked force-push/deletion.
 
 Verification completed before independent QA:
 
@@ -1630,15 +2056,17 @@ Verification completed before independent QA:
 - Optimized Next.js build: PASS; all current routes compiled and page data generated.
 - No browser or hosted PASS is claimed for these uncommitted copy changes. No Preview or Production deployment was created. Production Supabase and Vercel configuration remain untouched.
 
-PR, deployment, and next-role disposition:
+Historical PR, deployment, and next-role disposition — superseded by the owner correction at 2026-07-22 04:59 -07:00:
 
-- PR #24 remains the draft integration umbrella. It must gain bounded review packets for identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. Its final cutover vehicle must be Bot-authored, pass Independent Agent Review, and receive founder review before leaving draft status for merge consideration.
+- Historical directive, superseded: PR #24 remains the draft integration umbrella and needs bounded review packets, but its final cutover now requires exact-head Independent Agent Review and Development Head / Release Authority approval—not founder review.
 - PR #17 must have its exact heading corrected or be closed with the failure root cause recorded; #17/#19/#23 require diff-based incorporated/unique/superseded disposition against #24. No competing architecture merges independently.
-- Governance and roadmap changes are `[skip deploy]`. The six-route Production hydration repair requires a separate clean Bot-authored main-based hotfix PR, exact-head Independent Agent Review, founder review, protected-environment Production authorization, all-route responsive/hydration/runtime evidence, and post-deploy verification.
+- Historical directive, superseded: governance and roadmap changes are `[skip deploy]`. The six-route Production hydration repair uses exact-head Independent Agent Review, Development Head approval, distinct Production Reviewer authorization, and post-deploy verification; routine founder review is prohibited.
 - Cycle 8 remains source-only QA FAIL/PARTIAL. Its migration is not applied and no Cycle 8 deployment is authorized.
 - Historical next-role note, now superseded: Deploy verified the `[skip deploy]` governance commit canceled. The remaining governance work is the PR #25 bootstrap, dedicated Bot identity, live rules, founder review, protected Production environment, PR dispositions, the clean-main hydration hotfix, and hosted 1440/390/360 copy QA.
 
-### Governance bootstrap adversarial correction - 2026-07-18 15:38 -07:00
+### Historical governance bootstrap adversarial correction - 2026-07-18 15:38 -07:00
+
+This section preserves the then-current bootstrap record. Its founder-review and PR #25 instructions are non-executable and superseded by the owner correction at 2026-07-22 04:59 -07:00.
 
 - Governance source commit `14b30029593c92e99aeeab2c6490b8af3f6b0912` was pushed to draft PR #24 with `[skip deploy]`. Distinct Deploy verification confirmed Vercel deployment `dpl_FtSrgEL2Ma6LTfxLWfh76E8p9ZRN` canceled before build and Production remained unchanged.
 - A narrow main-based draft PR #25 was opened to bootstrap the controls without merging Passage Zero product code. Independent QA failed its first head `61f7a32bacddef48a86c0a72c7bdd5db546952aa`: API-created files had dirty endings; a push workflow falsely classified legitimate PR merges as direct pushes; and candidate-controlled code received a persisted/read token.
@@ -1649,7 +2077,9 @@ PR, deployment, and next-role disposition:
 - PR #25 remains open, draft, and unmerged. Direct-main protection is incomplete until the corrected governance-only bootstrap passes exact-head Independent Agent Review, receives the founder's explicit one-time bootstrap attestation, merges without deployment, and Phase B installs the Bot identity and live rules.
 - Cycle 8 remains FAIL/PARTIAL and uncommitted. No migration was applied. PR #25 and Production remain blocked while the solo-founder governance correction below is reviewed and externally activated.
 
-### Owner-approved solo-founder Bot-author governance correction - 2026-07-18 16:42 -07:00
+### Historical solo-founder Bot-author governance correction - 2026-07-18 16:42 -07:00
+
+This section preserves the model that existed on 2026-07-18. It is non-executable and superseded by the distinct Development Head / Release Authority and Production Reviewer model recorded at 2026-07-22 04:59 -07:00.
 
 Owner decision:
 
@@ -1769,8 +2199,91 @@ Exact next action and auto-advance:
 - UX/Product Design `/root/ux_cycle8_proof_loop`: **DISCOVERY PASS / IMPLEMENTATION HOLD**. Digital Continuity Locker, Help a Friend, and online-first provider handoff remain separate prototypes joined only by `intent -> smallest useful detail -> explicit permission -> named owner -> bounded handoff -> receipt -> recovery`. Passage does not store secrets, infer authority from relationship, rank providers by payment, or turn grief communities into lead funnels.
 - Independent Product/Strategy QA `/root/qa_v5_revenue_strategy`: **PASS** after three precision corrections: After.com is labeled competitor/first-party positioning; the provider advance gate repeats the online-first operator threshold; and the roadmap distinguishes earlier gated research from downstream implementation.
 - Allocation is Now: close Cycle 8 and implement the first bounded M3 slice. Next: M4 plus research-only provider/V3 simulation and isolated Locker/Help a Friend prototypes. Later: one evidence-backed integration, a bounded non-custodial Locker pilot, and disclosed community education. Do not fund yet: V4 network infrastructure, paid ranking, live custodian actions, secret custody, paid creator acquisition, or a standalone viral helper loop.
-- This packet changes no Cycle 8 status, milestone target, July 23 owner-test target, score, pricing, provider relationship, campaign, database, deployment, or Production state. Cycle 8 remains PARTIAL; funeral home remains 94% guided / 40% operational; D2C remains 85% guided / 25% operational. Implementation remains held behind M3-M6, founder review, and the applicable evidence gates.
+- This packet changes no Cycle 8 status, milestone target, July 23 owner-test target, score, pricing, provider relationship, campaign, database, deployment, or Production state. Cycle 8 remains PARTIAL; funeral home remains 94% guided / 40% operational; D2C remains 85% guided / 25% operational. Implementation remains held behind M3-M6, exact-head Independent Agent Review, Development Head / Release Authority approval, and the applicable evidence gates.
 
+## Cross-persona messaging thin slice - 2026-07-28
+
+- Owner instruction: no cross-persona messaging/communication layer existed anywhere in Passage Zero -- "Messages" was a disabled placeholder tab on every persona surface that has one (family case-detail nav since PR #51, director Case Room). Scope and build a minimal real version: schema + RLS for a simple per-workflow message thread, sender identity resolved via the existing continuity_spaces/organization_members patterns, plain-language sender labels (no raw ids), a server action to post, and a basic UI panel usable from at least family case-detail and director Case Room.
+- Delivered (PR #74, branch `bot/workflow-messaging-v2`, targets `greenfield/passage-zero` only; PR #24 untouched):
+  - `supabase/migrations/20260727020000_workflow_messages_thin_slice.sql` -- `workflow_messages` table (append-only via trigger), RLS reusing the existing `passage_private.can_view_workflow()` predicate for both read and write (no new authority surface), and `passage_private.post_workflow_message_idempotent(workflow_id, body, request_id)` following the same advisory-lock + `(workflow_id, request_id)` idempotency pattern as every other command RPC.
+  - Sender identity resolved server-side inside the `SECURITY DEFINER` RPC via `organization_members` (staff/director) and `continuity_spaces`/`continuity_participants` (family/participant), producing a plain-language `sender_label` ("Director", "Staff member", "Family", "Family -- Sibling", etc.) stored on the row -- the only sender identity ever returned to a client, deliberately not resolved via a client-side cross-authority join (matches the existing documented boundary in `lib/family/case-view.ts`).
+  - Shared loader/action/component (`lib/messaging/hosted.ts`, `lib/messaging/actions.ts`, `components/messaging/MessageThread.tsx`) used from both `/case/[id]/messages` (new family route, linked from the previously-disabled "Messages" nav item) and a new Messages section on `/director/cases/[workflowId]` (Case Room), alongside the existing Vendors section.
+- Verification:
+  - Rollback-only RLS/RPC simulation against the isolated project (`uyacxqtsiwlvtmhxvoxr`) before any app code was written: family owner post, family participant post (relationship-aware label), director post, cross-tenant denial, revoked-participant denial, idempotent-replay dedup, and cross-direction read-back all passed. Two real bugs found and fixed in the same pass: a missing `EXECUTE` grant on the private RPC (same bug class as PR #57's fix) and an ambiguous `occurred_at` column reference in the `INSERT ... RETURNING ... INTO`.
+  - Real hosted build/runtime verification: a from-scratch branch (`create_branch` from the current `greenfield/passage-zero` tip, tree verified complete before and after push) built successfully on Vercel (genuine `next build`, not a gated skip) with the deploy-ignore gate temporarily removed.
+  - Live Chrome UI QA (sign-in as director + family, post/read both directions, cross-tenant denial, mobile check) was attempted but blocked by an environment-configuration gap, not a code defect: `lib/runtime-config.ts` returns `available: false` (rendered as "Preview runtime configuration is unavailable" on "/login") whenever VERCEL_ENV is "preview" but the custom PASSAGE_RUNTIME environment variable is not set for that deployment. This env var appears to be scoped in the Vercel dashboard to a specific allow-list of branch names (at minimum `bot/cycle-8-preview-qa`, used successfully for this session's earlier urgent-persona and vendor-fix QA); brand-new branch names created during this session (`bot/workflow-messaging-v2` and two disposable QA-only branches) are not in that scope, and no MCP tool in this environment can read or edit Vercel project environment-variable scoping to confirm or fix it. `bot/cycle-8-preview-qa` itself is now significantly stale (missing the entire family-persona route tree merged earlier this session) and would need a large resync to reuse safely. QA evidence for this PR is therefore the schema/RPC-level verification above plus genuine build success, not live Chrome UI QA -- flagged here so the next agent knows this is an infrastructure gap to close (either get PASSAGE_RUNTIME scoped to real feature-branch names in the Vercel dashboard, or maintain one always-in-scope, always-synced QA branch) rather than something to keep rediscovering per PR.
+- Also fixed in passing: a separate, pre-existing corrupted-branch-tree bug in the GitHub MCP tool surface -- calling push_files with createBranch true plus baseBranch pointing at an existing branch silently produces a tree containing only the explicitly-listed files rather than inheriting the base branch's full tree (confirmed by directory-listing diffs; the original attempt at this PR, #73, was built this way and had to be closed and redone). create_branch (the dedicated branch-creation tool) copies the full source tree correctly and is the safe way to create a new branch; push_files without createBranch correctly layers changes onto an already-existing, correctly-based branch.
+
+### PR #74 messaging least-privilege correction - Engineering handoff - 2026-07-28 21:39 -07:00
+
+- Messaging Security/Engineering role `/root/messaging_p1_engineering`: **MESSAGING SOURCE PASS / REPOSITORY SOURCE PARTIAL / HOSTED NOT RUN**. The role received the exact-head security and UX findings for PR #74 at `dff62760e6e7139ab5a2ef8b8c6f9f887a524411` and worked only in an isolated source archive. No GitHub, Vercel, Supabase, branch, deployment, or Production state was changed.
+- The follow-up migration `supabase/migrations/20260729034001_workflow_messages_client_projection.sql` removes authenticated table-wide `SELECT`, drops the client read policy, and makes an authority-checked RPC the only authenticated client projection. It returns only message id, sender kind/label, body, occurred time, and server-computed ownership. The same migration bounds server-derived labels to 48 characters and makes idempotent replay reject a different actor or normalized body for the same request id.
+- The application loader now reads only the safe RPC and creates an explicit server-side UTC label. The client renders that stable label without `Date`, `Intl`, locale, or time-zone computation. A history-load failure returns before the composer and presents a 48px reload action; the Case Room no longer marks Today as the current route; and persona copy distinguishes “saved in Passage” from email or text delivery.
+- Frontend/backend parity is recorded as `m3.shared.workflow_messages` in `docs/product/frontend-backend-contracts.json`. `scripts/test-workflow-messaging-security.js` adds twelve focused assertions. `supabase/tests/workflow_messages_client_projection.sql` adds a rollback-only owner/participant/director visibility, replay/conflict, cross-tenant/revoked denial, direct-table denial, label bound, cardinality, and append-only matrix. The SQL matrix was authored but **NOT RUN**; isolated database execution belongs to a distinct Data/QA role.
+- Deterministic evidence: messaging security **12/12 PASS**; parity fixture/integration **15/15 PASS**; parity ledger **18 contracts PASS**; Server Action exports **PASS** with ten prohibited fixtures rejected and both Cycle 8 actions bound; persona-language **PASS**; runtime isolation **PASS**; Vercel ignore-build **16/16 PASS**; release-governance **PASS**; direct TypeScript `tsc --noEmit` **PASS**; optimized Next.js 16.1.6 webpack build **PASS** with a local test-only Google-font response because restricted network access returned `EACCES`. The font response file is outside the candidate source and is not a product change.
+- One required repository test is independently **FAIL on the untouched exact head**: `scripts/test-operational-route-gate.js` expects `/director/intake` to be denied while `lib/auth/operational-route-gate.ts` explicitly allows it. Both sides of that mismatch were verified directly in the original `dff627...` archive. This messaging packet did not alter either file. It prevents an overall repository Source QA PASS and must be classified by PM/Engineering rather than hidden.
+- Roadmap classification: no material direction, milestone order, persona coverage, or architecture change. This is least-privilege and recovery hardening of the already-scoped messaging slice, so the canonical roadmap is unchanged. No readiness score changed.
+- Evidence verdict: **Source QA: PARTIAL** (messaging-focused gates pass; inherited route-gate test fails; SQL not executed). **Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE PARTIAL.** No `[qa-approved]`, merge, Preview, Production, or account-setting change is authorized by this handoff.
+- Exact next roles: distinct Data/QA reviews and runs the rollback-only SQL matrix against the isolated project only, including advisors and post-rollback cardinality; distinct Independent QA reviews this exact diff, resolves/classifies the inherited route-gate mismatch, and performs 1440/390/360 family/director hosted message QA once a truthful non-production environment is available. Development Head may evaluate the exact reviewed packet only after those gates. No routine owner prompt is required.
+
+### PR #74 message-purpose authority FIX NOW - Engineering handoff - 2026-07-28 22:21 -07:00
+
+- Product Manager returned the 21:39 source packet **FIX NOW** because broad `can_view_workflow` authority was not a sufficient messaging-purpose boundary and because the parity ledger incorrectly claimed a user-visible staff messaging surface. This section supersedes those two claims in the earlier messaging entries; prior evidence remains preserved rather than rewritten.
+- Messaging Security/Engineering `/root/messaging_p1_engineering`: **FOCUSED SOURCE PASS / SQL AND HOSTED NOT RUN**. `passage_private.can_message_workflow(uuid)` is now the only authority predicate used by both list and post. It permits the linked active family-space owner, an active participant whose `category_scope` includes `updates`, an active owner/director managing the exact workflow location, or an active staff member with an active exact-location grant and a task on that workflow assigned to the same membership.
+- Fail-closed coverage now explicitly denies non-updates participants, revoked participants, cross-organization directors, wrong-location directors, active but unassigned staff, and revoked staff for both list and post. Changed-actor and changed-body request reuse conflicts; direct authenticated SELECT/INSERT/UPDATE/DELETE remains denied; all denial/conflict paths preserve exact no-write cardinality.
+- The user-visible `m3.shared.workflow_messages` parity contract now covers family owners, updates-scoped participants, and managed directors only. Staff was removed from that implemented contract. `m3.staff.workflow_messages_backend` is separately marked `backend_only`, with `user_visible: false`, no route, no component, and explicit zero user-visible staff messaging credit.
+- Focused deterministic evidence: messaging security **15/15 PASS**; parity ledger **19 contracts PASS**; parity fixture/integration **15/15 PASS**; Server Action export **PASS**; persona-language **PASS**; agent-context structure **PASS**. The previously recorded TypeScript and optimized-build results remain applicable because this FIX NOW changed only SQL, JSON, source-test, and context files. The inherited operational-route test mismatch remains separately unresolved and unchanged.
+- The expanded rollback-only SQL/RLS matrix is authored but **NOT RUN**. It requires distinct Data/QA review and isolated-lab execution before any migration application. No roadmap direction, milestone, readiness score, GitHub, Vercel, Supabase, branch, Preview, or Production state changed.
+- Evidence verdict: **Source QA: PARTIAL** (focused messaging source passes; SQL unexecuted; inherited route-gate mismatch remains). **Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE PARTIAL.** Exact next role is the same distinct Independent QA/Data QA lane; no routine owner prompt is required.
+
+### PR #74 append-only trigger search-path FIX NOW - Engineering handoff - 2026-07-28 22:45 -07:00
+
+- PM Security returned one final bounded hardening item: preserve the existing append-only trigger function, owner, ACL, body, and trigger while setting an empty function `search_path`. Messaging Security/Engineering `/root/messaging_p1_engineering` added the forward-only migration `20260729053000_workflow_messages_trigger_search_path.sql`; its only statement is `alter function passage_private.reject_workflow_message_mutation() set search_path = '';`.
+- The rollback-only SQL matrix now uses `pg_proc`, `pg_namespace`, and `pg_options_to_table` to require exactly one zero-argument function with an empty `search_path`. It also requires the enabled `workflow_messages_append_only` trigger to remain attached to `public.workflow_messages` with exact row-level `BEFORE UPDATE OR DELETE` type. No function replacement, app, authority, grant, RLS, parity, roadmap, or readiness change occurred.
+- Exact source hashes: migration `4DB886BE8512F3A822A7876A85C1692979CB07CB63A6C6070368B11D4745449D`; rollback matrix `3122CF00A4BB7DA2857F013361E58BB7057E629CE3A16A4EBD61EC37EB9A1C04`; focused source test `2DE373B7D23E80CA7F3487A6D36463B1A7B4148E253CD067A5D20103DBAF1311`.
+- Focused static gates: messaging security **17/17 PASS**; parity ledger **19 contracts PASS**; parity regression **15/15 PASS**; persona-language **PASS**. No live SQL was run. The earlier inherited operational-route mismatch is unchanged and keeps the whole repository verdict PARTIAL.
+- Named deferred performance debt `MESSAGING-FK-INDEX-01` is owned by **Engineering / DB Performance** and is due before pilot-load testing and the 75% full-platform performance exercise. `workflow_id` is already covered; `organization_id`, `sender_user_id`, `sender_organization_member_id`, and `sender_continuity_participant_id` require isolated advisors and representative `EXPLAIN (ANALYZE, BUFFERS)` at pilot-like cardinality before a separate reviewed index migration. This debt may not be hidden as `QA: N/A`.
+- Redacted source evidence: `docs/evidence/workflow-messages/2026-07-28T22-45-47-0700-trigger-search-path-source-evidence.md`.
+- Evidence verdict: **Source QA: PARTIAL** (focused static PASS; SQL NOT RUN; inherited route-gate mismatch unresolved). **Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE PARTIAL.** No GitHub, Vercel, Supabase, Preview, or Production state changed. Next role remains distinct Data/QA and Independent QA; no routine owner prompt is required.
+
+### PR #74 trigger catalog assertion correction - 2026-07-28 22:52 -07:00
+
+- PM returned an assertion-only FIX NOW: `pg_options_to_table` exposes the empty `search_path` setting as the quoted empty identifier, so the exact preflight comparison is now `function_option.option_value = pg_catalog.quote_ident('')`. The predicate uses no `IN`, pattern, trim, or permissive alternative; the exact function namespace/name/zero-argument and option-name lookups remain unchanged.
+- The correct one-statement migration remains byte-for-byte unchanged at SHA-256 `4DB886BE8512F3A822A7876A85C1692979CB07CB63A6C6070368B11D4745449D`. The corrected rollback matrix hash is `CFE980EDF43BB10B4BCBF9552EC49CD56E5AA37D9541624EB87A9644C4749AF1`; the earlier `3122CF00...` assertion hash is preserved as superseded evidence.
+- Focused source rerun: messaging security **17/17 PASS**; parity ledger **19 contracts PASS**; parity regression **15/15 PASS**. No product, application, authority, grant, RLS, parity, roadmap, readiness, live SQL, GitHub, Vercel, Preview, or Production state changed.
+- `MESSAGING-FK-INDEX-01` remains named Engineering / DB Performance debt due before pilot-load and the 75% performance exercise. Evidence verdict remains **Source QA: PARTIAL** pending full isolated Data QA; **Hosted Preview QA: NOT RUN; Production Deployment: NOT DEPLOYED; Production QA: NOT RUN; Overall release state: SOURCE PARTIAL**.
+
+### PR #74 message-purpose SQL fixture cast correction - Development Engineer handoff - 2026-07-28 22:36 -07:00
+
+- Product Manager returned one test-only SQL execution defect **FIX NOW**: PostgreSQL could infer the first literal column of each `INSERT ... SELECT ... UNION ALL` fixture as `text`, even though the destination columns are UUIDs.
+- Development Engineer `/root/urgent_matrix_hardening` changed only `supabase/tests/workflow_messages_client_projection.sql` plus this mandatory context evidence. The two organization-member fixture rows now cast both `id` and `user_id` literals to `uuid`. The two member-location fixture rows now cast both member IDs, both `granted_by_user_id` values, and the wrong-location location ID to `uuid`.
+- No migration, application code, authority predicate, parity contract, roadmap, readiness score, branch, PR, Preview, database, Vercel configuration, or Production state changed. UX Review: **N/A** because this is an invisible test-fixture typing correction. The SQL matrix remains **NOT RUN** by Engineering and is reserved for distinct Data QA.
+- Focused source checks: messaging security **15/15 PASS**; parity fixture/integration **15/15 PASS**; parity ledger **19 contracts PASS**; agent-context structure **PASS**; exact fixture-cast coverage and whitespace/diff checks **PASS**. Corrected SQL SHA-256: `FFCBF8CD970C869C9EC278EABD74864737D51160EA9EF82758F2A548006A92B7`. **Source QA: ENGINEERING PASS / independent retest required. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE PARTIAL.**
+
+### PR #74 external messaging Data QA and executable-assertion guard - 2026-07-28
+
+- External Independent Data QA `/root/urgent_data_qa`: **PASS** for the exact hash-bound messaging database packet on isolated Supabase project `uyacxqtsiwlvtmhxvoxr`. This later result supersedes only the earlier “SQL NOT RUN” limitation; it does not change the inherited route-gate defect, hosted status, roadmap, or readiness.
+- Locally recomputed source bindings: foundational migration `4BD25BA04144BAE47683880782696068C877801C83D20187D870B8CCE22F3B93`; least-privilege/client projection migration `97805F1BF66001FC13EDC23FB5AD3853B46D6CF76ABBDF5C3608B118CABADE80`; trigger search-path migration `4DB886BE8512F3A822A7876A85C1692979CB07CB63A6C6070368B11D4745449D`; rollback matrix `CFE980EDF43BB10B4BCBF9552EC49CD56E5AA37D9541624EB87A9644C4749AF1`; post-QA focused source guard `1E6BB890627F1E01C8F7B5B6016F5556CD86EAA2B4419DF3234F07F5FEEA5768`.
+- Full external coverage: exact catalog/function/trigger/ACL/RLS preflight; owner, updates-scoped participant, managed director, and exact-location assigned-staff list/post success; non-updates/revoked/cross-organization/wrong-location/unassigned/revoked-staff denial; direct authenticated SELECT/INSERT/UPDATE/DELETE denial; sender-label bound; exact replay; changed-actor/body conflict; denial/conflict no-write cardinality; and append-only UPDATE/DELETE rejection.
+- Data QA reported exact pre/post counts and deterministic ordered-fingerprint equality across ten relations—`auth.users`, `continuity_spaces`, `continuity_participants`, `organizations`, `organization_locations`, `organization_members`, `organization_member_locations`, `workflows`, `tasks`, and `workflow_messages`—with zero fixture change persisted. Its handoff did not supply a run timestamp or the full fingerprint strings; this record invents neither, and a later exact evidence rerun may be required if promotion needs those values. Advisor-equivalent proof found no blocking security/integrity issue. Four uncovered message foreign-key paths remain INFO-only `MESSAGING-FK-INDEX-01` performance debt (`organization_id`, `sender_user_id`, `sender_organization_member_id`, `sender_continuity_participant_id`); `workflow_id` is already indexed. Pilot-like `EXPLAIN (ANALYZE, BUFFERS)` and any justified indexes remain a separate pre-pilot-load/75% performance task.
+- Development Engineering hardened `scripts/test-workflow-messaging-security.js` without changing migration or SQL behavior. The guard strips executable SQL line and nested block comments while respecting quoted literals, requires exact executable `function_option.option_value = pg_catalog.quote_ident('')`, rejects executable `function_option.option_value = ''`, and proves three temporary in-memory mutations: canonical-only-in-comment FAIL, obsolete executable FAIL, restored source PASS. Focused messaging security is **20/20 PASS**.
+- No replacement commit exists. The artifacts remain an uncommitted, hash-bound correction based on PR #74 head `dff62760e6e7139ab5a2ef8b8c6f9f887a524411`; they are not a claim about a new remote head. This Development role ran no live SQL and made no product, migration, SQL matrix, parity, roadmap, readiness, GitHub, Vercel, Preview, or Production change.
+- **External Independent Data QA: PASS. Source QA: messaging database packet PASS / repository integration PARTIAL because the inherited operational-route mismatch remains. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE PARTIAL.**
+
+### PR #74 executable SQL assertion lexical-guard correction - 2026-07-28 23:43 -07:00
+
+- Independent source QA invalidated only the preceding lexical-guard PASS: the comment remover retained double-quoted identifiers and did not consume dollar-quoted strings, so a canonical predicate placed only in either non-executable form could satisfy the source assertion. The database matrix and external Data QA PASS remain bound to their unchanged hashes; this finding does not rewrite or manufacture database evidence.
+- Product Manager `/root` classified the source-test defect **FIX NOW**. Development Engineer `/root/urgent_matrix_hardening` changed only `scripts/test-workflow-messaging-security.js`, this living context, and the existing redacted source-evidence record. UX Review: **N/A** because no product route, component, copy, state, authority, or responsive projection changed.
+- The replacement lexer now skips line comments and arbitrarily nested block comments; consumes standard strings, backslash-aware `E` strings, escaped double-quoted identifiers, and tagged or untagged dollar strings; and recursively tokenizes only the executable body of a `DO $tag$...$tag$` statement. The assertion is matched as an ordered executable token sequence, including the exact empty-string argument to `pg_catalog.quote_ident`, rather than as raw text.
+- Adversarial in-memory mutations prove canonical text cannot pass from line/nested comments, standard/E strings, double-quoted identifiers, or tagged/untagged dollar strings. The obsolete executable empty-string comparison still fails, and the real executable canonical predicate still passes. Focused messaging security is **23/23 PASS**.
+- Historical intermediate guard SHA-256: `5FBF688AC1C74D6D7AECD6DBFDE3FBAA011EBC2FCCA70562F156F97C949E0B53`. This binding is **STALE** for the final committed guard and is superseded by the canonical `21C4A938...` rebinding below. Unchanged bindings: foundational migration `4BD25BA...`, client projection migration `97805F1B...`, trigger hardening migration `4DB886BE...`, and rollback matrix `CFE980ED...`.
+- Roadmap classification: source-test false-positive correction only; no material direction, scope, architecture, persona coverage, milestone, readiness, or Production change.
+- **Source QA:** REPLACEMENT ENGINEERING FOCUSED PASS / distinct rereview required; repository integration remains PARTIAL because the inherited operational-route mismatch is unchanged.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL.
+- No live SQL, commit, push, deployment, product, migration, matrix, parity, roadmap, or Supabase state changed.
 ### Urgent/red receiver submit P1 — product-only publication split — 2026-07-28
 
 Status: **AD41 INDEPENDENT QA FAIL / 55312 AND E00099 REVIEW RETURNS / THIRD REPLACEMENT DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This packet is not hosted, deployed, merged, or release-approved.
@@ -1801,7 +2314,7 @@ PM Sprint Brief:
 
 Documentation-first database artifact gate:
 
-- **What:** retain `20260727030000_urgent_receiving_organization_boundary.sql` and replace the unreproducible broad test with narrow rollback-only `urgent_receiver_submit_boundary.sql`.
+- **What:** retain the truthfully applied `20260727042651_urgent_receiving_organization_boundary.sql` and replace the unreproducible broad test with narrow rollback-only `urgent_receiver_submit_boundary.sql`.
 - **Why the frontend needs it:** `/start/next` must name and bind the exact receiving funeral home, while private saves remain requester-only.
 - **What breaks if skipped:** the UI calls a database signature that source control cannot reproduce or audit, and hosted behavior can drift from migrations.
 - **Risk:** reapplying already-present DDL or widening a `SECURITY DEFINER` boundary would be unsafe.
@@ -1813,7 +2326,7 @@ Development handoff:
 
 - Product/UI files: `app/start/Start.module.css`, `app/start/StartWizardContext.tsx`, `app/start/actions.ts`, `app/start/next/UrgentNextClient.tsx`, and `lib/urgent/situations.ts`.
 - Contract/gates: `docs/product/frontend-backend-contracts.json`, `scripts/test-frontend-backend-parity.js`, and `scripts/test-operational-route-gate.js`.
-- Database artifacts: `supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_receiver_submit_boundary.sql`.
+- Database artifacts: `supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql` and `supabase/tests/urgent_receiver_submit_boundary.sql`.
 - Context/roadmap: this handoff and the matching readiness correction. No `.github` file is included.
 - The form now carries and the Server Action validates the allowlisted Northstar receiver before passing `p_receiving_organization_id`. The stable wizard request UUID drives exact recovery. Receipts read the matching append-only event time. Callback and private actions state who can see the saved request, and uncertain post-mutation recovery directs reload.
 
@@ -1861,12 +2374,740 @@ Release truth:
 - **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
 - Auto-advance target: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA. No Claude-in-Chrome or other external-agent assistance was used by this Development Engineer.
 
+### Post-merge urgent first-task parity repair — 2026-07-28
 
-## Participant case-detail access fix - 2026-08-10
+Status: **DEVELOPMENT SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. This entry invalidates the merged-head `e25c6d2dc64e64687ec55d31d711ffeba9569266` source-PASS claim. Exact merged source passed only 16/17 parity checks because it referenced a nonexistent receiver migration filename, and it omitted the `urgent_case_first_commitment` migration already applied to isolated project `uyacxqtsiwlvtmhxvoxr`.
 
-- Bug (found in docs/evidence/passage-zero/qa-2026-08-10-full-sweep.md, P0, tested against the release/10h-delivery superset preview): every active continuity_participants family member who isn't the continuity-space owner was locked out of /case/[id]/today (and, on branches carrying the not-yet-merged messaging feature, /case/[id]/messages too -- this branch, greenfield/passage-zero, has no messaging feature yet, so only the case-detail half applies here). Root cause: migration participant_updates_case_scope (2026-07-30, applied to the shared isolated project this branch's preview also reads from) correctly narrowed passage_private.can_view_workflow_as_family() to owner-only and shipped public.list_participant_family_updates() as the participant-safe replacement, but that function has no workflow_id in its input or output, and lib/family/case-view.ts still gated on the now-owner-only raw `workflows` table read.
-- Fix (branch `fix/participant-case-access-greenfield`, off `greenfield/passage-zero`; same fix also landed separately as `fix/participant-case-access` off `release/10h-delivery`, PR #77, for the messaging half):
-  - `supabase/migrations/20260810230000_participant_case_update_for_workflow.sql` -- adds public.get_family_case_update_for_workflow(p_workflow_id uuid), an additive, workflow-id-scoped sibling to list_participant_family_updates(). Does not modify any existing function or RLS policy.
-  - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
-  - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
-- Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
+Role record:
+
+- Product Manager: root release-train PM. The bounded goal is to make urgent case creation save one workflow and exactly one unassigned first task in one transaction, then open that task for exact-location assignment. No Production, provider, pricing, messaging, or access expansion is in scope.
+- UI/UX Review: `/root/postmerge_parity_ux`, PASS to Engineering with conditions. Required human copy, Tasks-first orientation, no raw IDs, exact-location team choices, 48-pixel recovery actions, explicit missing-task recovery, and server time only or no displayed time.
+- Development Engineer: `/root/postmerge_parity_engineering`. Work was performed only in the exact extracted `e25c6d2` source; no GitHub, Vercel, Supabase, or Production state was mutated.
+- Next role: distinct Independent QA, then Independent Agent Review, Development Head, Deploy, and exact-head hosted QA.
+
+Documentation-first database artifact gate:
+
+- **What:** restore the exact reviewed `urgent_case_first_commitment` statements under the truthful applied filename `supabase/migrations/20260727200936_urgent_case_first_commitment.sql`; keep the receiver boundary under `20260727042651`; restore the broad rollback-only organization/location/replay/cardinality test.
+- **Why:** the director UI now requires the authoritative command receipt to return both the case and first-task identifiers, and staff assignment must begin from a durable unassigned task rather than an empty workflow.
+- **Breakage if skipped:** source cannot reproduce the isolated database, case creation can leave no assignable work, exact replay cannot recover the first task, and frontend/backend parity is false.
+- **Risk/recovery:** the migration is forward-only, guarded, additive to the receiver boundary, and transaction-atomic. It is not applied in this Development handoff. QA must compare it with isolated migration history and execute only the rollback-only test against `uyacxqtsiwlvtmhxvoxr`. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+Development handoff:
+
+- Restored `20260727200936_urgent_case_first_commitment.sql` and `urgent_family_organization_boundary.sql`; corrected every executable receiver-migration reference to `20260727042651`.
+- Case creation now requires and consumes `workflow_id` plus `first_task_id`, omits client-generated receipt time, deep-links to the returned task, and uses the approved success/replay language.
+- Case Room opens the returned task in Tasks, filters candidates to active staff with a non-revoked grant to the exact case location, revalidates the exact Case Room after assignment, and provides calm no-candidate and missing-task recovery.
+- Staff pages translate the legacy director assignment instruction into the assigned person's next action. No raw identifier is rendered.
+- Frontend/backend ledger now records the complete urgent director claim -> case -> first task -> assignment contract, durable cardinality, authority, append-only events, recovery, and persona projection.
+
+Release truth:
+
+- **Source QA:** DEVELOPMENT PASS/PARTIAL; independent QA NOT RUN. Frontend/backend parity passed 17/17 and the checker passed 19 contracts. Server Action export, operational-route, persona-language, runtime-isolation, deploy-gate 16/16, agent-context, release-train non-PR classification, release-governance, and TypeScript gates passed. The optimized build reached Next/Turbopack compilation but failed only because this deeply nested extracted-source path made a generated Windows chunk path exceed the filesystem maximum; no TypeScript, route, or application compile error was reported. Independent QA must rerun the optimized build from a normal checkout path.
+- **Hosted Preview QA:** NOT RUN for this repair.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL. No readiness score changes.
+
+### Post-merge urgent first-task parity - QA return and replacement Engineering handoff - 2026-07-28 21:44 -07:00
+
+Release truth: **REPLACEMENT ENGINEERING SOURCE COMPLETE / INDEPENDENT QA REQUIRED**. Source QA for the prior candidate is **FAIL**; Hosted Preview QA is **NOT RUN**; Production Deployment is **NOT DEPLOYED**; Production QA is **NOT RUN**; Overall release state is **SOURCE ONLY / NON-PRODUCTION PARTIAL**.
+
+- Product Manager `/root` returned all four independent-QA findings as **FIX NOW**. Development Engineer `/root/postmerge_parity_engineering` changed only the extracted `e25c6d2dc64e64687ec55d31d711ffeba9569266` candidate. No branch, PR, Preview, database, Vercel configuration, or Production resource changed.
+- An authorized zero-task Case Room now reaches the named missing-first-task recovery panel before generic invalid-task denial. An explicit task outside a nonempty workflow still fails closed.
+- `AssignTaskForm` now uses an explicit `first-task` variant. Urgent recovery says `Assign first task`; ordinary workload assignment says `Assign task`. The no-candidate boundary names the humanized case location and renders: `No eligible team members can work at [location]. Review team access, then return here.`
+- The broad rollback-only urgent matrix now executes `assign_task_idempotent` after case/first-task creation. It proves one exact-location staff assignment and one append-only `task.assigned` event, exact replay without duplication, and atomic denials for wrong-organization target, wrong-location target, revoked target, wrong-organization actor, wrong-location actor, unaffiliated actor, and former/revoked actor. Final task/event cardinality remains exact.
+- The parity ledger now asserts the distinct assignment labels, exact-location recovery, zero-task ordering, assignment command, replay, append-only proof, and actor/target denials.
+- PM explicitly separated governance from this urgent product packet. Candidate `AGENTS.md` was restored byte-for-byte to the exact `e25c6d2...` source blob (`45751268fe83831ee91edbbbe2d5f0eff2f8d78e`). No governance doctrine change is included or claimed.
+
+Focused Engineering gates: parity checker **PASS** (19 contracts); parity regression **PASS** (17/17); TypeScript `--noEmit` **PASS**; Server Action export regression **PASS** (ten prohibited fixtures rejected and both Cycle 8 actions bound). The optimized-build path retains the already-recorded nested Windows archive path-length limitation; this handoff does not convert it into an application verdict.
+
+Roadmap classification: defect/parity correction only; no product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score change. Next role is distinct Independent QA for the replacement diff and applicable source/SQL/RLS gates. One truthful non-production Preview and complete 1440/390/360 hosted evidence remain mandatory before `[qa-approved]`.
+
+### Post-merge urgent first-task parity - second QA return - 2026-07-28 21:51 -07:00
+
+Independent QA returned the replacement on one remaining evidence gap only: assignment command and denial proof did not prove that the newly assigned person could actually see the exact urgent workflow/task through the same RLS read path used by My Work, while other identities could not.
+
+Development Engineer `/root/postmerge_parity_engineering` extended only the rollback matrix and its parity/context assertions. After authorized assignment and exact replay, the assigned active staff identity must see exactly one matching version-2 task and its exact-location workflow. An unaffiliated identity, a distinct active but unassigned staff member with an exact-location grant, wrong-location staff, wrong-organization staff, revoked staff, and revoked director identities must see zero rows for both identifiers. Returning to the authorized director must prove the workflow, assignment, version, and single append-only assignment-event cardinality are unchanged.
+
+No product code, migration, fixture, project guard, rollback boundary, branch, PR, Preview, database, Vercel configuration, or Production resource changed. Source QA remains **REPLACEMENT ENGINEERING SOURCE COMPLETE / INDEPENDENT QA REQUIRED**; Hosted Preview QA remains **NOT RUN**; Production Deployment remains **NOT DEPLOYED**; Production QA remains **NOT RUN**; Overall release state remains **SOURCE ONLY / NON-PRODUCTION PARTIAL**.
+
+### Post-merge urgent first-task parity - independent source QA PASS - 2026-07-28 22:02 -07:00
+
+- Independent QA Agent `/root/urgent_repair_qa` completed two return loops and then issued **SOURCE QA PASS** for the frozen replacement candidate. The first return corrected unreachable authorized zero-task recovery, a shared assignment-label regression, missing exact-location recovery copy, and missing assignment/event/denial execution. The second return added authenticated My Work projection proof for the assigned staff identity plus zero-row proof for unassigned, wrong-location, wrong-organization, unaffiliated, former/revoked staff, and former/revoked director identities.
+- Final source evidence proves one urgent workflow, exactly one first task, exactly one `task.created` event, one authorized assignment at version 2, exactly one `task.assigned` event, exact replay without duplication, conflict/authority/candidate denials without mutation, assigned-staff workflow/task visibility, denied-persona non-visibility, and unchanged final cardinality.
+- Deterministic gates: frontend/backend parity **17/17 PASS**; contract checker **19 PASS**; Server Action export, operational-route, persona-language, runtime-isolation, Vercel deploy-gate **16/16**, agent-context, release-governance, and TypeScript gates **PASS**.
+- Optimized build remains **PARTIAL for local infrastructure only**. The deeply nested archive first exceeded a generated Windows path limit; the short-path rerun reached Next/Turbopack and then stopped because the restricted runner could not fetch the two configured Google Fonts. No source, TypeScript, route, or application compile error was reported. The exact Vercel Preview build must close this evidence cell.
+- **Source QA:** PASS for this bounded urgent repair candidate.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PASS / EXTERNAL SQL AND HOSTED PREVIEW QA PENDING.
+- Remaining gates: distinct Independent Agent Review and Development Head exact-head decisions; rollback-only SQL execution against isolated project `uyacxqtsiwlvtmhxvoxr`; Bot-authored branch-only verification Preview; submit -> claim -> case + first task -> assignment -> staff My Work plus replay/conflict/reload/denial/recovery QA at 1440, 390, and 360; clean console, hydration, network, and Vercel runtime logs. Production project `qsveqfchwylsbncsfgxe` remains prohibited.
+
+### Urgent retained-lab rollback-matrix hardening - Development Engineer handoff - 2026-07-28 22:32 -07:00
+
+- Product Manager `/root/launch_readiness_pm` classified the first external data-QA result **FIX NOW**. The earlier Data QA **PARTIAL / MATRIX NOT RUN** verdict is preserved: isolated project `uyacxqtsiwlvtmhxvoxr` already retained 7 urgent requests, 13 urgent events, 5 workflows, 6 tasks, and 21 workflow events, so a global-empty assertion was not truthful. No SQL was executed and Production `qsveqfchwylsbncsfgxe` remained untouched.
+- Development Engineer `/root/urgent_matrix_hardening` changed only `supabase/tests/urgent_family_organization_boundary.sql` and this handoff. UX Review: **N/A** because no route, component, copy, or persona projection changed. No migration, fixture, product behavior, branch, PR, deployment, environment, or database state changed.
+- The matrix now fails closed on the isolated project, postgres role, required schema/migrations/functions, function ACL/search-path posture, table ACL/RLS posture, and every reserved synthetic identity, request key, assignment key, and case reference. It records pre-run counts plus deterministic ID-ordered row digests for `urgent_intake_requests`, `urgent_intake_events`, `workflows`, `tasks`, and `workflow_events`.
+- During the repeatable-read transaction, the matrix proves only fixture-scoped deltas: two requests, four urgent events, one workflow, one first task, and two workflow events. It records exact candidate snapshots around submit replay/conflict and claim denials, claim replay/conflict and case denials, case replay/conflicts, assignment replay/projections/actor-and-target denials, direct append-only DML denials, and private-request denial. Unrelated retained counts and digests must remain byte-for-byte unchanged.
+- The script contains no commit path. A terminal `rollback` is followed by an outside-transaction equality check proving all five counts and ordered digests exactly match the pre-run baseline, then the session-local baseline table is dropped. This makes two consecutive executions safe: the second run must start from exactly the same retained state and collision-free reserved namespace.
+- Source checks: frontend/backend parity **17/17 PASS**; Server Action export regression **PASS**; operational-route, persona-language, runtime-isolation, Vercel deploy-gate **16/16**, and release-governance checks **PASS**; `git diff --check` **PASS**. TypeScript was **NOT RERUN** because this standalone checkout has no installed TypeScript package and dependency installation is blocked by restricted registry access; no TypeScript source changed and the prior exact-candidate TypeScript PASS remains preserved. The SQL matrix itself was **NOT RUN** by Engineering, per role separation.
+- Supabase research: the current breaking-change index was checked. No current platform breaking change alters direct PostgreSQL rollback transactions; the 2026 explicit Data API grant change reinforces the matrix's separate ACL and RLS checks rather than relying on RLS alone.
+- **Source QA:** ENGINEERING PASS / independent retest required because the SQL artifact changed after the prior exact-head QA and review.
+- **Hosted Preview QA:** NOT RUN for this changed candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target: distinct Independent QA reviews and parses the changed matrix; distinct Data QA executes it twice against isolated project `uyacxqtsiwlvtmhxvoxr` and records pre/run-1/post/run-2/post counts and digests. Any head change invalidates prior exact-head QA/review. No `[qa-approved]`, Bot publication, or Preview is allowed before both source and two-run rollback evidence pass.
+
+### Urgent retained-lab rollback-matrix hardening - second Data QA return - 2026-07-28 22:54 -07:00
+
+- The 22:32 Engineering statement that exact rollback equality covered the complete retained authority surface is **INVALIDATED for evidence sufficiency**. It covered five candidate relations but omitted `organization_member_locations`, and the revoked-location denial proved only request/event cardinality rather than a complete pre/post mutation boundary. The earlier Data QA verdict remains **PARTIAL / MATRIX NOT RUN**. The earlier record is preserved above; it is not silently rewritten.
+- Product Manager `/root/launch_readiness_pm` classified the second Data QA return **FIX NOW**. Development Engineer `/root/urgent_matrix_hardening` changed only the rollback-only SQL matrix and this living-context correction. UX Review remains **N/A**: no route, component, copy, or persona projection changed. No live SQL, migration, fixture, product behavior, branch, PR, Preview, deployment, environment, or database state changed.
+- The deterministic pre-run and post-rollback baseline now covers six relations. `organization_member_locations` uses full-row digests ordered by its composite member/location key; its ACL and RLS posture is included in the preflight. Fixture cardinality proves seven transaction-local grant rows, while terminal rollback must restore the exact pre-run count and full digest.
+- Immediately before the intentional location-grant revocation, the matrix snapshots the exact grant, every grant, both candidate requests and their events, the candidate workflow, first task, all candidate workflow events, explicit assignment fields, the single `task.assigned` event, and every unrelated retained row in all six relations. It then revokes exactly one grant and proves `can_manage_location` changed to false before the replay denial.
+- After the denial, full deterministic fingerprints must remain unchanged for all candidate request/event/workflow/task/assignment/assignment-event state and all unrelated retained rows. The exact grant must differ only in `revoked_at`; total grant cardinality must remain unchanged. The unconditional terminal `rollback` and outside-transaction six-relation equality check remain the only exit path.
+- **Source QA:** ENGINEERING PASS / independent retest required. Static SQL structure, release-train checks, and deterministic source gates are recorded in the Engineering handoff; the SQL matrix itself remains **NOT RUN** by Engineering.
+- **Hosted Preview QA:** NOT RUN for this changed candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target remains distinct Independent QA, then distinct Data QA executing the matrix twice against isolated project `uyacxqtsiwlvtmhxvoxr` with pre/run-1/post/run-2/post six-relation counts and full digests. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+### Urgent retained-lab rollback matrix - invalid private-call evidence replacement - 2026-07-28 23:14 -07:00
+
+- The next distinct Data QA attempt is preserved as **RUN 1 FAIL / RUN 2 NOT RUN**. The matrix called `passage_private.can_manage_location` directly after switching to the authenticated role. The isolated project correctly denied that private-schema call, so the run stopped before the intended public-command denial and before terminal rollback evidence could be certified. This is a test-evidence defect, not evidence of an application authority defect. No PASS is inferred from the aborted run.
+- Product Manager `/root` classified the evidence defect **FIX NOW**. Development Engineer `/root/urgent_matrix_hardening` removed the private call without changing any migration or ACL. Catalog preflight now explicitly proves the authenticated role can execute `public.create_case_from_urgent_intake_idempotent(uuid,integer,uuid,text,text,uuid)` while the private helper is not an authenticated callable entrypoint.
+- Privileged fixture setup now proves the real director membership remains active before and after revoking exactly one location grant. The authenticated director JWT then invokes the real public create-case command as a true replay with the same request, expected version, location, case reference, family name, and idempotency key. The only accepted result is SQLSTATE `42501` with no command receipt.
+- The existing post-denial replacement proof remains unchanged in scope: full candidate request/event/workflow/task/assignment/assignment-event fingerprints, exact/all grant fingerprints, and all unrelated retained fingerprints must match their immediate pre-revocation snapshots except that the exact grant may differ only in `revoked_at`. The unconditional terminal rollback must restore all six baseline relation counts and full ordered digests.
+- **Source QA:** REPLACEMENT ENGINEERING PASS / independent retest required. The matrix was **NOT RUN** by Engineering.
+- **Hosted Preview QA:** NOT RUN for this changed candidate.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target: distinct source QA validates the public/private entrypoint boundary, then distinct Data QA executes two consecutive complete matrix runs against isolated project `uyacxqtsiwlvtmhxvoxr`. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+### Urgent public-command/private-helper authority repair - 2026-07-28 23:34 -07:00
+
+- The subsequent independent ACL review is preserved as **FAIL**. A security-invoker public wrapper cannot delegate to the private helper after authenticated private-function execution is removed; retaining that private grant contradicts the intended public-only command boundary. The prior matrix/source verdict is stale and no two-run Data QA PASS exists.
+- Product Manager `/root` classified the security contradiction **FIX NOW**. Development Engineer `/root/urgent_matrix_hardening` added only the forward migration `20260729063305_urgent_case_public_wrapper_authority_boundary.sql`, updated its parity/matrix contract, and updated this handoff. No prior migration was rewritten. UX Review: **N/A** because no route, component, rendered copy, or responsive projection changed.
+- **Documentation-first database batch:** change the existing public six-argument create-case wrapper to `SECURITY DEFINER` with an empty fixed `search_path`; preserve its existing typed SQL delegation/body; revoke the matching private helper from `PUBLIC`, `anon`, `authenticated`, and `service_role`; and reassert the public wrapper as authenticated-only. The frontend needs one callable public command without private-schema exposure. If skipped, either case creation remains unusable or authenticated callers retain direct private-helper execution. The private command already enforces exact receiving-organization, active leader, exact-location, replay, and conflict predicates before mutation.
+- **Risk/recovery/data boundary:** `SECURITY DEFINER` is intentionally narrow here: the unchanged wrapper delegates only typed arguments to the existing authorization-checking private command, uses an empty search path, and exposes no generic SQL. No `passage_private` schema privilege changes are included. Recovery, if independent QA finds a defect before any release, is to reject the migration; after application, recovery requires a new forward migration restoring invoker mode and the prior function ACL. Target is isolated project `uyacxqtsiwlvtmhxvoxr` only after distinct approval. Production `qsveqfchwylsbncsfgxe` is prohibited.
+- The rollback matrix now requires this migration, authenticated-only public execution, no direct private-helper execution for authenticated/anon/service roles, `prosecdef`, fixed empty `search_path`, real public-command `42501` denial after exact grant revocation, full candidate/history/grant no-mutation fingerprints, and unconditional six-relation rollback.
+- Roadmap classification: authority/security defect repair within the already approved urgent slice; no product direction, persona coverage, milestone order, readiness score, pricing, or Production scope change.
+- **Source QA:** REPLACEMENT ENGINEERING SOURCE COMPLETE / independent source and Data QA required. No SQL was executed by Engineering.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- Auto-advance target: distinct source QA reviews the exact migration and parity contract, then distinct Data QA applies the forward migration only to isolated project `uyacxqtsiwlvtmhxvoxr` and runs the complete rollback matrix twice. No commit, push, Preview, or Production action occurred.
+
+### Urgent forbidden-entrypoint behavioral ACL evidence - 2026-07-29 06:02 -07:00
+
+- Independent QA returned the preceding source packet **FAIL** because the matrix asserted function privileges only from catalogs. The prior replacement source claim is **INVALIDATED for behavioral ACL sufficiency**. The forward migration remains unchanged and no complete two-run Data QA PASS exists.
+- Product Manager `/root` classified the gap **FIX NOW**. Development Engineer `/root/urgent_matrix_hardening` changed only the rollback matrix, its parity source assertions, and this living handoff. UX Review: **N/A** because no product route, component, copy, state, or responsive projection changed.
+- After the authorized authenticated public create-case success/replay path has already established the candidate workflow, first task, assignment, and history, the matrix snapshots exact full-row counts and deterministic ordered digests for all six retained relations. It then uses exact role/JWT/reset discipline to prove: an authenticated director cannot call the private create-case helper; `anon` cannot call the public wrapper even with the director subject claim; and `service_role` cannot call the public wrapper even with that claim. Each call must return SQLSTATE `42501` with no receipt.
+- Returning to postgres after every role, the matrix requires all six full relation counts and row digests to equal the immediate pre-denial snapshot. This covers candidate requests, urgent history, workflow, task/assignment, workflow history, every grant, and unrelated retained rows. The later active-membership grant-revocation denial and unconditional terminal six-relation rollback remain intact.
+- Root release-train Engineering separately reported a network-enabled optimized build rerun **PASS** for the unchanged application candidate. This matrix-only correction does not reuse that as SQL execution evidence. Engineering here ran no live SQL.
+- Roadmap classification: test-evidence correction only; no product direction, architecture, persona coverage, milestone, readiness score, pricing, or Production scope change.
+- **Source QA:** REPLACEMENT ENGINEERING SOURCE COMPLETE / distinct source and Data QA required.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL.
+- No live SQL, migration rewrite, commit, push, Preview, deployment, or Production action occurred.
+
+### Urgent public-command authority repair - independent Data QA PASS - 2026-07-29 06:19 -07:00
+
+- Distinct Data QA Agent `/root/messaging_p1_qa` received the exact forward migration and rollback-only authority matrix after the preserved FAIL, PARTIAL, and invalidated evidence records above. Those earlier verdicts remain historical truth for their exact candidates; this PASS applies to migration SHA-256 `515F32566FD6823B249CB22C56D38A0DF33A3C354AA2CCCAF135785BF0E80377` and the executed mixed-EOL matrix artifact SHA-256 `43EB6E5EC281290748B114A8E987F7A4D3243F2F89EBF3976CFD50C6A3035FB4`, whose canonical committed LF binding is established below.
+- Target verification: isolated Supabase project `uyacxqtsiwlvtmhxvoxr` (`passage-cycle-7a-test`), `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.141`. Production project `qsveqfchwylsbncsfgxe` appeared only in the initial read-only project inventory and was never passed to migration, SQL-execution, or advisor tools. No Production query, migration, configuration, or data action occurred.
+- Exact execution artifacts were unchanged after execution: `supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql`, 1,248 bytes, SHA-256 `515F32566FD6823B249CB22C56D38A0DF33A3C354AA2CCCAF135785BF0E80377`; and the retained mixed-EOL `supabase/tests/urgent_family_organization_boundary.sql`, 94,896 bytes / 94,309 LF characters, SHA-256 `43EB6E5EC281290748B114A8E987F7A4D3243F2F89EBF3976CFD50C6A3035FB4`. The committed LF-blob equivalence is proved below.
+- Preflight proved the migration absent. Supabase migration tooling applied `urgent_case_public_wrapper_authority_boundary` from `2026-07-29 13:10:41.844786+00` through `13:10:44.793242+00`; migration history records version `20260729131043` and the same name.
+- The complete rollback matrix passed twice consecutively. Run 1 executed from `2026-07-29 13:15:18.908752+00` through `13:15:21.639741+00`; run 2 executed from `2026-07-29 13:15:43.800125+00` through `13:15:46.202997+00`. The execution adapter began with explicit repeatable-read `BEGIN`, set the isolated-project guard, replaced the source inner transaction boundary in memory with a savepoint, ran the source post-rollback equality block unchanged, and committed only the outer zero-fixture transaction. The migration, matrix, parity ledger, and product source were not edited for execution.
+- All six retained relations had identical baseline, post-run-1, and post-run-2 counts and deterministic digests. Baseline snapshots were taken at `2026-07-29 13:10:21.257840+00` through `.257851+00`; post-run-1 at `13:15:21.639731+00` through `.639741+00`; post-run-2 at `13:15:46.202987+00` through `.202997+00`:
+  - `organization_member_locations`: count `8`; digest `a70f963e7a63a1950845440df57f10d3`.
+  - `tasks`: count `6`; digest `50383bd60a194786c2cc5e45b133202f`.
+  - `urgent_intake_events`: count `13`; digest `9d43b44b53a35e3d5ad8d86367d053a4`.
+  - `urgent_intake_requests`: count `7`; digest `da9e345e6a40872faa60e16c0334ad94`.
+  - `workflow_events`: count `21`; digest `9e874eed8d2c7bb6d8ccab7f4beb37d7`.
+  - `workflows`: count `5`; digest `fa133714cb2d24cc3104dc3358310f42`.
+- Both runs passed the complete semantic matrix: catalog/RLS/ACL preflight; authorized family submission, exact Northstar claim, atomic case plus first-task creation, exact-location assignment, and My Work projections; exact replay; changed-payload/version/location/reference/family/actor conflicts; wrong-organization, wrong-location, staff, revoked/former, unaffiliated, self-handling, unassigned, and private-helper denials; direct table/event mutation denial; append-only invariants; exact location-grant revocation; public replay denial after revocation; candidate and unrelated digests; final cardinality; and terminal rollback equality. Expected authority/BOLA denials returned `42501`; expected conflicts returned `22023` or `40001` as authored.
+- Catalog and ACL were verified after apply at `2026-07-29 13:10:54.330822+00` and finally at `13:16:09.731122+00`. `public.create_case_from_urgent_intake_idempotent(uuid,integer,uuid,text,text,uuid)` is owned by `postgres`, is `SECURITY DEFINER`, has `proconfig=[search_path=""]`, and grants execution only to `authenticated`; `anon`, `service_role`, and `PUBLIC` cannot execute it. The private helper is also an empty-search-path `SECURITY DEFINER` owned by `postgres`, but `authenticated`, `anon`, `service_role`, and `PUBLIC` all lack execution. The public SQL body delegates only the six typed arguments; the private PL/pgSQL helper re-derives `auth.uid()` and enforces receiving organization, exact location, replay actor/payload, and conflict semantics.
+- Advisor comparison completed at `2026-07-29 13:16:55.423631+00`. Performance remained `43 -> 43` with an identical cache-key set and no added or removed lint. Security changed `2 -> 3`: the existing mutable-search-path warning for `passage_private.reject_workflow_message_mutation` and leaked-password-protection warning were unchanged; the sole new warning is `authenticated_security_definer_function_executable` for this intentional authenticated public command. Data QA classified it **EXPECTED / NON-BLOCKING** because every other role grant is revoked, the search path is empty, delegation is typed, the private authority checks passed, and the complete two-run denial matrix passed. Reference: `https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable`.
+- Three harness attempts failed safely before the two PASS runs and are retained as evidence rather than hidden: a shell-truncated 40,024-character SQL payload returned `42601` at `2026-07-29 13:11:41.767664+00`; the full 94,309-character source with an early `SET` returned `25001` at `13:13:25.785760+00`; and the first savepoint adapter without explicit `BEGIN` returned `25P01` at `13:14:42.870326+00`. Each failed transaction was followed by exact six-relation baseline equality, including post-failure snapshots at `13:11:43.997665+00` and `13:14:45.997741+00` where applicable, and persisted zero fixture mutation.
+- **Source QA:** PASS for the bounded urgent repair candidate; the exact migration and matrix hashes remained unchanged.
+- **Isolated Data QA:** PASS for migration application plus two consecutive complete rollback-matrix runs.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE AND ISOLATED DATA PASS / NON-PRODUCTION PARTIAL. This Data QA PASS does not authorize `[qa-approved]`, Preview publication, merge, or Production promotion.
+- Auto-advance target: distinct Independent Agent Review and Development Head bind the exact candidate, then non-production Deploy and hosted QA execute submit -> claim -> case plus first task -> assignment -> staff My Work, replay/conflict/reload/denial/recovery, 1440/390/360, and browser/runtime-log evidence. No commit, push, deploy, or Production action occurred in this documentation closeout.
+
+### Combined Preview candidate - rejected-head correction and exact-artifact rebinding - 2026-07-29 17:24 -07:00
+
+- Independent Agent Reviewer `/root/independent_review_exact_head` **REJECTED** exact superseded head `4a560bc5e0cf03b1702432190e0702376eab6951`. The rejection is preserved: that head carried the expired founder-review doctrine, its recorded urgent-matrix and messaging-guard hashes did not bind the committed blobs, and its Vercel gate rejected the configured `release/10h-delivery` Preview branch. Its deterministic application tests and optimized build passed, but no hosted claim was made.
+- Product Manager `/root` classified all three findings **FIX NOW**. Engineering restored the owner-approved Development Head / Release Authority and Production Reviewer model in `AGENTS.md`, `docs/release-train.md`, the release-governance policy, the trusted workflow, and deterministic governance checkers/tests. Routine founder review is prohibited. This is a binding anti-regression correction, not a product-readiness increase.
+- Exact-artifact rebinding preserves the prior evidence instead of silently replacing it. The urgent Data QA execution used the retained mixed-EOL file at 94,896 bytes and SHA-256 `43EB6E5EC281290748B114A8E987F7A4D3243F2F89EBF3976CFD50C6A3035FB4`. Normalizing only `CRLF -> LF` produces 94,309 bytes and SHA-256 `93706B9CDA1CB516C6527CA0DF1BFC5F003364849C660ADA11296A78704501A0`, byte-for-byte equal to `git show HEAD:supabase/tests/urgent_family_organization_boundary.sql`. The SQL text, statements, project guard, rollback boundary, and assertions are unchanged; the mixed-EOL execution evidence is now explicitly bound to the canonical committed LF blob.
+- The earlier messaging-guard SHA-256 `5FBF688AC1C74D6D7AECD6DBFDE3FBAA011EBC2FCCA70562F156F97C949E0B53` is **STALE** and must not be cited as the final guard artifact. The canonical committed blob `git show HEAD:scripts/test-workflow-messaging-security.js` is 15,625 bytes with SHA-256 `21C4A9389A154E459FB2D76382BDA77DD4FFB75B2679CC12C13FF585CD2ABFFF`; the focused security suite passes 23/23 against that exact logical source.
+- The Vercel ignore-build gate now allowlists exactly two non-production Preview refs: `greenfield/passage-zero` and the already configured `release/10h-delivery`. Exact marker requirements remain unchanged; near-matches such as `release/10h-delivery-candidate`, unrelated branches, non-canonical projects, skip markers, and every Production verification-preview attempt remain denied. No Vercel environment variable or project configuration changed.
+- Roadmap classification: governance/evidence/deploy-infrastructure defect correction only; no product direction, persona coverage, pricing, readiness score, or Production scope change. UX Review: **N/A** because no rendered route, interaction, or persona copy changed in this correction.
+- **Source QA:** ENGINEERING CORRECTION COMPLETE / distinct evidence QA and fresh exact-head Independent Agent Review required.
+- **Hosted Preview QA:** NOT RUN for the replacement head.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE CORRECTION / NON-PRODUCTION PARTIAL.
+- Next-role target: distinct evidence-integrity QA verifies the canonical hashes and focused checks; Engineering then freezes a replacement deploy-marker head; a fresh Independent Agent Reviewer and distinct Development Head bind that exact head before a distinct Deploy role publishes the non-production branch.
+
+### Combined Preview candidate - Development Head return and final governance-text repair - 2026-07-29 18:05 -07:00
+
+- Exact head `d202dafd40afe5198c95a131ff6836d50d528bcf` passed fresh Independent Agent Review by `/root/independent_review_replacement_head`: governance, context, deploy gate 19/19, merge-identity fixtures, messaging 23/23, parity 17/17 plus 19 contracts, Server Actions, operational routes, persona language, runtime isolation, TypeScript, optimized build, and diff check all passed. Hosted Preview QA remained NOT RUN and Production remained untouched.
+- Development Head `/root/development_head_d202` returned **REQUIRED**, not approved, on that exact head. All technical/data/build/hash/ancestry/marker gates passed and the Development Head explicitly accepted the roadmap branch-reconciliation proposal. It correctly found active stale founder-review directions in the fresh-chat kickoff and strategy handoff plus current-tense historical governance lines that could restart the prohibited owner-dependency model.
+- Product Manager classified the governance-text defect **FIX NOW**. Engineering corrected the fresh-chat kickoff to the active Independent Agent Reviewer -> Development Head / Release Authority -> Production Reviewer chain, corrected the V2/V4/V5 implementation gate, and labeled the older bootstrap/founder-review directions historical, non-executable, and superseded. No route, copy, data, migration, environment, deployment, or Production resource changed.
+- UX Review: **N/A** for this documentation-only correction. Roadmap classification: anti-regression governance repair within the already classified release-infrastructure packet; no product direction, score, pricing, or Production scope change.
+- The Independent Agent Review PASS and Development Head result on `d202daf...` become **STALE** when this correction is committed. A new exact deploy-marker head must rerun context/governance/source checks, receive fresh Independent Agent Review, and receive a fresh distinct Development Head decision before publication.
+- **Source QA:** ENGINEERING CORRECTION / fresh exact-head review required.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE CORRECTION / NON-PRODUCTION PARTIAL.
+### Combined Preview publication - least-privilege App recovery - 2026-07-29 18:32 -07:00
+
+- Fresh Independent Agent Reviewer `/root/independent_review_replacement_head` returned **PASS** on exact head `25f99dc68682d98751db01a9fc894ed77375f208`. Distinct Development Head / Release Authority `/root/development_head_d202` then returned **APPROVED** for that exact head for non-production Preview publication and merge-readiness evaluation only. Hosted Preview QA remained **NOT RUN**; Production remained untouched; neither decision authorized `[qa-approved]` or Production promotion.
+- Distinct Deploy role `/root/deploy_executor_25f` attempted the required Passage GitHub App push once. GitHub rejected it because that exact commit changed `.github/workflows/governance-integrity.yml` and added `.github/workflows/post-merge-identity-integrity.yml`, while the least-privilege App intentionally lacks workflow-modification permission. The attempt failed closed. Remote `release/10h-delivery` remained exactly `9a95d825dec5c21df2127a10e0f94d647179b828`; draft PR #70 remained open at that head; no deployment for `25f99dc...` was created; existing Preview deployment `dpl_32Vn3CpzP58YdzcY4QSLZW5Ht43A` remained the latest branch deployment. Production and Vercel/Supabase configuration were not changed.
+- Product Manager `/root` classified permission expansion, owner-credential use, and bypassing the App as prohibited. The recovery is to publish the already reviewed application, data, test, roadmap, policy, and context tree without changing repository workflow files in this packet. Workflow governance corrections remain separately reviewable work for an identity with the correct bounded capability; they are not required to verify the urgent and messaging product candidate in Preview.
+- Engineering created publishable commit `1c3e565adf3130b2b651d8e39a4c48fd1726afc3` directly on configured branch head `9a95d825...`. Its tree is byte-identical to reviewed head `25f99dc...` except that `.github/workflows/governance-integrity.yml` is restored to the exact `9a95d825...` blob `15420d5dd6790b77b4ccf72eacf2b16367aadda7` and `.github/workflows/post-merge-identity-integrity.yml` is absent. The complete diff from `9a95d825...` to `1c3e565...` contains no `.github/workflows` change.
+- Exact-head source verification on `1c3e565...` passed agent context, release governance, the 19-case Vercel gate, messaging security 23/23, parity regression 17/17 plus 19 contracts, Server Action exports, operational routes, persona language, runtime isolation, merge-identity positive and same-identity-rejection fixtures, TypeScript, optimized Next.js build, and diff check. The build emitted only the known nested-worktree root-inference warning and completed successfully.
+- Roadmap classification: release-infrastructure recovery only. No product direction, scope, persona coverage, milestone order, readiness score, pricing, schema, runtime configuration, or Production scope changed. UX Review: **N/A** because no rendered route, interaction, or persona copy changed in the recovery.
+- **Source QA:** ENGINEERING PASS / fresh exact-head Independent Agent Review required after this context commit.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PASS / NON-PRODUCTION PARTIAL.
+- Auto-advance target: freeze the context-bearing publishable head, obtain fresh exact-head Independent Agent Review and distinct Development Head approval, then a distinct Deploy role pushes only `release/10h-delivery`; after Vercel reports the exact deployment terminal state, distinct hosted QA executes the required 1440/390/360 functional, responsive, accessibility, console, hydration, runtime, recovery, replay/conflict, and denial evidence. No owner or founder review is required.
+
+### Participant invitation lifecycle - PM Sprint Brief - 2026-07-29 18:52 -07:00
+
+Status: **PM COMPLETE / HANDOFF TO DISTINCT UX REVIEW**. This brief schedules the next canonical Passage Zero product slice after the current urgent/messaging Preview packet. It changes no product code, migration, fixture, database, branch, PR, deployment, environment, readiness score, or Production resource.
+
+Role instance and prior handoff:
+
+- Product Manager: `/root/pm_participant_lifecycle`.
+- Exact planning base inspected: `a8996ae6944f10b3695e09ff6968615e251212bc` in isolated worktree `.release-train-clean/.participant-candidate`; the worktree was clean before this context-only edit.
+- Prior handoff received: close the truthful non-production urgent/messaging Preview packet, then implement the complete participant invitation journey before participant acknowledgment or deterministic-demo work.
+- Required sources read completely: `AGENTS.md`, this living context, `docs/release-train.md`, the canonical operational-readiness roadmap, persona/action architecture, complete frontend/backend contract ledger, Passage Zero cutover plan, and Product Manager role brief. The existing participant foundation migrations and current staff-only `/invite/[token]` route were also inspected for reconciliation.
+- Next role target: a **distinct UI/UX Review Agent**. Engineering may not start rendered participant work until UX defines and records the responsive, comprehension, failure, and privacy acceptance bar for this exact brief.
+
+Sprint goal:
+
+- Deliver the complete synthetic, non-production participant-invitation lifecycle: a signed-in family coordinator names a person and bounded purpose, creates one secure invitation with truthful manual delivery, the invited person safely inspects it before authentication, signs in as the exact verified identity, deliberately accepts, completes a minimal participant onboarding receipt, receives only the permitted continuity/case projection, and retains that access across reload and a separate session until expiry or coordinator revocation.
+- Complete the coordinator recovery loop in the same lifecycle: list pending and historical invitations, create a replacement link through rotation, distinguish expired/declined/revoked/accepted states, revoke a pending invitation, end an accepted participant's access, and show append-only human-readable proof without exposing tokens, raw identifiers, internal events, or broader family/operator data.
+- Keep participant **acceptance** separate from the later participant **acknowledgment/contribution** slice. This sprint proves identity and bounded access; it does not claim that a participant can yet acknowledge a decision, complete a task, upload proof, or act for the family.
+
+Product requirements:
+
+1. **Coordinator authority and reachable management.**
+   - Add an authenticated family-coordinator surface at `/family/people` with one obvious `Invite someone` action, current participants, pending invitations, and historical accepted/declined/revoked/expired states.
+   - Resolve the coordinator's durable active `continuity_space`; if none exists, the same bounded flow may create exactly one through `create_family_space_idempotent`. It must never substitute the current browser-only Rivera fixture or a client identity switcher for Auth.
+   - A family coordinator may manage only the continuity space they own. A participant, funeral-home member, vendor, unrelated user, or owner of another space must receive no roster or invitation rows.
+
+2. **Scoped creation and truthful delivery.**
+   - Invitation input is normalized email, human display name, relationship, plain-language purpose, one or more allowed category scopes, and an expiry between the existing 15-minute and 30-day bounds.
+   - The Server Action calls only `public.create_participant_invitation_idempotent`; it never inserts the table directly and never trusts a client-supplied owner identity.
+   - First creation may show the one-time raw link long enough for deliberate copy/share. The raw token must not be stored in application state, a durable table, analytics, logs, screenshots, evidence, PR text, or committed fixtures.
+   - Delivery is always `Not sent by Passage` in this slice. Copy must say the email is **named for this invitation**, never that the person “received” an email. The receipt explains that the coordinator must share the secure link manually.
+   - Exact request replay returns the original invitation/time with no second row/event and no reconstructed raw token. If the first response or link is lost, recovery is `Create a replacement link`, not a false “show again” or “resend succeeded” claim.
+
+3. **Safe pre-auth inspection.**
+   - Reconcile the existing staff-only `/invite/[token]` route to call the already-reviewed unified `public.inspect_passage_invitation` entrypoint and branch on `invitation_type`.
+   - Participant inspection exposes only inviter display name, family-space name, relationship, category labels, purpose, expiry with timezone, lifecycle state, and truthful `not_sent` delivery boundary. It exposes no invited email, owner email, roster, participant IDs, cases, documents, messages, token hint/digest, or Auth existence.
+   - Inspection is read-only. It does not join the participant, widen access, consume the token, create an event, or imply that accepting grants authority to decide for the family.
+   - Malformed, unknown, expired, revoked, accepted-by-another-user, and access-ended paths reveal only the minimum safe state and one recovery action.
+
+4. **Verified identity binding and deliberate acceptance.**
+   - Available participant invitations route to secure sign-in while preserving the exact invitation return path. The copy says `Sign in with the email named for this invitation`.
+   - First acceptance is POST-only through a participant-specific Server Action that calls `public.accept_participant_invitation`. No GET, link prefetch, route render, or security-scanner request may perform first acceptance.
+   - The server binds only the verified Auth email that exactly matches `participant_invitations.invited_email`; client metadata, typed email, role labels, link possession alone, and family-space selection are never authority.
+   - Pending state prevents duplicate submission and is announced. Success is shown only after durable re-read or same-user replay proves the same participant, space, scope, acceptance time, and event receipt.
+   - Same-user replay preserves the original server acceptance time and adds no participant or event. A different signed-in user gets a non-enumerating denial and no partial row.
+
+5. **Participant onboarding and least-privilege projection.**
+   - The acceptance receipt names the family space, relationship, permitted categories in human language, accepting account, authoritative date/time/timezone, who can see the receipt, where proof is saved, and the next action.
+   - The role-correct next action opens the participant's permitted family/case destination, never the funeral-home staff/director workspace and never a broad family-owner management surface.
+   - The participant may list only active spaces returned by `list_participant_continuity_spaces` and their own active row returned by `list_continuity_participant_projection`.
+   - Where an existing workflow is linked to that continuity space, the current family-safe `/case/[id]/today` and message projection may be used only when the participant's category grant permits that exact capability. A scope without the needed category must fail closed. No operator workload, team roster, internal proof artifact, vendor negotiation, organization data, or another participant is exposed.
+   - Reload and a separate authenticated session reconstruct the same bounded projection from durable rows and RLS. UI state or a copied token is not the source of truth.
+
+6. **Rotation, resend recovery, expiry, decline, and revocation.**
+   - “Resend” in this no-delivery slice is implemented truthfully as an idempotent **replacement-link rotation** through `public.rotate_participant_invitation_idempotent`. Passage does not claim an email or SMS was sent.
+   - Rotation revokes the old link with the existing replacement reason, emits the old-link rotation event, creates one new invitation/event, returns the new raw token once, and prevents the old token from accepting. Exact rotation replay adds no rows/events and returns no raw token.
+   - An invited person may deliberately decline through `public.decline_participant_invitation` after verified sign-in. Decline requires a short reason, creates one append-only event, grants no access, and remains distinct from coordinator revocation.
+   - Expiry is derived from the authoritative database timestamp. An expired token cannot accept; the coordinator sees `Expired` and can create a replacement link. Do not invent a sent, opened, or expiry event that the backend does not record.
+   - A coordinator revokes a still-pending invitation through `public.revoke_participant_invitation`; an accepted invitation directs to `End participant access`.
+   - Ending accepted access calls only `public.revoke_continuity_participant_idempotent`. It marks the participant revoked, records the coordinator/reason/time and one append-only event, and removes continuity-space, case, task, proof, and message visibility on the participant's next request/reload. History remains visible to the coordinator; revocation never deletes proof.
+
+7. **Human language and privacy.**
+   - Every screen must answer the seven governing questions without training: where am I, what needs attention, what do I do, what happens next, what is saved, who can see it, and how do I recover.
+   - Use `Family invitation`, `Person invited`, `Can see`, `Not sent by Passage`, `Invitation accepted`, `Access ended`, and similarly direct outcomes. Do not render raw lifecycle enums, event names, UUIDs, token hints, category arrays, fixture/cycle labels, `RLS`, `projection`, `event spine`, `durable`, `server verified`, QA/deploy narration, or readiness language.
+   - Preserve Passage Zero typography, warm ivory surfaces, restrained low-saturation purple/blue/green states, visible non-color status text, and the established family privacy boundary.
+
+Sprint components and stack order:
+
+1. **Packet P1 - invite-to-access core (first implementation packet; highest leverage).**
+   - Authenticated `/family/people` owner projection and one scoped creation form/receipt.
+   - Unified participant-aware `/invite/[token]` inspection without regressing the implemented staff-invitation path.
+   - Exact-user POST acceptance, durable acceptance receipt, participant landing/space projection, same-user replay, wrong-user denial, reload/cross-session persistence, and least-privilege case denial/allow proof.
+   - Complete parity-ledger rows and rollback-only authority/cardinality coverage for creation, inspection, acceptance, and projection.
+   - This is the first bounded stacked PR/review packet. A PASS means the core invite-to-access packet is proven; it does **not** mean the full lifecycle, platform checkpoint, or participant persona is complete.
+
+2. **Packet P2 - lifecycle and access recovery.**
+   - Coordinator invitation/history list; replacement-link rotation; expired-state recovery; participant decline; pending-invitation revocation; accepted-participant access revocation; human Activity receipts.
+   - Old-link denial, one-time replacement token, exact replay/conflict, no-partial-write proof, and immediate loss of participant continuity/case/message access after revocation.
+   - Packet P2 is required before the participant-invitation journey may be called complete.
+
+3. **Packet P3 - hosted lifecycle closure and release evidence.**
+   - Deterministic, guarded, reversible, DML-only isolated fixture for the minimum synthetic family coordinator/continuity/case linkage if real command setup cannot create it reproducibly. The fixture must not preseed invitation, acceptance, rotation, decline, revocation, or lifecycle event outcomes.
+   - Full independent multi-session hosted matrix, redacted evidence, contract/roadmap/context updates, and exact-head role/release decisions.
+   - Participant acknowledgment/contribution starts only in a later PM brief after P1-P3 PASS. It must get its own task/decision command, proof/event, authority, recovery, persona projection, and QA matrix.
+
+Development objectives:
+
+- Reuse the existing continuity and invitation model; do not introduce another participant table, token system, family-role enum, case grant, activity stream, or messaging store.
+- Build the participant branch into the existing invite route without copying the staff invitation implementation wholesale or weakening staff invitation behavior.
+- Keep server clients request-scoped and dynamic Auth surfaces uncached. Keep all consequential actions in Server Actions/RPCs with stable request UUIDs and re-read receipts.
+- Translate category scopes centrally into human labels and enforce the same categories in route queries/commands. Hiding a link is not authority.
+- Make recovery deterministic: same-key replay, changed-payload conflict, lost first token, expired link, accepted-by-other, denied category, revoked participant, unavailable environment, and uncertain response each have one safe next action.
+- Add frontend/backend contract rows before promoting any participant capability to `implemented`; partial rows remain `backend_only` or `queued`.
+
+Existing-foundation reconciliation:
+
+- The candidate already contains the equivalent reviewed participant/advisor/provider foundation. Engineering must **not** cherry-pick the dirty root packet wholesale and must not duplicate these objects:
+  - `supabase/migrations/20260723072450_participant_invitation_thin_slice.sql`;
+  - `supabase/migrations/20260723080309_participant_advisor_hardening.sql`;
+  - `supabase/migrations/20260723092402_family_provider_discovery.sql`;
+  - `supabase/migrations/20260726040000_family_case_workflow_grant.sql`.
+- The existing foundation already provides `continuity_spaces`, `continuity_participants`, `participant_invitations`, hashed one-time tokens, `not_sent` delivery truth, create/inspect/accept/decline/rotate/revoke commands, coordinator/participant projections, workflow linkage, and append-only continuity events. This sprint is primarily the missing reachable UI, recovery, parity, test, and hosted-evidence layer.
+- Manual collision points are `app/invite/[token]/*`, `package.json`, `docs/product/frontend-backend-contracts.json`, parity/Server Action/persona-language scripts, the canonical roadmap, and this context. Engineering must merge those areas deliberately against the exact current candidate rather than overwrite current urgent/messaging/governance work.
+- No new migration is presumed. If Engineering proves a real schema/authority gap, it must stop that subpart, record a new what/why/breakage/recovery list, and name a migration timestamp **later than `20260729063305`**. Structural changes go through migration tooling only; fixtures remain DML-only.
+- The missing historical path named in the original migration comment, `docs/product/participant-invitation-thin-slice.md`, must not be silently invented as prior evidence. This PM brief is the controlling documentation-first product gate for new implementation; any later migration requires its own explicit gate.
+
+Frontend/backend parity matrix:
+
+| Persona action/state | Reachable UI target | Authorized command/query | Durable state/cardinality | Authority/RLS predicate | Append-only proof | Failure/recovery and persona projection |
+| --- | --- | --- | --- | --- | --- | --- |
+| Coordinator opens People | `/family/people` | `list_owned_continuity_spaces`, `list_owned_continuity_participant_projection`, `list_participant_invitation_projection` | One active owned space; only its invitations/participants | `auth.uid() = continuity_spaces.owner_user_id` through reviewed manager predicates | Read only | Signed-out/unavailable/other-space returns no roster; coordinator sees only their space |
+| Coordinator creates invitation | `/family/people` invite form | `create_family_space_idempotent` when needed; `create_participant_invitation_idempotent` | One invitation per space/request; one live invite per space/email; raw token never stored | Active authenticated continuity-space owner | `continuity_space.created` when needed; one `participant_invitation.created` | Exact replay stable/no token; conflict/live-member/live-invite denial; receipt says manual share/not sent |
+| Any visitor safely inspects | Participant branch of `/invite/[token]` | `inspect_passage_invitation` | Read-only digest lookup; zero membership change | Possession of valid token permits only bounded inspection fields | None; inspection is not claimed as recorded | Invalid/expired/revoked/access-ended states reveal no email, roster, case, or token metadata |
+| Exact invited user accepts | Participant branch of `/invite/[token]` | `accept_participant_invitation` | Exactly one active participant linked to one accepted invitation; acceptance fields set once | Authenticated verified email exact-match; active space; token available | One `participant_invitation.accepted` | Same-user replay stable; wrong user, expired, revoked, duplicate active access fail without partial writes |
+| Participant opens permitted space/case | Participant landing and existing `/case/[id]/today` where linked | `list_participant_continuity_spaces`, `list_continuity_participant_projection`, family-safe workflow/task/message queries | One own active participant row; only linked workflow rows and permitted categories | Active participant + exact continuity space + category purpose; existing family workflow predicate | Read only | Wrong space/category, revoked/former, unrelated and operator-only data fail closed; reload/cross-session persists |
+| Invited person declines | Participant invite screen | `decline_participant_invitation` | Invitation revoked once with accepting user/reason/time, no participant row | Verified email named by invitation; not accepted | One `participant_invitation.declined` | Exact replay stable; different reason/actor conflict; no access granted |
+| Coordinator replaces link | `/family/people` invitation row | `rotate_participant_invitation_idempotent` | Old invitation revoked; one new invitation linked by `rotates_invitation_id`; one-time token | Active owner of exact continuity space | One old `participant_invitation.rotated` plus one new `participant_invitation.created` | Old link denied; replay no duplicate and no token; UI says replacement link, not sent/resend |
+| Coordinator revokes pending invite | `/family/people` invitation row | `revoke_participant_invitation` | One terminal pending-invite revocation | Active owner of exact continuity space | One `participant_invitation.revoked` | Accepted invite routes to end access; wrong owner/reason conflict fails unchanged |
+| Coordinator ends accepted access | `/family/people` participant row | `revoke_continuity_participant_idempotent` | Participant status becomes revoked once; invitation history retained | Active owner of exact continuity space | One `continuity_participant.revoked` | Next participant request/reload loses space/case/message access; same-key replay stable; no deletion |
+
+Acceptance criteria:
+
+- A separately authenticated family coordinator creates one participant invitation for one active continuity space with bounded purpose/category scope and a visible `Not sent by Passage` receipt. Database evidence shows exactly one invitation and one creation event; the raw link appears only once and is absent from logs/evidence.
+- An unauthenticated browser safely inspects the participant invitation and sees only the allowed fields. The page says that inspection changes nothing and that sign-in must use the email named for the invitation.
+- A wrong authenticated user cannot accept and produces zero participant or acceptance-event rows. The exact invited authenticated user accepts once, receives the original server timestamp and bounded scope receipt, and same-user replay creates no duplicate.
+- After acceptance, the participant sees only their own active space/participant projection and only a linked case/capability allowed by category scope. Wrong category, wrong continuity space, another participant, another family owner, funeral-home-only, vendor-only, and unrelated-user data remain absent.
+- Reload and a second browser storage context for the same participant reconstruct the same receipt and allowed projection from durable state.
+- Rotation makes the old link unusable, creates exactly one new link/invitation, adds exactly one rotation plus one creation event, and never claims delivery. Lost-response replay is stable and cannot reconstruct the raw token.
+- Decline grants no access. Pending revocation prevents acceptance. Accepted-participant revocation removes all participant continuity/case/message access on the next request while preserving coordinator history and one immutable revocation event.
+- Expired invitations cannot accept and present one recovery: request or create a replacement link. No fictitious expiry event or delivery state appears.
+- Staff invitation creation/inspection/acceptance, director/staff authority, urgent, messaging, family case view, and vendor routes retain their existing behavior and gates.
+- All user-visible states pass the seven-question language check and display no raw identifier, enum/event key, token metadata, or internal architecture/release wording.
+- Enabled controls are at least 48 CSS pixels; keyboard order, visible non-obscured focus, announced pending/error/success states, semantic time elements, and error recovery pass.
+- 1440 x 900, 390 x 844, and 360 x 800 show the complete creation, inspection, acceptance, participant landing, rotation, expiry, and revocation states without overflow, truncating required instructions, console errors, hydration errors, unhandled rejection, or failed application request.
+- Source, hosted Preview, Production Deployment, Production QA, and Overall release state are reported separately. No score or `[qa-approved]` claim is earned before the complete exact-head hosted matrix passes.
+
+Dependencies:
+
+- Exact current participant candidate and the already merged/applied continuity migrations above.
+- Existing Supabase SSR/Auth session helpers, unified invitation inspection RPC, family workflow grant, family-safe case loader, message-scope predicate, and Passage Zero responsive tokens.
+- Isolated Supabase project `uyacxqtsiwlvtmhxvoxr` only; Production `qsveqfchwylsbncsfgxe` is prohibited.
+- Controlled synthetic family coordinator, participant, wrong-user, unrelated-owner, and revoked-user Auth identities in independent browser contexts. No credentials or Auth UUIDs enter source/evidence.
+- A deterministic linked continuity-space/workflow setup created through real commands or a separately reviewed guarded DML-only fixture.
+- Completion of the current urgent/messaging Preview publication or exact-head reconciliation before the participant packet is pushed, so this stack does not overwrite or duplicate the active release packet.
+
+QA plan:
+
+1. Inspect the exact diff and verify manual reconciliation at every collision point; reject wholesale cherry-picks, duplicate migrations, duplicate Auth/invitation models, or staff-invitation regressions.
+2. Add and run a rollback-only participant invitation matrix against isolated `uyacxqtsiwlvtmhxvoxr`: project/role/migration/ACL/RLS preflight; creation/replay/conflict; safe inspection projection; exact-user accept/replay; wrong-user/expired/revoked/declined denial; rotation/old-link denial; pending revoke; active-participant revoke; category/space/case/message projections; append-only mutation denial; exact terminal rollback and retained-state fingerprints. Run it twice if shared-lab state is retained.
+3. Run frontend/backend parity, Server Action export, persona-language, agent-context, release-governance, operational-route, runtime-isolation, deploy-gate, TypeScript, optimized build, and diff/secret checks. Add participant-specific adversarial fixtures so removing scope checks, using `inspect_organization_invitation`, saying “received,” rendering raw states, or mapping all invitations fails deterministically.
+4. Run independent hosted sessions: coordinator A -> pre-auth browser B -> wrong user C denial -> exact participant D acceptance -> participant second session E persistence -> coordinator rotation/revocation -> participant denial. A single cookie jar or UI identity switcher does not qualify.
+5. Verify exact row/event cardinality after each command and that denials/conflicts change no unrelated retained state. Prove direct table mutation and private helper execution remain denied to ordinary clients.
+6. Run Supabase security/performance advisors and classify every finding. Any missing index/runner/browser/fixture capability creates a named QA-infrastructure fix item; it is never `N/A`.
+7. At 1440/390/360, record direct and client navigation, final URL, page purpose/action/outcome/visibility/proof/recovery comprehension, overflow, target size, keyboard/focus/status semantics, raw console/page/unhandled-request errors, and exact Preview deployment/commit.
+8. Commit only timestamped screenshots and redacted database/audit evidence. Preserve earlier defect evidence; never include raw invitation links, credentials, cookies, keys, email addresses, Auth UUIDs, share tokens, or unredacted database output.
+
+Deploy plan:
+
+- P1 and P2 are bounded Bot-authored stacked packets against the current Passage Zero integration line. Each exact head receives Independent QA, Independent Agent Review, and distinct Development Head / Release Authority disposition. The author identity cannot merge it.
+- Use `[skip deploy]` while integrating source. Publish one configured non-production Preview only after the exact packet earns the applicable source/data authorization and the governing truthful Preview marker path. Never add `[qa-approved]` before the complete hosted lifecycle passes.
+- Verify the canonical Vercel project/team, exact non-production branch, isolated Supabase binding, READY deployment, build/runtime logs, direct route behavior, and rollback route. Do not change Production configuration, aliases, or Supabase.
+- Update the canonical roadmap and this context in the implementation packet, update the umbrella PR #24 with packet dependencies and truthful verdict stages, and retain PR #24 as draft until its larger cutover gates pass.
+- Production Deployment remains `NOT DEPLOYED`; Production QA remains `NOT RUN`. Promotion is outside this sprint.
+
+Risks and recovery:
+
+- **Shared `/invite/[token]` collision:** replacing staff-specific inspection/acceptance can break proven staff onboarding. Use a unified inspection discriminator and separate typed action paths; run both complete staff and participant regressions.
+- **Token leakage/prefetch:** a copied raw link is a bearer secret before identity binding. Render it once, disable prefetch where applicable, never log/store it, and require POST for first acceptance.
+- **False delivery language:** no real outbound provider exists in scope. Every create/rotate receipt remains `Not sent by Passage`; the recovery is manual share or replacement link.
+- **Scope leakage:** an active participant is not a family owner. Category scope must govern reachable actions/queries, not merely labels. Missing scope closes the capability.
+- **Lost one-time token:** replay cannot recover it by design. The only recovery is audited rotation; the UI must not imply otherwise.
+- **Shared-lab drift:** deterministic tests must use reserved IDs, scoped deltas, ordered fingerprints, terminal rollback, and explicit project guards rather than global-empty assumptions.
+- **Base movement:** urgent/messaging publication may advance while this slice is built. Before commit, reconstruct/rebase the participant diff onto the exact current integration head and rerun every exact-head gate.
+- **Migration temptation:** existing backend coverage is broad. A new migration without a proven gap risks duplicate objects or timestamp collision. Fail closed and use the documentation-first gate above.
+
+Non-goals:
+
+- Participant acknowledgment, decision approval, task completion, document upload, proof submission/review, invitation-based legal authority, or representation of the family.
+- Detached chat, realtime presence, notifications/outbox, real email/SMS, provider activation, delivery/read receipts, paid services, or address autocomplete.
+- A second case/family/participant/event/invitation model; broad participant record browsing; staff/director/vendor access changes.
+- Deterministic Steve demo reset/smoke implementation, public/conversion rebuild, pricing/billing, integrations, Production migration/deployment, or readiness-score promotion.
+- Any material legal, privacy, security, medical, funeral-director, representative-authority, retention, or deletion claim.
+
+Issue classification:
+
+- **FIX NOW in P1:** missing reachable participant creation/acceptance/onboarding UI; staff-only invite-route branching; truthful `named for this invitation` language; least-privilege participant landing; complete contract/test coverage.
+- **FIX NOW in P2:** rotation/manual-resend recovery, expiry, decline, pending revoke, accepted access revocation, and human history.
+- **FIX NOW before release:** full hosted multi-session/responsive/accessibility/cardinality/denial evidence and staff-invite regression.
+- **BACKLOG / next PM slice:** participant acknowledgment/contribution after lifecycle PASS.
+- **WATCH:** shared-lab retained-state drift, one-time-token leakage, shared invite-route regression, category-scope leakage, and base movement from the urgent/messaging release packet.
+- **OWNER GATE:** none for the scoped synthetic non-production implementation. Real external email/SMS, Production, spending, destructive Production data, or material legal/privacy/security claims remain out of scope and would require their applicable explicit gate rather than blocking routine progress.
+
+Roadmap classification:
+
+- This PM brief selects the already-canonical immediate priority and M4 participant requirement; the brief itself does **not** change product direction, milestone order, readiness doctrine, architecture, pricing, or score.
+- The implementation packets materially advance participant persona coverage and status. Therefore each implementation PR must classify roadmap impact `YES` and update `docs/product/operational-readiness-roadmap.md` plus this living context in the same PR. Missing classification or stale roadmap status fails closed.
+- No whole-platform checkpoint advances from P1 alone. The official platform checkpoint remains at the last fully certified value until the complete six-domain E2E matrix passes; participant lifecycle evidence cannot average away vendor, public, director/staff, or demo gaps.
+
+Owner gates:
+
+- **None for routine execution.** PM, UX, source changes, tests, isolated DML fixture, isolated SQL/RLS QA, branch/PR work, non-production Preview, evidence, Independent Agent Review, Development Head review, and Deploy verification proceed through the agent chain without asking Steve.
+- No real customer/family/vendor/funeral-home communication is sent. No Production project/configuration/data is touched. No pricing, paid service, destructive data, or material legal/privacy/security judgment is made.
+
+Release truth at PM handoff:
+
+- **Source QA:** NOT RUN for participant implementation; this brief only.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** PLANNED / NON-PRODUCTION / NO READINESS CREDIT.
+
+Auto-advance: the next distinct role is UI/UX Review for Packet P1 and the complete P1-P3 lifecycle acceptance bar. After UX PASS or a PM-resolved UX return, a distinct Development Engineer manually ports only the bounded participant diff onto this candidate, preserves the current urgent/messaging/governance tree, and hands the exact source/data packet to independent QA. The train does not pause for owner review.
+
+### Participant invitation lifecycle - UI/UX Review handoff - 2026-07-29 19:02 -07:00
+
+Status: **PASS TO ENGINEERING WITH CONDITIONS** for Packet P1 and the controlling P1-P3 lifecycle experience bar. This is a UX implementation authorization, not Source QA, Hosted Preview QA, release approval, or readiness credit.
+
+Role instance and prior handoff:
+
+- UI/UX Review Agent: `/root/ux_participant_lifecycle`.
+- Prior handoff received: the complete PM Sprint Brief above from `/root/pm_participant_lifecycle`, with Packet P1 invite-to-access first, Packet P2 lifecycle/recovery second, and Packet P3 hosted closure third.
+- Review base: exact clean product base `a8996ae6944f10b3695e09ff6968615e251212bc` plus the PM context append in isolated worktree `.release-train-clean/.participant-candidate`.
+- Reviewed source: current staff-only `/invite/[token]` page, Server Action, acceptance button, invitation helpers, sign-in surfaces, family/browser-demo entry, real family case route and loader, current director invitation/team patterns, shared Passage Zero styles, participant/continuity migrations and public RPC contracts, release train, canonical roadmap, persona/action architecture, and the UX role brief.
+- Next role target: a distinct Development Engineer. Engineering may implement Packet P1 under this bar; Packet P2 actions must not be presented as complete until their own reachable controls, commands, recovery, and evidence land.
+
+UX verdict and core decisions:
+
+- The current code is not the participant experience. `/invite/[token]` calls the staff-only inspection RPC, labels every token a funeral-home invitation, routes accepted users to staff/director workspaces, and still says an email "received" the invitation. `/family` is a browser-demo fixture, not a safe authenticated participant landing. Engineering must reconcile these surfaces; it must not layer participant copy onto the staff route without changing the discriminator, authority path, landing, and privacy footer.
+- Use one shared `/invite/[token]` route and one unified read-only inspection call, `inspect_passage_invitation`. Branch immediately on `invitation_type` into separately typed staff and participant presentations/actions. Staff keeps its existing role/location contract and complete regression suite. Participant uses only participant acceptance/decline actions and can never fall through to staff acceptance or an operations landing.
+- Packet P1 creates a dedicated authenticated participant landing at `/participant`. Do not send a participant to the browser-demo `/family`, coordinator-only `/family/people`, `/staff`, or `/director`. `/participant` reads only `list_participant_continuity_spaces` and the signed-in user's own active `list_continuity_participant_projection`.
+- For Packet P1, `Family updates` (`updates`) is the minimum selectable and reachable category because it can map to the existing family-safe `/case/[id]/today` destination when a linked workflow exists. Do not offer another category as an actionable promise until its route, authorized query, durable state, denial/recovery behavior, and participant projection pass parity. Existing/future category values may be translated in a receipt, but an unavailable capability gets no enabled link and no "you can now use" claim.
+- The family coordinator manages people at authenticated `/family/people`, not inside the Rivera browser-demo identity switcher. Reuse the warm family visual language, but render the verified account/family-space name from server authority. A participant never receives the coordinator's roster or invitation-management view.
+
+Required screen and state inventory:
+
+1. **Coordinator People landing - `/family/people`.**
+   - First useful screenful: eyebrow `FAMILY / PEOPLE`, heading `Choose who can help.`, one sentence explaining that access is limited by purpose, and one primary `Invite someone` action.
+   - Below the primary action, use three bounded sections rather than a card dashboard: `People with access`, `Waiting for a response`, and `Invitation history`. Each section has a count, a plain empty state, and only its state-valid actions.
+   - Each active person row shows human name, relationship, `Can see` labels, accepted date/time with timezone, and `End access`. It does not show participant IDs, token hints, raw category arrays, Auth identity, event names, or case/operator data.
+   - Each waiting row shows person, relationship, purpose, human `Can see` labels, `Not sent by Passage`, created/expiry times, and `Create replacement link` plus `Cancel invitation`. Do not show `Resend`.
+   - History translates accepted, declined, revoked, expired, and access-ended outcomes. Accepted people belong primarily in `People with access`; history may retain the receipt but must not present an accepted invitation as pending.
+
+2. **Invitation form and review - inside `/family/people`.**
+   - Opening `Invite someone` moves focus to a real heading and shows one form in normal document flow; it does not open a cramped mobile modal.
+   - Fields have visible labels and short adjacent instructions: email named for the invitation, name, relationship, purpose, allowed `Can see` categories, and expiry. Category choices use a `fieldset` and `legend`; the P1 minimum enabled choice is `Family updates`.
+   - The expiry control explains the allowed window in human time. Validation names the exact field and a correction. User input remains in place after a recoverable error.
+   - Before the submit button, a compact review block repeats person, relationship, purpose, `Can see`, expiry, `Not sent by Passage`, proof destination, and what happens next.
+   - Primary action: `Create secure invitation`. Pending copy: `Creating invitation and saving the receipt...`. Pending disables duplicate submit but does not erase the review.
+
+3. **First-creation receipt and one-time link.**
+   - Heading: `Invitation created.` State band: `NOT SENT BY PASSAGE`.
+   - Required facts: person, relationship, purpose, `Can see`, email named for this invitation, expiry with timezone, created time with timezone, visible audience, `Proof saved to: Family invitation history`, and `Next: Share the secure link yourself`.
+   - Present the raw link once through an explicit `Copy secure link` button/read-only selectable field. Do not render it as a Next `Link`, do not prefetch it, do not auto-open it, do not auto-copy it, and do not place it in an image, QR, analytics event, toast body, screenshot, log, evidence, or persistent client store. Announce `Secure link copied` only after clipboard success; on clipboard failure keep the selectable value and say `Copy did not work. Select the link and copy it manually.`
+   - Explain once: `Passage did not send this invitation. Share the link through a private channel you trust.` Do not say emailed, delivered, received, opened, or read.
+   - Exact command replay shows `This invitation is already waiting.` It preserves the original time, creates no duplicate, and never shows/reconstructs the link. Recovery is `Create replacement link`.
+
+4. **Participant pre-auth inspection - participant branch of `/invite/[token]`.**
+   - Eyebrow `FAMILY INVITATION`; heading `You are invited to help with [family-space name].`
+   - Show only invited-by display name, family-space name, relationship, purpose, human `Can see` labels, expiry with timezone, and `Not sent by Passage`.
+   - State plainly: `Reviewing this invitation changes nothing.` and `Accepting lets this account see only the items listed above. It does not let you make decisions for the family.`
+   - Primary action when available and signed out: `Continue to secure sign-in`. Adjacent instruction: `Sign in with the email named for this invitation.` Never display the invited email or say the email received the link.
+   - The shared sign-in page becomes invitation-aware. For an invitation return path it says `Continue your invitation`, not `Funeral-home workspace`, and retains the exact invitation return path. Password-manager/autofill and paste must remain enabled; the invitation code field says `Paste the complete code from your secure invitation link`, not `from your email`.
+   - GET, route render, Next prefetch, link scanner, and inspection never accept, decline, rotate, revoke, create an event, or widen access.
+
+5. **Authenticated participant decision.**
+   - Repeat family-space name, relationship, `Can see`, purpose, signed-in account, expiry, and the boundary that acceptance saves account/time and grants no family decision authority.
+   - Primary `Accept invitation`; secondary `Decline invitation`. On mobile the primary is first in DOM and visual order, full width, with the secondary separated below. Do not place competing equal-weight actions side by side at 390/360.
+   - `Decline invitation` first reveals a labeled short-reason field and final `Decline invitation` confirmation; it must not submit from the first disclosure click.
+   - Accept pending copy is `Accepting invitation...`; decline pending copy is `Declining invitation...`. Both are announced, disable only the in-flight action set, and never show optimistic success.
+   - Wrong-account outcome is non-enumerating: `This signed-in account cannot accept this invitation. No access was added.` Primary recovery: `Use another account`; helper: `Sign in with the email named for this invitation.` It does not reveal the email, accepting account, family roster, or token validity beyond the safe inspected state.
+
+6. **Acceptance receipt and participant landing.**
+   - Success heading: `Invitation accepted.` Show family-space name, relationship, human `Can see` labels, signed-in account, original server acceptance date/time/timezone, `Visible to`, `Proof saved to: Family access history`, and `Next`.
+   - Same-user replay shows the same receipt and original time. It says `This invitation was already accepted by this account`; it does not imply a second acceptance or render another accept control.
+   - Primary action `Open shared family updates` goes to `/participant` first. The participant landing says where they are, whose space it is, their relationship, what they can see, and who controls access.
+   - If an authorized linked workflow exists and `updates` is granted, show one `Open family updates` link to the family-safe case destination. If no linked item is available, say `Nothing has been shared here yet. The family coordinator controls what appears.` There is no broad case search.
+   - Reload and a separate authenticated session reconstruct the same `/participant` space and scope from the two participant projection RPCs, not from token, receipt query string, local storage, or browser-demo state.
+
+7. **Terminal and recovery states.**
+   - Malformed/unknown: `We cannot open this invitation.` / `Check that you copied the complete secure link, or ask the family coordinator for a new one.` No family-space or account detail.
+   - Expired: `This invitation has expired.` / `Ask the family coordinator to create a replacement link.` No accept/decline action.
+   - Revoked or declined when inspected from the link: `This invitation is no longer available.` / `Ask the family coordinator if you still need access.` Do not reveal whether the invited person or coordinator ended it.
+   - Accepted by another account: `This invitation has already been accepted.` / `Use the account that accepted it, or ask the family coordinator for help.` Do not name that account.
+   - Access ended: `Your access from this invitation has ended.` / `No shared family details are visible. Ask the family coordinator if this seems wrong.` No stale receipt, case title, task, or message may flash.
+   - Temporary service failure: `Passage cannot check this invitation right now. Nothing was joined or changed.` / `Try again`. Environment/configuration narration remains out of persona copy.
+
+Packet P2 lifecycle interaction bar:
+
+- `Create replacement link` is not a resend. Before rotation, present: `The old link will stop working immediately. Passage will create one new link and will not send it.` Primary confirmation `Create replacement link`; secondary `Keep current link`. After success, apply the same one-time copy rules. Exact replay shows no raw link and directs the coordinator to create another replacement only if the first new link was lost.
+- `Cancel invitation` is available only for a still-pending invitation. Require a short reason, repeat the person's name and outcome, and use a final `Cancel invitation` action. Success says `Invitation canceled. The old link cannot be accepted.` History remains.
+- An accepted invitation never offers cancel/rotation. Its active participant row offers `End access`. The confirmation states which human `Can see` areas close on the participant's next request/reload, requires a short reason, and preserves history. Final action `End access` uses the danger treatment; cancel/back remains easier to reach than accidental confirmation.
+- Decline, coordinator cancellation, replacement, expiry, acceptance, and access-ended are text-distinct outcomes. Color may reinforce them but never carry meaning alone.
+- Activity copy is human: `Jordan accepted the family invitation`, `Maya created a replacement link`, `Jordan declined the invitation`, `Maya ended Jordan's access`. Never render event keys, IDs, raw status strings, token hints, or database reasons.
+
+Interaction hierarchy and visual rules:
+
+- Use Cormorant Garamond only for display headings and Montserrat for controls, labels, instructions, dates, errors, and facts. Preserve warm ivory surfaces, quiet hairlines/shadows, and low-saturation purple for available/action, blue for informational/waiting, green for accepted/active, and muted red only for decline/revoke/error.
+- At 1440, `/family/people` may use a restrained main column plus a narrow context rail, but the invite action and current access list dominate. Do not create a dense admin table or card grid.
+- At 390 and 360, every screen is one readable column. Facts stack label over value; names, emails, purpose, category labels, and absolute timestamps wrap without clipping. Primary actions are full-width in normal document flow. No sticky action bar may obscure focused controls or the iOS browser viewport.
+- Progressive disclosure is permitted for form entry, decline, replacement, and revocation confirmation. It may not hide visibility, proof, expiry, delivery truth, or failure recovery behind a tooltip or hover.
+- All raw enums are mapped centrally: `updates -> Family updates`, `tasks -> Shared tasks`, `decisions -> Family decisions`, `documents -> Shared documents`, `service -> Service plans`, and `proof -> Completion updates`. Only labels with a complete reachable participant capability may be selectable as P1 promises.
+
+Responsive and accessibility acceptance:
+
+- Verify creation, first receipt, replay/no-token receipt, available inspection, wrong-account denial, acceptance pending, accepted receipt, `/participant`, rotation, expired, decline, pending cancellation, access-ended, and service-failure states at 1440 x 900, 390 x 844, and 360 x 800.
+- Every enabled control is at least Passage's stricter 48 by 48 CSS-pixel target. Focus is clearly visible and not obscured. Tab order follows visual order; native buttons/links/inputs/fieldset semantics are retained. No click-only card action, hover-only instruction, keyboard trap, or programmatic focus jump to a success toast.
+- Form errors use persistent text, `aria-invalid`, and field association; an error summary receives programmatic focus only after failed submit and links/describes the affected fields. Known corrections are stated. The form data remains available.
+- Pending, copy success/failure, creation success/replay, acceptance/decline/revoke results, and refreshed list counts are programmatically announced with an appropriate `status` or `alert` region. Do not put `aria-live` on the submit button itself or announce decorative state labels repeatedly.
+- Absolute proof/expiry times use semantic `time` elements and include date, clock time, and timezone. Relative time may be supplemental only.
+- Text contrast and non-text focus/control contrast pass WCAG AA; states have visible words/icons in addition to color. At 200% text zoom and the 360/390 layouts, instructions, recovery, and actions reflow without two-dimensional scrolling. `document.scrollWidth` must equal `document.clientWidth`.
+- No console warning/error, hydration recovery, page error, unhandled rejection, failed application request, duplicate-submit flash, stale participant detail flash, or protected coordinator-content flash is acceptable.
+
+Seven-question comprehension acceptance:
+
+- Every inspected state must answer from rendered copy alone: where the person is; what needs attention; the one action now; what happens after it; what receipt/history is saved; who can see the result; and one recovery action.
+- A five-second first-screen check must identify `Not sent by Passage`, `Can see`, expiry, and the primary action without opening help. A participant must be able to say, accurately, `I am not joining the funeral home, I cannot decide for the family, and I will see only these named items.`
+- Prohibited persona copy includes `received`, `resend`, `delivered`, or `opened` without evidence; `RLS`, `RPC`, `projection`, `durable`, `server verified`, `event spine`, `token digest/hint`, UUIDs, raw categories/states/events, fixture/cycle/QA/Preview/deploy/readiness narration, or support references that expose internal IDs.
+
+Privacy, token, and shared-route stop conditions:
+
+- FAIL if a participant token uses `inspect_organization_invitation`, if staff and participant actions share one acceptance command, if a GET/prefetch can accept, if the one-time raw link is persisted or rendered as a prefetchable navigation link, if any screen says Passage sent/emailed the invitation, or if a participant lands in a coordinator/operations/browser-demo surface.
+- FAIL if pre-auth inspection exposes invited email, owner email, roster, participant/case/document/message data, Auth existence, token metadata, or another participant; if wrong-user denial enumerates the invited/accepting account; or if revoked access flashes stale family data.
+- FAIL if category labels are cosmetic while the query ignores scope. Hiding a link is not enough: the route/query must deny a missing category.
+- FAIL if staff invitation inspection/acceptance regresses. The unified route must preserve staff role/location receipt, POST-only first acceptance, replay, role landing, and family-access boundary.
+- PARTIAL if source interaction semantics pass but any required hosted state, independent browser context, responsive cell, clipboard failure, cross-session reload, console/runtime record, or exact authority/cardinality evidence is missing.
+
+Research grounding and effect:
+
+- W3C WCAG 2.2 Accessible Authentication (Minimum) requires a path that avoids unaided recall/transcription and specifically recognizes password-manager/autofill and copy/paste mechanisms. This keeps paste enabled for invitation/account inputs and prohibits puzzle-like or retyped-code-only sign-in: `https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html`.
+- W3C Status Messages requires waiting, success, result, and error updates that do not move focus to be programmatically determinable. This drives persistent announced pending/result/copy/list updates rather than color or button-label-only feedback: `https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html`.
+- W3C Error Identification and Error Suggestion require text that identifies the affected input and provides a known correction. This drives field-linked errors, preserved form input, and one exact recovery action: `https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html` and `https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion`.
+- W3C Focus Not Obscured, Focus Visible, Reflow, and Target Size informed the no-sticky-obstruction rule, visible keyboard focus, 360/390 single-column layout, and Passage's stricter 48-pixel controls (above WCAG's 24-pixel minimum): `https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum`, `https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html`, `https://www.w3.org/WAI/WCAG22/Understanding/reflow.html`, and `https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum`.
+
+Development handoff:
+
+1. Build Packet P1 in the isolated participant candidate by manually reconciling the current staff invite route; do not overwrite current urgent/messaging/governance work or duplicate continuity migrations.
+2. Implement the unified typed inspection discriminator, participant-specific POST action, invitation-aware login copy, authenticated coordinator `/family/people`, dedicated `/participant` landing, centralized human category labels, and P1 `updates` scope enforcement together.
+3. Add the one-time non-prefetchable copy receipt, replay/lost-token recovery, non-enumerating wrong-user and terminal states, exact staff regression coverage, and deterministic persona-language/token-leak assertions before calling P1 source complete.
+4. Keep Packet P2 controls absent or explicitly unavailable until rotation, decline, pending cancellation, access ending, history, and revocation-denial behavior are implemented together.
+5. Hand the exact P1 source/data/parity packet to distinct Independent QA. Packet P3 remains responsible for the complete independent multi-session 1440/390/360 hosted matrix and redacted evidence.
+
+Release truth at UX handoff:
+
+- **Source QA:** NOT RUN for participant implementation; UX acceptance only.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** UX PASS FOR ENGINEERING START / PLANNED NON-PRODUCTION / NO READINESS CREDIT.
+- Roadmap classification: this handoff does not change product direction, milestone order, pricing, readiness doctrine, or score. The implementation packet materially advances participant persona coverage and must update the canonical roadmap and living context in the same PR.
+- Owner gate: none. Auto-advance is to the distinct Development Engineer without asking Steve.
+
+### Participant invitation P1 - Engineering authority-gap gate - 2026-07-29 19:24 -07:00
+
+Status: **DOCUMENTED BEFORE SCHEMA SOURCE CHANGE / NO DATABASE APPLY**.
+
+- Development Engineer: `/root/eng_participant_p1`.
+- Exact implementation base: `a8996ae6944f10b3695e09ff6968615e251212bc` plus the PM and UX context-only handoffs above in isolated worktree `.release-train-clean/.participant-candidate`.
+- Gap proven from committed source: `20260726040000_family_case_workflow_grant.sql` delegates family case visibility to `can_view_continuity_space`, which admits an active participant without checking `continuity_participants.category_scope`. The later message predicate correctly requires `updates`, but direct workflow/task/event reads do not. A non-`updates` participant can therefore query a linked case even though P1 must fail closed.
+- Required change: replace only `passage_private.can_view_workflow_as_family(uuid)` so the active space owner remains authorized while a participant must be active, be the signed-in user, and have `updates` in `category_scope`. Existing `can_view_workflow`, `can_view_task`, and `can_view_workflow_event` already delegate to this predicate.
+- Frontend reason: `/participant` may offer `Open family updates` only when the same durable category grant authorizes the linked `/case/[id]/today` query. A hidden link without the database predicate would be cosmetic access control.
+- Breakage if skipped: a participant invited for another future purpose could bypass the landing page and read family case, task, proof-summary, or event projections directly through exposed SELECT policies.
+- Migration risk and recovery: the change intentionally removes previously over-broad participant reads but preserves the continuity-space owner and existing funeral-home staff/director branches. Recovery is to restore the previous predicate body from `20260726040000_family_case_workflow_grant.sql`; no table, row, token, event, or fixture mutation is needed.
+- Data/environment boundary: source migration only, timestamp later than `20260729063305`; isolated project `uyacxqtsiwlvtmhxvoxr` is the only future QA target. This role will not apply it. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+### Participant invitation P1 - Engineering handoff - 2026-07-29 19:58 -07:00
+
+Status: **ENGINEERING SOURCE COMPLETE / HANDOFF TO DISTINCT INDEPENDENT QA / NOT RELEASED**.
+
+- Development Engineer: `/root/eng_participant_p1`; received the complete PM and UX handoffs above. Exact base remains `a8996ae6944f10b3695e09ff6968615e251212bc`; this worktree is intentionally uncommitted for later integration onto the moving release line.
+- Implemented P1 only: authenticated `/family/people` owner projection and family-space setup; `updates`-only participant invitation creation through the existing idempotent RPC; one-time non-navigation copy receipt with `Not sent by Passage`; unified typed staff/participant invitation inspection; invitation-aware sign-in; separate participant and staff POST acceptance actions; durable acceptance receipt; `/participant` reconstructed from the two participant projection RPCs; and an `updates`-gated linked `/case/[id]/today` destination.
+- Authority correction: documented before code, then added source migration `20260730021524_participant_updates_case_scope.sql`. It narrows only the existing family-workflow predicate to the active space owner or an active `updates` participant. No database or fixture was touched.
+- P2 controls remain absent: no replacement-link rotation, decline, pending cancellation, participant revocation, or access-history mutation is presented as available. A replay never reconstructs the raw token. P2 and P3 remain required before the participant-invitation lifecycle is complete.
+- Parity and roadmap: four P1 contracts are required by the active parity checker; the canonical roadmap records this as source-only with no checkpoint credit. Category labels are centralized and every new persona surface uses human labels.
+- Focused gates passed: participant security/source guard **19/19**; parity **18/18**; Server Action export guard with four participant bindings; persona language; agent context; release governance; operational route; runtime isolation; Vercel branch/deploy gate **19/19**; TypeScript; and `git diff --check`.
+- Added but **NOT RUN**: rollback-only SQL matrix `supabase/tests/participant_updates_case_scope.sql`, covering active owner, active `updates` participant, non-`updates`, revoked, unrelated, workflow/task/event visibility, private-helper ACL, and cardinality preservation. It requires the isolated migration plus retained Cycle 7B lineage and must be run by distinct QA.
+- Optimized build: **PARTIAL / NOT VERIFIED in this isolated worktree**. Compilation and TypeScript reached PASS using the shared pinned dependency tree, but the first build could not fetch pinned Google fonts and the external-module workaround produced an untrustworthy local runner invariant. The integrated clean candidate that owns its own `node_modules` must rerun the optimized build; no PASS is claimed here.
+- Hosted browser, cross-session persistence, staff regression, clipboard failure, wrong-user acceptance, exact row/event cardinality, SQL/RLS, advisors, and 1440/390/360 evidence: **NOT RUN**. No screenshots or database evidence were created.
+- **Source QA:** ENGINEERING GATES PASS / INDEPENDENT QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / UNCOMMITTED P1 CANDIDATE / NO READINESS CREDIT.
+- Next role: distinct Independent QA inspects the exact integrated diff, runs the rollback-only database matrix plus existing participant invitation/replay/race coverage, reruns the optimized build in a clean dependency-owning candidate, and returns failures to PM/Engineering before any Preview packet is considered.
+
+### Participant invitation P1 - independent-review return and replacement Engineering handoff - 2026-07-29 20:34 -07:00
+
+Status: **REPLACEMENT ENGINEERING SOURCE COMPLETE / SOURCE PARTIAL / HANDOFF TO DISTINCT INDEPENDENT RE-REVIEW**.
+
+- **Role instance / prior handoff:** Development Engineer `/root/eng_participant_p1` resumed the uncommitted P1 candidate after distinct independent pre-freeze review returned the preceding 19:58 source packet. The prior Engineering source claim is **INVALIDATED for bearer containment and participant least privilege**. PM classification was FIX NOW as one bounded P0/P1 source packet. The complete PM brief, UX handoff, Engineering authority-gap record, prior Engineering handoff, governing docs, roadmap, persona architecture, plain-language policy, and Engineering role brief were read before this replacement.
+- **Independent findings closed in source:** the raw invitation bearer had entered `next`, OAuth `redirectTo`, and OTP `emailRedirectTo`; an `updates` participant inherited raw workflow/task/event/proof/review SELECT through the family predicate; the migration granted a private predicate that its SQL matrix expected to be private; `/family` did not reach People; wrong-account and accepted-receipt recovery looped without a truthful account switch; the participant loader silently selected the first active space; UI purpose allowed 500 characters while the RPC permits 240; pending/error/receipt accessibility was incomplete; and invitation/login copy exposed runtime/configuration narration. String-presence tests alone are not SQL or hosted evidence, so all P1 parity rows now remain `source_partial`.
+- **Bearer containment:** `lib/supabase/proxy.ts` immediately exchanges `/invite/<bearer>` for a 30-minute secure httpOnly, same-site invitation-intent cookie and redirects to opaque `/invite/continue` with `private, no-store` and `Referrer-Policy: no-referrer`. `/invite/continue` is explicitly excluded from re-exchange. The raw route has only a fail-closed fallback. Inspection, staff acceptance, participant acceptance, and accepted-state replay read the intent server-side. Login, OAuth, OTP, password return, errors, and receipt navigation carry only `/invite/continue`, never the bearer. The login page derives account-creation eligibility from the server-held intent rather than parsing a token from `next`.
+- **Account and receipt recovery:** wrong-email, another-account, and accepted-receipt replay denial suppress all accept controls and show `Use another account`. That action signs out the current Supabase session while preserving the httpOnly invitation intent, then returns to invitation-aware sign-in. Accepted-state GET replay is attempted only after the inspection reports accepted; a denial renders no saved receipt or protected detail. Available-state first acceptance remains POST-only through separate staff and participant Server Actions.
+- **Least-privilege data replacement:** migration `20260730021524_participant_updates_case_scope.sql` now keeps `passage_private.can_view_workflow_as_family(uuid)` owner-only and revokes authenticated/private execution. Participants therefore receive zero direct `workflows`, `tasks`, `workflow_events`, `task_proofs`, or `task_proof_reviews` rows through the inherited RLS branches. New authenticated-only `public.list_participant_family_updates()` re-derives `auth.uid()`, active participant, active space, and `updates` scope and returns only human fields across every active family space; it returns no workflow/task/event/proof/review/organization/member identifier. `/participant` uses that bounded function plus the existing own-space/own-participant projections and no longer queries raw case tables or links to a UUID case route.
+- **Matrix correction:** the rollback-only matrix now expects authenticated private-function execution to be absent, creates two active update spaces for one participant, proves both bounded rows, inspects the result keys for protected identifiers, and directly asserts zero raw workflow/task/event/proof/review visibility for updates, non-updates, revoked, and unrelated identities. It preserves retained five-relation cardinality and terminates with unconditional rollback. The SQL matrix is added but **NOT RUN**; no SQL or migration was applied.
+- **Reachability, comprehension, and accessibility:** `/family` now exposes a 48-pixel `People` destination. Invitation purpose is 240 characters in HTML and Server Action validation. Creation fields use explicit IDs, `aria-invalid`, field-associated error descriptions, an alert summary focused after failed submit, preserved native inputs, and live pending/result/copy announcements. Acceptance pending has a separate polite status region. Persona header copy no longer exposes runtime labels or configuration reasons. Public delivery truth remains `Not sent by Passage`; P2 mutation controls remain absent.
+- **Parity and roadmap:** the staff inspection/acceptance contracts now bind the secure continue route; the four P1 contracts are `source_partial`; the participant update contract binds the new bounded RPC and explicit raw-table denials. The canonical roadmap records the invalidated first source design, replacement boundaries, un-applied/unhosted state, and no score increase. Packet P2 remains explicitly queued for replacement-link rotation, decline, pending cancellation, access ending, expiry recovery, and human history. Packet P3 remains responsible for the complete independent multi-session hosted closure.
+- **Changed replacement files beyond the existing P1 candidate:** `app/family/page.tsx`; `components/family/FamilyJourney.module.css`; `app/invite/[token]/{page.tsx,actions.ts,AcceptInvitationButton.tsx}`; `app/invite/continue/page.tsx`; `app/login/{page.tsx,LoginClient.tsx,Auth.module.css}`; `app/family/people/{InviteParticipantForm.tsx,actions.ts,People.module.css}`; `app/participant/{page.tsx,Participant.module.css}`; `lib/auth/{invitation-intent.ts,invitation-intent-cookie.ts}`; `lib/supabase/proxy.ts`; `lib/continuity/participants.ts`; `supabase/migrations/20260730021524_participant_updates_case_scope.sql`; `supabase/tests/participant_updates_case_scope.sql`; participant/parity/Server Action guards; frontend/backend contract ledger; roadmap; and this context.
+- **Source gates:** participant security/source guard **23/23 PASS**; frontend/backend parity fixture/integration **18/18 PASS**; parity ledger **25 contracts PASS**; Server Action export guard **5 participant bindings PASS**; persona-language PASS; agent-context PASS; release-governance PASS; operational-route gate PASS; runtime-isolation PASS; Vercel deploy gate **19/19 PASS**; messaging-security regression **23/23 PASS**; direct TypeScript `tsc --noEmit` PASS; optimized Next.js 16.1.6 build PASS with `/invite/continue` and `/participant` dynamic routes. The build emitted only the known multi-lockfile inferred-workspace-root warning. Local production-server boundary smoke proved the raw path returns `307` only to `/invite/continue`, the response cookie is `HttpOnly`, `SameSite=lax`, `Path=/`, and 30-minute bounded, the continue route returns `200` without a redirect loop, the fail-closed page has no console/page error, and 1440, 390, 360, plus 720-at-200%-zoom checks had equal client/scroll width. This is local source smoke, not hosted Preview evidence. `git diff --check` PASS is recorded after this context update.
+- **No mutation boundary:** no staging, commit, push, branch publication, PR mutation, Preview, deployment, environment/Auth configuration, database/Auth/data write, Supabase migration apply, or Production action occurred. Production project `qsveqfchwylsbncsfgxe` was not accessed.
+- **Source QA:** REPLACEMENT ENGINEERING GATES PASS / DISTINCT INDEPENDENT RE-REVIEW AND SQL EXECUTION REQUIRED.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / UNCOMMITTED REPLACEMENT P1 CANDIDATE / NO READINESS CREDIT.
+- **Auto-advance target:** distinct Independent QA reviews the exact uncommitted replacement diff, then distinct Data QA applies the source migration only to isolated `uyacxqtsiwlvtmhxvoxr` and runs the rollback matrix plus existing invitation create/inspect/accept/replay/race coverage. Only after exact data PASS may a frozen publishable head enter distinct review, Development Head, non-production Deploy, and independent multi-session 1440/390/360 hosted QA. P2/P3 gaps remain explicit; no owner/founder prompt is required.
+
+### Participant invitation P1 - terminal-state and recovery re-review correction - 2026-07-29 20:54 -07:00
+
+Status: **INDEPENDENT RE-REVIEW FAIL PRESERVED / ENGINEERING CORRECTION COMPLETE / SOURCE PARTIAL / NOT RELEASED**.
+
+- **Role instance / prior handoff:** Development Engineer `/root/eng_participant_p1` received a distinct independent re-review FAIL against the 20:34 replacement candidate. The release train classified all four findings as FIX NOW within P1; the earlier source-gate result is retained as pre-correction evidence and does not authorize publication.
+- **Minimum-safe terminal states:** `/invite/continue` now renders full inviter, family, relationship, purpose, category, and expiry details only for an actionable `available` invitation or a verified same-user acceptance receipt. Accepted without a verified receipt, expired, revoked, and access-ended states use generic status and recovery copy. Explicit inspection errors suppress terminal and available details. Focused assertions inspect the terminal component source and prohibit all protected invitation fields there.
+- **Local-only account recovery:** `Use another account` calls Supabase `signOut({ scope: 'local' })`, inspects `signOutResult.error`, and redirects to a truthful fail-closed retry state if local sign-out fails. The source guard requires local scope, result inspection, and the failure route and prohibits a bare `signOut()` call.
+- **Non-looping recovery:** existing access routes to `/participant`; access-ended routes to `/participant` to inspect current shared access; expired, revoked, invalid, and otherwise unavailable immutable states return to Passage instead of retrying the identical invitation route. Same-route retry remains only for transient inspection failures. No terminal state reconstructs or exposes the raw invitation bearer.
+- **Projection copy correction:** family invitation and participant landing copy now state the implemented boundary: the coordinator grants the `Family updates` category and Passage maps eligible progress events into plain language. Unsupported claims that a family/care team separately chose each update or that the update is separately `approved` were removed from persona surfaces and the parity contract.
+- **Roadmap classification:** this is a required privacy, recovery, and comprehension correction inside the already-planned participant P1 packet. It does not change product direction, milestone order, readiness doctrine, pricing, or the whole-platform score. The canonical roadmap and living context were updated together.
+- **Final correction verification:** participant invitation security/source guard **26/26 PASS**; frontend/backend parity fixture/integration **18/18 PASS**; parity ledger **25 contracts PASS**; Server Action guard **5 participant bindings PASS**; persona-language PASS; agent-context PASS; release-governance PASS; operational-route PASS; runtime-isolation PASS; Vercel branch/deploy gate **19/19 PASS**; messaging-security regression **23/23 PASS**; direct TypeScript `tsc --noEmit` PASS; optimized Next.js 16.1.6 build PASS with `/invite/continue` and `/participant` dynamic routes; and `git diff --check` PASS. The build emitted only the known multi-lockfile inferred-workspace-root warning.
+- **Local invitation boundary:** a fresh isolated browser session opened a raw 32-character invitation URL and reached only `/invite/continue`. HTTP evidence showed `307`, `private, no-store`, `Referrer-Policy: no-referrer`, and a 30-minute `HttpOnly; SameSite=lax; Path=/` intent cookie. The fail-closed page rendered `Check this invitation safely.` with a transient `Try again` recovery, returned no console or page errors, and had equal client/scroll widths at 1440, 390, 360, and 720 at 200% zoom. Terminal accepted/expired/revoked/access-ended fixtures require the later hosted/data-backed matrix; source assertions, not this transient local state, prove their protected-field exclusions.
+- **No mutation boundary:** no staging, commit, push, branch publication, PR mutation, Preview, deployment, environment/Auth change, database/Auth/data write, migration apply, or Production action occurred. Production project `qsveqfchwylsbncsfgxe` was not accessed.
+- **Source QA:** CORRECTED ENGINEERING GATES PASS / DISTINCT INDEPENDENT RE-REVIEW AND SQL EXECUTION REQUIRED.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / UNCOMMITTED CORRECTED P1 CANDIDATE / NO READINESS CREDIT.
+- **Auto-advance target:** finish the full source/build/local boundary rerun, freeze the uncommitted diff, and return it to distinct Independent QA. SQL/Data QA and hosted P3 remain later gates; no owner/founder prompt is required.
+
+### Participant invitation P1 - Data QA PARTIAL test-harness correction - 2026-07-29 21:16 -07:00
+
+Status: **DATA QA PARTIAL PRESERVED / TEST-HARNESS CORRECTION IN ENGINEERING / NOT RELEASED**.
+
+- **Role and exact reviewed input:** Development Engineer `/root/eng_participant_p1` received the controlling Data QA handoff from distinct reviewer `/root/qa_gateway_d80` against frozen bot-authored head `3169957c4e305a2b612f6b2346dd157b243eab92`. Independent Agent Review had passed that exact product diff. Data QA authorized and used only isolated project `uyacxqtsiwlvtmhxvoxr`; Production project `qsveqfchwylsbncsfgxe` was untouched.
+- **Exact immutable source evidence:** reviewed migration Git blob `ab9be171cf083f8253f1322f9092121f9b347b81`, SHA-256 `5eb3d1af0da231e7484ecb9754103b9c6ab751b32ea4d729d5b3f94842aff2b7`; committed SQL test Git blob `3afaae3cc9ea0e71215a9fcae3b4e114242b3f4c`, SHA-256 `982da6e91ccffc131674cc52d105ad2e36a70f7d3453d0be46e7ba487679174c`. The exact migration was applied through the authorized Supabase migration path and recorded in `supabase_migrations.schema_migrations` as version `20260730040617`, name `participant_updates_case_scope`.
+- **Why exact Data QA is PARTIAL:** the immutable committed test first failed with SQLSTATE `55000` because it hardcoded source filename timestamp `20260730021524` as the remote apply-history version. A runtime-only substitution to the recorded version then failed with SQLSTATE `23505` because the fixture inserted two active continuity spaces for one owner, correctly violating `continuity_spaces_one_active_per_owner`. These are deterministic test-only defects; they do not invalidate the applied migration blob, but they prevent an exact immutable SQL PASS.
+- **Adapted behavior evidence, not source PASS:** reviewer `/root/qa_gateway_d80` ran a runtime-adapted matrix changing only the history-version assumption and the second space owner. No persisted adapted source artifact or hash was reported; none is invented here. That adapted matrix passed: one updates participant held exactly two active grants across two spaces; only bounded human fields were returned; protected identifiers were absent; the active owner retained access; the participant was denied all five raw relations and the private helper; documents-only, revoked, and unrelated identities were denied; repeated projection was stable and nonmutating; and every fixture change ended in unconditional rollback.
+- **Retained authority/cardinality proof:** owner raw access was workflow `1`, tasks `2`, events `5`, proofs `1`, reviews `1`. The retained active updates participant had bounded projection `1`, raw access `0` across all five relations, and `protected_keys_absent = true`; the revoked participant had projection/raw access `0`. Final retained cardinality was workflows `5`, tasks `6`, events `21`, proofs `3`, reviews `3`, continuity spaces `1`, continuity participants `2`, retained workflow `1`; all `750000*` fixture rows were `0`.
+- **ACL, RLS, and advisor classification:** `public.list_participant_family_updates()` is `STABLE SECURITY DEFINER` with empty `search_path`, qualified references, and execute only for `postgres` plus `authenticated`; `anon`, `service_role`, and `PUBLIC` are denied. `passage_private.can_view_workflow_as_family(uuid)` is executable only by `postgres`; every other role is denied. All raw tables have RLS enabled. Security advisors returned four WARN: the target authenticated security-definer function is explicitly classified intentional and bounded; three other warnings are pre-existing urgent lint, the messaging helper mutable `search_path`, and leaked-password protection being off. Performance advisors returned 43 INFO with no new target finding.
+- **Bounded Engineering correction:** the migration file and product behavior remain byte-for-byte unchanged. The rollback test now accepts the normal apply-history version by locating the exact migration name and validating its feature statements plus live catalog behavior instead of hardcoding a timestamp. The fixture adds a second synthetic owner, preserves the valid one-active-space-per-owner constraint, and asserts that the same updates participant is actively granted into exactly two spaces. No product, RLS, RPC, ACL, migration, or user-facing surface is changed.
+- **Research grounding:** current Supabase migration guidance distinguishes Git migration files from the remote `supabase_migrations.schema_migrations` history and documents that the remote table tracks applied versions independently. The current changelog contains no migration-history change that alters this correction; the relevant July 2026 database breaking notice concerns extension version pinning, not migration tracking. This changed the test from filename-timestamp equality to exact name, feature statement, and catalog lineage while retaining runtime authority assertions.
+- **Roadmap classification:** test/evidence correction only. It does not change product direction, scope, milestone order, pricing, readiness doctrine, or score. The roadmap and living context are updated together because the prior statement that the migration was unapplied is now stale.
+- **Replacement source identity and verification:** corrected SQL test Git blob `10a4c32be005b27a8969f3cad677e41396988f1b`, SHA-256 `25e6d31652231065bbfa07b74c9a0b51ab2af9170c3782ee0e36792205fac2f4`. The migration remains unchanged at blob `ab9be171cf083f8253f1322f9092121f9b347b81`, SHA-256 `5eb3d1af0da231e7484ecb9754103b9c6ab751b32ea4d729d5b3f94842aff2b7`. Eight focused correction assertions PASS; participant source guard **26/26 PASS**; parity fixture/integration **18/18 PASS**; parity ledger **25 contracts PASS**; Server Action guard **5 participant bindings PASS**; persona-language, agent-context, release-governance, operational-route, runtime-isolation, and Vercel deploy gates PASS; direct TypeScript PASS; optimized Next.js 16.1.6 build PASS; and `git diff --check` PASS. The build emitted only the known multi-lockfile inferred-workspace-root warning. The corrected exact SQL itself is deliberately **NOT RUN** by Engineering; distinct Data QA must execute the immutable committed file.
+- **Hosted Preview QA:** NOT RUN for this replacement.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / DATA QA PARTIAL / NO READINESS CREDIT.
+- **Auto-advance target:** freeze one bot-authored local `[skip deploy]` replacement commit on top of `3169957c4e305a2b612f6b2346dd157b243eab92`, then distinct Independent Agent Review and `/root/qa_gateway_d80` rerun the exact immutable SQL. No owner/founder prompt is required.
+
+### Participant invitation P1 - fail-closed function search-path assertion correction - 2026-07-29 21:25 -07:00
+
+Status: **INDEPENDENT REVIEW FAIL PRESERVED / ASSERTION CORRECTED / SOURCE PARTIAL / NOT RELEASED**.
+
+- **Role and returned head:** Development Engineer `/root/eng_participant_p1` received an independent-review rejection of bot-authored test/evidence head `8f5a435c364dd2ce30447ff7439472a3eec77028`. The prior Data QA PARTIAL, isolated migration application, adapted runtime PASS, ACL/RLS/advisor classification, exact hashes, and zero readiness credit remain controlling evidence.
+- **Fail-open defect:** the first replacement checked `array_to_string(function_row.proconfig, ',') not like '%search_path=%'` inside a negative `exists` predicate. If `proconfig` were missing, `array_to_string` and `NOT LIKE` would evaluate to SQL `NULL`; the row would not satisfy the predicate and the matrix could incorrectly continue. The 21:16 source-verification claim is therefore invalidated for exact function `search_path` enforcement only.
+- **Fail-closed replacement:** the catalog preflight now counts the two exact function OIDs and requires the count to equal `2`. A function contributes only when it is `STABLE SECURITY DEFINER`, its `proconfig` contains exact `search_path=""`, `pg_options_to_table` returns exactly one `search_path` option whose value equals `quote_ident('')`, and no `search_path` option has a distinct nonempty value. Missing `proconfig`, a missing option, a nonempty path, either missing function, invoker mode, or non-stable volatility reduces the count and returns SQLSTATE `55000`.
+- **Adversarial source coverage:** the participant security guard now validates the exact two-function catalog assertion and mutates its source twice. Removing the exact empty configuration and substituting `search_path=public` are both required to fail the guard. Focused result is **29/29 PASS**, including the three new search-path checks.
+- **Preserved data and product boundaries:** the distinct-owner/two-active-space fixture, the same participant's exactly two updates grants, migration-name/feature/catalog lineage, all bounded projection and raw-table/private-helper denial assertions, unconditional rollback, and every prior runtime behavior assertion remain unchanged. No product route, copy, RPC, RLS policy, ACL, migration, table, or readiness score changed.
+- **Exact replacement source identity:** corrected SQL test Git blob `26e3c56c6816eeeacdf6792b8b0a1f41baefad0e`, SHA-256 `9e0efa8172f040e8332052a279362cbddf9da0d54ee433ae9faeb43f830d24b1`; corrected focused guard blob `4a10bdd9481e588380c0fcd6731eaabd99412f6b`, SHA-256 `f0eb180aef4057b015bcfc0ec6dc7c49c431abd3bb3c1cde9558dce204a6acf4`. The product migration remains unchanged at blob `ab9be171cf083f8253f1322f9092121f9b347b81`, SHA-256 `5eb3d1af0da231e7484ecb9754103b9c6ab751b32ea4d729d5b3f94842aff2b7`.
+- **Research grounding:** the current Supabase breaking-change index has no change to PostgreSQL function `proconfig` semantics relevant to this assertion. Repository precedent in participant advisor hardening uses exact `proconfig @> array['search_path=""']`; the messaging rollback matrix uses `pg_options_to_table` with exact `option_value = quote_ident('')`. The replacement combines those precedents and a two-OID count so SQL three-valued logic fails closed.
+- **Verification state:** focused participant guard **29/29 PASS**, including missing/nonempty `search_path` mutants; parity fixture/integration **18/18 PASS**; parity ledger **25 contracts PASS**; Server Action guard **5 participant bindings PASS**; persona-language, agent-context, release-governance, operational-route, runtime-isolation, and Vercel deploy gates PASS; direct TypeScript PASS; optimized Next.js 16.1.6 build PASS; direct fail-open-token exclusion PASS; and `git diff --check` PASS. The build emitted only the known multi-lockfile inferred-workspace-root warning. Engineering did **NOT RUN** SQL; distinct Data QA still owns the immutable database execution.
+- **Hosted Preview QA:** NOT RUN for this correction.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE PARTIAL / DATA QA PARTIAL / NO READINESS CREDIT.
+- **Auto-advance target:** freeze one bot-authored local `[skip deploy]` head on top of `8f5a435c364dd2ce30447ff7439472a3eec77028`, then return the exact immutable packet to distinct review and `/root/qa_gateway_d80` for the full SQL rerun. No owner/founder prompt is required.
+
+### Participant invitation P1 - combined-candidate integration Engineering handoff - 2026-07-29 21:52 -07:00
+
+- **Role instance / handoff:** combined-candidate Integration Engineer `/root`. Received exact participant head `87c74ae710de1bb78ba679223a74e49d5fe9e122` after Independent Agent Review PASS by `/root/eng_gateway_boundary`, exact isolated Data QA PASS by `/root/qa_participant_exact_87c`, and Development Head approval by `/root/devhead_participant_87c` for incorporation only.
+- **Integration branch and base:** created local branch `integrate/participant-87c-combined` from clean combined candidate `25f99dc68682d98751db01a9fc894ed77375f208`. The existing `release/10h-delivery-candidate` branch, configured release branch, remotes, PRs, deployments, Auth, database, environment, and Production were not changed.
+- **Integration commits:** participant commits `3169957c4e305a2b612f6b2346dd157b243eab92`, `8f5a435c364dd2ce30447ff7439472a3eec77028`, and `87c74ae710de1bb78ba679223a74e49d5fe9e122` were cherry-picked in order as Bot-authored local commits `d9947b49782c1a5db71eb1526315ed64afa38bf9`, `c2fb186`, and `b1f7f6c`. The only conflict was an append-only living-context collision. Both histories were retained; no product source conflict required judgment.
+- **Immutable packet binding:** the integrated migration remains Git blob `ab9be171cf083f8253f1322f9092121f9b347b81`, SHA-256 `5eb3d1af0da231e7484ecb9754103b9c6ab751b32ea4d729d5b3f94842aff2b7`. The exact SQL matrix remains blob `26e3c56c6816eeeacdf6792b8b0a1f41baefad0e`, SHA-256 `9e0efa8172f040e8332052a279362cbddf9da0d54ee433ae9faeb43f830d24b1`. The focused guard remains blob `4a10bdd9481e588380c0fcd6731eaabd99412f6b`, SHA-256 `f0eb180aef4057b015bcfc0ec6dc7c49c431abd3bb3c1cde9558dce204a6acf4`. The prior twice-run isolated SQL PASS therefore remains bound to unchanged data artifacts, but combined-head source and hosted gates must still rerun.
+- **Combined source verification:** participant invitation guard `29/29` PASS; workflow messaging security `23/23` PASS; parity fixture/integration `18/18` PASS; parity ledger `25` contracts PASS; Server Action export guard with five participant bindings PASS; persona language PASS; agent context PASS; release governance PASS; operational route gate PASS; runtime isolation PASS; Vercel ignore-build matrix PASS; TypeScript PASS; and `git diff --check` PASS.
+- **Optimized build:** PARTIAL on this exact local integration head. Next.js compilation could not begin because the restricted runner returned `EACCES` while `next/font` retried and failed to fetch Cormorant Garamond and Montserrat. No font response was mocked, copied, intercepted, or bypassed. The exact participant head and the pre-integration combined candidate each have prior clean optimized-build PASS evidence, but that does not substitute for a fresh combined-head result.
+- **QA infrastructure debt:** the affected cell is the fresh local optimized build for the combined integration head. Owner role is Deploy and exact-head QA. Recovery test is a clean build in the authorized Vercel Preview builder or another runner with normal access to the unchanged `next/font/google` assets, followed by font request, computed-family, layout-shift, and full route proof. Until that succeeds, build status is PARTIAL and the integrated head cannot receive Development Head approval or publication.
+- **Roadmap freshness classification:** packet incorporation advances already-recorded participant P1 scope and changes no direction, milestone order, readiness doctrine, pricing, or score. The participant commits already update the canonical roadmap and living context. No additional roadmap change is required for this integration-only commit.
+- **Source QA:** ENGINEERING GATES PASS EXCEPT OPTIMIZED BUILD PARTIAL / DISTINCT COMBINED-HEAD QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN.
+- **Independent Agent Review:** NOT RUN on the combined integration head.
+- **Development Head / Release Authority:** REQUIRED after exact combined-head QA and review.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** COMBINED SOURCE PARTIAL / LOCAL ONLY / NO READINESS CREDIT.
+- **Auto-advance target:** freeze this context-bearing local integration head, then distinct combined-head QA and Independent Agent Review rerun all exact source gates. If source passes, the Development Head may authorize one non-production Preview build specifically to close the font/build and hosted participant P1 evidence. No owner prompt is required.
+
+### Replacement Preview operator demo recovery - 2026-08-12 20:40 -07:00
+
+- **Role instance / handoff:** Development Engineer and Deploy-prep role `/root/eng_preview_operator_demo_config` received the exact e73 public-demo candidate and the PM/UX acceptance bar from the release-train root. The bounded goal is a deterministic Steve demo entry for Director, Staff, and Vendor while the exact replacement Preview cannot read the reserved server-session credentials.
+- **Root cause:** the seven sensitive operator-demo environment variables exist in Vercel Preview and are scoped only to `release/10h-delivery`. The replacement source branch is `feature/public-demo-launch`. Vercel does not retain or reveal a sensitive value while editing its branch scope, so extending the scope would overwrite the working hidden values. No Vercel environment variable was edited, copied, exposed, or deleted.
+- **Isolated authority evidence:** read-only verification against isolated project `uyacxqtsiwlvtmhxvoxr` found reserved confirmed Auth identities for Director, Staff, and Vendor and active scoped authority for each role. Emails and credentials were not recorded. No database write was performed, and Production project `qsveqfchwylsbncsfgxe` was not accessed.
+- **Development action:** `app/demo/actions.ts` now preserves configured server sign-in when branch-scoped credentials are available and otherwise sends the selected operator to a browser-only example route. `app/demo/operator/[persona]/page.tsx`, `OperatorDemo.tsx`, and `OperatorDemo.module.css` add one coherent Director, Staff, and Vendor route family with role-scoped example work, three role actions, visible receipts, keyboard focus after each action, reset, mobile layouts, and explicit language that no real record is changed or message sent. `scripts/test-public-conversion.js` binds the fallback targets, role identities, privacy boundary, receipts, focus behavior, 48px controls, responsive rule, and line-ending-independent recovery assertions.
+- **Product boundary:** these routes are explicitly guided browser examples. They do not authenticate, call a mutation, persist to storage, or present themselves as server-verified workspaces. The real server-authorized operator paths remain unchanged and continue to be used when the reserved Preview credentials are configured.
+- **Roadmap freshness classification:** NO material direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. This is a bounded recovery for an already-recorded demo acceptance gap, so the canonical roadmap does not require a change.
+- **Engineering verification:** public conversion PASS; persona-language PASS; runtime configuration PASS; Vercel ignore-build PASS; frontend/backend parity 19/19 PASS; Server Action export guard PASS; direct TypeScript PASS; optimized Next.js 16.1.6 build PASS with 29/29 static pages and `/demo/operator/[persona]` emitted. The build produced only the known multi-lockfile inferred-root warning.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT SOURCE QA NOT RUN.
+- **Hosted Preview QA:** NOT RUN for this fallback head. Required next matrix is Director, Staff, and Vendor at 1440, 390, 360, 200 percent zoom, keyboard-only operation, reset and failure recovery, overflow, targets, focus, console, hydration, runtime, and plain-language checks.
+- **Production Deployment:** NOT DEPLOYED. Production configuration and data remain untouched.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / HOSTED PREVIEW PARTIAL / NO PRODUCTION CLAIM.
+- **Auto-advance target:** freeze one Bot-authored `[skip deploy]` commit, hand the exact head to distinct Source QA, then publish one branch-only replacement Preview and run the complete operator matrix. No owner prompt is required.
+
+### Replacement Preview operator demo - distinct QA rejection and bounded repair - 2026-08-12 21:04 -07:00
+
+- **Role handoff:** distinct Source QA rejected exact head `07054f1bd637fae0b0bc43ef589bb515938b488b`. The rejection is accepted. Local receipts implied that another role could already see browser-only state, and guided routes inherited AppFrame links into protected Director, Staff, Vendor, Intake, and Receive workspaces.
+- **Development repair:** guided routes now pass an explicit `guidedDemoPersona` to `AppFrame`. In that mode the brand returns to `/demo` and the complete shell navigation stays within `/demo/operator/director`, `/demo/operator/staff`, and `/demo/operator/vendor`. Verified operations routes retain their existing navigation.
+- **Truthful state boundary:** each action receipt now says what this page shows. Each completed action also states that the example change exists only on the page and resets on refresh. Real-workspace visibility is described only as a future result after an authorized server save. Tests forbid the rejected shared-state phrases and protected hrefs in the guided packet. Vendor remains limited to a funeral-home request label with no family name.
+- **Focused and full source verification:** public conversion and new demo-boundary assertions PASS; persona-language PASS; runtime configuration PASS; Vercel ignore-build PASS; frontend/backend parity 19/19 PASS; Server Action export guard PASS; agent-context and release-train guards PASS; direct TypeScript PASS; optimized Next.js 16.1.6 build PASS with 29/29 static pages. Only the known multi-lockfile root warning remains.
+- **Local browser infrastructure debt:** the local server returned HTTP 200 for the Director route, but the signed-in Chrome automation connection did not return from local tab navigation before the watchdog interruption. No responsive, zoom, keyboard, action, reset, focus, console, hydration, or runtime browser cell is claimed. Distinct QA owns the recovery test on the exact descendant head and may use a fresh browser context or the replacement hosted Preview.
+- **Source QA:** REPAIR ENGINEERING GATES PASS / DISTINCT RE-RUN REQUIRED.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED. No Production data or configuration was accessed.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / BROWSER QA NOT RUN / NO RELEASE CLAIM.
+- **Auto-advance target:** freeze a Bot-authored `[skip deploy]` descendant, start fresh distinct Source QA, then publish one branch-only replacement Preview only after the exact head passes. No owner prompt is required.
+
+### Replacement Preview operator demo - configuration-derived containment repair - 2026-08-12 21:19 -07:00
+
+- **Role handoff and PM decision:** the distinct QA return on `bd7b72de2203a445884dd916c3a5782a2d8fa877` found two remaining contradictions. Demo gateway and reset copy still claimed shared operator activity even when server sessions were unavailable, and the guided operator footer linked outside `/demo`. PM ruled that literal containment applies to the guided operator control region and shell. Public `/` and real help `/start` remain visibly separate gateway exits.
+- **Development repair:** `lib/presentation/operator-demo-availability.ts` is the single fail-closed server helper for the enable flag, exact Preview runtime, isolated project, password-auth capability, and per-persona credential presence. `app/demo/actions.ts` uses the same helper for actual sign-in versus browser-only fallback. `app/demo/page.tsx`, `TopShell`, and `DemoReset` derive their copy from all three configured server sessions. Missing configuration states that operator changes stay on the current page and reset on refresh. Complete configuration is the only state allowed to name isolated server sessions.
+- **Containment and navigation:** the gateway now presents the family browser example as a visibly separate exit before the guided operator control region. Director, Staff, and Vendor remain the three operator controls. Guided AppFrame navigation and both operator footer actions point only to `/demo` or `/demo/operator/...`. Tests extract the guided shell and operator footer hrefs and fail on any non-demo destination. Real help and public-home exits remain outside the guided operator region.
+- **Source guard:** focused public-conversion PASS now binds the fail-closed server predicate, both truthful copy branches, separate family/operator regions, guided href containment, protected-route exclusion, shared-state phrase exclusion, page-only receipts, focus, reset, privacy, target size, and responsive rule.
+- **Full source verification:** persona-language PASS; runtime configuration PASS; Vercel ignore-build PASS; frontend/backend parity 19/19 PASS; Server Action export guard PASS; agent-context and release-train guards PASS; direct TypeScript PASS. A final stopped-server optimized Next.js 16.1.6 build PASS generated 29/29 static pages. This clean rebuild replaced an invalid local mixed-output condition caused by running an earlier build while an old local server still held `.next`; no hosted or source claim relied on that stale output.
+- **Focused local browser verification:** fallback `/demo` at 390 showed the page-only/reset-on-refresh TopShell copy, the separate family browser example, guided operator heading and three controls, real-help region, and 390 equal scroll/document widths. Director at 1440 showed only demo-contained shell/footer links, equal scroll/document widths, page-only boundary, action focus moved to `role=status`, receipt truth was visible, and reload reset the action. Staff at 390 and Vendor at 360 had equal scroll/document widths, contained navigation, correct actions, and no page errors; Vendor contained no family name. A 200-percent CSS zoom simulation retained equal scroll/document widths and the complete semantic snapshot. Keyboard Tab reached the skip link, all semantic links/buttons remained exposed, and focused action recovery was proven. Browser page-error output was empty in all recorded cells.
+- **Source QA:** ENGINEERING GATES AND FOCUSED LOCAL BROWSER CELLS PASS / DISTINCT QA REQUIRED.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED. Production data and configuration remain untouched.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / HOSTED PREVIEW PARTIAL / NO PRODUCTION CLAIM.
+- **Auto-advance target:** freeze a Bot-authored `[skip deploy]` descendant and hand the exact head to fresh distinct Source QA. Only a distinct PASS permits replacement Preview publication. No owner prompt is required.

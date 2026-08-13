@@ -19,7 +19,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { checkLedger, REQUIRED_CYCLE8_CONTRACT_IDS } = require('./check-frontend-backend-parity');
+const {
+  checkLedger,
+  REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  REQUIRED_ACTIVE_CONTRACT_IDS,
+} = require('./check-frontend-backend-parity');
 
 let passCount = 0;
 let failCount = 0;
@@ -289,6 +294,18 @@ function testRequiredCycle8CoverageCannotBeEmpty(repoRoot) {
   report('failing fixture: zero Cycle 8 contract coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
 }
 
+function testRequiredParticipantCoverageCannotBePartial(repoRoot) {
+  const { ok, errors } = checkLedger(
+    { contracts: [baseImplementedContract()] },
+    repoRoot,
+    { requiredContractIds: REQUIRED_PARTICIPANT_CONTRACT_IDS }
+  );
+  const expected = REQUIRED_PARTICIPANT_CONTRACT_IDS.every((id) =>
+    errors.some((error) => error.includes(`Required contract id "${id}" is missing`))
+  );
+  report('failing fixture: incomplete participant journey coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
 // ---------------------------------------------------------------------
 // 3. Integration check against the real ledger
 // ---------------------------------------------------------------------
@@ -303,7 +320,7 @@ function testRealLedger() {
     report('integration: real ledger is valid JSON and readable', false, err.message);
     return;
   }
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_ACTIVE_CONTRACT_IDS });
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
@@ -452,16 +469,67 @@ function testRealUrgentReceiverEvidenceScope() {
     && source.includes('Receiver command denials changed request status, version, or event cardinality')
     && source.includes('Final receiver-submit request/event cardinality changed')
     && source.trimEnd().endsWith('rollback;');
-  const excludesSeparateCaseLane = !source.includes('urgent_case_first_commitment')
+  const narrowTestExcludesCaseLane = !source.includes('urgent_case_first_commitment')
     && !source.includes('create_case_from_urgent_intake_idempotent')
     && !source.includes('public.workflows')
-    && !source.includes('public.tasks')
-    && !fs.existsSync(broadTestPath);
+    && !source.includes('public.tasks');
+  const firstCommitmentMigrationPath = path.join(
+    repoRoot,
+    'supabase',
+    'migrations',
+    '20260727200936_urgent_case_first_commitment.sql'
+  );
+  const broadCaseLaneRestored = fs.existsSync(broadTestPath)
+    && fs.existsSync(firstCommitmentMigrationPath);
 
   report(
-    'integration: urgent receiver-submit SQL evidence is narrow and source-reproducible',
-    bindsExactCommittedStack && coversSubmissionContract && excludesSeparateCaseLane,
-    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} excludesSeparateCaseLane=${excludesSeparateCaseLane}`
+    'integration: narrow receiver evidence stays isolated while the broader case lane is source-reproducible',
+    bindsExactCommittedStack && coversSubmissionContract && narrowTestExcludesCaseLane && broadCaseLaneRestored,
+    `bindsExactCommittedStack=${bindsExactCommittedStack} coversSubmissionContract=${coversSubmissionContract} narrowTestExcludesCaseLane=${narrowTestExcludesCaseLane} broadCaseLaneRestored=${broadCaseLaneRestored}`
+  );
+}
+
+function testRealParticipantLifecycleBindings() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const peopleComponent = fs.readFileSync(
+    path.join(repoRoot, 'app', 'family', 'people', 'ParticipantLifecycleControls.tsx'),
+    'utf8'
+  );
+  const peopleActions = fs.readFileSync(
+    path.join(repoRoot, 'app', 'family', 'people', 'actions.ts'),
+    'utf8'
+  );
+  const decision = fs.readFileSync(
+    path.join(repoRoot, 'app', 'invite', 'continue', 'ParticipantInvitationDecision.tsx'),
+    'utf8'
+  );
+  const inviteActions = fs.readFileSync(
+    path.join(repoRoot, 'app', 'invite', '[token]', 'actions.ts'),
+    'utf8'
+  );
+  const ledger = JSON.parse(fs.readFileSync(
+    path.join(repoRoot, 'docs', 'product', 'frontend-backend-contracts.json'),
+    'utf8'
+  ));
+  const contractIds = new Set(ledger.contracts.map((contract) => contract.id));
+  const required = [
+    'participant.coordinator.rotate_invitation',
+    'participant.invited.decline_invitation',
+    'participant.coordinator.cancel_invitation',
+    'participant.coordinator.revoke_access',
+  ];
+  const bound = peopleComponent.includes('action={rotateAction}')
+    && peopleComponent.includes('action={cancelAction}')
+    && peopleComponent.includes('action={accessAction}')
+    && decision.includes('action={declineAction}')
+    && peopleActions.includes("client.rpc('rotate_participant_invitation_idempotent'")
+    && peopleActions.includes("client.rpc('revoke_participant_invitation'")
+    && peopleActions.includes("client.rpc('revoke_continuity_participant_idempotent'")
+    && inviteActions.includes("client.rpc('decline_participant_invitation'");
+  report(
+    'integration: participant P2 lifecycle UI, Server Actions, RPCs, and ledger rows stay bound',
+    bound && required.every((id) => contractIds.has(id)),
+    `bound=${bound} ids=${required.filter((id) => contractIds.has(id)).length}/${required.length}`
   );
 }
 
@@ -486,6 +554,7 @@ function main() {
     testCycle8SourceDrift(repoRoot);
     testCycle8IdentityCannotMasquerade(repoRoot);
     testRequiredCycle8CoverageCannotBeEmpty(repoRoot);
+    testRequiredParticipantCoverageCannotBePartial(repoRoot);
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();
@@ -493,6 +562,7 @@ function main() {
     testRealParticipantCaseAuthorityRepair();
     testRealUrgentReceiverBinding();
     testRealUrgentReceiverEvidenceScope();
+    testRealParticipantLifecycleBindings();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }
