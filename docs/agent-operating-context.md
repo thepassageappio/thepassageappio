@@ -1,5 +1,24 @@
 # Passage Zero - Agent Operating Context
 
+## Final combined launch candidate Engineering handoff - 2026-08-12 23:12 -07:00
+
+Status: **ENGINEERING SOURCE GATES PASS / DISTINCT SOURCE AND DATA QA REQUIRED / NON-PRODUCTION**.
+
+- Distinct combined-candidate Development Engineer `/root/eng_combined_candidate_final` received the frozen integration order and complete preceding PM, UX, Engineering, and QA evidence. The prior staged preparation worktree remained unchanged. Engineering created collision-safe worktree `.release-train-clean/.launch-candidate-final-20260812`, branch `integrate/launch-candidate-final-20260812`, from exact PR #78 least-privilege repair `a2a52f3f65f86ab71ada4135a817f56b40ae647c`.
+- Exact packets integrated: public/family/operator `9067b140a380db5759d78cf4922785d12a34c9e1`; Participant P2 `c037358f22f5847cf9973ba12b9387efb61df250`; messaging `c50e56b7d7d9c13aae9b758bb3dbf76580f3424a`; A16 provider discovery `483ef5607401149c69d4774d2dc637c2200fd111`. Each packet was clean at its exact head. A16's known zero-byte browser artifact remained excluded.
+- Conflict resolution was lossless and bounded. Public/operator retained its newer case and guided-demo product while the living context and parity ledger incorporated PR #78 authority. Participant P2 added its exact race and cleanup packet. Messaging replaced the earlier messaging SQL, RPC, loader, and matrix blobs with the independently tested least-privilege replacement while retaining the newer director case surface and 48-pixel family message navigation. A16 replaced static receiver selection with live provider type-ahead while retaining atomic demo activation persistence. Participant, A16, and messaging parity rows and Server Action requirements were unioned.
+- Migration manifest contains 36 unique timestamps and no duplicate timestamp. It retains the exact bounded participant migrations already present in the PR #78 base, imports no stale PR #77 duplicate, and includes only the reviewed messaging, Participant P2, PR #78 reconciliation, A16 sample, and A16 index migrations required by these packets.
+- First combined gate found three integration-only harness defects: one extra closing bracket in the combined Server Action guard and two Windows newline-sensitive source checks. Engineering removed the extra bracket and made only those source readers normalize CRLF to LF. No user-visible product, command, RPC, RLS, migration, fixture, database, environment, or deployment behavior changed in that repair.
+- Engineering verification PASS: public conversion; Participant P2 `42/42`; participant case authority `25`; messaging `27/27`; A16 provider source; parity `22/22`; two Cycle 8, nine participant, and one A16 Server Action export bindings; persona language; agent context; release governance; operational routes; runtime isolation; deploy-decision matrix; TypeScript; optimized Next.js 16.1.6 build with 51 public, demo, urgent, director, staff, family, participant, messaging, partner, and provider-discovery routes; migration timestamp uniqueness; and `git diff --check`. The build emitted only the known multiple-lockfile workspace-root warning.
+- Supabase research: the current changelog was checked before integration. No applicable breaking change affected these reviewed migrations. The new Data API exposure default reinforces the existing explicit-grant and RLS checks. No live SQL was executed by this Engineering role because the exact A16, messaging, Participant P2, and PR #78 database packets already have isolated evidence and combined-head database replay belongs to distinct Data QA.
+- Material Product Direction or Scope Change: **NO**. This combines already approved roadmap packets. It changes no milestone order, pricing, readiness doctrine, persona scope, or whole-platform score.
+- Source QA: **ENGINEERING GATES PASS / DISTINCT EXACT-HEAD QA NOT RUN**.
+- Hosted Preview QA: **NOT RUN ON COMBINED HEAD**. Earlier hosted packet evidence does not prove this new head.
+- Production Deployment: **NOT DEPLOYED**.
+- Production QA: **NOT RUN**.
+- Overall release state: **SOURCE CANDIDATE / NON-PRODUCTION / NOT QA-APPROVED**.
+- Auto-advance: Bot-freeze one exact `[skip deploy]` head, then distinct Source/Data QA rechecks the exact diff, source gates, complete isolated SQL/RLS/replay/conflict/concurrency/reversibility/cardinality matrix, advisors, and migration manifest against `uyacxqtsiwlvtmhxvoxr` only. A PASS may advance to one branch-only Preview and distinct full hosted QA. Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
 ## Product Manager Sprint Brief - A16 mobile funeral-home discovery completion - 2026-08-12
 
 ### Role instance and received handoff

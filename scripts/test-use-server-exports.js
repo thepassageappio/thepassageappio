@@ -35,7 +35,6 @@ const requiredServerActions = [
     coverage: 'A16 provider discovery',
   })),
 ];
-];
 
 function isExported(statement) {
   return Boolean(statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword));

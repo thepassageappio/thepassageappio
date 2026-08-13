@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile as rawReadFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
+
+async function readFile(path, encoding) {
+  const source = await rawReadFile(path, encoding);
+  return typeof source === 'string' ? source.replace(/\r\n/g, '\n') : source;
+}
 
 async function loadTypeScriptModule(path) {
   const source = await readFile(path, 'utf8');
