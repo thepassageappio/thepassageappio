@@ -23,6 +23,7 @@ const {
   checkLedger,
   REQUIRED_CYCLE8_CONTRACT_IDS,
   REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  REQUIRED_A16_CONTRACT_IDS,
   REQUIRED_ACTIVE_CONTRACT_IDS,
 } = require('./check-frontend-backend-parity');
 
@@ -306,6 +307,42 @@ function testRequiredParticipantCoverageCannotBePartial(repoRoot) {
   report('failing fixture: incomplete participant journey coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
 }
 
+function testA16RequiresSourceAssertions(repoRoot) {
+  const bad = baseImplementedContract({
+    id: 'a16.fixture.missing-bindings',
+    cycle: 'A16',
+  });
+  const { ok, errors } = checkLedger({ contracts: [bad] }, repoRoot);
+  const expected = errors.some((error) =>
+    error.includes(
+      'A16 provider discovery requires a non-empty "source_assertions" array',
+    ),
+  );
+  report(
+    'failing fixture: A16 contract without source assertions is rejected',
+    ok === false && expected,
+    `ok=${ok} errors=${JSON.stringify(errors)}`,
+  );
+}
+
+function testRequiredA16CoverageCannotBeEmpty(repoRoot) {
+  const { ok, errors } = checkLedger(
+    { contracts: [baseImplementedContract()] },
+    repoRoot,
+    { requiredContractIds: REQUIRED_A16_CONTRACT_IDS },
+  );
+  const expected = errors.some((error) =>
+    error.includes(
+      `Required contract id "${REQUIRED_A16_CONTRACT_IDS[0]}" is missing`,
+    ),
+  );
+  report(
+    'failing fixture: missing A16 provider coverage is rejected',
+    ok === false && expected,
+    `ok=${ok} errors=${JSON.stringify(errors)}`,
+  );
+}
+
 // ---------------------------------------------------------------------
 // 3. Integration check against the real ledger
 // ---------------------------------------------------------------------
@@ -555,6 +592,8 @@ function main() {
     testCycle8IdentityCannotMasquerade(repoRoot);
     testRequiredCycle8CoverageCannotBeEmpty(repoRoot);
     testRequiredParticipantCoverageCannotBePartial(repoRoot);
+    testA16RequiresSourceAssertions(repoRoot);
+    testRequiredA16CoverageCannotBeEmpty(repoRoot);
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();

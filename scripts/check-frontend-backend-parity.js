@@ -65,9 +65,11 @@ const REQUIRED_PARTICIPANT_CONTRACT_IDS = [
   'participant.coordinator.cancel_invitation',
   'participant.coordinator.revoke_access',
 ];
+const REQUIRED_A16_CONTRACT_IDS = ['a16.family.provider_discovery'];
 const REQUIRED_ACTIVE_CONTRACT_IDS = [
   ...REQUIRED_CYCLE8_CONTRACT_IDS,
   ...REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  ...REQUIRED_A16_CONTRACT_IDS,
 ];
 
 function isNonEmptyString(value) {
@@ -91,10 +93,16 @@ function fileExists(repoRoot, relPath) {
   }
 }
 
-function checkSourceAssertions(contract, label, repoRoot, errors) {
+function checkSourceAssertions(
+  contract,
+  label,
+  repoRoot,
+  errors,
+  coverageLabel = 'Cycle 8',
+) {
   const assertions = contract.source_assertions;
   if (!Array.isArray(assertions) || assertions.length === 0) {
-    errors.push(`${label}: Cycle 8 requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
+    errors.push(`${label}: ${coverageLabel} requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
     return;
   }
 
@@ -127,7 +135,7 @@ function checkSourceAssertions(contract, label, repoRoot, errors) {
     }
     for (const expected of assertion.includes) {
       if (!source.includes(expected)) {
-        errors.push(`${assertionLabel}: "${assertion.file}" is missing required Cycle 8 source binding ${JSON.stringify(expected)}.`);
+        errors.push(`${assertionLabel}: "${assertion.file}" is missing required ${coverageLabel} source binding ${JSON.stringify(expected)}.`);
       }
     }
   }
@@ -176,6 +184,13 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   }
   if (contract.cycle === '8' || claimsCycle8) {
     checkSourceAssertions(contract, label, repoRoot, errors);
+  }
+  const claimsA16 = isNonEmptyString(contract.id) && contract.id.startsWith('a16.');
+  if (claimsA16 && contract.cycle !== 'A16') {
+    errors.push(`${label}: an a16.* contract id must declare cycle "A16".`);
+  }
+  if (contract.cycle === 'A16' || claimsA16) {
+    checkSourceAssertions(contract, label, repoRoot, errors, 'A16 provider discovery');
   }
 
   const status = contract.status;
@@ -379,6 +394,7 @@ module.exports = {
   VALID_STATUSES,
   REQUIRED_CYCLE8_CONTRACT_IDS,
   REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  REQUIRED_A16_CONTRACT_IDS,
   REQUIRED_ACTIVE_CONTRACT_IDS,
 };
 

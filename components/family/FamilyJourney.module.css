@@ -33,6 +33,9 @@
   top: -80px;
   left: 16px;
   z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
   padding: 10px 14px;
   border: 1px solid var(--ink);
   border-radius: 6px;

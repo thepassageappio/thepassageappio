@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
     "test:server-actions": "node scripts/test-use-server-exports.js",
-    "test:participant-case-scope": "node scripts/test-participant-case-scope-source.mjs"
+    "test:participant-case-scope": "node scripts/test-participant-case-scope-source.mjs",
+    "test:provider-discovery": "node scripts/test-family-provider-discovery.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "5.3.0",
