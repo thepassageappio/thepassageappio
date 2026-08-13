@@ -17,12 +17,15 @@ export type FamilyMessagesViewResult =
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+type ParticipantIdentityRow = { family_name: string | null; person_name: string | null };
+
 // Deliberately narrower than lib/family/case-view.ts's loadFamilyCaseView:
 // this page only needs identity + the message thread, not tasks/events, so
 // it does its own small RLS-scoped workflow lookup rather than pulling in
-// unrelated data. Authorization is the same predicate either way
-// (passage_private.can_view_workflow, reached here through the workflows
-// table's own SELECT policy).
+// unrelated data. The raw workflow read is deliberately owner-only for the
+// family branch. An active updates-scoped participant therefore falls back to
+// the bounded case-update projection for the two display names before the
+// message RPC applies its own exact-workflow authority check.
 export async function loadFamilyMessagesView(workflowId: string): Promise<FamilyMessagesViewResult> {
   if (!UUID_PATTERN.test(workflowId)) return { ok: false, reason: 'not-found' };
 
@@ -38,7 +41,21 @@ export async function loadFamilyMessagesView(workflowId: string): Promise<Family
     .eq('id', workflowId)
     .maybeSingle();
   if (workflowResult.error) return { ok: false, reason: 'unavailable' };
-  if (!workflowResult.data) return { ok: false, reason: 'not-authorized' };
+
+  let personName: string | null = null;
+  let familyName: string | null = null;
+
+  if (workflowResult.data) {
+    personName = workflowResult.data.person_name;
+    familyName = workflowResult.data.family_name;
+  } else {
+    const participantResult = await client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId });
+    if (participantResult.error) return { ok: false, reason: 'unavailable' };
+    const row = ((participantResult.data ?? []) as ParticipantIdentityRow[])[0];
+    if (!row) return { ok: false, reason: 'not-authorized' };
+    personName = row.person_name;
+    familyName = row.family_name;
+  }
 
   const messagesResult = await loadWorkflowMessages(client, workflowId);
   if (!messagesResult.ok) return { ok: false, reason: 'unavailable' };
@@ -47,8 +64,8 @@ export async function loadFamilyMessagesView(workflowId: string): Promise<Family
     ok: true,
     data: {
       workflowId,
-      personName: workflowResult.data.person_name,
-      familyName: workflowResult.data.family_name,
+      personName,
+      familyName,
       messages: messagesResult.messages,
     },
   };

@@ -34,7 +34,7 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
       <nav aria-label="Your case" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20 }}>
         {FAMILY_NAV.map((item) => (
           item.available
-            ? <Link key={item.segment} aria-current={item.segment === 'messages' ? 'page' : undefined} href={`/case/${id}/${item.segment}`} style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13 }}>{item.label}</Link>
+            ? <Link key={item.segment} aria-current={item.segment === 'messages' ? 'page' : undefined} href={`/case/${id}/${item.segment}`} style={{ display: 'inline-flex', minHeight: 48, alignItems: 'center', padding: '8px 12px', fontWeight: 780, fontSize: 13 }}>{item.label}</Link>
             : <span key={item.segment} aria-disabled="true" style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13, color: 'var(--muted)' }} title="Not available yet">{item.label}</span>
         ))}
       </nav>

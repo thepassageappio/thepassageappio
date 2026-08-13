@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
   "version": 4,
-  "last_updated": "2026-07-28",
+  "last_updated": "2026-08-12",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",

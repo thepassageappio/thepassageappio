@@ -161,7 +161,7 @@ begin
     if v_participant.id is not null then
       v_sender_participant_id := v_participant.id;
       v_sender_label := case when length(btrim(coalesce(v_participant.relationship, ''))) > 0
-        then 'Family — ' || initcap(btrim(v_participant.relationship))
+        then 'Family: ' || initcap(btrim(v_participant.relationship))
         else 'Family' end;
     else
       v_sender_label := 'Family';
