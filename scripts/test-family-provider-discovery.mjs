@@ -136,6 +136,29 @@ assert.ok(mobileCss.includes('max-height: min(320px, 40vh);'));
 assert.ok(componentCss.includes('min-height: 3.5rem;'));
 assert.ok(componentCss.includes('min-height: 3rem;'));
 
+const familyPage = await readFile('app/family/page.tsx', 'utf8');
+const familyJourneyCss = await readFile(
+  'components/family/FamilyJourney.module.css',
+  'utf8',
+);
+assert.ok(
+  familyPage.includes(
+    '<a className={styles.skipLink} href="#family-journey">Skip to handoff</a>',
+  ),
+  'Family page must retain the Skip to handoff target',
+);
+const skipLinkRule = familyJourneyCss.match(/\.skipLink\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+for (const targetContract of [
+  'display: inline-flex;',
+  'align-items: center;',
+  'min-height: 48px;',
+]) {
+  assert.ok(
+    skipLinkRule.includes(targetContract),
+    `Skip to handoff must retain its 48px target contract: ${targetContract}`,
+  );
+}
+
 const searchRoute = await readFile(
   'app/family/provider-discovery/search/route.ts',
   'utf8',
