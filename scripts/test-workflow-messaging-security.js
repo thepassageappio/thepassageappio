@@ -349,6 +349,15 @@ check(
     && sqlMatrix.includes('Denied or conflicting requests changed message cardinality')
 );
 check(
+  'SQL matrix scopes projection cardinality to its four request receipts',
+  !/select count\(\*\)\s+from public\.list_workflow_messages_client_safe\(v_workflow_id\)\s+\) <> v_expected_message_count/m.test(sqlMatrix)
+    && sqlMatrix.includes('v_owner_message_id := v_first.message_id;')
+    && sqlMatrix.includes('v_participant_message_id := v_row.message_id;')
+    && sqlMatrix.includes('v_director_message_id := v_row.message_id;')
+    && sqlMatrix.includes('v_staff_message_id := v_row.message_id;')
+    && sqlMatrix.split('where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)').length >= 10
+);
+check(
   'server loader uses only the client-safe RPC',
   loader.includes(".rpc('list_workflow_messages_client_safe'")
     && !loader.includes(".from('workflow_messages')")
