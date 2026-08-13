@@ -9,21 +9,38 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from 'react';
-import { confirmProviderSelection } from '@/app/family/provider-discovery/actions';
+import { rankSyntheticProviders } from '@/lib/provider-discovery/synthetic-directory';
 import {
   createSearchRequestGate,
   nextActiveOption,
   type SearchRequestGate,
 } from '@/lib/provider-discovery/search-controller';
 import type {
+  BrowserDemoProviderSelection,
   FamilyProviderSelection,
   ProviderConfirmationInput,
+  ProviderConfirmationResult,
   ProviderDiscoveryResult,
+  ProviderSelectionSummary,
 } from '@/lib/provider-discovery/types';
 import styles from './FuneralHomeDiscovery.module.css';
 
-type Props = {
-  onSelectionChange: (selection: FamilyProviderSelection | null) => void;
+type ConfirmProviderSelection = (
+  input: ProviderConfirmationInput,
+) => Promise<ProviderConfirmationResult>;
+
+export type ProviderDiscoveryModeProps =
+  | {
+      providerMode: 'browser_demo';
+      confirmProviderSelection?: never;
+    }
+  | {
+      providerMode: 'authenticated';
+      confirmProviderSelection: ConfirmProviderSelection;
+    };
+
+type Props = ProviderDiscoveryModeProps & {
+  onSelectionChange: (selection: ProviderSelectionSummary | null) => void;
 };
 
 type SearchState =
@@ -57,7 +74,8 @@ const emptyManual: ManualDraft = {
   countryCode: 'US',
 };
 
-export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
+export default function FuneralHomeDiscovery(props: Props) {
+  const { onSelectionChange, providerMode } = props;
   const listboxId = useId();
   const statusId = useId();
   const recoveryRef = useRef<HTMLParagraphElement>(null);
@@ -68,12 +86,14 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
   const [results, setResults] = useState<ProviderDiscoveryResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searchState, setSearchState] =
-    useState<SearchState>('loading_selection');
+    useState<SearchState>(
+      providerMode === 'browser_demo' ? 'idle' : 'loading_selection',
+    );
   const [open, setOpen] = useState(false);
   const [candidate, setCandidate] = useState<ProviderDiscoveryResult | null>(
     null,
   );
-  const [saved, setSaved] = useState<FamilyProviderSelection | null>(null);
+  const [saved, setSaved] = useState<ProviderSelectionSummary | null>(null);
   const [mode, setMode] = useState<'search' | 'manual' | 'review' | 'saved'>(
     'search',
   );
@@ -90,6 +110,10 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
   }, [saveMessage]);
 
   useEffect(() => {
+    if (providerMode !== 'authenticated') {
+      setSearchState('idle');
+      return;
+    }
     const controller = new AbortController();
     fetch('/family/provider-discovery/selection', {
       cache: 'no-store',
@@ -128,7 +152,7 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
         }
       });
     return () => controller.abort();
-  }, [onSelectionChange]);
+  }, [onSelectionChange, providerMode]);
 
   useEffect(() => {
     if (mode !== 'search') return;
@@ -143,6 +167,18 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
     }
 
     const timer = window.setTimeout(async () => {
+      if (providerMode === 'browser_demo') {
+        const request = gate.current!.start();
+        setSearchState('loading');
+        setOpen(true);
+        const demoResults = rankSyntheticProviders(trimmed, 6);
+        if (!request.isCurrent()) return;
+        setResults(demoResults);
+        setActiveIndex(-1);
+        setOpen(demoResults.length > 0);
+        setSearchState(demoResults.length > 0 ? 'results' : 'empty');
+        return;
+      }
       if (!window.navigator.onLine) {
         setResults([]);
         setOpen(false);
@@ -195,7 +231,7 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [mode, query, retryCount]);
+  }, [mode, providerMode, query, retryCount]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -248,6 +284,15 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
 
   function confirmCandidate() {
     if (!candidate) return;
+    if (providerMode === 'browser_demo') {
+      saveBrowserDemoSelection({
+        displayName: candidate.displayName,
+        address: candidate.address,
+        addressReviewRequired: false,
+        handoffAvailability: candidate.handoffAvailability,
+      });
+      return;
+    }
     const input: ProviderConfirmationInput = pendingInput ?? {
       requestId: crypto.randomUUID(),
       expectedSelectionSavedAt: saved?.selectedAt ?? null,
@@ -273,6 +318,27 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
       );
       return;
     }
+    if (providerMode === 'browser_demo') {
+      const address = {
+        line1: manual.line1.trim(),
+        ...(manual.line2.trim() ? { line2: manual.line2.trim() } : {}),
+        locality: manual.locality.trim(),
+        administrativeArea: manual.administrativeArea.trim(),
+        postalCode: manual.postalCode.trim(),
+        countryCode: manual.countryCode.trim().toUpperCase(),
+      };
+      saveBrowserDemoSelection({
+        displayName: manual.displayName.trim(),
+        address: {
+          ...address,
+          formatted: formatProviderAddress(address),
+        },
+        addressReviewRequired:
+          !address.line1 || !address.locality || !address.postalCode,
+        handoffAvailability: 'save_only',
+      });
+      return;
+    }
     const input: ProviderConfirmationInput = pendingInput ?? {
       requestId: crypto.randomUUID(),
       expectedSelectionSavedAt: saved?.selectedAt ?? null,
@@ -292,10 +358,11 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
   }
 
   function save(input: ProviderConfirmationInput) {
+    if (props.providerMode !== 'authenticated') return;
     setSaveMessage('');
     startSaving(async () => {
       try {
-        const result = await confirmProviderSelection(input);
+        const result = await props.confirmProviderSelection(input);
         if (!result.ok) {
           setSaveMessage(result.message);
           return;
@@ -316,6 +383,31 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
         );
       }
     });
+  }
+
+  function saveBrowserDemoSelection(
+    selection: Pick<
+      ProviderSelectionSummary,
+      | 'displayName'
+      | 'address'
+      | 'addressReviewRequired'
+      | 'handoffAvailability'
+    >,
+  ) {
+    const localSelection: BrowserDemoProviderSelection = {
+      ...selection,
+      demoSelectionId: `demo-provider:${crypto.randomUUID()}`,
+      selectedAt: new Date().toISOString(),
+      audience:
+        'Only this browser demo can use this choice. Nothing was sent or shared.',
+      persistence: 'page_only',
+    };
+    setSaved(localSelection);
+    setCandidate(null);
+    setMode('saved');
+    setPendingInput(null);
+    setSaveMessage('Funeral-home choice is ready on this demo page.');
+    onSelectionChange(localSelection);
   }
 
   function startSearch() {
@@ -363,10 +455,20 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
       <section className={styles.saved} aria-labelledby={`${statusId}-saved`}>
         <div className={styles.savedHeader}>
           <div>
-            <p>Saved funeral-home choice</p>
-            <h2 id={`${statusId}-saved`}>Funeral home saved</h2>
+            <p>
+              {providerMode === 'browser_demo'
+                ? 'Browser-demo funeral-home choice'
+                : 'Saved funeral-home choice'}
+            </p>
+            <h2 id={`${statusId}-saved`}>
+              {providerMode === 'browser_demo'
+                ? 'Funeral home chosen'
+                : 'Funeral home saved'}
+            </h2>
           </div>
-          <span className={styles.savedState}>Saved</span>
+          <span className={styles.savedState}>
+            {providerMode === 'browser_demo' ? 'This page' : 'Saved'}
+          </span>
         </div>
         <div className={styles.savedProvider}>
           <strong>{saved.displayName}</strong>
@@ -375,12 +477,18 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
         <p className={styles.audience}>{saved.audience}</p>
         <div className={styles.truth}>
           <strong>
-            {saved.handoffAvailability === 'connected_preview'
+            {providerMode === 'browser_demo'
+              ? saved.handoffAvailability === 'connected_preview'
+                ? 'Ready for the browser-demo handoff'
+                : 'Ready for this browser-demo handoff'
+              : saved.handoffAvailability === 'connected_preview'
               ? 'Ready for the connected Preview step'
               : 'Saved to your plan'}
           </strong>
           <span>
-            {saved.handoffAvailability === 'connected_preview'
+            {providerMode === 'browser_demo'
+              ? 'Nothing was sent or shared. Continue below to review this private example.'
+              : saved.handoffAvailability === 'connected_preview'
               ? 'Nothing was sent. Continue below to review what you may share in the connected Preview.'
               : 'Passage has saved these details, but this funeral home is not connected here. Nothing was sent.'}
           </span>
@@ -392,8 +500,9 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
           </p>
         )}
         <p className={styles.receipt}>
-          Saved {formatSavedTime(saved.selectedAt)}. Nothing was sent. Proof is
-          kept in your family provider history.
+          {providerMode === 'browser_demo'
+            ? `Chosen ${formatSavedTime(saved.selectedAt)}. Nothing was sent. This example choice stays only on this page and clears when you refresh or leave.`
+            : `Saved ${formatSavedTime(saved.selectedAt)}. Nothing was sent. Proof is kept in your family provider history.`}
         </p>
         {saveMessage && (
           <p className={styles.notice} ref={recoveryRef} tabIndex={-1}>
@@ -565,21 +674,27 @@ export default function FuneralHomeDiscovery({ onSelectionChange }: Props) {
           <div><dt>Country</dt><dd>{candidate.address.countryCode}</dd></div>
         </dl>
         <p className={styles.confirmationBoundary}>
-          This saves the funeral home to your family space. Nothing is sent to
-          the funeral home.
+          {providerMode === 'browser_demo'
+            ? 'This keeps the choice only on this demo page until you refresh or leave. Nothing is sent to the funeral home.'
+            : 'This saves the funeral home to your family space. Nothing is sent to the funeral home.'}
         </p>
         <p className={styles.audience}>
-          {audience ?? 'Passage is checking who can see this choice.'}
+          {providerMode === 'browser_demo'
+            ? 'Only this browser demo can use this choice. Nothing was sent or shared.'
+            : audience ?? 'Passage is checking who can see this choice.'}
         </p>
         <p className={styles.truth}>
           <strong>
-            {candidate.handoffAvailability === 'connected_preview'
+            {providerMode === 'browser_demo'
+              ? 'Available for this browser demo only'
+              : candidate.handoffAvailability === 'connected_preview'
               ? 'Connected in this Preview'
               : 'Directory choice only'}
           </strong>
           <span>
-            Passage has not contacted this funeral home and will not grant
-            access when you save it.
+            {providerMode === 'browser_demo'
+              ? 'Passage has not contacted this funeral home. Confirming changes only this page.'
+              : 'Passage has not contacted this funeral home and will not grant access when you save it.'}
           </span>
         </p>
         {saveMessage && (
@@ -732,4 +847,23 @@ function formatSavedTime(value: string) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
+}
+
+function formatProviderAddress(address: {
+  line1: string;
+  line2?: string;
+  locality: string;
+  administrativeArea: string;
+  postalCode: string;
+  countryCode: string;
+}) {
+  return [
+    address.line1,
+    address.line2,
+    [address.locality, address.administrativeArea].filter(Boolean).join(', '),
+    address.postalCode,
+    address.countryCode,
+  ]
+    .filter(Boolean)
+    .join(' ');
 }

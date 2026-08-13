@@ -60,9 +60,20 @@ assert(demo.includes('<TopShell context="Example workspace" mode="gateway" opera
 assert(demo.includes('SEPARATE FAMILY EXAMPLE') && demo.includes('Guided operator examples'));
 assert(demo.includes('No team session opened and no record changed.'));
 for (const code of ['configuration', 'credentials', 'signout', 'signin', 'identity']) assert(demo.includes(`${code}:`));
-for (const code of ['configuration', 'signout', 'signin', 'identity']) assert(demoAction.includes(`demo=${code}`));
+for (const code of ['signout', 'signin', 'identity']) assert(!demoAction.includes(`demo=${code}`), `operator sign-in ${code} must fall back to the guided demo`);
 assert(!demoAction.includes("family: '/start"));
 for (const persona of ['director', 'staff', 'vendor']) assert(demoAction.includes(`${persona}: '/demo/operator/${persona}'`));
+for (const persona of ['director', 'staff', 'vendor']) {
+  assert(
+    demoAction.includes(`${persona}: '/demo/operator/${persona}'`),
+    `${persona} invalid_credentials must have a guided fallback destination`,
+  );
+}
+assert(demoAction.includes('result = await client.auth.signInWithPassword(credential)'));
+assert(demoAction.includes('if (result.error) {'));
+assert(demoAction.includes('await bestEffortSignOut(client);'));
+assert((demoAction.match(/redirect\(guidedDemoTargets\[persona\]\)/g) ?? []).length >= 8, 'every operator client, sign-out, sign-in, error, and identity failure must use the guided fallback');
+for (const target of ['/director', '/staff', '/partner']) assert(demoAction.includes(`'${target}'`), `configured operator success must retain ${target}`);
 for (const identity of ['Elena Torres', 'Maya Chen', 'Jordan Lee']) assert(operatorDemo.includes(identity));
 for (const boundary of ['Guided browser demo.', 'Example state exists only on this page and resets when you refresh or leave.', 'Nothing is saved to a real record or sent to anyone.', 'Family details', 'Not shared']) assert(operatorDemo.includes(boundary));
 assert(operatorDemo.includes('guidedDemoPersona={persona}'));

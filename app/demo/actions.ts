@@ -39,26 +39,42 @@ export async function startPreviewDemo(formData: FormData) {
   try {
     client = await createPassageServerClient();
   } catch {
-    redirect('/demo?demo=configuration');
+    redirect(guidedDemoTargets[persona]);
   }
-  if (!client) redirect('/demo?demo=configuration');
+  if (!client) redirect(guidedDemoTargets[persona]);
 
-  const signedOut = await client.auth.signOut();
-  if (signedOut.error) redirect('/demo?demo=signout');
+  let signedOut;
+  try {
+    signedOut = await client.auth.signOut();
+  } catch {
+    redirect(guidedDemoTargets[persona]);
+  }
+  if (signedOut.error) redirect(guidedDemoTargets[persona]);
 
   let result;
   try {
     result = await client.auth.signInWithPassword(credential);
   } catch {
-    redirect('/demo?demo=signin');
+    await bestEffortSignOut(client);
+    redirect(guidedDemoTargets[persona]);
   }
   if (result.error) {
-    await client.auth.signOut();
-    redirect('/demo?demo=signin');
+    await bestEffortSignOut(client);
+    redirect(guidedDemoTargets[persona]);
   }
   if (!result.data.user || result.data.user.email?.toLowerCase() !== credential.email.toLowerCase()) {
-    await client.auth.signOut();
-    redirect('/demo?demo=identity');
+    await bestEffortSignOut(client);
+    redirect(guidedDemoTargets[persona]);
   }
   redirect(demoTargets[persona]);
+}
+
+async function bestEffortSignOut(
+  client: NonNullable<Awaited<ReturnType<typeof createPassageServerClient>>>,
+) {
+  try {
+    await client.auth.signOut();
+  } catch {
+    // The guided fallback opens no protected page and makes no server claim.
+  }
 }

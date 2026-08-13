@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import FamilyIntentJourney from '../../components/family/FamilyIntentJourney';
 import styles from '../../components/family/FamilyJourney.module.css';
+import { confirmProviderSelection } from './provider-discovery/actions';
 
 export const metadata: Metadata = {
   title: 'Create a family handoff | Passage',
@@ -25,7 +26,10 @@ export default function FamilyPage() {
           People
         </a>
       </header>
-      <FamilyIntentJourney />
+      <FamilyIntentJourney
+        confirmProviderSelection={confirmProviderSelection}
+        providerMode="authenticated"
+      />
     </main>
   );
 }
