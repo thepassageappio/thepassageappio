@@ -30,6 +30,10 @@ const files = {
   sqlMatrix: read('supabase/tests/participant_updates_case_scope.sql'),
   lifecycleMatrix: read('supabase/tests/participant_invitation_lifecycle_p2.sql'),
   lifecycleRaces: read('scripts/test-participant-invitation-lifecycle-races.mjs'),
+  lifecycleRaceFixture: read('supabase/test-fixtures/participant_p2_race_reset.sql'),
+  lifecycleRaceVerifier: read('supabase/tests/participant_invitation_lifecycle_races_verify.sql'),
+  lifecycleRaceCleanupMigration: read('supabase/migrations/20260811001944_participant_p2_race_cleanup_boundary.sql'),
+  lifecycleRaceCleanupMatrix: read('supabase/tests/participant_p2_race_cleanup_boundary.sql'),
 };
 
 const combinedPersona = [
@@ -270,6 +274,9 @@ const assertions = [
       && files.lifecycleMatrix.includes('list_workflow_messages_client_safe')
       && files.lifecycleMatrix.includes('post_workflow_message_idempotent')
       && files.lifecycleMatrix.trimEnd().endsWith('rollback;')],
+  ['P2 rotated-link decline expects the authoritative conflict SQLSTATE',
+    files.lifecycleMatrix.includes("raise exception 'Expected old rotated-link decline denial';\n  exception when sqlstate '22023' then null;")
+      && !files.lifecycleMatrix.includes("raise exception 'Expected old rotated-link decline denial';\n  exception when sqlstate '42501' then null;")],
   ['P2 race harness covers every frozen competing command',
     files.lifecycleRaces.includes('rotate versus accept')
       && files.lifecycleRaces.includes('rotate versus cancel')
@@ -278,7 +285,64 @@ const assertions = [
       && files.lifecycleRaces.includes('message post after committed revocation')
       && files.lifecycleRaces.includes('Promise.all')
       && files.lifecycleRaces.includes("'uyacxqtsiwlvtmhxvoxr'")
-      && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")],
+      && files.lifecycleRaces.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaces.includes("signInWithPassword")
+      && files.lifecycleRaces.includes("'list_participant_invitation_projection'")
+      && files.lifecycleRaces.includes("'list_owned_continuity_participant_projection'")
+      && files.lifecycleRaces.includes("rpcRows(revokeParticipant, 'list_participant_continuity_spaces'")
+      && !/\.from\(['"](?:workflow_events|participant_invitations|continuity_participants)['"]\)/.test(files.lifecycleRaces)
+      && !/(SERVICE_ROLE|service_role|OWNER_JWT|PARTICIPANT_JWT)/.test(files.lifecycleRaces)],
+  ['P2 race reset is deterministic, cleanup-capable, and isolated-only',
+    files.lifecycleRaceFixture.includes("current_user <> 'postgres'")
+      && files.lifecycleRaceFixture.includes("'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleRaceFixture.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaceFixture.includes("v_mode not in ('reset', 'cleanup')")
+      && files.lifecycleRaceFixture.includes("participant-p2-race-isolated-reset-approved")
+      && files.lifecycleRaceFixture.includes("six unique verified Auth Admin accounts are required")
+      && files.lifecycleRaceFixture.includes("delete from public.workflow_events")
+      && files.lifecycleRaceFixture.includes("delete from public.continuity_spaces")
+      && files.lifecycleRaceFixture.includes("select fixture_key, fixture_value")
+      && !/insert\s+into\s+auth\./i.test(files.lifecycleRaceFixture)],
+  ['P2 race cardinality verifier is read-only, privileged, isolated, and redacted',
+    files.lifecycleRaceVerifier.includes("session_user <> 'postgres'")
+      && files.lifecycleRaceVerifier.includes("'uyacxqtsiwlvtmhxvoxr'")
+      && files.lifecycleRaceVerifier.includes("'qsveqfchwylsbncsfgxe'")
+      && files.lifecycleRaceVerifier.includes('participant-p2-race-read-only-verification-approved')
+      && files.lifecycleRaceVerifier.includes('orphan replacement detected')
+      && files.lifecycleRaceVerifier.includes('continuity_participant.revoked')
+      && !/\b(?:insert\s+into|update\s+public\.|delete\s+from|truncate|alter\s+table|drop\s+table|create\s+table)\b/i.test(files.lifecycleRaceVerifier)
+      && !/(auth\.users|invited_email|raw_token|token_digest|message_row\.body)/.test(files.lifecycleRaceVerifier)],
+  ['P2 race cleanup preserves append-only history outside the exact isolated fixture',
+    files.lifecycleRaceCleanupMigration.includes("tg_op = 'DELETE'")
+      && files.lifecycleRaceCleanupMigration.includes("session_user = 'postgres'")
+      && files.lifecycleRaceCleanupMigration.includes("current_user = 'postgres'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_p2_race_isolated_cleanup'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant-p2-race-event-cleanup-approved'")
+      && files.lifecycleRaceCleanupMigration.includes("old.continuity_space_id = '82a00001-82a0-42a0-82a0-000000000001'")
+      && files.lifecycleRaceCleanupMigration.includes("old.organization_id is null")
+      && files.lifecycleRaceCleanupMigration.includes("old.workflow_id is null")
+      && files.lifecycleRaceCleanupMigration.includes("old.task_id is null")
+      && files.lifecycleRaceCleanupMigration.includes("old.family_provider_selection_id is null")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_invitation.created'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_invitation.rotated'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_invitation.accepted'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_invitation.declined'")
+      && files.lifecycleRaceCleanupMigration.includes("'participant_invitation.revoked'")
+      && files.lifecycleRaceCleanupMigration.includes("'continuity_participant.revoked'")
+      && files.lifecycleRaceCleanupMigration.includes("raise exception 'Workflow events are append-only'")
+      && !files.lifecycleRaceCleanupMigration.includes('session_replication_role')
+      && files.lifecycleRaceFixture.includes("'participant_p2_race_isolated_cleanup'")
+      && files.lifecycleRaceFixture.includes("'participant-p2-race-event-cleanup-approved'")],
+  ['P2 cleanup SQL proves exact delete plus Production, foreign, UPDATE, and attestation denials',
+    files.lifecycleRaceCleanupMatrix.trimStart().startsWith('-- Rollback-only contract')
+      && files.lifecycleRaceCleanupMatrix.includes("set_config('passage.fixture_project_ref', 'qsveqfchwylsbncsfgxe', true)")
+      && files.lifecycleRaceCleanupMatrix.includes('Expected Production cleanup denial')
+      && files.lifecycleRaceCleanupMatrix.includes('Expected foreign-name cleanup denial')
+      && files.lifecycleRaceCleanupMatrix.includes('Expected foreign-invitation cleanup denial')
+      && files.lifecycleRaceCleanupMatrix.includes('Expected participant cleanup UPDATE denial')
+      && files.lifecycleRaceCleanupMatrix.includes('Expected missing-attestation cleanup denial')
+      && files.lifecycleRaceCleanupMatrix.trimEnd().endsWith('rollback;')
+      && !files.lifecycleRaceCleanupMatrix.includes('session_replication_role')],
   ['participant invitation copy makes no unsupported delivery claim',
     !/\b(received|resend|delivered|opened)\b/i.test(
       files.peoplePage + files.peopleForm + files.participantPage,

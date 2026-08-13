@@ -297,7 +297,7 @@ begin
       current_setting('passage.p2_rotate_token'), 'Invited person declined the invitation'
     );
     raise exception 'Expected old rotated-link decline denial';
-  exception when sqlstate '42501' then null;
+  exception when sqlstate '22023' then null;
   end;
 
   perform set_config('request.jwt.claim.sub', '82000001-8200-4200-8200-000000000001', true);
