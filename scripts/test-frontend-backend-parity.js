@@ -19,7 +19,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { checkLedger, REQUIRED_CYCLE8_CONTRACT_IDS } = require('./check-frontend-backend-parity');
+const {
+  checkLedger,
+  REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_A16_CONTRACT_IDS,
+  REQUIRED_ACTIVE_CONTRACT_IDS,
+} = require('./check-frontend-backend-parity');
 
 let passCount = 0;
 let failCount = 0;
@@ -289,6 +294,42 @@ function testRequiredCycle8CoverageCannotBeEmpty(repoRoot) {
   report('failing fixture: zero Cycle 8 contract coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
 }
 
+function testA16RequiresSourceAssertions(repoRoot) {
+  const bad = baseImplementedContract({
+    id: 'a16.fixture.missing-bindings',
+    cycle: 'A16',
+  });
+  const { ok, errors } = checkLedger({ contracts: [bad] }, repoRoot);
+  const expected = errors.some((error) =>
+    error.includes(
+      'A16 provider discovery requires a non-empty "source_assertions" array',
+    ),
+  );
+  report(
+    'failing fixture: A16 contract without source assertions is rejected',
+    ok === false && expected,
+    `ok=${ok} errors=${JSON.stringify(errors)}`,
+  );
+}
+
+function testRequiredA16CoverageCannotBeEmpty(repoRoot) {
+  const { ok, errors } = checkLedger(
+    { contracts: [baseImplementedContract()] },
+    repoRoot,
+    { requiredContractIds: REQUIRED_A16_CONTRACT_IDS },
+  );
+  const expected = errors.some((error) =>
+    error.includes(
+      `Required contract id "${REQUIRED_A16_CONTRACT_IDS[0]}" is missing`,
+    ),
+  );
+  report(
+    'failing fixture: missing A16 provider coverage is rejected',
+    ok === false && expected,
+    `ok=${ok} errors=${JSON.stringify(errors)}`,
+  );
+}
+
 // ---------------------------------------------------------------------
 // 3. Integration check against the real ledger
 // ---------------------------------------------------------------------
@@ -303,7 +344,7 @@ function testRealLedger() {
     report('integration: real ledger is valid JSON and readable', false, err.message);
     return;
   }
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_ACTIVE_CONTRACT_IDS });
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
@@ -434,6 +475,8 @@ function main() {
     testCycle8SourceDrift(repoRoot);
     testCycle8IdentityCannotMasquerade(repoRoot);
     testRequiredCycle8CoverageCannotBeEmpty(repoRoot);
+    testA16RequiresSourceAssertions(repoRoot);
+    testRequiredA16CoverageCannotBeEmpty(repoRoot);
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();

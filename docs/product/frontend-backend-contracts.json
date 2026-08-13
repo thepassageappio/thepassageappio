@@ -1037,7 +1037,7 @@
       "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "app/start/actions.ts"
       ],
       "durable_tables": [
@@ -1090,7 +1090,7 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
             "add column receiving_organization_id uuid",
             "p_receiving_organization_id uuid",
@@ -1111,6 +1111,120 @@
             "Exact receiving director callback/private RLS boundary failed",
             "Final receiver-submit request/event cardinality changed",
             "rollback;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a16.family.provider_discovery",
+      "cycle": "A16",
+      "capability": "A family coordinator finds, reviews, and durably saves one funeral-home choice without contacting it or granting access",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family",
+        "component": [
+          "components/family/TransferComposer.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.tsx"
+        ],
+        "files": [
+          "components/family/TransferComposer.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.module.css",
+          "app/family/provider-discovery/actions.ts",
+          "app/family/provider-discovery/search/route.ts",
+          "app/family/provider-discovery/selection/route.ts"
+        ],
+        "note": "The real Family receiver step uses a debounced combobox, explicit structured confirmation, always-visible manual recovery, durable reload projection, and truthful connected-versus-save-only boundaries. Searching and saving never contact a funeral home or grant access."
+      },
+      "action_status": "query remains memory-only, then unconfirmed structured choice, then explicit save receipt; replacement atomically supersedes the prior active choice; same request replays the original receipt; conflict preserves the saved choice",
+      "server_command": [
+        "POST /family/provider-discovery/search through server-only deterministic ProviderDiscoveryAdapter",
+        "public.confirm_family_provider_selection through passage_private.confirm_family_provider_selection",
+        "public.get_family_provider_selection_projection(uuid)"
+      ],
+      "backend_files": [
+        "lib/provider-discovery/synthetic-directory.ts",
+        "lib/provider-discovery/family-selection.ts",
+        "supabase/migrations/20260723092402_family_provider_discovery.sql",
+        "supabase/migrations/20260813035045_a16_new_york_sample.sql",
+        "app/family/provider-discovery/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "family_provider_selections",
+          "cardinality": "one active selection per continuity space plus retained superseded history and one unique request UUID per space"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only confirmed or superseded receipt per successful request"
+        }
+      ],
+      "rls_authority_predicate": "Confirmation requires a verified user who can manage the exact continuity space; projection requires current continuity-space view authority. Authenticated clients have no direct table mutation or directory access, and server code resolves source version and handoff truth.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "family_provider_selection.confirmed or family_provider_selection.superseded",
+        "idempotency_key": "family-provider-selection:<request-id>"
+      },
+      "failure_recovery_states": [
+        "under-two-character, loading, result, empty, unavailable, offline, and rate-limit states preserve an editable input and manual entry",
+        "unknown save outcome retains the request UUID and directs the family to reload before another choice",
+        "same-request replay returns the original selection and event while changed-payload replay fails without mutation",
+        "stale expected selection, wrong family, unrelated user, unverified user, and revoked viewer fail closed",
+        "manual partial address is saved with Needs address review and never gains connected handoff status"
+      ],
+      "persona_projection": "The family sees only confirmed provider name, structured address, server save time, actual family audience, address-review state, and connected-versus-plan-only next step. Internal identifiers, source details, raw queries, supersession internals, and other families are excluded.",
+      "evidence_test_references": [
+        "scripts/test-family-provider-discovery.mjs",
+        "supabase/tests/family_provider_discovery.sql",
+        "supabase/tests/family_provider_discovery_reversibility.sql",
+        "docs/product/funeral-home-discovery-thin-slice.md"
+      ],
+      "source_assertions": [
+        {
+          "file": "components/family/provider-discovery/FuneralHomeDiscovery.tsx",
+          "includes": [
+            "role=\"combobox\"",
+            "Enter funeral home details manually",
+            "Use this funeral home",
+            "We couldn't confirm whether it was saved. Reload and check your funeral home before trying again."
+          ]
+        },
+        {
+          "file": "app/family/provider-discovery/actions.ts",
+          "includes": [
+            "export async function confirmProviderSelection",
+            "'confirm_family_provider_selection'",
+            "'get_family_provider_selection_projection'"
+          ]
+        },
+        {
+          "file": "lib/provider-discovery/synthetic-directory.ts",
+          "includes": [
+            "rankSyntheticProviders",
+            "main-street-new-york",
+            "queryTokens",
+            "candidateToken.startsWith(queryToken)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260813035045_a16_new_york_sample.sql",
+          "includes": [
+            "'main-street-new-york'",
+            "'10 Main Street'",
+            "'New York'",
+            "'10001'"
+          ]
+        },
+        {
+          "file": "supabase/tests/family_provider_discovery.sql",
+          "includes": [
+            "Exact confirmation replay changed cardinality",
+            "Stale-selection conflict left partial state",
+            "Revoked participant retained provider selection access",
+            "Append-only denial changed provider event history"
           ]
         }
       ]

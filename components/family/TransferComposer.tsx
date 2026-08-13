@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
-import { DEFAULT_DRAFT, EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
+import { DEFAULT_DRAFT, EXPIRIES, SCOPES, type Recipient, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
+import FuneralHomeDiscovery from './provider-discovery/FuneralHomeDiscovery';
+import type { FamilyProviderSelection } from '@/lib/provider-discovery/types';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -19,11 +21,24 @@ export default function TransferComposer() {
   const { dispatch } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
+  const [providerSelection, setProviderSelection] =
+    useState<FamilyProviderSelection | null>(null);
   const [activating, setActivating] = useState(false);
   const stageHeading = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
 
-  const recipient = useMemo(() => RECIPIENTS.find((item) => item.id === draft.recipientId), [draft.recipientId]);
+  const recipient = useMemo<Recipient | undefined>(() => {
+    if (!providerSelection) return undefined;
+    return {
+      id: providerSelection.selectedAt,
+      organization: providerSelection.displayName,
+      person: providerSelection.handoffAvailability === 'connected_preview'
+        ? 'Connected Preview destination'
+        : 'Saved planning choice',
+      role: 'Not contacted by Passage',
+      location: providerSelection.address.formatted,
+    };
+  }, [providerSelection]);
   const expiry = useMemo(() => EXPIRIES.find((item) => item.id === draft.expiryId), [draft.expiryId]);
   const included = useMemo(() => SCOPES.filter((item) => draft.scopeIds.includes(item.id)), [draft.scopeIds]);
   const excluded = useMemo(() => SCOPES.filter((item) => !draft.scopeIds.includes(item.id)), [draft.scopeIds]);
@@ -39,9 +54,13 @@ export default function TransferComposer() {
     stageHeading.current?.focus();
   }, [phase]);
 
-  function selectRecipient(recipientId: string) {
-    setDraft((current) => ({ ...current, recipientId }));
-  }
+  const selectProvider = useCallback((selection: FamilyProviderSelection | null) => {
+    setProviderSelection(selection);
+    setDraft((current) => ({
+      ...current,
+      recipientId: selection ? 'saved-provider' : '',
+    }));
+  }, []);
 
   function toggleScope(scopeId: string) {
     setDraft((current) => ({
@@ -109,31 +128,10 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>01 / RECEIVER</p>
-                <h1 ref={stageHeading} tabIndex={-1}>Who is expecting this handoff?</h1>
-                <span>Choose one named organization. The pass will be made for them alone.</span>
+                <h1 ref={stageHeading} tabIndex={-1}>Which funeral home did you choose?</h1>
+                <span>Find it, review the address, and save one clear choice. Passage will not contact anyone at this step.</span>
               </div>
-              <fieldset className={styles.recipientList}>
-                <legend className={styles.srOnly}>Receiving organization</legend>
-                {RECIPIENTS.map((item, index) => {
-                  const selected = draft.recipientId === item.id;
-                  const available = item.id === 'northstar';
-                  return (
-                    <label className={selected ? styles.recipientSelected : styles.recipient} key={item.id}>
-                      <input checked={selected} disabled={!available} name="recipient" onChange={() => selectRecipient(item.id)} type="radio" />
-                      <span className={styles.recipientIndex}>{String(index + 1).padStart(2, '0')}</span>
-                      <span className={styles.recipientMain}>
-                        <strong>{item.organization}</strong>
-                        <small>{item.location}</small>
-                      </span>
-                      <span className={styles.recipientPerson}>
-                        <strong>{item.person}</strong>
-                        <small>{available ? item.role : 'Available in a later partner slice'}</small>
-                      </span>
-                      <span className={styles.radioMark} aria-hidden="true"><i /></span>
-                    </label>
-                  );
-                })}
-              </fieldset>
+              <FuneralHomeDiscovery onSelectionChange={selectProvider} />
             </div>
           )}
 
@@ -213,7 +211,7 @@ export default function TransferComposer() {
               <div className={styles.reviewRoute}>
                 <div><span>FROM</span><strong>Sofia's family</strong><small>Family-controlled record</small></div>
                 <div className={styles.routeLine} aria-hidden="true"><span /><i>HANDOFF</i><span /></div>
-                <div><span>TO</span><strong>{recipient.organization}</strong><small>{recipient.person}</small></div>
+                <div><span>TO</span><strong>{recipient.organization}</strong><small>{recipient.location}</small></div>
               </div>
 
               <div className={styles.reviewBoundary}>
@@ -228,7 +226,7 @@ export default function TransferComposer() {
               </div>
 
               <dl className={styles.reviewFacts}>
-                <div><dt>Receiving contact</dt><dd>{recipient.person}, {recipient.role}</dd></div>
+                <div><dt>Funeral-home status</dt><dd>{recipient.person}. {recipient.role}.</dd></div>
                 <div><dt>Access window</dt><dd>{expiry.label}</dd></div>
                 <div><dt>Closes</dt><dd>{expiry.moment}</dd></div>
               </dl>
@@ -242,8 +240,21 @@ export default function TransferComposer() {
                 Continue <span aria-hidden="true">-&gt;</span>
               </button>
             ) : (
-              <button className={styles.activate} disabled={activating} onClick={activate} type="button">
-                {activating ? 'Creating preview pass...' : 'Create preview pass'} <span aria-hidden="true">-&gt;</span>
+              <button
+                className={styles.activate}
+                disabled={
+                  activating
+                  || providerSelection?.handoffAvailability !== 'connected_preview'
+                }
+                onClick={activate}
+                type="button"
+              >
+                {activating
+                  ? 'Creating preview pass...'
+                  : providerSelection?.handoffAvailability === 'connected_preview'
+                    ? 'Create preview pass'
+                    : 'Preview handoff is not connected'}{' '}
+                <span aria-hidden="true">-&gt;</span>
               </button>
             )}
           </footer>

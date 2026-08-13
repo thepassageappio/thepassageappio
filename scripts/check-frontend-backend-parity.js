@@ -54,6 +54,11 @@ const REQUIRED_CYCLE8_CONTRACT_IDS = [
   'cycle8.director.proof_review',
   'cycle8.shared.immutable_proof_history',
 ];
+const REQUIRED_A16_CONTRACT_IDS = ['a16.family.provider_discovery'];
+const REQUIRED_ACTIVE_CONTRACT_IDS = [
+  ...REQUIRED_CYCLE8_CONTRACT_IDS,
+  ...REQUIRED_A16_CONTRACT_IDS,
+];
 
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -76,10 +81,16 @@ function fileExists(repoRoot, relPath) {
   }
 }
 
-function checkSourceAssertions(contract, label, repoRoot, errors) {
+function checkSourceAssertions(
+  contract,
+  label,
+  repoRoot,
+  errors,
+  coverageLabel = 'Cycle 8',
+) {
   const assertions = contract.source_assertions;
   if (!Array.isArray(assertions) || assertions.length === 0) {
-    errors.push(`${label}: Cycle 8 requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
+    errors.push(`${label}: ${coverageLabel} requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
     return;
   }
 
@@ -112,7 +123,7 @@ function checkSourceAssertions(contract, label, repoRoot, errors) {
     }
     for (const expected of assertion.includes) {
       if (!source.includes(expected)) {
-        errors.push(`${assertionLabel}: "${assertion.file}" is missing required Cycle 8 source binding ${JSON.stringify(expected)}.`);
+        errors.push(`${assertionLabel}: "${assertion.file}" is missing required ${coverageLabel} source binding ${JSON.stringify(expected)}.`);
       }
     }
   }
@@ -161,6 +172,13 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   }
   if (contract.cycle === '8' || claimsCycle8) {
     checkSourceAssertions(contract, label, repoRoot, errors);
+  }
+  const claimsA16 = isNonEmptyString(contract.id) && contract.id.startsWith('a16.');
+  if (claimsA16 && contract.cycle !== 'A16') {
+    errors.push(`${label}: an a16.* contract id must declare cycle "A16".`);
+  }
+  if (contract.cycle === 'A16' || claimsA16) {
+    checkSourceAssertions(contract, label, repoRoot, errors, 'A16 provider discovery');
   }
 
   const status = contract.status;
@@ -345,7 +363,7 @@ function main() {
     return;
   }
 
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_ACTIVE_CONTRACT_IDS });
   if (!ok) {
     console.error(`check-frontend-backend-parity: FAIL (${errors.length} issue${errors.length === 1 ? '' : 's'})`);
     for (const e of errors) console.error(`  - ${e}`);
@@ -363,6 +381,8 @@ module.exports = {
   REQUIRED_CONTRACT_FIELDS,
   VALID_STATUSES,
   REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_A16_CONTRACT_IDS,
+  REQUIRED_ACTIVE_CONTRACT_IDS,
 };
 
 if (require.main === module) {
