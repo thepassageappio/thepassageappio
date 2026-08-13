@@ -74,8 +74,13 @@ assert(transferComposer.includes('Review who can open what.'));
 assert(!transferComposer.includes('How long should the bridge stay open?'));
 assert(!transferComposer.includes('One receiver. A clear boundary.'));
 assert(transferComposer.includes("router.push('/demo/family/pass')"));
-assert(transferComposer.includes('could not be saved for reload'));
-assert(transferComposer.includes('The example handoff was not created. Your choices are unchanged. Try again.'));
+assert(transferComposer.includes('The example handoff was not created. Nothing was saved. Your choices are still here. Try again.'));
+assert(transferComposer.includes('activationRecovery.current?.focus()'));
+assert(transferComposer.includes('ref={activationRecovery} role="alert" tabIndex={-1}'));
+const activationStorageFailure = transferComposer.indexOf("window.sessionStorage.setItem('passage.family.transfer.v1'");
+const activationDispatch = transferComposer.indexOf("type: 'issue_transfer_pass'");
+const activationFailureReturn = transferComposer.indexOf('focusActivationRecovery();\n      return;', activationStorageFailure);
+assert(activationStorageFailure >= 0 && activationFailureReturn > activationStorageFailure && activationDispatch > activationFailureReturn, 'failed activation storage must return before dispatch');
 
 assert(activePass.includes('await navigator.clipboard.writeText'));
 assert(activePass.includes('The code was not copied. It is selected now. Use your device Copy command.'));
@@ -83,10 +88,16 @@ assert(activePass.includes('range.selectNodeContents(manualCode.current)'));
 assert(activePass.includes('confirmHeading.current?.focus()'));
 assert(activePass.includes("event.key === 'Escape'"));
 assert(activePass.includes('closeTrigger.current?.focus()'));
-assert(activePass.includes('The example handoff was not closed. It remains open.'));
-assert(activePass.includes('The example handoff is closed for this visit, but the browser could not save the closure.'));
+assert(activePass.includes('The example handoff was not closed. It remains open. Nothing changed. Try again or keep it open.'));
+assert(activePass.includes('closeRecovery.current?.focus()'));
+assert(activePass.includes('ref={closeRecovery} role="alert" tabIndex={-1}'));
+const closeStorageCleanup = activePass.indexOf("window.sessionStorage.removeItem('passage.family.transfer.v1')", activePass.indexOf('function revoke()'));
+const closeDispatch = activePass.indexOf("type: 'revoke_transfer_pass'", activePass.indexOf('function revoke()'));
+const closeFailureReturn = activePass.indexOf('closeRecovery.current?.focus());\n      return;', closeStorageCleanup);
+assert(closeStorageCleanup >= 0 && closeFailureReturn > closeStorageCleanup && closeDispatch > closeFailureReturn, 'failed close storage must return before dispatch');
 assert(activePass.includes('closedHeading.current?.focus()'));
 assert(/\.revokePanel button[\s\S]*min-height:\s*48px/.test(familyStyles));
+assert(/\.recoveryMessage[\s\S]*font-size:\s*14px/.test(familyStyles));
 
 assert(repository.includes('export function readSandboxResult'));
 assert(repository.includes('export function clearSandboxStorage'));
@@ -94,6 +105,10 @@ assert(repository.includes('export function writeSandbox'));
 assert((repository.match(/catch \{/g) ?? []).length >= 3, 'sandbox storage read, cleanup, and write must fail safely');
 assert(provider.includes('persistenceIssue'));
 assert(provider.includes('recordRef.current = next'));
+assert(provider.includes('dispatchAtomic'));
+assert(provider.includes("if (!result.persisted)"));
+assert(transferComposer.includes('dispatchAtomic({'));
+assert(activePass.includes('dispatchAtomic({'));
 
 for (const [file, target] of [
   ['app/resources/page.tsx', '/guides'],

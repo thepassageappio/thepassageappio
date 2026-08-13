@@ -583,6 +583,20 @@
   border: 0;
 }
 
+.recoveryMessage {
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid var(--warm);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--warm) 8%, var(--surface));
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.stage > .recoveryMessage { margin: 0 clamp(18px, 4vw, 54px) 20px; }
+.recoveryMessage:focus-visible { outline: 3px solid var(--signal); outline-offset: 3px; }
+
 /* Active pass */
 .passPage { max-width: 1500px; margin: 0 auto; padding: 34px clamp(20px, 4vw, 64px) 100px; }
 .passStatus {
@@ -662,6 +676,7 @@
 .revokePanel { min-width: 330px; display: grid; gap: 6px; padding: 18px; border: 1px solid var(--warm); border-radius: 8px; background: color-mix(in srgb, var(--warm) 8%, var(--surface)); }
 .revokePanel > strong { font-size: 13px; }
 .revokePanel > span { color: var(--muted); font-size: 10px; }
+.revokePanel > .recoveryMessage { font-size: 14px; }
 .revokePanel > div { display: flex; gap: 8px; margin-top: 8px; }
 .revokePanel button { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
 .revokePanel button:last-child { border-color: var(--warm); background: var(--warm); color: var(--ink); }

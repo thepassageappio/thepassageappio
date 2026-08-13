@@ -28,7 +28,7 @@ function PassCode() {
 }
 
 export default function ActivePass() {
-  const { record, dispatch } = usePassageZero();
+  const { record, dispatchAtomic } = usePassageZero();
   const accountableDirector = membership(record, record.case.accountableMembershipId).actor;
   const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
   const familyStatus = selectFamilyStatus(record);
@@ -42,6 +42,7 @@ export default function ActivePass() {
   const closedHeading = useRef<HTMLHeadingElement>(null);
   const closeTrigger = useRef<HTMLButtonElement>(null);
   const confirmHeading = useRef<HTMLElement>(null);
+  const closeRecovery = useRef<HTMLParagraphElement>(null);
   const manualCode = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -107,22 +108,39 @@ export default function ActivePass() {
 
   function revoke() {
     setCloseMessage('');
+    let savedHandoff: string | null = null;
     try {
-      const result = dispatch({ type: 'revoke_transfer_pass', actorId: 'maya-rivera', idempotencyKey: 'family:revoke:rivera' });
-      let cleanupFailed = false;
-      try {
-        window.sessionStorage.removeItem('passage.family.transfer.v1');
-      } catch {
-        cleanupFailed = true;
+      savedHandoff = window.sessionStorage.getItem('passage.family.transfer.v1');
+      window.sessionStorage.removeItem('passage.family.transfer.v1');
+    } catch {
+      setCloseMessage('The example handoff was not closed. It remains open. Nothing changed. Try again or keep it open.');
+      window.requestAnimationFrame(() => closeRecovery.current?.focus());
+      return;
+    }
+
+    try {
+      const result = dispatchAtomic({ type: 'revoke_transfer_pass', actorId: 'maya-rivera', idempotencyKey: 'family:revoke:rivera' });
+      if (!result.persisted) {
+        let restored = false;
+        try {
+          if (savedHandoff) {
+            window.sessionStorage.setItem('passage.family.transfer.v1', savedHandoff);
+            restored = true;
+          }
+        } catch {
+          // The handoff remains open in memory even when its saved copy cannot be restored.
+        }
+        setCloseMessage(restored
+          ? 'The example handoff was not closed. It remains open and saved. Try again or keep it open.'
+          : 'The example handoff was not closed. It remains open for this visit, but its saved browser copy could not be restored.');
+        window.requestAnimationFrame(() => closeRecovery.current?.focus());
+        return;
       }
-      setCloseMessage(
-        result.persisted && !cleanupFailed
-          ? 'The example handoff is closed in this browser.'
-          : 'The example handoff is closed for this visit, but the browser could not save the closure. Reset the family demo before using it again.',
-      );
+      setCloseMessage('The example handoff is closed in this browser.');
       setConfirming(false);
     } catch {
-      setCloseMessage('The example handoff was not closed. It remains open. Try again or keep it open.');
+      setCloseMessage('The example handoff was not closed. It remains open for this visit. The saved browser copy was removed. Create it again after reloading.');
+      window.requestAnimationFrame(() => closeRecovery.current?.focus());
     }
   }
 
@@ -221,6 +239,7 @@ export default function ActivePass() {
           <div className={styles.revokePanel} onKeyDown={handleConfirmKeyDown} role="group" aria-labelledby="confirm-revoke-heading">
             <strong id="confirm-revoke-heading" ref={confirmHeading} tabIndex={-1}>Close access now?</strong>
             <span>The example QR and manual code will stop working in this browser demo.</span>
+            {closeMessage && <p className={styles.recoveryMessage} ref={closeRecovery} role="alert" tabIndex={-1}>{closeMessage}</p>}
             <div>
               <button onClick={keepOpen} type="button">Keep open</button>
               <button onClick={revoke} type="button">Yes, close it</button>

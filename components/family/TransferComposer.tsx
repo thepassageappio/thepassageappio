@@ -17,11 +17,12 @@ const STEPS = [
 
 export default function TransferComposer() {
   const router = useRouter();
-  const { dispatch, persistenceIssue } = usePassageZero();
+  const { dispatchAtomic, persistenceIssue } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
   const [activating, setActivating] = useState(false);
   const [activationMessage, setActivationMessage] = useState('');
+  const activationRecovery = useRef<HTMLParagraphElement>(null);
   const stageHeading = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
 
@@ -58,9 +59,14 @@ export default function TransferComposer() {
     if (phase < STEPS.length - 1 && canContinue) setPhase((current) => current + 1);
   }
 
+  function focusActivationRecovery() {
+    window.requestAnimationFrame(() => activationRecovery.current?.focus());
+  }
+
   function activate() {
     if (!recipient || !expiry || included.length === 0) return;
     setActivating(true);
+    setActivationMessage('');
     const activatedAt = new Date().toISOString();
     const expiresAt = deriveDemoExpiry(activatedAt, expiry.id);
     if (!expiresAt) {
@@ -68,29 +74,52 @@ export default function TransferComposer() {
       return;
     }
     const activated: TransferDraft = { ...draft, activatedAt, expiresAt };
-    let sessionSaved = false;
     try {
       window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
-      sessionSaved = true;
     } catch {
-      setActivationMessage('This example could not be saved for reload. It remains available for this visit only.');
+      setActivating(false);
+      setActivationMessage('The example handoff was not created. Nothing was saved. Your choices are still here. Try again.');
+      focusActivationRecovery();
+      return;
     }
 
     try {
-      const sandboxResult = dispatch({
+      const sandboxResult = dispatchAtomic({
         type: 'issue_transfer_pass',
         actorId: 'maya-rivera',
         idempotencyKey: `family:issue:${activated.activatedAt}`,
         scope: included.map((item) => ({ name: item.label, detail: item.detail })),
         expiresLabel: formatDemoExpiry(expiresAt) ?? expiry.moment,
       });
-      if (!sandboxResult.persisted || !sessionSaved) {
-        setActivationMessage('The example was created for this visit, but this browser could not save it for reload. Continue to review it now.');
+      if (!sandboxResult.persisted) {
+        let incompleteCopyRemoved = false;
+        try {
+          window.sessionStorage.removeItem('passage.family.transfer.v1');
+          incompleteCopyRemoved = true;
+        } catch {
+          // The handoff is still not presented as successful. Reset remains available.
+        }
+        setActivating(false);
+        setActivationMessage(incompleteCopyRemoved
+          ? 'The example handoff was not created. Nothing was saved. Your choices are still here. Try again.'
+          : 'The example handoff was not created. Your choices are still here, but the browser could not remove its incomplete saved copy. Reset the family demo before retrying.');
+        focusActivationRecovery();
+        return;
       }
       router.push('/demo/family/pass');
     } catch {
+      let incompleteCopyRemoved = false;
+      try {
+        window.sessionStorage.removeItem('passage.family.transfer.v1');
+        incompleteCopyRemoved = true;
+      } catch {
+        // The handoff is still not presented as successful. Reset remains available.
+      }
       setActivating(false);
-      setActivationMessage('The example handoff was not created. Your choices are unchanged. Try again.');
+      setActivationMessage(incompleteCopyRemoved
+        ? 'The example handoff was not created. Nothing was saved. Your choices are still here. Try again.'
+        : 'The example handoff was not created. Your choices are still here, but the browser could not remove its incomplete saved copy. Reset the family demo before retrying.');
+      focusActivationRecovery();
     }
   }
 
@@ -270,7 +299,11 @@ export default function TransferComposer() {
               </button>
             )}
           </footer>
-          <p className={styles.liveRegion} aria-live="polite">{activationMessage || persistenceIssue || ''}</p>
+          {(activationMessage || persistenceIssue) && (
+            <p className={styles.recoveryMessage} ref={activationRecovery} role="alert" tabIndex={-1}>
+              {activationMessage || persistenceIssue}
+            </p>
+          )}
         </section>
 
         <BoundarySignal recipient={recipient} included={included} excluded={excluded} expiry={expiry} />
