@@ -3354,3 +3354,115 @@ Status: **INDEPENDENT REVIEW FAIL PRESERVED / ASSERTION CORRECTED / SOURCE PARTI
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / HOSTED PREVIEW PARTIAL / NO PRODUCTION CLAIM.
 - **Auto-advance target:** freeze a Bot-authored `[skip deploy]` descendant and hand the exact head to fresh distinct Source QA. Only a distinct PASS permits replacement Preview publication. No owner prompt is required.
+
+### PM Sprint Brief - combined Hosted QA return: browser family demo A16 boundary - 2026-08-12 23:30 -07:00
+
+- **Role instance and received handoff:** distinct Product Manager `/root/pm_combined_demo_a16_return` received the fresh Hosted Preview QA return for exact combined source `0065bd41c8191a0c8bed1dc60528d76c2d6ac5a5`, tree `aa8117115e4863c2d59234e2992780e86485a069`, and non-production Preview `dpl_2JsVK9CM`. The candidate remains frozen as evidence. This repair starts from that exact source on branch `fix/demo-family-a16-return-20260812`; it does not rewrite or invalidate the preserved deployment record.
+- **Reproduced product regression:** browser-only `/demo/family` renders the authenticated A16 `FuneralHomeDiscovery`. Mount calls auth-required `/family/provider-discovery/selection`; search calls auth-required `/family/provider-discovery/search`; confirmation calls the authenticated Server Action. The demo correctly receives `401`, but the Receiver step cannot save a selection, so Access, Timing, Review, and Continue are unreachable. This contradicts the route's visible browser-only, no-account boundary and blocks the deterministic Steve family demo.
+- **Issue classification:** **FIX NOW**. It is a launch-candidate regression in a required whole-platform demo path. **Deployment configuration debt, separate:** Director sign-in password drift is not caused by this source defect and must not be folded into this patch. Deploy owns credential/config reconciliation and a real-sign-in recovery test on the exact isolated Preview. **WATCH:** any shared-component repair that silently downgrades authenticated `/family` from durable A16 to browser state is release-blocking. **BACKLOG:** none added by this bounded return. **OWNER GATE:** none.
+
+#### Sprint goal
+
+Restore the complete browser-only family demo with deterministic local funeral-home discovery and selection while leaving the authenticated `/family` A16 query, durable confirmation, authority, receipt, recovery, and copy contract unchanged.
+
+#### Frozen product decision
+
+Choose the **demo-local deterministic provider adapter/state path**, not route omission. `/demo/family` still teaches the Receiver step and must remain representative of the real handoff journey. The route must explicitly select browser-demo mode through server-owned composition props passed `DemoFamilyPage -> FamilyIntentJourney -> TransferComposer -> FuneralHomeDiscovery`.
+
+In browser-demo mode:
+
+1. Search the existing deterministic synthetic directory locally with the existing ranking semantics. Do not call `/family/provider-discovery/selection`, `/family/provider-discovery/search`, `confirmProviderSelection`, Supabase, Auth, or any other network-backed provider command.
+2. Explicit user confirmation saves only a browser-demo selection. Use page/session browser state consistent with the existing demo boundary; it must not claim a family space, server receipt, durable history, connected Preview authority, external contact, or real handoff.
+3. Preserve keyboard combobox behavior, explicit review before confirmation, manual-entry recovery, saved selection, change/edit, and the existing four-step Receiver -> Access -> Timing -> Review flow.
+4. The canonical Northstar Portland result remains `connected_preview` only as deterministic demo content so `Create preview pass` can complete the existing browser demo. This flag grants no server authority and must not be described as a durable connection in demo copy.
+5. Browser-demo refresh/reset behavior must remain truthful. If the selection is session-persisted, use a demo-specific storage key, parse fail closed, and make existing demo reset clear it. If it is page-local, do not claim reload persistence.
+
+In authenticated mode:
+
+1. Preserve the current selection preload request, auth-required search route, durable `confirmProviderSelection` Server Action, family-space authority, replay/conflict behavior, append-only receipt, and authenticated copy.
+2. Do not introduce a fallback from a `401`, network failure, missing family space, or failed durable save to browser-local success. Authenticated failures continue to fail closed with the existing recovery path.
+
+#### Requirements and components
+
+- `app/demo/family/page.tsx`: explicitly requests browser-demo provider behavior.
+- `app/family/page.tsx`: explicitly or by fail-closed default retains authenticated provider behavior.
+- `components/family/FamilyIntentJourney.tsx`, `components/family/TransferComposer.tsx`, and `components/family/provider-discovery/FuneralHomeDiscovery.tsx`: carry a narrow discriminated mode. Default must be authenticated, never inferred from pathname, hostname, environment variable, fetch failure, or missing session.
+- Reuse `lib/provider-discovery/synthetic-directory.ts` ranking/data as the single deterministic directory. Do not duplicate a second result list.
+- Keep browser-demo state separate from authenticated provider types where needed so UI code cannot accidentally present a local result as a server receipt.
+- Add focused source regression coverage in the existing family-provider and public/demo test commands. No schema, migration, RLS, RPC, fixture, parity contract, roadmap, or deployment configuration change is required.
+
+#### Frontend/backend contract matrix
+
+| Surface | Query/search | Confirm/save | State and proof | Required failure boundary |
+| --- | --- | --- | --- | --- |
+| `/demo/family` | Existing deterministic directory adapter in the browser; zero network/Auth calls | Local explicit confirmation only | Current page or demo-specific browser session state; labeled browser demo, no durable proof claim | Storage/local failure preserves reviewed input, says nothing was saved, and never invokes authenticated fallback |
+| `/family` | Existing auth-required selection and search endpoints | Existing `confirmProviderSelection` Server Action | Durable family selection plus existing append-only receipt and audience truth | `401`, no family space, provider failure, unknown outcome, replay, and conflict remain fail closed and recoverable |
+
+#### Acceptance criteria
+
+1. From a clean browser context, `/demo/family` renders without any request to `/family/provider-discovery/selection`.
+2. Typing `Northstar`, an address fragment, or the New York fixture on `/demo/family` returns the deterministic ranked results without a request to `/family/provider-discovery/search` or any Auth/Supabase endpoint.
+3. Pointer and keyboard users can choose a result, review it, explicitly confirm it, continue through Access, Timing, and Review, create the preview pass, and reach `/demo/family/pass`.
+4. Manual funeral-home entry also confirms locally and completes the same demo flow. Empty, no-match, edit, change, retry/local-storage failure, and reset paths remain truthful.
+5. Demo UI never says the provider choice was saved to a family space, durable provider history, server receipt, or real connected funeral home. It continues to state nothing was sent or shared and the work stays in the browser demo.
+6. Focus, announcements, combobox keyboard behavior, at least 48 by 48 pixel enabled targets, wrapping, and zero horizontal overflow remain valid at 1440, 390, 360, 320 reflow, and 200 percent text/zoom evidence.
+7. Authenticated `/family` still performs the existing selection preload, auth-required search, and durable Server Action confirmation. Existing A16 source tests, isolated SQL/RLS/replay/conflict/reversibility tests, parity, TypeScript, and optimized build remain passing without altered migration or contract hashes.
+8. A regression test fails if browser-demo mode imports or invokes `confirmProviderSelection`, fetches either auth-required endpoint, infers mode from URL/environment/failure, or permits local success on the authenticated route.
+9. Hosted rerun records exact descendant source/tree/deployment, complete `/demo/family` network log, final URL, browser console/page errors/rejections/failed requests, and the full family flow at required viewports. The original `dpl_2JsVK9CM` verdict remains preserved as **Hosted Preview QA FAIL for this cell**.
+
+#### Development objectives
+
+1. Introduce the smallest typed mode seam at the page composition boundary.
+2. Refactor only the provider discovery data/save adapter points needed to select authenticated versus browser-demo behavior. Keep one interaction renderer and one ranking implementation.
+3. Add a demo-local selection constructor with a demo-specific timestamp/id and explicit local-only audience/copy, without fabricating a server `replayed` receipt.
+4. Add deterministic static/unit assertions for zero demo network/auth calls and authenticated-path preservation, then rerun the full combined source suite.
+5. Update this living handoff with files, exact tests, source identity, failures, and the next independent QA target before committing.
+
+#### Dependencies, risks, and non-goals
+
+- **Dependencies:** exact base `0065bd41...`; existing A16 deterministic directory, browser family handoff, and source tests. No database or environment dependency.
+- **Primary risk:** a convenient client fallback could bypass authenticated durability. The explicit mode must come only from the route composition and default to authenticated.
+- **Secondary risk:** importing server-only modules into the client bundle. Reuse only the pure deterministic directory/ranking module or extract a pure shared adapter without moving credentials or server authority into client code.
+- **Non-goals:** no A16 schema/RLS/RPC/event change; no Production work; no Preview publication in Engineering; no credential editing; no Director password repair; no live provider API; no public copy redesign; no route removal; no readiness increase.
+
+#### QA and deploy plan
+
+- Engineering runs focused demo/provider tests, authenticated A16 tests, public conversion, persona language, parity, Server Action guards, runtime/config/deploy gates, TypeScript, optimized build, and diff checks. SQL is unchanged; distinct QA confirms hashes and reruns the applicable isolated A16 matrix rather than accepting an Engineering claim.
+- Fresh Independent QA uses separate clean browser contexts for browser-demo and authenticated family behavior, proves zero demo auth/network calls and complete demo flow, then reruns the full required combined Hosted matrix on one exact descendant Preview. Director password drift remains a named Deploy configuration fix-it and cannot be counted as this source repair.
+- Production deployment and Production QA remain NOT RUN. No owner prompt is required.
+
+#### Roadmap freshness and role handoff
+
+- **Material roadmap change:** NO. This restores an already-required deterministic family demo boundary and does not change product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score. Canonical roadmap edit is not required.
+- **UX Review:** existing A16 combobox and browser-demo boundaries remain controlling. No new interaction or copy direction is introduced; fresh UX re-review is required on the implemented local-only receipt language and responsive evidence before Hosted QA approval.
+- **Immediate next role:** distinct Development Engineering implements this exact bounded brief on `fix/demo-family-a16-return-20260812` from `0065bd41...`, commits with `[skip deploy]`, and returns the exact head to fresh UX re-review and Independent QA. The train must not pause for the owner.
+
+### Browser family A16 and operator sign-in fallback - Development Engineering handoff - 2026-08-13 00:02 -07:00
+
+- **Role instance and received handoff:** distinct Development Engineer `/root/pm_combined_demo_a16_return/eng_demo_family_a16_return` received the complete PM Sprint Brief above on exact PM-only head `5c19113a504799e8bde9bd2461e1096adf77d8c1`. Exact lineage was verified before editing: `5c19113...` is a clean descendant of combined candidate `0065bd41c8191a0c8bed1dc60528d76c2d6ac5a5`, whose tree is `aa8117115e4863c2d59234e2992780e86485a069`. The later PM addendum required every configured Director, Staff, or Vendor sign-in failure to open the existing truthful guided browser demo while preserving successful isolated sign-in targets.
+- **A16 route-composition repair:** `/demo/family` now explicitly passes `providerMode="browser_demo"` through `FamilyIntentJourney` and `TransferComposer` to the shared `FuneralHomeDiscovery`. Browser-demo search calls the existing pure `rankSyntheticProviders` function directly, and explicit directory or manual confirmation creates only a typed page-local selection. It contains no server replay field, family-space claim, durable-history claim, or external contact claim. The receipt states that the example choice exists only on the current page and clears on refresh or exit.
+- **Authenticated behavior preserved:** `/family` explicitly passes `providerMode="authenticated"` and the existing `confirmProviderSelection` Server Action. The shared client renderer no longer statically imports that action. Selection preload, authenticated search, durable confirmation, RLS/authority, append-only receipt, replay/conflict handling, and fail-closed recovery remain in their existing authenticated branches. No failure, missing session, URL, pathname, hostname, or environment value can activate browser-demo mode.
+- **Operator recovery addendum:** `startPreviewDemo` retains configured success destinations `/director`, `/staff`, and `/partner`. Client creation exceptions or absence, initial sign-out exception/error, sign-in exception/error including `invalid_credentials`, and identity mismatch now move to the matching existing `/demo/operator/{persona}` page. Post-attempt failures use best-effort sign-out first. The guided pages already say that no server session opened, no record changed, state exists only on the page, and refresh resets it; their navigation remains contained under `/demo`.
+- **Permanent regression coverage:** `scripts/test-family-provider-discovery.mjs` binds explicit route composition, zero authenticated action import/pass in the demo graph, pure deterministic local ranking, authenticated action preservation, and no inferred/failure fallback. New `scripts/test-operator-demo-fallback.mjs` executes `invalid_credentials` for Director, Staff, and Vendor, proves best-effort cleanup, and proves each configured successful identity still redirects to its protected persona route. The public conversion guard binds every source failure to the guided fallback and prohibits the old sign-out, sign-in, and identity dead ends.
+- **Files changed:** `app/demo/actions.ts`, `app/demo/family/page.tsx`, `app/family/page.tsx`, `components/family/FamilyIntentJourney.tsx`, `components/family/TransferComposer.tsx`, `components/family/provider-discovery/FuneralHomeDiscovery.tsx`, `lib/provider-discovery/types.ts`, `package.json`, `scripts/test-family-provider-discovery.mjs`, `scripts/test-public-conversion.js`, `scripts/test-operator-demo-fallback.mjs`, and this living context. No schema, migration, RLS, RPC, parity ledger, roadmap, fixture, environment, credentials, Supabase resource, Vercel configuration, pricing, or Production resource changed.
+- **Engineering source verification:** provider discovery PASS; public conversion PASS; operator configured-sign-in fallback PASS; Participant invitation P1/P2 source guard `42/42` PASS; workflow messaging `27/27` PASS; participant case authority `25` PASS; frontend/backend parity `22/22` PASS; Server Action export guard PASS with two Cycle 8, nine invitation, and one A16 action; persona language PASS; context PASS before this append; release governance PASS; operational routes PASS; runtime isolation PASS; deploy-decision matrix PASS; TypeScript PASS; optimized Next.js 16.1.6 build PASS with 51 routes; React/Next quality review PASS; and `git diff --check` PASS. The optimized build emitted the known multiple-lockfile warning and a trailing Windows access-denied noise line after successful exit `0`; compilation, TypeScript, static generation, and route inventory all completed.
+- **Environment-bound evidence:** the Participant P2 race runner was NOT RUN in this source worktree because `PASSAGE_P2_RACE_PROJECT_REF` and its isolated credentials are not present. It failed closed before any connection. The unchanged P2 source/race contract remained green in the `42/42` guard. Fresh exact-head QA owns any credential-bound rerun against isolated `uyacxqtsiwlvtmhxvoxr` only.
+- **Local browser evidence and infrastructure fix-it:** browser QA is **NOT RUN**. A local development server attempt failed to bind. The optimized production server later bound port `3217`, but both a direct HEAD request and in-app browser navigation stalled without returning a page. Watchdog terminated only the known local server process and finalized the browser tab. Named fix-it owner: fresh Independent QA. Affected cells: New York suggestions, explicit selection, Receiver to Access to Timing to Review to pass, manual entry, zero provider-endpoint network capture, responsive/focus/runtime cells, and the three forced operator-failure navigations. Recovery test: start the exact committed build in a clean runner, capture all requests, prove zero `/family/provider-discovery/search` and `/family/provider-discovery/selection` requests on `/demo/family`, complete both directory and manual flows, and prove each operator failure lands on the matching guided page with no protected navigation.
+- **Roadmap material-change classification:** **NO**. This restores already-required deterministic demo and truthful recovery behavior. It changes no product direction, scope, milestone order, persona coverage, architecture, readiness doctrine, or score.
+- **Source QA:** ENGINEERING GATES PASS / DISTINCT EXACT-HEAD SOURCE AND DATA QA NOT RUN.
+- **Hosted Preview QA:** PRESERVED FAIL on original combined Preview cell; replacement descendant Preview NOT DEPLOYED and QA NOT RUN.
+- **Production Deployment:** NOT DEPLOYED.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR COMPLETE / BROWSER QA NOT RUN / NON-PRODUCTION / NOT QA-APPROVED.
+- **Auto-advance target:** freeze one Passage Release Bot `[skip deploy]` descendant and immediately hand the exact head/tree to fresh UX re-review and Independent QA. QA must rerun source/build checks and own the named browser recovery cells before any replacement Preview. No owner prompt is required.
+
+### PM addendum - configured operator sign-in safe fallback - 2026-08-12 23:36 -07:00
+
+- **New evidence and classification:** credential recovery stopped safely. The official Auth Admin request failed at the network boundary, the browser password form was correctly prohibited, and no Auth, database, environment, or Production mutation occurred. Configured credentials can therefore be present while `signInWithPassword` still returns `invalid_credentials`. The current redirect back to `/demo?demo=signin` leaves Director, Staff, and Vendor without the already-built guided fallback. Classify this as **FIX NOW** in the same demo repair descendant. Credential drift remains separate Deploy configuration debt; this source repair does not hide or resolve it.
+- **Frozen behavior:** when a persona's configured operator session signs in and the exact identity is verified, preserve the current real server-session destination: Director `/director`, Staff `/staff`, Vendor `/partner`. When configured sign-in cannot safely complete, automatically open that persona's existing guided browser-local route: `/demo/operator/director`, `/demo/operator/staff`, or `/demo/operator/vendor`.
+- **Failure set:** the guided fallback applies after a server-client creation exception/unavailability, sign-out failure, `signInWithPassword` exception, Auth error including `invalid_credentials`, missing user, or exact-email mismatch. Perform best-effort sign-out whenever a client/session may exist. Do not loop through the gateway, display a hidden query failure, retain a partial session, navigate to a protected workspace, or expose the failure reason, email, credential state, project, or infrastructure detail.
+- **Truth contract:** the guided destination must visibly say that no server session opened, no record changed, the example state exists only on this page, and refresh resets it. Existing route-contained shell/footer navigation remains mandatory. It must not claim durable, shared, authenticated, server-authorized, sent, or cross-persona state. This fallback is a usable browser example, not recovery evidence for the credential/config debt.
+- **Source acceptance:** deterministic tests cover Director, Staff, and Vendor `invalid_credentials` and prove each maps to its exact `/demo/operator/{persona}` route after best-effort cleanup. Additional tests cover thrown sign-in, missing/wrong identity, and sign-out/client failure without protected-route navigation. The configured-success source contract still proves exact verified-email success maps only to `/director`, `/staff`, or `/partner`. Unconfigured personas continue to take the same guided route directly.
+- **Hosted acceptance:** on the exact descendant Preview, each failing configured persona reaches its correct guided page in one action; final URL, page-only/reset copy, contained navigation, actions, focus, reload reset, console/page errors/rejections/failed requests, and 1440/390/360 behavior are captured. A separately repaired credential later proves the real server-session route without changing this fail-safe contract.
+- **Scope boundary:** Engineering may change only the demo start action, focused demo assertions, any minimal truthful guided-route copy required by this addendum, and living context in addition to the already-frozen family A16 repair. No credential readout/edit, Auth Admin mutation, password form, environment edit, database/SQL, Production action, owner prompt, roadmap change, or readiness increase is authorized.
+- **Immediate handoff:** current distinct Engineering `/root/pm_combined_demo_a16_return/eng_demo_family_a16_return` owns both bounded demo regressions in one clean descendant. Fresh UX re-review and Independent QA must assess both; success in one cannot average away failure in the other.

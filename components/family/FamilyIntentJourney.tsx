@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import TransferComposer from './TransferComposer';
+import type { ProviderDiscoveryModeProps } from './provider-discovery/FuneralHomeDiscovery';
 import styles from './FamilyJourney.module.css';
 
 type FamilyIntent = 'planning' | 'urgent';
@@ -22,7 +23,7 @@ const intentCopy: Record<FamilyIntent, { eyebrow: string; title: string; emphasi
   },
 };
 
-export default function FamilyIntentJourney() {
+export default function FamilyIntentJourney(props: ProviderDiscoveryModeProps) {
   const [intent, setIntent] = useState<FamilyIntent | null>(null);
   const [restored, setRestored] = useState(false);
   const [storageMessage, setStorageMessage] = useState('');
@@ -66,7 +67,7 @@ export default function FamilyIntentJourney() {
           <p className={styles.liveRegion} aria-live="polite">{storageMessage}</p>
         </div>
       </section>
-      <TransferComposer />
+      <TransferComposer {...props} />
     </>
   );
 }

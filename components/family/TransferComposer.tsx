@@ -7,8 +7,10 @@ import styles from './FamilyJourney.module.css';
 import { DEFAULT_DRAFT, EXPIRIES, SCOPES, type Recipient, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { deriveDemoExpiry, formatDemoExpiry } from '../../lib/presentation/demo-expiry';
-import FuneralHomeDiscovery from './provider-discovery/FuneralHomeDiscovery';
-import type { FamilyProviderSelection } from '@/lib/provider-discovery/types';
+import FuneralHomeDiscovery, {
+  type ProviderDiscoveryModeProps,
+} from './provider-discovery/FuneralHomeDiscovery';
+import type { ProviderSelectionSummary } from '@/lib/provider-discovery/types';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -17,13 +19,13 @@ const STEPS = [
   { id: 'review', label: 'Review' },
 ] as const;
 
-export default function TransferComposer() {
+export default function TransferComposer(props: ProviderDiscoveryModeProps) {
   const router = useRouter();
   const { dispatchAtomic, persistenceIssue } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
   const [providerSelection, setProviderSelection] =
-    useState<FamilyProviderSelection | null>(null);
+    useState<ProviderSelectionSummary | null>(null);
   const [activating, setActivating] = useState(false);
   const [activationMessage, setActivationMessage] = useState('');
   const activationRecovery = useRef<HTMLParagraphElement>(null);
@@ -57,7 +59,7 @@ export default function TransferComposer() {
     stageHeading.current?.focus();
   }, [phase]);
 
-  const selectProvider = useCallback((selection: FamilyProviderSelection | null) => {
+  const selectProvider = useCallback((selection: ProviderSelectionSummary | null) => {
     setProviderSelection(selection);
     setDraft((current) => ({
       ...current,
@@ -183,7 +185,7 @@ export default function TransferComposer() {
                 <h1 ref={stageHeading} tabIndex={-1}>Which funeral home did you choose?</h1>
                 <span>Find it, review the address, and save one clear choice. Passage will not contact anyone at this step.</span>
               </div>
-              <FuneralHomeDiscovery onSelectionChange={selectProvider} />
+              <FuneralHomeDiscovery {...props} onSelectionChange={selectProvider} />
             </div>
           )}
 
@@ -296,14 +298,18 @@ export default function TransferComposer() {
                 className={styles.activate}
                 disabled={
                   activating
-                  || providerSelection?.handoffAvailability !== 'connected_preview'
+                  || (
+                    props.providerMode === 'authenticated'
+                    && providerSelection?.handoffAvailability !== 'connected_preview'
+                  )
                 }
                 onClick={activate}
                 type="button"
               >
                 {activating
                   ? 'Creating preview pass...'
-                  : providerSelection?.handoffAvailability === 'connected_preview'
+                  : props.providerMode === 'browser_demo'
+                    || providerSelection?.handoffAvailability === 'connected_preview'
                     ? 'Create preview pass'
                     : 'Preview handoff is not connected'}{' '}
                  <span aria-hidden="true">-&gt;</span>

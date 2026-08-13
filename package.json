@@ -13,6 +13,7 @@
     "test:agent-context": "node scripts/check-agent-context.js",
     "test:runtime-config": "node scripts/test-runtime-config.js",
     "test:public-conversion": "node scripts/test-public-conversion.js",
+    "test:operator-demo-fallback": "node scripts/test-operator-demo-fallback.mjs",
     "test:messaging-security": "node scripts/test-workflow-messaging-security.js",
     "test:participant-invitation": "node scripts/test-participant-invitation-security.js",
     "test:participant-invitation-races": "node scripts/test-participant-invitation-lifecycle-races.mjs",

@@ -20,14 +20,22 @@ export type ProviderDiscoveryResult = {
 
 export type ProviderSourceKind = 'synthetic_directory' | 'manual';
 
-export type FamilyProviderSelection = {
+export type ProviderSelectionSummary = {
   displayName: string;
   address: ProviderAddress;
   addressReviewRequired: boolean;
   handoffAvailability: HandoffAvailability;
   selectedAt: string;
   audience: string;
+};
+
+export type FamilyProviderSelection = ProviderSelectionSummary & {
   replayed: boolean;
+};
+
+export type BrowserDemoProviderSelection = ProviderSelectionSummary & {
+  demoSelectionId: string;
+  persistence: 'page_only';
 };
 
 export type ProviderConfirmationInput =

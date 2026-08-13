@@ -17,7 +17,7 @@ export default function DemoFamilyPage() {
         <span className={styles.familyProfile} aria-label="Example family identity">SR</span>
       </header>
       <p className={styles.demoBoundary} role="status">Private browser demo · choices stay on this device. Nothing here creates a real family record, sends a message, makes a purchase, or processes a payment.</p>
-      <FamilyIntentJourney />
+      <FamilyIntentJourney providerMode="browser_demo" />
     </main>
   );
 }

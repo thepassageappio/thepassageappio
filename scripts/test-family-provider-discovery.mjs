@@ -101,6 +101,63 @@ const component = await readFile(
   'components/family/provider-discovery/FuneralHomeDiscovery.tsx',
   'utf8',
 );
+const demoFamilyPage = await readFile('app/demo/family/page.tsx', 'utf8');
+const authenticatedFamilyPage = await readFile('app/family/page.tsx', 'utf8');
+const familyIntentJourney = await readFile(
+  'components/family/FamilyIntentJourney.tsx',
+  'utf8',
+);
+const transferComposer = await readFile(
+  'components/family/TransferComposer.tsx',
+  'utf8',
+);
+
+assert.ok(
+  demoFamilyPage.includes('providerMode="browser_demo"'),
+  'The demo route must explicitly compose browser-demo provider behavior',
+);
+assert.ok(
+  !demoFamilyPage.includes('confirmProviderSelection'),
+  'The demo route must not import or pass the authenticated confirmation action',
+);
+assert.ok(
+  authenticatedFamilyPage.includes('providerMode="authenticated"')
+    && authenticatedFamilyPage.includes('confirmProviderSelection={confirmProviderSelection}'),
+  'The authenticated family route must explicitly retain its durable confirmation action',
+);
+assert.ok(
+  !component.includes("from '@/app/family/provider-discovery/actions'"),
+  'The shared client renderer must not statically import the authenticated Server Action into the demo graph',
+);
+for (const source of [familyIntentJourney, transferComposer]) {
+  assert.ok(
+    source.includes('ProviderDiscoveryModeProps'),
+    'Every shared composition layer must carry the explicit provider mode',
+  );
+}
+assert.ok(
+  component.includes("providerMode: 'browser_demo'")
+    && component.includes("providerMode: 'authenticated'"),
+  'The provider renderer must define the discriminated browser-demo and authenticated modes',
+);
+assert.ok(
+  component.includes('rankSyntheticProviders(trimmed, 6)'),
+  'Browser-demo search must reuse the pure deterministic directory ranking',
+);
+assert.ok(
+  component.includes("providerMode === 'browser_demo'"),
+  'Browser-demo behavior must be selected only from the explicit route-composed mode',
+);
+assert.ok(
+  component.includes("providerMode !== 'authenticated'"),
+  'Authenticated endpoint and action paths must fail closed behind the authenticated mode',
+);
+assert.ok(
+  !component.includes('window.location')
+    && !component.includes('usePathname')
+    && !component.includes('process.env'),
+  'Provider mode must not be inferred from the URL, pathname, hostname, or environment',
+);
 for (const contract of [
   'role="combobox"',
   'aria-autocomplete="list"',
