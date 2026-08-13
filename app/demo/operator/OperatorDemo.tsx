@@ -109,7 +109,7 @@ export function OperatorDemo({ persona }: { persona: OperatorPersona }) {
         <strong>{step === 0 ? 'No example action yet.' : finished ? 'Guided example complete.' : story.steps[step - 1].status}</strong>
         <p>{step === 0 ? 'Use the action above to move this example forward.' : `${story.steps[step - 1].receipt} This example change exists only on this page and resets when you refresh.`}</p>
       </div>
-      <nav className={styles.exit} aria-label="Demo choices"><Link href="/demo">Choose another point of view</Link><Link href="/funeral-home">See the funeral-home experience</Link></nav>
+      <nav className={styles.exit} aria-label="Demo choices"><Link href="/demo">Choose another point of view</Link><Link href="/demo">Return to the demo home</Link></nav>
     </AppFrame>
   );
 }

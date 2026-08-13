@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getRuntimeConfiguration } from '@/lib/runtime-config';
+import { hasConfiguredOperatorDemoSession } from '@/lib/presentation/operator-demo-availability';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type DemoPersona = 'director' | 'staff' | 'vendor';
@@ -28,18 +28,8 @@ function demoCredential(persona: DemoPersona) {
 
 export async function startPreviewDemo(formData: FormData) {
   const persona = String(formData.get('persona') ?? '') as DemoPersona;
-  const configuration = getRuntimeConfiguration();
   if (!Object.hasOwn(demoTargets, persona)) redirect('/demo?demo=configuration');
-  if (
-    process.env.VERCEL_ENV !== 'preview'
-    || process.env.PASSAGE_PREVIEW_DEMO_SESSIONS_ENABLED !== 'true'
-    || !configuration.available
-    || configuration.runtime !== 'preview'
-    || configuration.projectRef !== 'uyacxqtsiwlvtmhxvoxr'
-    || !configuration.passwordAuthEnabled
-  ) {
-    redirect(guidedDemoTargets[persona]);
-  }
+  if (!hasConfiguredOperatorDemoSession(persona)) redirect(guidedDemoTargets[persona]);
 
   const credential = demoCredential(persona);
   if (!credential.email || credential.password.length < 24) {

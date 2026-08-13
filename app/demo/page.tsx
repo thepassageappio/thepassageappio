@@ -4,6 +4,7 @@ import { ContinuityRail, TopShell } from '@/components/core';
 import { continuity, demoCase, personas } from '@/lib/demo';
 import { startPreviewDemo } from './actions';
 import DemoReset from './DemoReset';
+import { hasConfiguredOperatorDemoSessions } from '@/lib/presentation/operator-demo-availability';
 
 export const metadata: Metadata = {
   title: 'Demo',
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 
 export default async function DemoGateway({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
   const { demo } = await searchParams;
+  const operatorSessionsConfigured = hasConfiguredOperatorDemoSessions();
   const demoError = {
     configuration: 'The shared team demo is not configured here. No team session opened and no record changed. Try the family demo or return later.',
     credentials: 'The shared team demo sign-in is unavailable. No team session opened and no record changed. Try the family demo or return later.',
@@ -20,7 +22,7 @@ export default async function DemoGateway({ searchParams }: { searchParams: Prom
     identity: 'Passage could not verify the shared team demo account. The session was closed and no record changed. Try again or use the family demo.',
   }[demo ?? ''];
   return (
-    <TopShell context="Example workspace" mode="gateway">
+    <TopShell context="Example workspace" mode="gateway" operatorSessionsConfigured={operatorSessionsConfigured}>
       <main id="main-content" className="gateway">
         <section className="gateway__intro" aria-labelledby="gateway-title">
           <div className="gateway__status">
@@ -49,17 +51,18 @@ export default async function DemoGateway({ searchParams }: { searchParams: Prom
           </header>
           {demoError && <p className="gateway__notice" role="alert">{demoError}</p>}
           <div className="journey__line" aria-hidden="true"><span /><i /><i /><i /><i /><span /></div>
-          <ol className="persona-flow">
-            {personas.map((persona) => (
+          <div className="journey__public-exit" aria-label="Family browser example">
+            <span>SEPARATE FAMILY EXAMPLE</span>
+            <Link href="/demo/family"><PersonaContents persona={personas[0]} actionLabel="START" /></Link>
+          </div>
+          <h2 className="journey__operator-title">Guided operator examples</h2>
+          <ol className="persona-flow persona-flow--operators">
+            {personas.slice(1).map((persona) => (
               <li className={`persona persona--${persona.state}`} key={persona.id}>
-                {persona.href ? (
-                  <Link href={persona.href}><PersonaContents persona={persona} actionLabel="START" /></Link>
-                ) : (
-                  <form action={startPreviewDemo}>
-                    <input name="persona" type="hidden" value={persona.demoPersona} />
-                    <button type="submit"><PersonaContents persona={persona} actionLabel="OPEN DEMO" /></button>
-                  </form>
-                )}
+                <form action={startPreviewDemo}>
+                  <input name="persona" type="hidden" value={persona.demoPersona} />
+                  <button type="submit"><PersonaContents persona={persona} actionLabel="OPEN DEMO" /></button>
+                </form>
               </li>
             ))}
           </ol>
@@ -69,7 +72,7 @@ export default async function DemoGateway({ searchParams }: { searchParams: Prom
           <p>The real help path is separate from this example. It explains when sign-in is required before anything is saved or sent.</p>
           <Link href="/start">Get help now</Link>
         </section>
-        <DemoReset />
+        <DemoReset operatorSessionsConfigured={operatorSessionsConfigured} />
         <section className="gateway__continuity">
           <div className="continuity-context">
             <span>THE FAMILY CHOOSES WHAT MOVES.</span>
