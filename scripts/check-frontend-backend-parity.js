@@ -15,7 +15,8 @@
  *  - a contract that references repository files (frontend.files,
  *    backend_files, evidence_test_references) must reference files that
  *    actually exist in the repository
- *  - "implemented" contracts must have a real, existing frontend route AND
+ *  - "implemented" and "source_partial" contracts must have a real, existing
+ *    frontend route AND
  *    backend implementation
  *  - a capability must never be marked frontend.user_visible = true without
  *    a concrete route/component and existing files backing it
@@ -47,12 +48,28 @@ const REQUIRED_CONTRACT_FIELDS = [
   'evidence_test_references',
 ];
 
-const VALID_STATUSES = ['implemented', 'backend_only', 'queued'];
+const VALID_STATUSES = ['implemented', 'source_partial', 'backend_only', 'queued'];
 const REQUIRED_CYCLE8_CONTRACT_IDS = [
   'cycle8.staff.proof_history',
   'cycle8.staff.proof_submission',
   'cycle8.director.proof_review',
   'cycle8.shared.immutable_proof_history',
+];
+const REQUIRED_PARTICIPANT_CONTRACT_IDS = [
+  'participant.coordinator.create_invitation',
+  'participant.invited.inspect_invitation',
+  'participant.invited.accept_invitation',
+  'participant.invited.open_shared_updates',
+  'participant.coordinator.rotate_invitation',
+  'participant.invited.decline_invitation',
+  'participant.coordinator.cancel_invitation',
+  'participant.coordinator.revoke_access',
+];
+const REQUIRED_A16_CONTRACT_IDS = ['a16.family.provider_discovery'];
+const REQUIRED_ACTIVE_CONTRACT_IDS = [
+  ...REQUIRED_CYCLE8_CONTRACT_IDS,
+  ...REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  ...REQUIRED_A16_CONTRACT_IDS,
 ];
 
 function isNonEmptyString(value) {
@@ -76,10 +93,16 @@ function fileExists(repoRoot, relPath) {
   }
 }
 
-function checkSourceAssertions(contract, label, repoRoot, errors) {
+function checkSourceAssertions(
+  contract,
+  label,
+  repoRoot,
+  errors,
+  coverageLabel = 'Cycle 8',
+) {
   const assertions = contract.source_assertions;
   if (!Array.isArray(assertions) || assertions.length === 0) {
-    errors.push(`${label}: Cycle 8 requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
+    errors.push(`${label}: ${coverageLabel} requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
     return;
   }
 
@@ -112,7 +135,7 @@ function checkSourceAssertions(contract, label, repoRoot, errors) {
     }
     for (const expected of assertion.includes) {
       if (!source.includes(expected)) {
-        errors.push(`${assertionLabel}: "${assertion.file}" is missing required Cycle 8 source binding ${JSON.stringify(expected)}.`);
+        errors.push(`${assertionLabel}: "${assertion.file}" is missing required ${coverageLabel} source binding ${JSON.stringify(expected)}.`);
       }
     }
   }
@@ -162,12 +185,19 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   if (contract.cycle === '8' || claimsCycle8) {
     checkSourceAssertions(contract, label, repoRoot, errors);
   }
+  const claimsA16 = isNonEmptyString(contract.id) && contract.id.startsWith('a16.');
+  if (claimsA16 && contract.cycle !== 'A16') {
+    errors.push(`${label}: an a16.* contract id must declare cycle "A16".`);
+  }
+  if (contract.cycle === 'A16' || claimsA16) {
+    checkSourceAssertions(contract, label, repoRoot, errors, 'A16 provider discovery');
+  }
 
   const status = contract.status;
   if (!VALID_STATUSES.includes(status)) {
     errors.push(`${label}: "status" must be one of ${VALID_STATUSES.join(', ')} (got ${JSON.stringify(status)}).`);
   }
-  const statusBuiltOnBackend = status === 'implemented' || status === 'backend_only';
+  const statusBuiltOnBackend = status === 'implemented' || status === 'source_partial' || status === 'backend_only';
 
   // --- frontend block -------------------------------------------------
   const fe = contract.frontend;
@@ -212,8 +242,8 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
     }
 
     // Rule: status <-> visibility consistency.
-    if (status === 'implemented' && fe.user_visible !== true) {
-      errors.push(`${label}: status "implemented" requires frontend.user_visible = true (a fully implemented contract must have a reachable UI).`);
+    if ((status === 'implemented' || status === 'source_partial') && fe.user_visible !== true) {
+      errors.push(`${label}: status "${status}" requires frontend.user_visible = true (the source candidate must have a reachable UI).`);
     }
     if (status === 'backend_only' && fe.user_visible !== false) {
       errors.push(`${label}: status "backend_only" must not claim frontend.user_visible = true.`);
@@ -345,7 +375,7 @@ function main() {
     return;
   }
 
-  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_ACTIVE_CONTRACT_IDS });
   if (!ok) {
     console.error(`check-frontend-backend-parity: FAIL (${errors.length} issue${errors.length === 1 ? '' : 's'})`);
     for (const e of errors) console.error(`  - ${e}`);
@@ -363,6 +393,9 @@ module.exports = {
   REQUIRED_CONTRACT_FIELDS,
   VALID_STATUSES,
   REQUIRED_CYCLE8_CONTRACT_IDS,
+  REQUIRED_PARTICIPANT_CONTRACT_IDS,
+  REQUIRED_A16_CONTRACT_IDS,
+  REQUIRED_ACTIVE_CONTRACT_IDS,
 };
 
 if (require.main === module) {

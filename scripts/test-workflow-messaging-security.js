@@ -202,13 +202,16 @@ function hasExactExecutableSearchPathAssertion(sql) {
   return hasCanonical && !hasObsolete;
 }
 
+const initialMigration = source('supabase/migrations/20260727020000_workflow_messages_thin_slice.sql');
 const migration = source('supabase/migrations/20260729034001_workflow_messages_client_projection.sql');
 const triggerHardening = source('supabase/migrations/20260729053000_workflow_messages_trigger_search_path.sql');
 const loader = source('lib/messaging/hosted.ts');
 const thread = source('components/messaging/MessageThread.tsx');
 const directorPage = source('app/director/cases/[workflowId]/page.tsx');
+const familyMessagesPage = source('app/case/[id]/messages/page.tsx');
 const appFrame = source('components/operations/AppFrame.tsx');
 const actions = source('lib/messaging/actions.ts');
+const familyMessagesView = source('lib/family/messages-view.ts');
 const sqlMatrix = source('supabase/tests/workflow_messages_client_projection.sql');
 const ledger = JSON.parse(source('docs/product/frontend-backend-contracts.json'));
 
@@ -346,11 +349,34 @@ check(
     && sqlMatrix.includes('Denied or conflicting requests changed message cardinality')
 );
 check(
+  'SQL matrix scopes projection cardinality to its four request receipts',
+  !/select count\(\*\)\s+from public\.list_workflow_messages_client_safe\(v_workflow_id\)\s+\) <> v_expected_message_count/m.test(sqlMatrix)
+    && sqlMatrix.includes('v_owner_message_id := v_first.message_id;')
+    && sqlMatrix.includes('v_participant_message_id := v_row.message_id;')
+    && sqlMatrix.includes('v_director_message_id := v_row.message_id;')
+    && sqlMatrix.includes('v_staff_message_id := v_row.message_id;')
+    && sqlMatrix.split('where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)').length >= 10
+);
+check(
   'server loader uses only the client-safe RPC',
   loader.includes(".rpc('list_workflow_messages_client_safe'")
     && !loader.includes(".from('workflow_messages')")
     && !loader.includes('sender_user_id')
     && !loader.includes('currentUserId')
+);
+check(
+  'participant sender labels use plain punctuation without dash encoding',
+  initialMigration.includes("then 'Family: ' || initcap")
+    && migration.includes("then 'Family: ' || initcap")
+    && !initialMigration.includes('—')
+    && !migration.includes('—')
+);
+check(
+  'active updates participant reaches the message loader through the bounded identity fallback',
+  familyMessagesView.includes("client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId })")
+    && familyMessagesView.includes("if (!row) return { ok: false, reason: 'not-authorized' };")
+    && familyMessagesView.indexOf("client.rpc('get_family_case_update_for_workflow'")
+      < familyMessagesView.indexOf('loadWorkflowMessages(client, workflowId)')
 );
 check(
   'server loader produces an explicit UTC display value',
@@ -369,6 +395,11 @@ check(
     && thread.indexOf('if (loadError)') < thread.indexOf('<form action={action}')
     && thread.includes('Reload messages')
     && directorPage.includes('loadError={messagesResult.ok ? undefined : messagesResult.message}')
+);
+check(
+  'family message navigation keeps interactive targets at least 48 pixels tall',
+  familyMessagesPage.includes("minHeight: 48")
+    && source('components/messaging/MessageThread.module.css').includes('min-height: 48px')
 );
 check(
   'message copy distinguishes saved in Passage from external delivery',

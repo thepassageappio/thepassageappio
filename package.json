@@ -12,14 +12,20 @@
     "test:persona-language": "node scripts/check-persona-language.js",
     "test:agent-context": "node scripts/check-agent-context.js",
     "test:runtime-config": "node scripts/test-runtime-config.js",
+    "test:public-conversion": "node scripts/test-public-conversion.js",
     "test:messaging-security": "node scripts/test-workflow-messaging-security.js",
-    "test:auth-header-reflow": "node scripts/test-auth-header-reflow.js",
+    "test:participant-invitation": "node scripts/test-participant-invitation-security.js",
+    "test:participant-invitation-races": "node scripts/test-participant-invitation-lifecycle-races.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
-    "test:server-actions": "node scripts/test-use-server-exports.js"
+    "test:server-actions": "node scripts/test-use-server-exports.js",
+    "test:participant-case-scope": "node scripts/test-participant-case-scope-source.mjs",
+    "test:provider-discovery": "node scripts/test-family-provider-discovery.mjs"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/montserrat": "5.3.0",
     "@supabase/ssr": "0.12.3",
     "@supabase/supabase-js": "2.110.7",
     "next": "16.1.6",

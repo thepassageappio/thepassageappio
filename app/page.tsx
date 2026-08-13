@@ -1,59 +1,41 @@
-import { ContinuityRail } from '@/components/core/ContinuityRail';
-import { GatewayPersonaFlow } from '@/components/core/GatewayPersonaFlow';
-import { TopShell } from '@/components/core/TopShell';
-import { continuity, demoCase, personas } from '@/lib/demo';
+import type { Metadata } from 'next';
+import { Callout, CardGrid, ContentSection, PublicPage, Steps } from '@/components/public/PublicPage';
 
-export default function DemoGateway() {
+export const metadata: Metadata = {
+  title: 'Clear next steps for families and funeral homes',
+  description: 'Passage helps families and funeral-home teams understand what needs attention, who owns it, and what has been confirmed.',
+};
+
+export default function HomePage() {
   return (
-    <TopShell context="Unified case network" mode="gateway">
-      <main id="main-content" className="gateway">
-        <section className="gateway__intro" aria-labelledby="gateway-title">
-          <div className="gateway__status">
-            <span className="gateway__edition">PASSAGE PREVIEW</span>
-            <span className="gateway__sync"><i aria-hidden="true" />No real case is shown here</span>
-          </div>
-          <div className="gateway__heading">
-            <p>Keep the next step clear</p>
-            <h1 id="gateway-title">Keep your family and care team<br />on the same page.</h1>
-            <div className="gateway__promise">
-              <span className="promise-line" aria-hidden="true" />
-              <p>Passage carries approved details and next steps between the people helping, so families repeat less.</p>
-            </div>
-          </div>
-          <div className="gateway__case" aria-label="Fictional family example">
-            <span>FICTIONAL FAMILY EXAMPLE</span>
-            <strong>{demoCase.person}</strong>
-            <small>Sample journey · no real case created</small>
-          </div>
-        </section>
-
-        <section className="journey" aria-labelledby="journey-title">
-          <header className="journey__header">
-            <span id="journey-title">CHOOSE A SAMPLE OR SECURE WORKSPACE</span>
-            <p>Family and receiving-director samples use fictional information; their actions may save only in this browser and contact nobody. Director and staff options open secure sign-in for authorized team members. If access fails, use your invitation or ask your funeral-home administrator.</p>
-          </header>
-
-          <div className="journey__line" aria-hidden="true">
-            <span /><i /><i /><i /><i /><span />
-          </div>
-
-          <GatewayPersonaFlow personas={personas} />
-        </section>
-
-        <section className="gateway__continuity">
-          <div className="continuity-context">
-            <span>ONE FICTIONAL JOURNEY</span>
-            <div><strong>04</strong><p>clear handoffs<small>One approved set of details, not four repeated intakes.</small></p></div>
-          </div>
-          <ContinuityRail steps={continuity} label={`${demoCase.person} · sample journey`} status="SAMPLE" />
-        </section>
-
-        <footer className="gateway__footer">
-          <span>PASSAGE PREVIEW</span>
-          <p>Purpose-built for the people carrying the details.</p>
-          <span>WARM PRECISION · 2026</span>
-        </footer>
-      </main>
-    </TopShell>
+    <PublicPage
+      eyebrow="Calm coordination when it matters"
+      title="Everyone knows what happens next."
+      lead="Passage brings families, funeral-home teams, and invited helpers into one clear flow: what needs attention, who owns it, what is waiting, and what has been confirmed."
+      actions={[
+        { href: '/start', label: 'Get help now' },
+        { href: '/funeral-home', label: 'For funeral homes', secondary: true },
+        { href: '/demo', label: 'View the demo', secondary: true },
+      ]}
+    >
+      <ContentSection eyebrow="One shared direction" title="Less repetition. More certainty." intro="Passage keeps each next step connected to the person, the people helping, and the confirmation that it was handled.">
+        <CardGrid cards={[
+          { title: 'Families', body: 'See the next step, who is handling it, what is waiting, and what information will be shared before you choose to share it.' },
+          { title: 'Funeral-home teams', body: 'Give every case a clear owner, keep staff focused on assigned work, and leave a useful record of what happened.' },
+          { title: 'Invited helpers', body: 'Receive only the details needed for one responsibility, with a clear audience and a clear way to finish or ask for help.' },
+        ]} />
+      </ContentSection>
+      <ContentSection eyebrow="How it works" title="A clear handoff from question to confirmation." tone="soft">
+        <Steps items={[
+          { title: 'Ask for help once', body: 'Start with the situation and the people involved. Passage explains what is saved before anything becomes part of a record.' },
+          { title: 'Choose who can help', body: 'The right person sees the work that belongs to them. Private family information is not opened to an entire team by default.' },
+          { title: 'Follow the next action', body: 'Each step shows the owner, who is waiting, what to do now, and what happens after the action.' },
+          { title: 'Keep the confirmation', body: 'When work is confirmed, Passage keeps the useful details with the related step so the family and team do not have to reconstruct it later.' },
+        ]} />
+      </ContentSection>
+      <Callout title="See Passage from every point of view." action={{ href: '/demo', label: 'Open the demo' }}>
+        <p>The demo uses example information. It does not create a family record, send a message, make a purchase, or charge a payment method.</p>
+      </Callout>
+    </PublicPage>
   );
 }

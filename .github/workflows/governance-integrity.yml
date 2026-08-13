@@ -18,6 +18,20 @@ jobs:
     name: Evaluate trusted release structure
     runs-on: ubuntu-latest
     steps:
+      - name: Read changed-file evidence from GitHub
+        id: changed-files
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          result-encoding: string
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            return files.map((file) => file.filename).join('\n');
+
       - name: Check out the trusted base governance implementation
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v4.2.2
         with:
@@ -31,4 +45,5 @@ jobs:
           PR_DRAFT: ${{ github.event.pull_request.draft }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
+          CHANGED_FILES: ${{ steps.changed-files.outputs.result }}
         run: node scripts/check-release-train.js

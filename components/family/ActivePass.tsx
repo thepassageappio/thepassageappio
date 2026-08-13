@@ -7,17 +7,17 @@ import { EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { selectFamilyStatus } from '../../lib/passage-zero';
 import { membership } from '../../lib/sandbox/repository';
+import { formatDemoExpiry, normalizeDemoTransferDraft } from '../../lib/presentation/demo-expiry';
 
 const FALLBACK_PASS: TransferDraft = {
   recipientId: 'northstar',
   scopeIds: ['identity', 'care', 'wishes'],
   expiryId: '72h',
-  activatedAt: '2026-07-15T11:30:00.000Z',
 };
 
 function PassCode() {
   return (
-    <svg className={styles.passQr} viewBox="0 0 184 184" role="img" aria-label="Transfer Pass QR code placeholder">
+    <svg className={styles.passQr} viewBox="0 0 184 184" role="img" aria-label="Example QR code. It cannot be scanned outside this demo.">
       <rect className={styles.qrBackground} width="184" height="184" rx="6" />
       <g className={styles.qrCode}>
         <path d="M18 18h50v50H18zm10 10v30h30V28zM116 18h50v50h-50zm10 10v30h30V28zM18 116h50v50H18zm10 10v30h30v-30z" />
@@ -28,22 +28,48 @@ function PassCode() {
 }
 
 export default function ActivePass() {
-  const { record, dispatch } = usePassageZero();
+  const { record, dispatchAtomic } = usePassageZero();
   const accountableDirector = membership(record, record.case.accountableMembershipId).actor;
   const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
   const familyStatus = selectFamilyStatus(record);
   const [pass, setPass] = useState<TransferDraft>(FALLBACK_PASS);
+  const [savedInThisSession, setSavedInThisSession] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [closeMessage, setCloseMessage] = useState('');
   const revoked = record.transferPass.status === 'revoked';
   const closedHeading = useRef<HTMLHeadingElement>(null);
+  const closeTrigger = useRef<HTMLButtonElement>(null);
+  const confirmHeading = useRef<HTMLElement>(null);
+  const closeRecovery = useRef<HTMLParagraphElement>(null);
+  const manualCode = useRef<HTMLElement>(null);
 
   useEffect(() => {
     try {
       const stored = window.sessionStorage.getItem('passage.family.transfer.v1');
-      if (stored) setPass(JSON.parse(stored) as TransferDraft);
+      if (stored) {
+        const normalized = normalizeDemoTransferDraft(JSON.parse(stored));
+        const recognized = normalized
+          && RECIPIENTS.some((item) => item.id === normalized.recipientId)
+          && normalized.scopeIds.every((scopeId) => SCOPES.some((item) => item.id === scopeId));
+        if (normalized && recognized) {
+          setPass(normalized);
+          setSavedInThisSession(true);
+        } else {
+          window.sessionStorage.removeItem('passage.family.transfer.v1');
+          setPass(FALLBACK_PASS);
+          setSavedInThisSession(false);
+        }
+      }
     } catch {
+      try {
+        window.sessionStorage.removeItem('passage.family.transfer.v1');
+      } catch {
+        // Storage can be disabled; the honest in-memory example remains usable.
+      }
       setPass(FALLBACK_PASS);
+      setSavedInThisSession(false);
     }
   }, []);
 
@@ -51,43 +77,104 @@ export default function ActivePass() {
     if (revoked) closedHeading.current?.focus();
   }, [revoked]);
 
+  useEffect(() => {
+    if (confirming) confirmHeading.current?.focus();
+  }, [confirming]);
+
   const recipient = useMemo(() => RECIPIENTS.find((item) => item.id === pass.recipientId) ?? RECIPIENTS[0], [pass.recipientId]);
   const expiry = useMemo(() => EXPIRIES.find((item) => item.id === pass.expiryId) ?? EXPIRIES[1], [pass.expiryId]);
+  const expiryMoment = pass.expiresAt ? formatDemoExpiry(pass.expiresAt) ?? expiry.moment : expiry.moment;
   const included = useMemo(() => SCOPES.filter((item) => pass.scopeIds.includes(item.id)), [pass.scopeIds]);
   const excluded = useMemo(() => SCOPES.filter((item) => !pass.scopeIds.includes(item.id)), [pass.scopeIds]);
 
   async function copyCode() {
+    setCopied(false);
+    setCopyMessage('');
     try {
       await navigator.clipboard.writeText(record.transferPass.code);
-    } finally {
       setCopied(true);
+      setCopyMessage('Manual code copied.');
+    } catch {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      if (manualCode.current && selection) {
+        range.selectNodeContents(manualCode.current);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      setCopyMessage('The code was not copied. It is selected now. Use your device Copy command.');
     }
   }
 
   function revoke() {
-    window.sessionStorage.removeItem('passage.family.transfer.v1');
-    dispatch({ type: 'revoke_transfer_pass', actorId: 'maya-rivera', idempotencyKey: 'family:revoke:rivera' });
+    setCloseMessage('');
+    let savedHandoff: string | null = null;
+    try {
+      savedHandoff = window.sessionStorage.getItem('passage.family.transfer.v1');
+      window.sessionStorage.removeItem('passage.family.transfer.v1');
+    } catch {
+      setCloseMessage('The example handoff was not closed. It remains open. Nothing changed. Try again or keep it open.');
+      window.requestAnimationFrame(() => closeRecovery.current?.focus());
+      return;
+    }
+
+    try {
+      const result = dispatchAtomic({ type: 'revoke_transfer_pass', actorId: 'maya-rivera', idempotencyKey: 'family:revoke:rivera' });
+      if (!result.persisted) {
+        let restored = false;
+        try {
+          if (savedHandoff) {
+            window.sessionStorage.setItem('passage.family.transfer.v1', savedHandoff);
+            restored = true;
+          }
+        } catch {
+          // The handoff remains open in memory even when its saved copy cannot be restored.
+        }
+        setCloseMessage(restored
+          ? 'The example handoff was not closed. It remains open and saved. Try again or keep it open.'
+          : 'The example handoff was not closed. It remains open for this visit, but its saved browser copy could not be restored.');
+        window.requestAnimationFrame(() => closeRecovery.current?.focus());
+        return;
+      }
+      setCloseMessage('The example handoff is closed in this browser.');
+      setConfirming(false);
+    } catch {
+      setCloseMessage('The example handoff was not closed. It remains open for this visit. The saved browser copy was removed. Create it again after reloading.');
+      window.requestAnimationFrame(() => closeRecovery.current?.focus());
+    }
+  }
+
+  function keepOpen() {
     setConfirming(false);
+    window.requestAnimationFrame(() => closeTrigger.current?.focus());
+  }
+
+  function handleConfirmKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      keepOpen();
+    }
   }
 
   if (revoked) {
     return (
-      <main className={styles.closedPage}>
+      <main className={styles.closedPage} id="active-pass">
         <div className={styles.closedSignal} aria-hidden="true"><span /></div>
         <p>HANDOFF CLOSED / 04</p>
         <h1 ref={closedHeading} tabIndex={-1}>This pass cannot be opened now.</h1>
-        <span>{recipient.organization} can no longer use its QR or manual code. Sofia's family record has not changed.</span>
-        <a href="/family">Create a new handoff <i aria-hidden="true">-&gt;</i></a>
+        <span>{recipient.organization} can no longer use this example QR or manual code. Sofia&apos;s example information has not changed.</span>
+        <p aria-live="polite">{closeMessage || 'The example handoff is closed in this browser.'}</p>
+        <a href="/demo/family">Create a new example handoff <i aria-hidden="true">-&gt;</i></a>
       </main>
     );
   }
 
   return (
-    <main className={styles.passPage}>
+    <main className={styles.passPage} id="active-pass">
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
-        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
+        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : savedInThisSession ? 'HANDOFF ACTIVE' : 'HANDOFF EXAMPLE'}</strong>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : savedInThisSession ? `Closes ${expiryMoment}` : `Create it to start the ${expiry.label} window`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -105,12 +192,12 @@ export default function ActivePass() {
 
         <div className={styles.passObject}>
           <div className={styles.passLight} aria-hidden="true" />
-          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'USED' : 'LIVE'}</strong></div>
+          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'RECEIVED' : 'READY'}</strong></div>
           <PassCode />
-          <span className={styles.scanLabel}>SCAN TO OPEN</span>
+          <span className={styles.scanLabel}>EXAMPLE CODE · DEMO ONLY</span>
           <div className={styles.manualCode}>
             <span>MANUAL CODE</span>
-            <strong>{record.transferPass.code}</strong>
+            <strong ref={manualCode}>{record.transferPass.code}</strong>
           </div>
           <button disabled={record.transferPass.status === 'accepted'} onClick={copyCode} type="button">{record.transferPass.status === 'accepted' ? 'Already accepted' : copied ? 'Copied' : 'Copy code'}</button>
         </div>
@@ -139,26 +226,29 @@ export default function ActivePass() {
       <section className={styles.passControls} aria-labelledby="control-heading">
         <div>
           <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
-          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
-          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved confirmation and will guide what happens next.` : record.transferPass.status === 'accepted' ? 'Northstar received only the approved handoff. Your family is waiting for the arrangement meeting time.' : 'Closing this pass is immediate. Your family record remains in place.'}</span>
+          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : savedInThisSession ? 'Need to stop access?' : 'Start with your own example choices.'}</h2>
+          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : savedInThisSession ? 'Closing this example handoff is immediate and changes only this browser demo.' : 'Choose the receiver, what they can open, and the access window. Nothing is sent and no real record changes.'}</span>
         </div>
         {record.transferPass.status === 'accepted' ? (
-          <a className={styles.exitPass} href="/family">Return to family space</a>
+          <a className={styles.exitPass} href="/demo/family">Return to family demo</a>
+        ) : !savedInThisSession ? (
+          <a className={styles.exitPass} href="/demo/family">Create this example handoff</a>
         ) : !confirming ? (
-          <button className={styles.revokeButton} onClick={() => setConfirming(true)} type="button">Close this handoff</button>
+          <button className={styles.revokeButton} onClick={() => setConfirming(true)} ref={closeTrigger} type="button">Close this handoff</button>
         ) : (
-          <div className={styles.revokePanel} role="group" aria-labelledby="confirm-revoke-heading">
-            <strong id="confirm-revoke-heading">Close access now?</strong>
-            <span>The QR and manual code will stop working.</span>
+          <div className={styles.revokePanel} onKeyDown={handleConfirmKeyDown} role="group" aria-labelledby="confirm-revoke-heading">
+            <strong id="confirm-revoke-heading" ref={confirmHeading} tabIndex={-1}>Close access now?</strong>
+            <span>The example QR and manual code will stop working in this browser demo.</span>
+            {closeMessage && <p className={styles.recoveryMessage} ref={closeRecovery} role="alert" tabIndex={-1}>{closeMessage}</p>}
             <div>
-              <button onClick={() => setConfirming(false)} type="button">Keep open</button>
+              <button onClick={keepOpen} type="button">Keep open</button>
               <button onClick={revoke} type="button">Yes, close it</button>
             </div>
           </div>
         )}
       </section>
 
-      <div className={styles.liveRegion} aria-live="polite">{copied ? 'Manual code copied.' : ''}</div>
+      <div className={styles.liveRegion} aria-live="polite">{copyMessage || closeMessage}</div>
     </main>
   );
 }

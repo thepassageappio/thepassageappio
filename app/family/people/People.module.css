@@ -1,0 +1,109 @@
+.shell { min-height: 100vh; background: radial-gradient(circle at 86% 3%, color-mix(in srgb, var(--human-soft) 55%, transparent), transparent 30rem), var(--canvas); color: var(--ink); }
+.topBar { width: min(1180px, calc(100% - 36px)); min-height: 72px; margin: 0 auto; display: flex; align-items: center; gap: 22px; border-bottom: 1px solid var(--line); }
+.topBar nav { display: flex; gap: 6px; margin-left: auto; }
+.topBar a, .topBar button { min-height: 48px; display: inline-flex; align-items: center; border: 0; padding: 10px 12px; background: transparent; color: var(--ink-soft); font: inherit; font-weight: 720; cursor: pointer; }
+.brand { font-family: var(--font-display) !important; font-size: 25px; color: var(--ink) !important; }
+.page { width: min(1040px, calc(100% - 36px)); margin: 0 auto; padding: 68px 0 100px; }
+.hero { max-width: 720px; margin-bottom: 42px; }
+.hero p, .kicker, .sectionHeading p, .receipt > p { margin: 0 0 12px; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .13em; }
+.hero h1 { margin: 0; font-family: var(--font-display); font-size: clamp(52px, 8vw, 82px); font-weight: 600; letter-spacing: -.045em; line-height: .92; }
+.hero span { display: block; max-width: 620px; margin-top: 24px; color: var(--ink-soft); font-size: 16px; line-height: 1.65; }
+.section, .spaceSummary { margin-top: 24px; border: 1px solid var(--line); border-radius: 8px; padding: clamp(22px, 4vw, 40px); background: color-mix(in srgb, var(--surface-raised) 95%, var(--human-soft)); box-shadow: var(--shadow-raised); }
+.spaceSummary { display: flex; justify-content: space-between; gap: 30px; align-items: center; }
+.spaceSummary > div { display: grid; gap: 5px; }
+.spaceSummary strong { font-family: var(--font-display); font-size: 28px; }
+.spaceSummary span { color: var(--muted); font-size: 13px; }
+.spaceSummary dl { display: flex; gap: 32px; margin: 0; }
+.spaceSummary dl div { display: grid; gap: 4px; }
+.spaceSummary dt { color: var(--muted); font-size: 11px; font-weight: 760; }
+.spaceSummary dd { margin: 0; font-family: var(--font-display); font-size: 26px; }
+.sectionHeading { display: flex; justify-content: space-between; gap: 22px; align-items: flex-start; margin-bottom: 24px; }
+.sectionHeading h2, .section h2 { margin: 0; font-family: var(--font-display); font-size: clamp(30px, 4vw, 43px); font-weight: 620; line-height: 1; }
+.sectionHeading > span { color: var(--muted); font-size: 12px; font-weight: 780; text-align: right; }
+.setupForm, .inviteForm { display: grid; gap: 18px; margin-top: 24px; }
+.setupForm label, .inviteForm label { display: grid; gap: 8px; color: var(--ink-soft); font-size: 12px; font-weight: 760; }
+.setupForm input, .inviteForm input, .inviteForm textarea, .inviteForm select, .copyArea input { min-height: 48px; width: 100%; border: 1px solid var(--line-strong); border-radius: 4px; padding: 11px 13px; background: var(--surface); color: var(--ink); font: inherit; }
+.inviteForm textarea { min-height: 104px; resize: vertical; }
+.formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.inviteForm fieldset { margin: 0; border: 1px solid var(--line); padding: 16px; }
+.inviteForm legend { padding: 0 8px; font-size: 12px; font-weight: 800; }
+.checkLabel { grid-template-columns: 24px 1fr !important; align-items: start; }
+.checkLabel input { width: 20px; min-height: 20px; margin-top: 2px; }
+.checkLabel span { display: grid; gap: 4px; }
+.checkLabel small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.review { border-left: 3px solid var(--calm-strong); padding: 15px 18px; background: var(--calm-soft); }
+.review p { margin: 7px 0 0; color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+.primary, .copyArea button { min-height: 48px; border: 1px solid transparent; border-radius: 4px; padding: 12px 18px; background: var(--signal-strong); color: white; font: inherit; font-weight: 760; cursor: pointer; }
+.primary:disabled { cursor: wait; opacity: .7; }
+.receipt { border-left: 3px solid var(--success); padding: 24px; background: var(--success-soft); }
+.receipt h3 { margin: 0 0 20px; font-family: var(--font-display); font-size: 38px; }
+.facts { display: grid; gap: 0; margin: 0; }
+.facts div { min-width: 0; display: grid; grid-template-columns: minmax(130px, .42fr) minmax(0, 1fr); gap: 18px; border-top: 1px solid var(--line); padding: 12px 0; }
+.facts dt { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.facts dd { min-width: 0; margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.copyArea { display: grid; gap: 9px; margin-top: 20px; }
+.copyArea label { font-size: 12px; font-weight: 800; }
+.copyArea p { min-height: 20px; margin: 0; font-size: 12px; }
+.deliveryNote, .replayNotice p { color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+.replayNotice { margin-top: 20px; border-left: 3px solid var(--calm-strong); padding: 14px 16px; background: var(--calm-soft); }
+.replayNotice p { margin: 5px 0 0; }
+.list { display: grid; gap: 14px; }
+.personCard { border: 1px solid var(--line); border-radius: 5px; padding: 20px; background: var(--surface); }
+.personCard header, .historyRow { display: flex; justify-content: space-between; gap: 18px; }
+.personCard header > div, .historyRow > div { display: grid; gap: 4px; }
+.personCard header strong, .historyRow strong { font-family: var(--font-display); font-size: 25px; }
+.personCard header span, .historyRow span { color: var(--muted); font-size: 13px; }
+.personCard header b { color: var(--human-strong); font-size: 11px; text-transform: uppercase; }
+.personCard .facts { margin-top: 16px; }
+.historyRow { align-items: center; border-top: 1px solid var(--line); padding: 16px 0; }
+.historyRow p { margin: 0; color: var(--ink-soft); }
+.historyOutcome { min-width: min(100%, 390px); display: grid; justify-items: end; gap: 10px; }
+.lifecycleActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.replaceTrigger, .dangerTrigger, .replaceCommit, .dangerCommit, .confirmationActions > button { min-height: 48px; border: 1px solid transparent; border-radius: 4px; padding: 11px 16px; font: inherit; font-weight: 760; cursor: pointer; }
+.replaceTrigger { border-color: var(--calm-strong); background: var(--calm-soft); color: var(--ink); }
+.dangerTrigger { margin-top: 18px; border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--surface); color: var(--ink); }
+.replaceCommit { background: var(--calm-strong); color: white; }
+.dangerCommit { background: color-mix(in srgb, var(--danger) 75%, var(--ink)); color: white; }
+.replaceTrigger:disabled, .dangerTrigger:disabled, .replaceCommit:disabled, .dangerCommit:disabled, .confirmationActions > button:disabled { cursor: wait; opacity: .65; }
+.confirmation { display: grid; gap: 14px; margin-top: 12px; border-left: 3px solid var(--line-strong); padding: 18px; background: color-mix(in srgb, var(--surface) 92%, var(--calm-soft)); }
+.confirmation h3 { margin: 0; font-family: var(--font-display); font-size: 26px; line-height: 1.05; }
+.confirmation p { margin: 0; color: var(--ink-soft); line-height: 1.55; }
+.confirmation label { display: grid; gap: 7px; color: var(--ink-soft); font-size: 12px; font-weight: 760; }
+.confirmation select { min-height: 48px; width: min(100%, 240px); border: 1px solid var(--line-strong); border-radius: 4px; padding: 10px 12px; background: var(--surface); color: var(--ink); font: inherit; }
+.confirmationActions { display: flex; flex-wrap: wrap; gap: 10px; }
+.confirmationActions > button { border-color: var(--line-strong); background: var(--surface); color: var(--ink); }
+.confirmationActions form { margin: 0; }
+.replacementReceipt, .lifecycleReceipt, .lifecycleError { margin-top: 24px; border-left: 3px solid var(--calm-strong); padding: clamp(20px, 4vw, 30px); background: var(--calm-soft); }
+.replacementReceipt > p:first-child { margin: 0 0 8px; color: var(--human-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.replacementReceipt h2, .lifecycleReceipt h2 { margin: 0 0 12px; font-family: var(--font-display); font-size: clamp(30px, 4vw, 42px); line-height: 1; }
+.replacementReceipt > p:not(:first-child), .lifecycleReceipt p, .lifecycleError p { color: var(--ink-soft); line-height: 1.55; }
+.lifecycleReceipt { border-color: var(--success); background: var(--success-soft); }
+.lifecycleError { border-color: var(--danger); background: var(--danger-soft); }
+.lifecycleError p { margin: 6px 0 0; }
+.empty { border: 1px dashed var(--line-strong); padding: 22px; background: var(--surface); }
+.empty p { margin: 6px 0 0; color: var(--muted); line-height: 1.55; }
+.success, .error { margin: 18px 0; border-left: 3px solid var(--success); padding: 14px 16px; background: var(--success-soft); }
+.error { border-color: var(--danger); background: var(--danger-soft); }
+.success p, .error p { margin: 5px 0 0; }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.closed { min-height: 100vh; display: grid; place-content: center; justify-items: start; gap: 16px; padding: 28px; background: var(--canvas); }
+.closed p { margin: 0; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.closed h1 { max-width: 650px; margin: 0; font-family: var(--font-display); font-size: clamp(44px, 8vw, 72px); line-height: .95; }
+.closed span { max-width: 560px; color: var(--ink-soft); line-height: 1.6; }
+.closed a { min-height: 48px; display: inline-flex; align-items: center; padding: 12px 18px; background: var(--signal-strong); color: white; font-weight: 760; }
+.topBar a:focus-visible, .topBar button:focus-visible, .primary:focus-visible, .copyArea button:focus-visible, .closed a:focus-visible, .setupForm input:focus-visible, .inviteForm input:focus-visible, .inviteForm textarea:focus-visible, .inviteForm select:focus-visible, .copyArea input:focus-visible, .replaceTrigger:focus-visible, .dangerTrigger:focus-visible, .replaceCommit:focus-visible, .dangerCommit:focus-visible, .confirmationActions > button:focus-visible, .confirmation select:focus-visible, .replacementReceipt h2:focus-visible, .lifecycleReceipt h2:focus-visible, .lifecycleError:focus-visible { outline: 3px solid color-mix(in srgb, var(--signal-strong) 60%, white); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .topBar { width: calc(100% - 28px); flex-wrap: wrap; gap: 4px 10px; padding: 8px 0; }
+  .topBar nav { order: 3; width: 100%; margin: 0; border-top: 1px solid var(--line); }
+  .page { width: calc(100% - 28px); padding-top: 42px; }
+  .spaceSummary, .sectionHeading, .personCard header, .historyRow { align-items: stretch; flex-direction: column; }
+  .spaceSummary dl { justify-content: space-between; gap: 14px; }
+  .formGrid { grid-template-columns: 1fr; }
+  .facts div { grid-template-columns: 1fr; gap: 5px; }
+  .sectionHeading > span { text-align: left; }
+  .primary, .copyArea button { width: 100%; }
+  .historyOutcome { min-width: 0; justify-items: stretch; }
+  .lifecycleActions, .confirmationActions { display: grid; grid-template-columns: 1fr; }
+  .lifecycleActions button, .confirmationActions button, .confirmationActions form, .confirmationActions form button, .historyOutcome button { width: 100%; }
+  .confirmation select { width: 100%; }
+}

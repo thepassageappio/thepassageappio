@@ -4,15 +4,14 @@ type ContinuityRailProps = {
   steps: ContinuityStep[];
   compact?: boolean;
   label?: string;
-  status?: string;
 };
 
-export function ContinuityRail({ steps, compact = false, label = 'Case continuity', status = 'SAMPLE' }: ContinuityRailProps) {
+export function ContinuityRail({ steps, compact = false, label = 'Case continuity' }: ContinuityRailProps) {
   return (
     <section className={`continuity-rail${compact ? ' continuity-rail--compact' : ''}`} aria-label={label}>
       <header className="continuity-rail__header">
         <span>{label}</span>
-        <b>{status}</b>
+        <b>LIVE</b>
       </header>
       <ol className="continuity-rail__steps">
         {steps.map((step) => (

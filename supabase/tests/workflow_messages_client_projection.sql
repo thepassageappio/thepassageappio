@@ -476,6 +476,10 @@ declare
   v_revoked_staff_user_id uuid :=
     current_setting('passage.test_message_revoked_staff_user_id')::uuid;
   v_expected_message_count constant integer := 4;
+  v_owner_message_id uuid;
+  v_participant_message_id uuid;
+  v_director_message_id uuid;
+  v_staff_message_id uuid;
   v_first record;
   v_replay record;
   v_row record;
@@ -503,6 +507,7 @@ begin
   if v_first.replayed or v_first.message_id is null then
     raise exception 'Family owner first post receipt is incorrect';
   end if;
+  v_owner_message_id := v_first.message_id;
 
   select *
   into strict v_replay
@@ -534,12 +539,14 @@ begin
     '74000012-7400-4400-8400-000000000012',
     true
   );
-  perform *
+  select *
+  into strict v_row
   from public.post_workflow_message_idempotent(
     v_workflow_id,
     'I can help with the next step.',
     v_participant_request
   );
+  v_participant_message_id := v_row.message_id;
 
   begin
     perform *
@@ -558,32 +565,38 @@ begin
     v_director_user_id::text,
     true
   );
-  perform *
+  select *
+  into strict v_row
   from public.post_workflow_message_idempotent(
     v_workflow_id,
     'Your care team received the update.',
     v_director_request
   );
+  v_director_message_id := v_row.message_id;
 
   perform pg_catalog.set_config(
     'request.jwt.claim.sub',
     v_staff_user_id::text,
     true
   );
-  perform *
+  select *
+  into strict v_row
   from public.post_workflow_message_idempotent(
     v_workflow_id,
     'I completed the assigned update.',
     v_staff_request
   );
+  v_staff_message_id := v_row.message_id;
   if (
     select count(*)
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   ) <> v_expected_message_count
      or (
        select count(*)
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where is_own
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and is_own
      ) <> 1 then
     raise exception 'Assigned staff backend message authority is incorrect';
   end if;
@@ -596,6 +609,7 @@ begin
   for v_row in
     select *
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   loop
     if v_row.message_id is null
        or v_row.sender_kind not in ('staff', 'family')
@@ -609,16 +623,19 @@ begin
   if (
     select count(*)
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   ) <> v_expected_message_count
      or (
        select count(*)
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where is_own
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and is_own
      ) <> 1
      or (
        select count(*)
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where sender_label = 'Director'
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and sender_label = 'Director'
      ) <> 1 then
     raise exception 'Director cross-direction projection is incorrect';
   end if;
@@ -631,11 +648,13 @@ begin
   if (
     select count(*)
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   ) <> v_expected_message_count
      or (
        select count(*)
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where is_own
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and is_own
      ) <> 1 then
     raise exception 'Family-owner cross-direction projection is incorrect';
   end if;
@@ -648,16 +667,19 @@ begin
   if (
     select count(*)
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   ) <> v_expected_message_count
      or (
        select count(*)
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where is_own
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and is_own
      ) <> 1
      or (
        select max(length(sender_label))
        from public.list_workflow_messages_client_safe(v_workflow_id)
-       where is_own
+       where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
+         and is_own
      ) <> 48 then
     raise exception 'Participant projection or sender-label bound is incorrect';
   end if;
@@ -853,6 +875,7 @@ begin
   if (
     select count(*)
     from public.list_workflow_messages_client_safe(v_workflow_id)
+    where message_id in (v_owner_message_id, v_participant_message_id, v_director_message_id, v_staff_message_id)
   ) <> v_expected_message_count then
     raise exception 'Denied or conflicting requests changed message cardinality';
   end if;

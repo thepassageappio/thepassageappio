@@ -207,20 +207,66 @@ function normalizePreparedOutputReviews(record: SandboxRecord): SandboxRecord {
   };
 }
 
-export function readSandbox(storage: Pick<Storage, 'getItem' | 'removeItem'>): SandboxRecord {
+export type SandboxStorageResult = {
+  persisted: boolean;
+  detail?: string;
+};
+
+export type SandboxReadResult = SandboxStorageResult & {
+  record: SandboxRecord;
+};
+
+export function readSandboxResult(storage: Pick<Storage, 'getItem' | 'removeItem'>): SandboxReadResult {
   try {
     const raw = storage.getItem(SANDBOX_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as SandboxRecord;
-      if (parsed.schemaVersion === 3 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5) return withCanonicalAliases(normalizePreparedOutputReviews(parsed));
+      if (parsed.schemaVersion === 3 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5) {
+        return { record: withCanonicalAliases(normalizePreparedOutputReviews(parsed)), persisted: true };
+      }
     }
-  } catch { /* An invalid or older sandbox is safely replaced below. */ }
-  storage.removeItem(SANDBOX_STORAGE_KEY);
-  storage.removeItem(LEGACY_SANDBOX_STORAGE_KEY);
-  storage.removeItem('passage.zero.operational-truth.v1');
-  return createCanonicalSandbox();
+  } catch {
+    return {
+      record: createCanonicalSandbox(),
+      persisted: false,
+      detail: 'Saved example information could not be read. A fresh example is available for this visit only.',
+    };
+  }
+
+  const cleanup = clearSandboxStorage(storage);
+  return {
+    record: createCanonicalSandbox(),
+    persisted: cleanup.persisted,
+    detail: cleanup.detail,
+  };
 }
 
-export function writeSandbox(storage: Pick<Storage, 'setItem'>, record: SandboxRecord) {
-  storage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify(record));
+export function readSandbox(storage: Pick<Storage, 'getItem' | 'removeItem'>): SandboxRecord {
+  return readSandboxResult(storage).record;
+}
+
+export function clearSandboxStorage(storage: Pick<Storage, 'removeItem'>): SandboxStorageResult {
+  try {
+    storage.removeItem(SANDBOX_STORAGE_KEY);
+    storage.removeItem(LEGACY_SANDBOX_STORAGE_KEY);
+    storage.removeItem('passage.zero.operational-truth.v1');
+    return { persisted: true };
+  } catch {
+    return {
+      persisted: false,
+      detail: 'Old saved example information could not be removed. The fresh example is available for this visit only.',
+    };
+  }
+}
+
+export function writeSandbox(storage: Pick<Storage, 'setItem'>, record: SandboxRecord): SandboxStorageResult {
+  try {
+    storage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify(record));
+    return { persisted: true };
+  } catch {
+    return {
+      persisted: false,
+      detail: 'This change could not be saved in this browser. It remains available for this visit only.',
+    };
+  }
 }

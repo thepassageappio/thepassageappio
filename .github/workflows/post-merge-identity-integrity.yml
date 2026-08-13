@@ -1,0 +1,26 @@
+name: Passage post-merge identity integrity
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-identity-separation:
+    if: github.event.pull_request.merged == true
+    name: Verify author and merger identities differ
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted merged governance
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          persist-credentials: false
+      - name: Verify actual GitHub identities
+        env:
+          PR_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
+          PR_MERGED_BY_LOGIN: ${{ github.event.pull_request.merged_by.login }}
+        run: node scripts/check-merge-identity.js

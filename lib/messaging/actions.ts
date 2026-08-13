@@ -7,7 +7,7 @@ import { createPassageServerClient } from '@/lib/supabase/server';
 
 // Shared by both posting surfaces (family case-detail messages page, director
 // Case Room Messages panel) -- authorization for who may post is decided
-// entirely by the RPC (passage_private.can_view_workflow), so one action
+// entirely by the RPC (passage_private.can_message_workflow), so one action
 // safely serves both personas rather than needing a family- and a director-
 // specific copy.
 export type MessageCommandState = {

@@ -1,9 +1,43 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
+import {
+  INVITATION_CONTINUE_PATH,
+  INVITATION_INTENT_COOKIE,
+  invitationIntentCookieOptions,
+} from '@/lib/auth/invitation-intent-cookie';
+import { validInvitationToken } from '@/lib/auth/invitations';
 import { getRuntimeConfiguration } from '@/lib/runtime-config';
 
 export async function refreshPassageSession(request: NextRequest) {
+  const invitationMatch = request.nextUrl.pathname.match(/^\/invite\/([^/]+)$/);
+  if (invitationMatch && invitationMatch[1] !== 'continue') {
+    let token = '';
+    try {
+      token = decodeURIComponent(invitationMatch[1]);
+    } catch {
+      token = '';
+    }
+    const destination = request.nextUrl.clone();
+    destination.pathname = INVITATION_CONTINUE_PATH;
+    destination.search = validInvitationToken(token) ? '' : '?error=invalid';
+    const redirect = NextResponse.redirect(destination);
+    redirect.headers.set('Cache-Control', 'private, no-store');
+    redirect.headers.set('Pragma', 'no-cache');
+    redirect.headers.set('Expires', '0');
+    redirect.headers.set('Referrer-Policy', 'no-referrer');
+    if (validInvitationToken(token)) {
+      redirect.cookies.set(
+        INVITATION_INTENT_COOKIE,
+        token,
+        invitationIntentCookieOptions(request.nextUrl.protocol === 'https:'),
+      );
+    } else {
+      redirect.cookies.delete(INVITATION_INTENT_COOKIE);
+    }
+    return redirect;
+  }
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(OPERATIONAL_PATHNAME_HEADER, request.nextUrl.pathname);
   let response = NextResponse.next({ request: { headers: requestHeaders } });

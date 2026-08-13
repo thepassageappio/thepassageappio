@@ -1,17 +1,14 @@
-export type PersonaId = 'family' | 'director' | 'staff' | 'receive';
+export type PersonaId = 'family' | 'director' | 'staff' | 'vendor';
 
 export type Persona = {
   id: PersonaId;
   order: string;
-  boundary: 'FICTIONAL SAMPLE' | 'SECURE WORKSPACE';
   name: string;
   role: string;
   action: string;
   detail: string;
-  cta: 'Explore sample' | 'Sign in';
-  href: string;
-  accessibleName: string;
-  pendingLabel: 'Opening sample…' | 'Opening secure sign in…';
+  href?: string;
+  demoPersona?: 'family' | 'director' | 'staff' | 'vendor';
   state: 'origin' | 'active' | 'ready' | 'destination';
 };
 
@@ -24,38 +21,36 @@ export type ContinuityStep = {
 
 export const demoCase = {
   person: 'Sofia Rivera',
+  location: 'Northstar Funeral Home',
+  lastSync: 'Ready to explore',
 };
 
 export const personas: Persona[] = [
   {
-    id: 'family', order: '01', boundary: 'FICTIONAL SAMPLE', name: 'Maya', role: 'Family coordinator',
-    action: 'Choose what to share', detail: 'Explore fictional Rivera family information. Changes stay in this browser and nobody is contacted.',
-    cta: 'Explore sample', href: '/family', accessibleName: 'Explore the fictional family coordinator sample',
-    pendingLabel: 'Opening sample…', state: 'origin',
+    id: 'family', order: '01', name: 'Family help', role: 'Begin privately',
+    action: 'Try the family demo', detail: 'Use example information in this browser. Nothing is sent and no real family record is created.',
+    href: '/demo/family', state: 'origin',
   },
   {
-    id: 'director', order: '02', boundary: 'SECURE WORKSPACE', name: 'Funeral-home director', role: 'Authorized directors',
-    action: 'Open the director workspace', detail: 'Sign in with an authorized funeral-home account. A director sample is not included on this page.',
-    cta: 'Sign in', href: '/login?next=%2Fdirector', accessibleName: 'Sign in to the secure funeral-home director workspace',
-    pendingLabel: 'Opening secure sign in…', state: 'active',
+    id: 'director', order: '02', name: 'Director', role: 'Funeral-home lead',
+    action: 'Open the director demo', detail: 'See urgent requests, assign work, and review saved confirmation.',
+    demoPersona: 'director', state: 'active',
   },
   {
-    id: 'staff', order: '03', boundary: 'SECURE WORKSPACE', name: 'Funeral-home staff', role: 'Authorized staff members',
-    action: 'Open assigned work', detail: 'Sign in with an authorized funeral-home account. A staff sample is not included on this page.',
-    cta: 'Sign in', href: '/login?next=%2Fstaff', accessibleName: 'Sign in to the secure funeral-home staff workspace',
-    pendingLabel: 'Opening secure sign in…', state: 'ready',
+    id: 'staff', order: '03', name: 'Staff', role: 'Assigned team member',
+    action: 'Open the staff demo', detail: 'See only assigned work, take the next step, and save confirmation.',
+    demoPersona: 'staff', state: 'ready',
   },
   {
-    id: 'receive', order: '04', boundary: 'FICTIONAL SAMPLE', name: 'Elena', role: 'Receiving director',
-    action: 'Review a Transfer Pass', detail: 'Explore a fictional handoff. Preview actions stay in this browser and do not create a real case.',
-    cta: 'Explore sample', href: '/receive', accessibleName: 'Explore the fictional receiving-director sample',
-    pendingLabel: 'Opening sample…', state: 'destination',
+    id: 'vendor', order: '04', name: 'Vendor', role: 'Outside service partner',
+    action: 'Open the vendor demo', detail: 'Respond to one request, quote the work, and submit delivery confirmation.',
+    demoPersona: 'vendor', state: 'destination',
   },
 ];
 
 export const continuity: ContinuityStep[] = [
-  { id: 'consent', label: 'Family handoff', meta: 'EXAMPLE COMPLETE', state: 'complete' },
-  { id: 'intake', label: 'Case accepted', meta: 'EXAMPLE COMPLETE', state: 'complete' },
-  { id: 'coordination', label: 'Commitment owned', meta: 'EXAMPLE CURRENT', state: 'active' },
-  { id: 'handoff', label: 'Proof review', meta: 'EXAMPLE NEXT', state: 'upcoming' },
+  { id: 'consent', label: 'Family asks for help', meta: 'Shared by choice', state: 'complete' },
+  { id: 'intake', label: 'Funeral home responds', meta: 'One clear owner', state: 'complete' },
+  { id: 'coordination', label: 'Team completes the work', meta: 'In progress', state: 'active' },
+  { id: 'handoff', label: 'Family sees confirmation', meta: 'Next', state: 'upcoming' },
 ];
