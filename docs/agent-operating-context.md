@@ -1830,3 +1830,88 @@ Release truth:
   - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
   - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
 - Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
+
+## PM Sprint Brief - director and staff responsive hierarchy polish - 2026-08-12 22:18 -07:00
+
+Status: **PM COMPLETE / UX REQUIRED / SOURCE ONLY**. Product source is intentionally unchanged by this role. Production is untouched.
+
+### Role, evidence, and classification
+
+- Product Manager: `/root/pm_director_staff_visual_polish`, distinct from UX, Engineering, QA, Review, Development Head, and Deploy.
+- Prior handoff received: PR #79 at exact evidence head `c3aa26ba15fa9289065537beea8c4a52efa29438`, reporting a duplicate `Preview staff member` label on `/director/team` and a dense 6 to 8 field metadata pattern on director/staff cards. The report's claimed screenshots are not committed and its viewport became stuck near 640 by 480, so it is valid defect discovery but not responsive PASS evidence. PR #79 also has an unresolved review comment requiring durable viewport-labelled evidence before its responsive claims may be relied on.
+- Current source baseline: `greenfield/passage-zero` exact head `72a526ba6d53af2f9028773bf3448d51837e8efb`. A clean isolated clone/branch was created at `.release-train-clean/.director-staff-polish` on `feature/director-staff-responsive-polish`; the dirty root worktree and parallel messaging/operator/A16 lanes remain untouched.
+- **FIX NOW:** duplicate staff identity on `/director/team`. It prevents a director from distinguishing the active and revoked people shown together and makes access review unsafe.
+- **FIX NOW:** director/staff work-card density and responsive hierarchy. The shared `.facts` grid uses four desktop columns, two columns below 980 CSS pixels, and one column only below 620 CSS pixels. This leaves the observed 640-pixel viewport and a 1440-pixel page at 200% zoom in a cramped two-column state.
+- **BACKLOG, not this slice:** broader visual-system overhaul, activity-log restructuring, case-room detail screens, messaging, operator activation, A16 discovery, data/RLS changes, new navigation, and new operational capability.
+- Roadmap classification: **NO material change** to product direction, scope, milestone order, readiness doctrine, persona coverage, or architecture. This repairs presentation and distinguishability within the existing director/staff milestone. The canonical roadmap does not require a direction update; this living context records the bounded release work.
+
+### Goal
+
+Make the daily director and staff queue immediately scannable at desktop, mobile, and high zoom while preserving every authority, privacy, waiting, preparation, action, proof, and next-state fact. A director must distinguish each team member without exposing synthetic fixture emails or internal labels.
+
+### Requirements and components
+
+1. `/director` work cards show the current decision context first: case, owner, waiting party, and due time. Supporting execution/proof context follows in a visually subordinate group: visibility, Passage help, prepared work, and proof destination.
+2. `/staff` work cards show owner, waiting party, case boundary, and the person's immediate action first. Supporting visibility, prepared work, proof destination, and next state follows without hiding or truncating facts.
+3. Desktop may use aligned columns where values remain short and scannable. At 760 CSS pixels and below, including the observed 640-pixel condition and a 1440-pixel viewport at 200% zoom, every facts group reflows to one column in reading order.
+4. At 390, 360, 320 CSS-pixel reflow, and 200% zoom, cards have no horizontal scroll, clipped text, clipped focus, sticky obstruction, hover-only information, or lost authority/proof/recovery detail. Long names, locations, prepared output, timestamps, and labels wrap safely.
+5. Keep one obvious action per current state. Reassign/start/review controls remain adjacent to the content they change, keyboard reachable in DOM reading order, and at least 48 by 48 CSS pixels where enabled. Visible focus must not be obscured by the sticky app header.
+6. The Team page renders a single primary staff name per card. If a synthetic display name collapses to the generic privacy-safe fallback, add a human secondary discriminator from non-sensitive role/location/account-state context, not raw email, UUID, fixture label, cycle text, or database identity. Do not repeat the same fallback in the Account value.
+7. Preserve Cormorant Garamond display typography, Montserrat controls/body, warm ivory surfaces, dusty purple/blue/green status accents, current data queries, permissions, durable state, event/proof behavior, and persona privacy boundaries.
+8. Every rendered surface still answers: where am I, what needs attention, what do I do now, what happens next, what is saved, who can see it, and how do I recover. No `metadata`, `grid`, `projection`, `RLS`, `server verified`, fixture/cycle label, raw enum, UUID, or QA/deploy narration may render.
+
+### Design benchmark and scope effect
+
+- Apple layout guidance favors clear reading order, relative importance, aligned scanning, logical grouping, progressive disclosure, and graceful adaptation. This brief therefore promotes action context before supporting detail and preserves recognizable grouping across widths.
+- Notion's documented mobile behavior collapses desktop columns into one column. This confirms that the operator facts should not remain side by side on narrow or high-zoom layouts.
+- Linear's principles emphasize clarity, purpose-built tools, simple-first power, and removing busy work. This brief keeps operational depth but removes equal visual weight across every fact.
+- WCAG 2.2 Reflow requires content to work at 320 CSS pixels without two-dimensional scrolling; Focus Not Obscured and target-size guidance require visible focus and usable controls. Passage adopts a stricter 48-pixel product target for enabled controls.
+
+### Frontend/backend contract matrix
+
+| Surface | Reachable UI and persona projection | Existing query/state/authority | Mutation, proof, and recovery | Required parity result |
+| --- | --- | --- | --- | --- |
+| `/director` | Director sees priority context before secondary execution/proof facts; all existing values retained | `loadHostedOperations()` reads the current organization/location-authorized workflows, tasks, members, and grants | Existing assignment/review commands, append-only proof/history, and reload recovery remain unchanged | Presentation-only source diff must not add, remove, or rename a command, query, table, RPC, RLS predicate, event, or parity row |
+| `/staff` | Staff sees assigned-only task context, immediate action first, and secondary visibility/proof facts | Same hosted loader under staff authorization and assigned-task restrictions | Existing start/proof/history path and failure/reload states remain unchanged | Same no-contract-change assertion; assigned-only scope must remain intact |
+| `/director/team` | Director sees pending invites and distinguishable current/revoked members without raw identifiers | Existing invitation/member/grant/task reads under director authority | Existing invite/member revocation, saved activity, and recovery remain unchanged | Identity presentation may change; authority, cardinality, command inputs, and proof must not |
+
+### Development objectives
+
+- Introduce the smallest semantic markup/CSS change needed to separate primary and secondary facts and reflow them.
+- Use existing tokens and shared module styles; do not create a parallel card system.
+- Remove duplicate `displayMember(member)` rendering from the Team account line and provide a stable, privacy-safe discriminator that remains useful when two synthetic names collapse to one fallback.
+- Add source regressions for one-column reflow at the required breakpoint, retained fact labels, identity non-duplication, prohibited internal text, 48-pixel controls, and unchanged operational contract/parity.
+
+### Acceptance criteria
+
+- At 1440: director and staff cards preserve a restrained maximum reading width; primary facts are visually dominant, supporting facts subordinate, and current action is found without reading all eight fields.
+- At 390 and 360: every fact is one-column, in semantic reading order, with zero page-level or card-level horizontal overflow and no clipped action/status text.
+- At 200% browser zoom from a 1440-wide viewport and at 320 CSS-pixel reflow: the same single-column facts behavior holds; no fact or recovery action disappears.
+- All enabled buttons/links in the changed cards and Team controls render at least 48 by 48 CSS pixels or 48 pixels high at full usable width. Tab order follows visual/DOM order; focus remains visible and unobscured.
+- Team shows active and revoked staff as distinguishable records. The primary fallback appears once per card; Account uses human account state such as `Sign-in linked`, not the same name repeated. No email or internal synthetic label is exposed.
+- Existing director assignment, staff start/open-history, team invitation/member revocation, role denials, durable reload behavior, and frontend/backend parity remain unchanged.
+- TypeScript, optimized build, persona-language, parity, Server Action export, route/runtime/deploy guards, and diff checks pass.
+- Independent browser QA uses a clean controllable browser and commits timestamped, redacted, exact-head screenshots for `/director`, `/staff`, and `/director/team` at 1440, 390, and 360, plus 200%/320 CSS-pixel reflow evidence. It records actual `innerWidth`, `clientWidth`, `scrollWidth`, element overflow, target rectangles, focus, console, hydration, page errors, failed requests, commit, deployment, browser, reviewer, and timestamp. A stuck or inferred viewport is PARTIAL, never PASS.
+
+### Dependencies, risks, recovery, and non-goals
+
+- Dependencies: current App Router pages, `app/operations-beta.module.css`, privacy-safe member identity helpers, current isolated Preview data, real active/revoked staff fixture, browser automation that can prove exact viewport dimensions, and the canonical non-production Vercel project.
+- Risk: a global `.facts` change can unintentionally alter Activity or Team layouts. Engineering must scope selectors or explicitly verify every consumer.
+- Risk: using location/account status alone may still be identical. UX must specify an ordered, non-sensitive discriminator strategy and a truthful fallback such as `Staff record 1/2` only if it cannot be mistaken for authority or a real name.
+- Recovery: presentation-only rollback to the exact baseline is safe. No schema/data rollback is needed because no migration, DML, RLS, RPC, auth, event, or fixture change is allowed.
+- Non-goals: no new state, data, invitations, tasks, messages, role/access logic, feature flags, pricing, production configuration, or readiness increase. No real communication, no Production Supabase access, and no Production deployment.
+
+### QA and deploy plan
+
+1. UX inspects the real pages and produces a build-ready hierarchy, grouping, copy, discriminator, reading-order, focus, and reflow handoff.
+2. Engineering implements only the UX-approved presentation slice on this clean branch and updates tests plus this context.
+3. Distinct QA runs source/build/parity gates, then a fresh exact-head hosted Preview matrix at 1440/390/360/200%/320. Missing committed screenshots or a stuck viewport is a named QA-infrastructure fix-it item and holds Hosted Preview QA at PARTIAL.
+4. Distinct Independent Agent Review and Development Head inspect the exact head. Deploy may create one branch-only non-production Preview after source QA; Production remains prohibited.
+5. PR #79 remains evidence input, not responsive approval. Its unresolved screenshot comment must be answered with committed exact-viewport evidence or the responsive claims must remain explicitly invalidated.
+
+### Owner gates and next-role handoff
+
+- No owner gate is reached. This is approved routine non-production UX/source/QA work and must not prompt the owner.
+- Next role: distinct UI/UX Review. UX must return PASS, PARTIAL, or FAIL with exact component/selector/copy acceptance. Engineering must not begin before that handoff.
+
+Release truth: **Source QA: NOT RUN. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: SOURCE ONLY / PM COMPLETE / UX REQUIRED / NON-PRODUCTION PARTIAL.**
