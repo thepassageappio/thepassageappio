@@ -217,6 +217,16 @@ const reversal = await readFile(
   'supabase/tests/family_provider_discovery_reversibility.sql',
   'utf8',
 );
+const sqlAuthorityMatrix = await readFile(
+  'supabase/tests/family_provider_discovery.sql',
+  'utf8',
+);
+assert.ok(
+  /Expected unverified-user denial'[\s\S]{0,120}sqlstate '28000'/.test(
+    sqlAuthorityMatrix,
+  ),
+  'Unverified provider confirmation must assert the authoritative verified-email SQLSTATE 28000 denial',
+);
 for (const contract of [
   '(select count(*) from public.organizations) <> 1',
   '(select count(*) from public.organization_locations) <> 1',

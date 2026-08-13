@@ -1222,6 +1222,7 @@
           "file": "supabase/tests/family_provider_discovery.sql",
           "includes": [
             "Exact confirmation replay changed cardinality",
+            "exception when sqlstate '28000' then null",
             "Stale-selection conflict left partial state",
             "Revoked participant retained provider selection access",
             "Append-only denial changed provider event history"

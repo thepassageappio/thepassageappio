@@ -222,7 +222,7 @@ begin
       null, null, null, null, null, null, null
     );
     raise exception 'Expected unverified-user denial';
-  exception when sqlstate '42501' then null;
+  exception when sqlstate '28000' then null;
   end;
 
   perform set_config(
