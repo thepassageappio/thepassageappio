@@ -26,6 +26,34 @@ export type TransferDraft = {
   expiresAt?: string;
 };
 
+export type FamilyIntent = 'planning' | 'urgent';
+
+export type DemoHandoffSnapshot = {
+  schema: 'passage.family.handoff';
+  version: 1;
+  intent: FamilyIntent | null;
+  receiver: {
+    selectionId: string;
+    source: 'browser_demo';
+    displayName: string;
+    address: {
+      line1: string;
+      line2?: string;
+      locality: string;
+      administrativeArea: string;
+      postalCode: string;
+      countryCode: string;
+      formatted: string;
+    };
+    handoffAvailability: 'connected_preview' | 'save_only';
+    role: 'Not contacted by Passage';
+  };
+  scopeIds: readonly string[];
+  expiryId: string;
+  activatedAt: string;
+  expiresAt: string;
+};
+
 export const RECIPIENTS: Recipient[] = [
   {
     id: 'northstar',

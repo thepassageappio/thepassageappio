@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
-import { EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
+import { EXPIRIES, RECIPIENTS, SCOPES, type DemoHandoffSnapshot, type Recipient, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { selectFamilyStatus } from '../../lib/passage-zero';
 import { membership } from '../../lib/sandbox/repository';
 import { formatDemoExpiry, normalizeDemoTransferDraft } from '../../lib/presentation/demo-expiry';
+import { normalizeDemoHandoffSnapshot } from '../../lib/presentation/demo-handoff-snapshot';
 
-const FALLBACK_PASS: TransferDraft = {
+const AUTHENTICATED_EXAMPLE_PASS: TransferDraft = {
   recipientId: 'northstar',
   scopeIds: ['identity', 'care', 'wishes'],
   expiryId: '72h',
@@ -27,12 +28,15 @@ function PassCode() {
   );
 }
 
-export default function ActivePass() {
+export default function ActivePass({ mode }: { mode: 'browser_demo' | 'authenticated' }) {
   const { record, dispatchAtomic } = usePassageZero();
   const accountableDirector = membership(record, record.case.accountableMembershipId).actor;
   const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
   const familyStatus = selectFamilyStatus(record);
-  const [pass, setPass] = useState<TransferDraft>(FALLBACK_PASS);
+  const [pass, setPass] = useState<DemoHandoffSnapshot | TransferDraft | null>(
+    mode === 'authenticated' ? AUTHENTICATED_EXAMPLE_PASS : null,
+  );
+  const [loadState, setLoadState] = useState<'loading' | 'valid' | 'invalid'>('loading');
   const [savedInThisSession, setSavedInThisSession] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyMessage, setCopyMessage] = useState('');
@@ -48,30 +52,54 @@ export default function ActivePass() {
   useEffect(() => {
     try {
       const stored = window.sessionStorage.getItem('passage.family.transfer.v1');
+      if (mode === 'authenticated') {
+        if (stored) {
+          const normalized = normalizeDemoTransferDraft(JSON.parse(stored));
+          const recognized = normalized
+            && RECIPIENTS.some((item) => item.id === normalized.recipientId)
+            && normalized.scopeIds.every((scopeId) => SCOPES.some((item) => item.id === scopeId));
+          if (normalized && recognized) {
+            setPass(normalized);
+            setSavedInThisSession(true);
+          } else {
+            window.sessionStorage.removeItem('passage.family.transfer.v1');
+            setPass(AUTHENTICATED_EXAMPLE_PASS);
+            setSavedInThisSession(false);
+          }
+        }
+        setLoadState('valid');
+        return;
+      }
       if (stored) {
-        const normalized = normalizeDemoTransferDraft(JSON.parse(stored));
-        const recognized = normalized
-          && RECIPIENTS.some((item) => item.id === normalized.recipientId)
-          && normalized.scopeIds.every((scopeId) => SCOPES.some((item) => item.id === scopeId));
-        if (normalized && recognized) {
+        const normalized = normalizeDemoHandoffSnapshot(JSON.parse(stored));
+        if (normalized) {
           setPass(normalized);
-          setSavedInThisSession(true);
+          setLoadState('valid');
         } else {
           window.sessionStorage.removeItem('passage.family.transfer.v1');
-          setPass(FALLBACK_PASS);
-          setSavedInThisSession(false);
+          setPass(null);
+          setLoadState('invalid');
         }
+      } else {
+        setPass(null);
+        setLoadState('invalid');
       }
     } catch {
       try {
         window.sessionStorage.removeItem('passage.family.transfer.v1');
       } catch {
-        // Storage can be disabled; the honest in-memory example remains usable.
+        // Storage can be disabled; no active-pass success is presented.
       }
-      setPass(FALLBACK_PASS);
-      setSavedInThisSession(false);
+      if (mode === 'authenticated') {
+        setPass(AUTHENTICATED_EXAMPLE_PASS);
+        setSavedInThisSession(false);
+        setLoadState('valid');
+      } else {
+        setPass(null);
+        setLoadState('invalid');
+      }
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     if (revoked) closedHeading.current?.focus();
@@ -81,11 +109,32 @@ export default function ActivePass() {
     if (confirming) confirmHeading.current?.focus();
   }, [confirming]);
 
-  const recipient = useMemo(() => RECIPIENTS.find((item) => item.id === pass.recipientId) ?? RECIPIENTS[0], [pass.recipientId]);
-  const expiry = useMemo(() => EXPIRIES.find((item) => item.id === pass.expiryId) ?? EXPIRIES[1], [pass.expiryId]);
-  const expiryMoment = pass.expiresAt ? formatDemoExpiry(pass.expiresAt) ?? expiry.moment : expiry.moment;
-  const included = useMemo(() => SCOPES.filter((item) => pass.scopeIds.includes(item.id)), [pass.scopeIds]);
-  const excluded = useMemo(() => SCOPES.filter((item) => !pass.scopeIds.includes(item.id)), [pass.scopeIds]);
+  const demoPass = mode === 'browser_demo' ? pass as DemoHandoffSnapshot | null : null;
+  const authenticatedPass = mode === 'authenticated' ? pass as TransferDraft : null;
+  const recipient = useMemo<Recipient | undefined>(() => mode === 'authenticated'
+    ? RECIPIENTS.find((item) => item.id === authenticatedPass?.recipientId) ?? RECIPIENTS[0]
+    : demoPass ? ({
+      id: demoPass.receiver.selectionId,
+      organization: demoPass.receiver.displayName,
+      person: demoPass.receiver.handoffAvailability === 'connected_preview'
+        ? 'Browser-demo destination'
+        : 'Reviewed funeral-home choice',
+      role: demoPass.receiver.role,
+      location: demoPass.receiver.address.formatted,
+    }) : undefined, [authenticatedPass?.recipientId, demoPass, mode]);
+  const expiry = useMemo(() => mode === 'authenticated'
+    ? EXPIRIES.find((item) => item.id === authenticatedPass?.expiryId) ?? EXPIRIES[1]
+    : demoPass ? EXPIRIES.find((item) => item.id === demoPass.expiryId) : undefined,
+  [authenticatedPass?.expiryId, demoPass, mode]);
+  const expiryMoment = mode === 'authenticated'
+    ? authenticatedPass?.expiresAt ? formatDemoExpiry(authenticatedPass.expiresAt) ?? expiry?.moment : expiry?.moment
+    : demoPass ? formatDemoExpiry(demoPass.expiresAt) : null;
+  const included = useMemo(() => pass
+    ? SCOPES.filter((item) => pass.scopeIds.includes(item.id))
+    : [], [pass]);
+  const excluded = useMemo(() => pass
+    ? SCOPES.filter((item) => !pass.scopeIds.includes(item.id))
+    : [], [pass]);
 
   async function copyCode() {
     setCopied(false);
@@ -162,19 +211,33 @@ export default function ActivePass() {
         <div className={styles.closedSignal} aria-hidden="true"><span /></div>
         <p>HANDOFF CLOSED / 04</p>
         <h1 ref={closedHeading} tabIndex={-1}>This pass cannot be opened now.</h1>
-        <span>{recipient.organization} can no longer use this example QR or manual code. Sofia&apos;s example information has not changed.</span>
+        <span>{recipient ? `${recipient.organization} can no longer use` : 'The receiver can no longer use'} this example QR or manual code. Sofia&apos;s example information has not changed.</span>
         <p aria-live="polite">{closeMessage || 'The example handoff is closed in this browser.'}</p>
         <a href="/demo/family">Create a new example handoff <i aria-hidden="true">-&gt;</i></a>
       </main>
     );
   }
 
+  if (mode === 'browser_demo' && (loadState !== 'valid' || !demoPass || !recipient || !expiry || !expiryMoment)) {
+    return (
+      <main className={styles.closedPage} id="active-pass">
+        <div className={styles.closedSignal} aria-hidden="true"><span /></div>
+        <p>PRIVATE BROWSER DEMO</p>
+        <h1>This example handoff is unavailable</h1>
+        <span>The saved example could not be verified. No handoff is active, and no code or receiver details are shown.</span>
+        <a href="/demo/family">Create it again <i aria-hidden="true">-&gt;</i></a>
+      </main>
+    );
+  }
+
+  if (!recipient || !expiry || !expiryMoment) return null;
+
   return (
     <main className={styles.passPage} id="active-pass">
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
-        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : savedInThisSession ? 'HANDOFF ACTIVE' : 'HANDOFF EXAMPLE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} received it` : savedInThisSession ? `Closes ${expiryMoment}` : `Create it to start the ${expiry.label} window`}</span>
+        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : mode === 'authenticated' ? savedInThisSession ? 'HANDOFF ACTIVE' : 'HANDOFF EXAMPLE' : 'HANDOFF ACTIVE'}</strong>
+        <span>{record.transferPass.status === 'accepted' ? mode === 'authenticated' ? `${record.organizations[0].name} received it` : 'This browser example shows it as received' : mode === 'authenticated' && !savedInThisSession ? `Create it to start the ${expiry!.label} window` : `Closes ${expiryMoment}`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -226,12 +289,12 @@ export default function ActivePass() {
       <section className={styles.passControls} aria-labelledby="control-heading">
         <div>
           <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
-          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : savedInThisSession ? 'Need to stop access?' : 'Start with your own example choices.'}</h2>
-          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : savedInThisSession ? 'Closing this example handoff is immediate and changes only this browser demo.' : 'Choose the receiver, what they can open, and the access window. Nothing is sent and no real record changes.'}</span>
+          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : mode === 'authenticated' && !savedInThisSession ? 'Start with your own example choices.' : 'Need to stop access?'}</h2>
+          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved example confirmation. No real funeral home or family record was contacted or changed.` : record.transferPass.status === 'accepted' ? 'This browser demo updated the example handoff. No real funeral home or family record was contacted or changed.' : mode === 'authenticated' && !savedInThisSession ? 'Choose the receiver, what they can open, and the access window. Nothing is sent and no real record changes.' : 'Closing this example handoff is immediate and changes only this browser demo.'}</span>
         </div>
         {record.transferPass.status === 'accepted' ? (
           <a className={styles.exitPass} href="/demo/family">Return to family demo</a>
-        ) : !savedInThisSession ? (
+        ) : mode === 'authenticated' && !savedInThisSession ? (
           <a className={styles.exitPass} href="/demo/family">Create this example handoff</a>
         ) : !confirming ? (
           <button className={styles.revokeButton} onClick={() => setConfirming(true)} ref={closeTrigger} type="button">Close this handoff</button>

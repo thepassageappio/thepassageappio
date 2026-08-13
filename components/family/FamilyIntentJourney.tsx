@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import TransferComposer from './TransferComposer';
 import type { ProviderDiscoveryModeProps } from './provider-discovery/FuneralHomeDiscovery';
+import type { FamilyIntent } from './types';
 import styles from './FamilyJourney.module.css';
-
-type FamilyIntent = 'planning' | 'urgent';
 
 const STORAGE_KEY = 'passage.family.intent.v1';
 const intentCopy: Record<FamilyIntent, { eyebrow: string; title: string; emphasis: string; body: string }> = {
@@ -67,7 +66,7 @@ export default function FamilyIntentJourney(props: ProviderDiscoveryModeProps) {
           <p className={styles.liveRegion} aria-live="polite">{storageMessage}</p>
         </div>
       </section>
-      <TransferComposer {...props} />
+      <TransferComposer {...props} intent={intent} />
     </>
   );
 }
