@@ -24,7 +24,7 @@ export default function FamilyPassPage() {
         <a className={styles.exitPass} href="/family">Family space</a>
       </header>
       <div id="active-pass">
-        <ActivePass />
+        <ActivePass mode="authenticated" />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export default function DemoFamilyPassPage() {
         <a className={styles.exitPass} href="/demo/family">Family demo</a>
       </header>
       <p className={styles.demoBoundary} role="status">Private browser demo · choices stay on this device. This handoff does not create a real family record or send a message.</p>
-      <ActivePass />
+      <ActivePass mode="browser_demo" />
     </div>
   );
 }

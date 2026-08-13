@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
-import { DEFAULT_DRAFT, EXPIRIES, SCOPES, type Recipient, type TransferDraft } from './types';
+import { DEFAULT_DRAFT, EXPIRIES, SCOPES, type FamilyIntent, type Recipient, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { deriveDemoExpiry, formatDemoExpiry } from '../../lib/presentation/demo-expiry';
 import FuneralHomeDiscovery, {
   type ProviderDiscoveryModeProps,
 } from './provider-discovery/FuneralHomeDiscovery';
 import type { ProviderSelectionSummary } from '@/lib/provider-discovery/types';
+import { createDemoHandoffSnapshot } from '../../lib/presentation/demo-handoff-snapshot';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -19,7 +20,9 @@ const STEPS = [
   { id: 'review', label: 'Review' },
 ] as const;
 
-export default function TransferComposer(props: ProviderDiscoveryModeProps) {
+export default function TransferComposer(
+  props: ProviderDiscoveryModeProps & { intent: FamilyIntent | null },
+) {
   const router = useRouter();
   const { dispatchAtomic, persistenceIssue } = usePassageZero();
   const [phase, setPhase] = useState(0);
@@ -85,7 +88,7 @@ export default function TransferComposer(props: ProviderDiscoveryModeProps) {
   }
 
   function activate() {
-    if (!recipient || !expiry || included.length === 0) return;
+    if (!recipient || !providerSelection || !expiry || included.length === 0) return;
     setActivating(true);
     setActivationMessage('');
     const activatedAt = new Date().toISOString();
@@ -95,8 +98,36 @@ export default function TransferComposer(props: ProviderDiscoveryModeProps) {
       return;
     }
     const activated: TransferDraft = { ...draft, activatedAt, expiresAt };
+    const selectionId = 'demoSelectionId' in providerSelection
+      && typeof providerSelection.demoSelectionId === 'string'
+      ? providerSelection.demoSelectionId
+      : `demo-selection:${providerSelection.selectedAt}`;
+    const snapshot = props.providerMode === 'browser_demo' ? createDemoHandoffSnapshot({
+      intent: props.intent,
+      receiver: {
+        selectionId,
+        source: 'browser_demo',
+        displayName: providerSelection.displayName,
+        address: providerSelection.address,
+        handoffAvailability: providerSelection.handoffAvailability,
+        role: 'Not contacted by Passage',
+      },
+      scopeIds: draft.scopeIds,
+      expiryId: draft.expiryId,
+      activatedAt,
+      expiresAt,
+    }) : null;
+    if (props.providerMode === 'browser_demo' && !snapshot) {
+      setActivating(false);
+      setActivationMessage('The example handoff was not created. Nothing was saved. Review your choices and try again.');
+      focusActivationRecovery();
+      return;
+    }
+    const serializedHandoff = props.providerMode === 'browser_demo'
+      ? JSON.stringify(snapshot)
+      : JSON.stringify(activated);
     try {
-      window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
+      window.sessionStorage.setItem('passage.family.transfer.v1', serializedHandoff);
     } catch {
       setActivating(false);
       setActivationMessage('The example handoff was not created. Nothing was saved. Your choices are still here. Try again.');
@@ -108,9 +139,12 @@ export default function TransferComposer(props: ProviderDiscoveryModeProps) {
       const sandboxResult = dispatchAtomic({
         type: 'issue_transfer_pass',
         actorId: 'maya-rivera',
-        idempotencyKey: `family:issue:${activated.activatedAt}`,
-        scope: included.map((item) => ({ name: item.label, detail: item.detail })),
-        expiresLabel: formatDemoExpiry(expiresAt) ?? expiry.moment,
+        idempotencyKey: `family:issue:${props.providerMode === 'browser_demo' ? snapshot!.activatedAt : activated.activatedAt}`,
+        scope: (props.providerMode === 'browser_demo' ? snapshot!.scopeIds : included.map((item) => item.id)).map((scopeId) => {
+          const item = SCOPES.find((scope) => scope.id === scopeId)!;
+          return { name: item.label, detail: item.detail };
+        }),
+        expiresLabel: formatDemoExpiry(props.providerMode === 'browser_demo' ? snapshot!.expiresAt : expiresAt) ?? expiry.moment,
       });
       if (!sandboxResult.persisted) {
         let incompleteCopyRemoved = false;
