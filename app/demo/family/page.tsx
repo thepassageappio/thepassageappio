@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import FamilyIntentJourney from '../../../components/family/FamilyIntentJourney';
 import styles from '../../../components/family/FamilyJourney.module.css';
+import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 
 export const metadata: Metadata = {
   title: 'Family handoff demo',
@@ -17,7 +18,7 @@ export default function DemoFamilyPage() {
         <span className={styles.familyProfile} aria-label="Example family identity">SR</span>
       </header>
       <p className={styles.demoBoundary} role="status">Private browser demo · choices stay on this device. Nothing here creates a real family record, sends a message, makes a purchase, or processes a payment.</p>
-      <FamilyIntentJourney providerMode="browser_demo" />
+      <PassageZeroProvider><FamilyIntentJourney providerMode="browser_demo" /></PassageZeroProvider>
     </main>
   );
 }

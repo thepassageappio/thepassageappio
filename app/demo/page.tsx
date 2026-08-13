@@ -5,6 +5,7 @@ import { continuity, demoCase, personas } from '@/lib/demo';
 import { startPreviewDemo } from './actions';
 import DemoReset from './DemoReset';
 import { hasConfiguredOperatorDemoSessions } from '@/lib/presentation/operator-demo-availability';
+import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 
 export const metadata: Metadata = {
   title: 'Demo',
@@ -72,7 +73,7 @@ export default async function DemoGateway({ searchParams }: { searchParams: Prom
           <p>The real help path is separate from this example. It explains when sign-in is required before anything is saved or sent.</p>
           <Link href="/start">Get help now</Link>
         </section>
-        <DemoReset operatorSessionsConfigured={operatorSessionsConfigured} />
+        <PassageZeroProvider><DemoReset operatorSessionsConfigured={operatorSessionsConfigured} /></PassageZeroProvider>
         <section className="gateway__continuity">
           <div className="continuity-context">
             <span>THE FAMILY CHOOSES WHAT MOVES.</span>
