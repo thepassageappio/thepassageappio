@@ -1830,3 +1830,111 @@ Release truth:
   - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
   - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
 - Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
+
+## Product Manager Sprint Brief - A16 mobile funeral-home discovery completion - 2026-08-12
+
+### Role instance and received handoff
+
+- Product Manager: `/root/pm_next_roadmap_product_lane`.
+- Prior handoff received: the active launch train is repairing the public/demo candidate, independently verifying PR #78 least-privilege authority, retaining the Participant P2 exact-head evidence, and holding the combined candidate until those gates close. This lane does not modify those branches, worktrees, migrations, evidence sets, or release decisions.
+- Roadmap decision: the highest-ranked independent customer-visible item is the canonical A16 family funeral-home name/address discovery slice. The roadmap places it immediately after Cycle 8 and participant invitation. It also directly addresses the owner's mobile evidence showing a Search button, static fields, and no visible suggestions while typing an address.
+- Existing source truth: the shared dirty worktree contains an unfinished A16 candidate under `app/family/provider-discovery`, `components/family/provider-discovery`, `lib/provider-discovery`, `supabase/migrations/20260723060000_family_provider_discovery.sql`, and associated tests. That source is not integrated, committed, source-QA approved, hosted, or release-approved. Engineering must inventory and recover it deliberately into a dedicated branch rather than recreate a parallel directory, address, selection, or event model.
+- Roadmap freshness classification: **NO material direction change**. This brief executes the already-canonical immediate sequence and does not change milestone order, readiness doctrine, persona coverage, architecture, or score. The roadmap does not require another edit for this planning commit.
+- Release status at PM handoff: Source QA **NOT RUN** for a recovered A16 candidate; Hosted Preview QA **NOT RUN**; Production Deployment **NOT DEPLOYED**; Production QA **NOT RUN**; Overall release state **PLANNING COMPLETE / NON-PRODUCTION**.
+
+### Sprint goal
+
+Give a family coordinator a mobile-first, immediate type-ahead experience for finding a funeral home by name or address, deliberately selecting the correct location, checking structured details, and saving one durable choice with a clear privacy and no-contact boundary. If suggestions are unavailable or incomplete, the person can enter or correct the address without losing work. The result must feel like a modern consumer search experience at 390 and 360 pixels while remaining calm and efficient at 1440.
+
+### Product requirements and sprint components
+
+1. **One discovery path in the real family flow.** Replace the static Receiver search/radio pattern in the existing family handoff flow. Do not add a competing route or retain a separate Search button. The visible label is `Funeral home name or address`; helper text is `Start typing a name or address.`
+2. **Suggestions while typing.** Begin after two non-space characters with a 250 ms debounce. Cancel the prior request, ignore stale responses, keep the input editable, and show no more than six ranked options directly below the input. A loading state appears quickly enough that the interface never looks dead.
+3. **Useful query matching.** Match funeral-home name, street, city, region, and postal code. Ranking must be deterministic and must handle partial and multi-token input without requiring exact word order. Same-name locations remain distinguishable by their full wrapping address. The sample directory must include deterministic queries that prove name, street, city, postal code, same-name locations, and the owner's New York-style multi-token address case without implying nationwide coverage.
+4. **Explicit selection.** Typed text is never a saved funeral home. A user must click or keyboard-select one suggestion, then review the structured name, street, city, region, postal code, and country before `Use this funeral home` is enabled. Tab never selects implicitly.
+5. **Durable confirmation.** Confirmation uses the existing family continuity authority and one idempotent server command. The server re-resolves directory source/version and connection truth, derives actor and time, stores one active structured snapshot, and appends one receipt to the existing `workflow_events` spine. Replacement supersedes rather than overwrites.
+6. **Manual and correction path.** `Enter funeral home details manually` is always visible, not revealed only after failure. Name is required and at least one street, city, or postal discriminator is required. Every address field stays editable. Incomplete structured addresses save only with `Needs address review` and never masquerade as provider-validated.
+7. **Truthful connection boundary.** Search and save do not contact the funeral home, issue a Transfer Pass, grant access, reserve service, verify licensing, claim availability, or quote a price. Only a server-linked Northstar sample may say it is available for the later connected Preview step. Every other directory/manual result is `Saved to your plan`.
+8. **Privacy.** Raw queries, abandoned input, highlighted results, empty searches, and provider error payloads remain in memory only. They do not enter URLs, analytics, browser storage, database rows, events, or logs. The confirmed structured selection is the only saved search artifact.
+9. **Audience and proof.** The review and saved receipt render the actual server-authorized audience in plain language, the server time, the saved provider and address, `Nothing was sent`, proof destination, and the next available action. Provider discovery never grants family, participant, funeral-home, location, workflow, or case authority.
+10. **Responsive and accessible behavior.** The complete initial, loading, results, selected, review, saved, edit, manual, empty, offline, busy, unavailable, conflict, denied, and uncertain states must work at 1440, 390, and 360, plus 200% zoom and 320 CSS-pixel reflow.
+
+### Development objectives
+
+- Recover the existing unfinished A16 source into one dedicated Bot-authored branch after a complete diff inventory. Do not edit the shared dirty worktree and do not copy unrelated Participant P2, PR #78, public/demo, combined-candidate, or active QA changes.
+- Keep one provider-neutral `ProviderDiscoveryAdapter`. The checkpoint implementation uses a deterministic in-repository sample adapter. Preserve a future server-side adapter seam for a live provider without exposing a key in browser code or activating a paid service.
+- Strengthen sample matching to token-aware, order-independent name/address behavior while retaining deterministic ties. Add representative New York-style sample coverage or an equivalent deterministic address fixture so the reported mobile case produces suggestions as the user types.
+- Keep the editable WAI-ARIA combobox with DOM focus in the input, accurate `aria-expanded`, `aria-controls`, `aria-activedescendant`, listbox/option semantics, Down/Up, Enter, Escape, and native editing behavior.
+- Integrate the current durable selection shape, coordinator-only command, authorized family projection, active-participant read boundary, idempotency, replacement history, append-only events, replay/conflict behavior, and no-direct-table-access rules in the same packet.
+- Add or update the frontend/backend parity row and Server Action export checks. No UI-only state, browser-only persistence, hidden RPC, or backend-only success claim may pass.
+
+### Experience acceptance criteria
+
+- On mobile, typing `10 main street new york` or the canonical deterministic equivalent starts visible suggestions without pressing Search. Each subsequent meaningful input update refreshes the list, and an older delayed response cannot replace a newer one.
+- The list is in normal document flow at 390 and 360, directly under the input, capped at the smaller of 320 pixels or 40 viewport height, vertically scrollable, and never hidden by a sticky footer or software keyboard. Options are at least 56 pixels high; inputs and enabled controls are at least 48 pixels high.
+- Each result shows the funeral-home name first and a wrapping formatted address second. The active option is visible by more than color and scrolls into view. No result is labeled best, closest, recommended, verified, licensed, available, or cheapest.
+- A selected suggestion opens `Check this funeral home`. Name and address parts are labeled separately. The user can confirm, change selection, or edit details. Continuing before durable confirmation is impossible.
+- Confirmation yields `Funeral home saved`, the server timestamp with timezone, actual audience, `Nothing was sent`, and either the connected Preview next action or `Saved to your plan`. Reload returns the same receipt.
+- Changing a saved choice preserves the old receipt until a new confirmation succeeds. Cancel returns to the saved choice. Exact replay returns the original semantic receipt and time. Conflicting reuse or stale selection changes nothing and provides a clear reload path.
+- Manual entry, empty results, offline, rate limit, provider unavailable, signed out, known save failure, and unknown outcome preserve user work and offer one safe recovery. No raw code, status key, stack text, provider name, API key, place ID, database identifier, or internal QA/deploy language appears.
+- The page answers: where am I, what do I type, how do I choose, what is saved, who can see it, whether anything is sent, what happens next, and how to recover.
+
+### Frontend/backend contract matrix
+
+| Capability | Reachable UI | Server command/query | Durable rows | Authority/RLS | Append-only proof | Failure/recovery and projection |
+| --- | --- | --- | --- | --- | --- | --- |
+| Suggest providers | Family Receiver discovery combobox | authenticated server-side provider adapter search | none | verified family session; search grants no authority | none | canceled/stale requests ignored; query not persisted; human loading/empty/offline/busy/unavailable states |
+| Review result | same family flow | client holds only selected structured candidate until confirm | none | no authority change | none | explicit selection and edit; no implicit Tab/blur save; no contact claim |
+| Confirm directory result | `Use this funeral home` | idempotent checked confirmation command | one active `family_provider_selections` row | coordinator can manage exact continuity space; server resolves directory source and connection | one `family_provider_selection.confirmed` event | known failure preserves prior choice; unknown outcome rereads with same request ID; narrow family projection |
+| Confirm manual result | manual form | same checked command with structured manual snapshot | one active selection, review flag as applicable | same coordinator predicate; client cannot choose actor/time/audience | same confirmed event | incomplete address labeled for review; no provider-validation claim |
+| Replace choice | `Change funeral home` then confirm | checked expected-current selection command | old row superseded, one new active row | same continuity-space predicate and transaction lock | one `family_provider_selection.superseded` event | stale/conflicting expected state fails atomically; old receipt remains visible |
+| Reload receipt | saved choice projection | authorized read projection | existing selection/event | current continuity-space viewer; revoked participant loses read | read only | server time, audience, proof destination, next action; internal IDs/source details omitted |
+
+### Database documentation-first gate
+
+- **What:** recover and independently review the existing additive `family_provider_selections` migration, private deterministic sample directory, selection references on `workflow_events`, coordinator confirmation command, authorized projection, uniqueness/index/RLS/ACL constraints, append-only behavior, SQL matrix, and reversibility matrix. Change it only where the recovered source and current migration order require reconciliation.
+- **Why:** the UI cannot truthfully promise a saved, reloadable, replaceable family choice or correct audience from browser state.
+- **What breaks if skipped:** typed/highlighted text may look selected, reload loses truth, a client can forge source/connection state, replacements erase history, and revoked viewers can retain access.
+- **Target/data boundary:** isolated Supabase project `uyacxqtsiwlvtmhxvoxr` only. Production project `qsveqfchwylsbncsfgxe` is prohibited. No customer, real provider, family communication, provider account, case, task, membership, invitation, price, or payment row is created.
+- **Risk/recovery:** the recovered migration currently depends on an older retained-cardinality and migration-order assumption. Engineering and PostgreSQL QA must reconcile it against the exact current isolated migration history before any application. A separately reviewed rollback must refuse teardown while dependent selections/events exist, remove only A16 objects in dependency order, and preserve all retained evidence. No raw or ad hoc Production SQL is permitted.
+
+### QA plan
+
+1. Source review of the recovered diff, adapter privacy, no client key, no query logging/persistence, exact copy, parity, and Server Action boundaries.
+2. Unit/source matrix for partial and multi-token name/address queries, same-name locations, deterministic ties, two-character threshold, 250 ms debounce, cancel/stale response, six-result cap, keyboard selection, no implicit selection, and every recovery state.
+3. SQL/RLS/reversibility matrix for coordinator success, participant read, wrong family, wrong user, revoked participant, direct table denial, first confirmation, replacement, exact replay, request conflict, concurrent confirmations, append-only denial, current migration-order compatibility, and zero retained-evidence drift.
+4. TypeScript, optimized build, persona language, runtime/route/deploy gates, parity, Server Action export checks, security/performance advisors, and exact committed-artifact hashes.
+5. Hosted QA in distinct clean family and revoked/wrong-user contexts. Exercise name, street, city, postal, same-name, multi-token New York-style, manual partial, empty, offline, rate limit, provider unavailable, save failure, unknown outcome, replay/conflict, replacement, reload, and denial.
+6. Repeat the complete visible path at 1440, 390, and 360 with keyboard, focus, announcement, target size, 200% zoom, 320 reflow, overflow, console, hydration, page error, rejected promise, failed request, runtime logs, exact deployment/commit/project binding, timestamped replacement screenshots, and redacted durable cardinality/audit evidence.
+
+### Deploy plan
+
+- Planning commit is `[skip deploy]` and changes only this living handoff.
+- Engineering publishes one bounded Bot-authored A16 packet against the current approved Passage Zero integration base after reconciling the unfinished source and migration order. Source-only commits use `[skip deploy]`.
+- Independent QA and Independent Agent Review bind the exact head. Development Head / Release Authority approves or rejects that same head. Deploy creates one branch-only non-production Preview through the truthful verification path, then distinct Hosted QA runs the complete matrix.
+- No Production deployment, Production environment change, live provider configuration, or readiness increase is authorized by this brief.
+
+### Research grounding and effect on scope
+
+- W3C's current ARIA Authoring Practices combobox pattern requires accurate combobox/listbox relationships and defines Down/Up, Enter, Escape, standard text editing, and manual list autocomplete behavior: `https://www.w3.org/WAI/ARIA/apg/patterns/combobox/`. This keeps focus in the input and makes explicit selection a hard acceptance criterion.
+- Google Places Autocomplete (New) documents dynamic predictions for partial name/address input, a unique session token for an autocomplete-to-details session, field masks, region/location biasing, and a choice between location bias and restriction: `https://developers.google.com/maps/documentation/places/web-service/place-autocomplete` and `https://developers.google.com/maps/documentation/places/web-service/place-session-tokens`.
+- Google Place Details (New) documents separate `displayName`, `formattedAddress`, and structured `addressComponents`, warns that component sets can vary, and recommends narrow field masks: `https://developers.google.com/maps/documentation/places/web-service/place-details`.
+- Google policies require attribution when its predictions are shown without a map and impose content/storage terms: `https://developers.google.com/maps/documentation/places/web-service/policies`.
+- Scope effect: checkpoint A16 keeps the deterministic sample adapter so no paid API, billing, key, attribution UI, external query, or provider communication is activated. Engineering must preserve the server-side adapter seam, session lifecycle, structured-address model, editable manual fallback, and attribution slot needed for a later explicitly approved live provider. A live provider remains an M6/owner-spend gate and cannot be smuggled into this packet.
+
+### Risks and classifications
+
+- **FIX NOW:** recover the existing A16 candidate into a clean dedicated branch; replace static Search-button behavior; strengthen multi-token address matching; preserve explicit confirmation; complete parity, migration-order, and hosted mobile evidence.
+- **FIX NOW:** any false nationwide-directory, verification, licensing, availability, contact, recommendation, or handoff claim.
+- **WATCH:** mobile network latency and software-keyboard occlusion. Capture search-response timing and prove active-option scrolling without adding a fixed footer.
+- **BACKLOG:** live Google or another provider, geolocation, distance sorting, licensing verification, availability, pricing, provider messaging, generalized directory, marketplace ranking, payments, and Production rollout.
+- **OWNER GATE LATER:** spending or enabling a paid provider, changing material privacy/security handling for an external query provider, or any live Production/provider configuration. No owner gate is reached by this non-production sample implementation and QA packet.
+
+### Non-goals
+
+- No real provider lookup, email, SMS, phone call, lead delivery, reservation, quote, price, payment, licensing check, quality ranking, recommendation, geolocation, map, distance claim, Transfer Pass issuance, access grant, provider account, marketplace, Production migration, Production deployment, readiness score change, or public launch.
+
+### Auto-advance handoff
+
+- PM scope is **COMPLETE** and moves immediately to a distinct UX Review role. UX must inspect the recovered real component against this brief, the owner's mobile screenshot, the existing A16 experience contract, and the 1440/390/360/200% requirements, then return PASS, PARTIAL, or FAIL with an exact Engineering handoff.
+- After UX, Engineering recovers and reconciles the unfinished A16 candidate in a clean dedicated branch. It must not modify or depend on the active public/demo repair, e73 hosted QA, combined candidate, Participant P2, or PR #78 worktrees.
