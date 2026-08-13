@@ -232,6 +232,14 @@ export default function ActivePass({ mode }: { mode: 'browser_demo' | 'authentic
 
   if (!recipient || !expiry || !expiryMoment) return null;
 
+  const heroStatus = mode === 'authenticated'
+    ? familyStatus.update
+    : record.commitment.status === 'proof_submitted'
+      ? `This browser example shows confirmation from ${recipient.organization}.`
+      : record.transferPass.status === 'accepted'
+        ? `This browser example shows ${recipient.organization} received the handoff.`
+        : `Your handoff is ready for ${recipient.organization}.`;
+
   return (
     <main className={styles.passPage} id="active-pass">
       <div className={styles.passStatus}>
@@ -244,7 +252,7 @@ export default function ActivePass({ mode }: { mode: 'browser_demo' | 'authentic
         <div className={styles.passCopy}>
           <p>TRANSFER PASS / {record.person.name.toUpperCase()}</p>
           <h1 id="active-pass-heading">{record.transferPass.status === 'accepted' ? <>Handoff<br />received.</> : <>Ready for<br />the handoff.</>}</h1>
-          <span>{familyStatus.update}</span>
+          <span>{heroStatus}</span>
 
           <div className={styles.destinationLine}>
             <span>PREPARED FOR</span>
