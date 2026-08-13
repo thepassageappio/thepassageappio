@@ -3033,3 +3033,17 @@ Status: **INDEPENDENT REVIEW FAIL PRESERVED / ASSERTION CORRECTED / SOURCE PARTI
 - **Production QA:** NOT RUN.
 - **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / HOSTED PREVIEW PARTIAL / NO PRODUCTION CLAIM.
 - **Auto-advance target:** freeze one Bot-authored `[skip deploy]` commit, hand the exact head to distinct Source QA, then publish one branch-only replacement Preview and run the complete operator matrix. No owner prompt is required.
+
+### Replacement Preview operator demo - distinct QA rejection and bounded repair - 2026-08-12 21:04 -07:00
+
+- **Role handoff:** distinct Source QA rejected exact head `07054f1bd637fae0b0bc43ef589bb515938b488b`. The rejection is accepted. Local receipts implied that another role could already see browser-only state, and guided routes inherited AppFrame links into protected Director, Staff, Vendor, Intake, and Receive workspaces.
+- **Development repair:** guided routes now pass an explicit `guidedDemoPersona` to `AppFrame`. In that mode the brand returns to `/demo` and the complete shell navigation stays within `/demo/operator/director`, `/demo/operator/staff`, and `/demo/operator/vendor`. Verified operations routes retain their existing navigation.
+- **Truthful state boundary:** each action receipt now says what this page shows. Each completed action also states that the example change exists only on the page and resets on refresh. Real-workspace visibility is described only as a future result after an authorized server save. Tests forbid the rejected shared-state phrases and protected hrefs in the guided packet. Vendor remains limited to a funeral-home request label with no family name.
+- **Focused and full source verification:** public conversion and new demo-boundary assertions PASS; persona-language PASS; runtime configuration PASS; Vercel ignore-build PASS; frontend/backend parity 19/19 PASS; Server Action export guard PASS; agent-context and release-train guards PASS; direct TypeScript PASS; optimized Next.js 16.1.6 build PASS with 29/29 static pages. Only the known multi-lockfile root warning remains.
+- **Local browser infrastructure debt:** the local server returned HTTP 200 for the Director route, but the signed-in Chrome automation connection did not return from local tab navigation before the watchdog interruption. No responsive, zoom, keyboard, action, reset, focus, console, hydration, or runtime browser cell is claimed. Distinct QA owns the recovery test on the exact descendant head and may use a fresh browser context or the replacement hosted Preview.
+- **Source QA:** REPAIR ENGINEERING GATES PASS / DISTINCT RE-RUN REQUIRED.
+- **Hosted Preview QA:** NOT RUN.
+- **Production Deployment:** NOT DEPLOYED. No Production data or configuration was accessed.
+- **Production QA:** NOT RUN.
+- **Overall release state:** SOURCE REPAIR READY FOR DISTINCT QA / BROWSER QA NOT RUN / NO RELEASE CLAIM.
+- **Auto-advance target:** freeze a Bot-authored `[skip deploy]` descendant, start fresh distinct Source QA, then publish one branch-only replacement Preview only after the exact head passes. No owner prompt is required.
