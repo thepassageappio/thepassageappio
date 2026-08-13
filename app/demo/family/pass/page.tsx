@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ActivePass from '../../../../components/family/ActivePass';
 import styles from '../../../../components/family/FamilyJourney.module.css';
+import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 
 export const metadata: Metadata = { title: 'Example handoff', description: 'Review an example family handoff in the Passage demo.' };
 
@@ -14,7 +15,7 @@ export default function DemoFamilyPassPage() {
         <a className={styles.exitPass} href="/demo/family">Family demo</a>
       </header>
       <p className={styles.demoBoundary} role="status">Private browser demo · choices stay on this device. This handoff does not create a real family record or send a message.</p>
-      <ActivePass mode="browser_demo" />
+      <PassageZeroProvider><ActivePass mode="browser_demo" /></PassageZeroProvider>
     </div>
   );
 }
