@@ -228,11 +228,14 @@ assert.ok(
   'Unverified provider confirmation must assert the authoritative verified-email SQLSTATE 28000 denial',
 );
 for (const contract of [
-  '(select count(*) from public.organizations) <> 1',
-  '(select count(*) from public.organization_locations) <> 1',
-  '(select count(*) from public.workflows) <> 2',
-  '(select count(*) from public.tasks) <> 3',
-  '(select count(*) from public.workflow_events) <> 8',
+  '(select count(*) from public.family_provider_selections) <> 0',
+  "to_regclass('public.family_provider_selections') is not null",
+  "to_regclass('passage_private.synthetic_provider_directory') is not null",
+  "to_regprocedure(\n       'public.get_family_provider_selection_projection(uuid)'",
+  "to_regprocedure(\n       'passage_private.get_family_provider_selection_projection(uuid)'",
+  "'workflow_events_family_provider_selection_id_fkey'",
+  "'workflow_events_previous_family_provider_selection_id_fkey'",
+  "policyname = 'family_provider_selection_authorized_select'",
   "'c7a00001-7a00-47a0-87a0-000000000001'",
   "'c7a00002-7a00-47a0-87a0-000000000002'",
   "'c7b10001-7b00-47b0-87b0-000000000001'",
@@ -240,6 +243,18 @@ for (const contract of [
   "case_reference = 'NS-2051'",
 ]) {
   assert.ok(reversal.includes(contract), `Missing reversal contract: ${contract}`);
+}
+for (const staleSharedLabCount of [
+  '(select count(*) from public.organizations) <> 1',
+  '(select count(*) from public.organization_locations) <> 1',
+  '(select count(*) from public.workflows) <> 2',
+  '(select count(*) from public.tasks) <> 3',
+  '(select count(*) from public.workflow_events) <> 8',
+]) {
+  assert.ok(
+    !reversal.includes(staleSharedLabCount),
+    `Reversal must not depend on shared-lab global count: ${staleSharedLabCount}`,
+  );
 }
 
 console.log('family provider discovery source contracts: PASS');

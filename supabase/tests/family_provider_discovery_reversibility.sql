@@ -21,12 +21,11 @@ begin
      or to_regclass('passage_private.synthetic_provider_directory') is null then
     raise exception 'Provider reversal refused: A16 relations are missing';
   end if;
-  if exists (select 1 from public.family_provider_selections)
-     or exists (
-       select 1 from public.workflow_events
-       where family_provider_selection_id is not null
-          or previous_family_provider_selection_id is not null
-     ) then
+  if (select count(*) from public.family_provider_selections) <> 0
+     or (select count(*)
+         from public.workflow_events
+         where family_provider_selection_id is not null
+            or previous_family_provider_selection_id is not null) <> 0 then
     raise exception 'Provider reversal refused: durable A16 evidence exists'
       using errcode = '55000';
   end if;
@@ -70,6 +69,28 @@ do $provider_reversal_assertions$
 begin
   if to_regclass('public.family_provider_selections') is not null
      or to_regclass('passage_private.synthetic_provider_directory') is not null
+     or to_regclass('passage_private.synthetic_provider_directory_name_idx') is not null
+     or to_regclass('passage_private.synthetic_provider_directory_location_idx') is not null
+     or to_regclass('public.family_provider_one_active_per_space') is not null
+     or to_regclass('public.family_provider_space_history_idx') is not null
+     or to_regclass('public.family_provider_selected_by_idx') is not null
+     or to_regclass('public.family_provider_superseded_by_idx') is not null
+     or to_regclass('public.family_provider_organization_idx') is not null
+     or to_regclass('public.family_provider_location_idx') is not null
+     or to_regclass('public.workflow_events_family_provider_selection_idx') is not null
+     or to_regclass('public.workflow_events_previous_family_provider_selection_idx') is not null
+     or to_regprocedure(
+       'public.get_family_provider_selection_projection(uuid)'
+     ) is not null
+     or to_regprocedure(
+       'public.confirm_family_provider_selection(uuid,uuid,timestamp with time zone,text,text,text,text,text,text,text,text,text)'
+     ) is not null
+     or to_regprocedure(
+       'passage_private.get_family_provider_selection_projection(uuid)'
+     ) is not null
+     or to_regprocedure(
+       'passage_private.confirm_family_provider_selection(uuid,uuid,timestamp with time zone,text,text,text,text,text,text,text,text,text)'
+     ) is not null
      or exists (
        select 1 from information_schema.columns
        where table_schema = 'public'
@@ -78,6 +99,20 @@ begin
            'family_provider_selection_id',
            'previous_family_provider_selection_id'
          )
+     )
+     or exists (
+       select 1 from pg_constraint
+       where conname in (
+         'workflow_events_family_provider_selection_id_fkey',
+         'workflow_events_previous_family_provider_selection_id_fkey'
+       )
+         and conrelid = 'public.workflow_events'::regclass
+     )
+     or exists (
+       select 1 from pg_policies
+       where schemaname = 'public'
+         and tablename = 'family_provider_selections'
+         and policyname = 'family_provider_selection_authorized_select'
      )
      or (select count(*)
          from pg_policies
@@ -94,31 +129,40 @@ begin
          and qual like '%can_manage_continuity_space(continuity_space_id)%'
          and qual not like '%family_provider_selection_id%'
      )
-     or (select count(*) from public.organizations) <> 1
-     or (select count(*) from public.organization_locations) <> 1
-     or (select count(*) from public.workflows) <> 2
-     or (select count(*) from public.tasks) <> 3
-     or (select count(*) from public.workflow_events) <> 8
-     or (select count(*) from public.organizations
-         where id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 1
-     or (select count(*) from public.organization_locations
-         where id = 'c7a00002-7a00-47a0-87a0-000000000002'
-           and organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 1
-     or (select count(*) from public.workflows
-         where id in (
-           'c7b10001-7b00-47b0-87b0-000000000001',
-           'c7b10002-7b00-47b0-87b0-000000000002'
-         )
-           and organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 2
-     or (select count(*) from public.tasks
-         where id in (
-           'c7b20001-7b00-47b0-87b0-000000000001',
-           'c7b20002-7b00-47b0-87b0-000000000002',
-           'c7b20003-7b00-47b0-87b0-000000000003'
-         )
-           and organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 3
-     or (select count(*) from public.workflow_events
-         where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 8
+     or not exists (
+       select 1 from public.organizations
+       where id = 'c7a00001-7a00-47a0-87a0-000000000001'
+     )
+     or not exists (
+       select 1 from public.organization_locations
+       where id = 'c7a00002-7a00-47a0-87a0-000000000002'
+         and organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+     )
+     or exists (
+       select expected.id
+       from (values
+         ('c7b10001-7b00-47b0-87b0-000000000001'::uuid),
+         ('c7b10002-7b00-47b0-87b0-000000000002'::uuid)
+       ) as expected(id)
+       where not exists (
+         select 1 from public.workflows as workflow
+         where workflow.id = expected.id
+           and workflow.organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+       )
+     )
+     or exists (
+       select expected.id
+       from (values
+         ('c7b20001-7b00-47b0-87b0-000000000001'::uuid),
+         ('c7b20002-7b00-47b0-87b0-000000000002'::uuid),
+         ('c7b20003-7b00-47b0-87b0-000000000003'::uuid)
+       ) as expected(id)
+       where not exists (
+         select 1 from public.tasks as task
+         where task.id = expected.id
+           and task.organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+       )
+     )
      or not exists (
        select 1 from public.workflows
        where case_reference = 'NS-2051'
