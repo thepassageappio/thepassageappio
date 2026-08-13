@@ -61,8 +61,28 @@ begin
        where schemaname = 'public'
          and indexname = 'family_provider_one_active_per_space'
          and indexdef like 'CREATE UNIQUE INDEX%'
+     )
+     or not exists (
+       select 1 from pg_index as i
+       where i.indrelid = 'passage_private.synthetic_provider_directory'::regclass
+         and i.indexrelid =
+           'passage_private.synthetic_provider_directory_organization_id_idx'::regclass
+         and i.indisvalid and i.indisready
+         and i.indpred is null and i.indexprs is null
+         and i.indnkeyatts = 1 and i.indnatts = 1
+         and pg_catalog.pg_get_indexdef(i.indexrelid, 1, true) = 'organization_id'
+     )
+     or not exists (
+       select 1 from pg_index as i
+       where i.indrelid = 'passage_private.synthetic_provider_directory'::regclass
+         and i.indexrelid =
+           'passage_private.synthetic_provider_directory_organization_location_id_idx'::regclass
+         and i.indisvalid and i.indisready
+         and i.indpred is null and i.indexprs is null
+         and i.indnkeyatts = 1 and i.indnatts = 1
+         and pg_catalog.pg_get_indexdef(i.indexrelid, 1, true) = 'organization_location_id'
      ) then
-    raise exception 'Provider RLS or one-active-selection protection is incomplete';
+    raise exception 'Provider RLS, selection uniqueness, or FK advisor hardening is incomplete';
   end if;
 
   if has_table_privilege(

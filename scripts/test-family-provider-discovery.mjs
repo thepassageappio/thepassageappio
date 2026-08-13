@@ -221,12 +221,61 @@ const sqlAuthorityMatrix = await readFile(
   'supabase/tests/family_provider_discovery.sql',
   'utf8',
 );
+const advisorHardening = await readFile(
+  'supabase/migrations/20260813043536_a16_provider_directory_fk_indexes.sql',
+  'utf8',
+);
+assert.equal(
+  advisorHardening.match(/^create index if not exists /gm)?.length,
+  2,
+  'A16 advisor hardening must contain exactly two idempotent indexes',
+);
+assert.ok(
+  !/^\s*(?:insert|update|delete|alter\s+table|grant|revoke|create\s+policy|drop)\b/im.test(
+    advisorHardening,
+  ),
+  'A16 advisor hardening must not mutate rows, authority, RPCs, RLS, or existing objects',
+);
+for (const guard of [
+  '7656983981618135123::bigint',
+  "where name = 'family_provider_discovery'",
+  "where name = 'a16_new_york_sample'",
+  'qsveqfchwylsbncsfgxe',
+]) {
+  assert.ok(advisorHardening.includes(guard), `Missing A16 advisor guard: ${guard}`);
+}
 assert.ok(
   /Expected unverified-user denial'[\s\S]{0,120}sqlstate '28000'/.test(
     sqlAuthorityMatrix,
   ),
   'Unverified provider confirmation must assert the authoritative verified-email SQLSTATE 28000 denial',
 );
+for (const [indexName, columnName] of [
+  ['synthetic_provider_directory_organization_id_idx', 'organization_id'],
+  [
+    'synthetic_provider_directory_organization_location_id_idx',
+    'organization_location_id',
+  ],
+]) {
+  assert.ok(
+    advisorHardening.includes(`create index if not exists ${indexName}`),
+    `Missing idempotent A16 advisor index: ${indexName}`,
+  );
+  assert.ok(
+    advisorHardening.includes(
+      `pg_catalog.pg_get_indexdef(i.indexrelid, 1, true) = '${columnName}'`,
+    ),
+    `Missing exact A16 advisor index postcondition: ${indexName}`,
+  );
+  assert.ok(
+    sqlAuthorityMatrix.includes(`'passage_private.${indexName}'::regclass`),
+    `SQL authority matrix must require A16 advisor index: ${indexName}`,
+  );
+  assert.ok(
+    reversal.includes(`to_regclass('passage_private.${indexName}') is not null`),
+    `Reversal must prove A16 advisor index absence: ${indexName}`,
+  );
+}
 for (const contract of [
   '(select count(*) from public.family_provider_selections) <> 0',
   "to_regclass('public.family_provider_selections') is not null",

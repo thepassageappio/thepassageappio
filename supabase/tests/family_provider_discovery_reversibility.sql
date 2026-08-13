@@ -71,6 +71,8 @@ begin
      or to_regclass('passage_private.synthetic_provider_directory') is not null
      or to_regclass('passage_private.synthetic_provider_directory_name_idx') is not null
      or to_regclass('passage_private.synthetic_provider_directory_location_idx') is not null
+     or to_regclass('passage_private.synthetic_provider_directory_organization_id_idx') is not null
+     or to_regclass('passage_private.synthetic_provider_directory_organization_location_id_idx') is not null
      or to_regclass('public.family_provider_one_active_per_space') is not null
      or to_regclass('public.family_provider_space_history_idx') is not null
      or to_regclass('public.family_provider_selected_by_idx') is not null
