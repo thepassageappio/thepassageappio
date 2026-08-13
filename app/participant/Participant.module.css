@@ -1,0 +1,46 @@
+.shell { min-height: 100vh; background: radial-gradient(circle at 82% 4%, color-mix(in srgb, var(--calm-soft) 70%, transparent), transparent 28rem), var(--canvas); }
+.topBar { width: min(1040px, calc(100% - 36px)); min-height: 72px; margin: 0 auto; display: flex; align-items: center; gap: 18px; border-bottom: 1px solid var(--line); }
+.topBar span { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 780; }
+.topBar button, .brand { min-height: 48px; display: inline-flex; align-items: center; border: 0; padding: 10px 12px; background: transparent; color: var(--ink); font: inherit; font-weight: 740; cursor: pointer; }
+.brand { font-family: var(--font-display); font-size: 25px; }
+.page { width: min(820px, calc(100% - 36px)); margin: 0 auto; padding: 64px 0 100px; }
+.hero { margin-bottom: 28px; }
+.hero p, .access > p, .next > p:first-child { margin: 0 0 12px; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.hero h1 { margin: 0; font-family: var(--font-display); font-size: clamp(52px, 9vw, 78px); font-weight: 600; line-height: .94; }
+.hero span { display: block; max-width: 650px; margin-top: 22px; color: var(--ink-soft); font-size: 16px; line-height: 1.65; }
+.account { margin-bottom: 24px; border-left: 3px solid var(--calm-strong); padding: 14px 18px; background: var(--calm-soft); }
+.account h2 { margin: 0 0 4px; font-size: 12px; }
+.account p { margin: 0; overflow-wrap: anywhere; }
+.spaceList { display: grid; gap: 18px; }
+.spaceList > p { margin: 0; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.spaceList > h2 { margin: 0 0 4px; font-family: var(--font-display); font-size: clamp(32px, 5vw, 46px); line-height: 1; }
+.access, .next { border: 1px solid var(--line); border-radius: 7px; padding: clamp(22px, 4vw, 38px); background: var(--surface-raised); box-shadow: var(--shadow-raised); }
+.access header { margin-bottom: 20px; }
+.access header p { margin: 0 0 8px; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.access h3 { margin: 0; font-family: var(--font-display); font-size: clamp(32px, 5vw, 46px); font-weight: 620; line-height: 1; }
+.access header span { display: block; margin-top: 12px; color: var(--ink-soft); line-height: 1.55; }
+.access dl { margin: 0; }
+.access dl div { min-width: 0; display: grid; grid-template-columns: minmax(140px, .4fr) minmax(0, 1fr); gap: 18px; border-top: 1px solid var(--line); padding: 13px 0; }
+.access dt { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.access dd { min-width: 0; margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.next { border-left: 3px solid var(--calm-strong); }
+.next { margin-top: 22px; box-shadow: none; }
+.next h4 { margin: 0; font-family: var(--font-display); font-size: clamp(28px, 4vw, 38px); line-height: 1; }
+.next > p:not(:first-child) { color: var(--ink-soft); line-height: 1.6; }
+.update { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+.update p { margin: 6px 0; }
+.update time { color: var(--muted); font-size: 12px; }
+.closed a { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; margin-top: 8px; padding: 12px 18px; border-radius: 4px; background: var(--signal-strong); color: white; font-weight: 760; }
+.privacy { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.closed { min-height: 100vh; display: grid; place-content: center; justify-items: start; gap: 16px; padding: 28px; background: var(--canvas); }
+.closed p { margin: 0; color: var(--signal-strong); font-size: 11px; font-weight: 820; letter-spacing: .12em; }
+.closed h1 { max-width: 680px; margin: 0; font-family: var(--font-display); font-size: clamp(44px, 8vw, 72px); line-height: .95; }
+.closed span { max-width: 560px; color: var(--ink-soft); line-height: 1.6; }
+.topBar a:focus-visible, .topBar button:focus-visible, .closed a:focus-visible { outline: 3px solid color-mix(in srgb, var(--signal-strong) 60%, white); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .topBar, .page { width: calc(100% - 28px); }
+  .topBar { min-height: 64px; }
+  .page { padding-top: 42px; }
+  .access dl div { grid-template-columns: 1fr; gap: 5px; }
+  .next a { width: 100%; }
+}

@@ -4,7 +4,7 @@
 --
 -- Run only against the isolated Passage Zero project after applying:
 --   20260726215450_urgent_family_thin_slice.sql
---   20260727030000_urgent_receiving_organization_boundary.sql
+--   20260727042651_urgent_receiving_organization_boundary.sql
 --
 -- Required session guard:
 --   set passage.test_project_ref = 'uyacxqtsiwlvtmhxvoxr';

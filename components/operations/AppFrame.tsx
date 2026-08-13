@@ -3,14 +3,15 @@ import Link from 'next/link';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
+  active: 'director' | 'case' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
   children: ReactNode;
+  guidedDemoPersona?: 'director' | 'staff' | 'vendor';
   identity: string;
   mode?: 'demo' | 'verified';
   role: string;
 };
 
-export function AppFrame({ active, children, identity, mode = 'demo', role }: AppFrameProps) {
+export function AppFrame({ active, children, guidedDemoPersona, identity, mode = 'demo', role }: AppFrameProps) {
   const initials = identity.split(' ').map((word) => word[0]).join('').slice(0, 2);
   const staffView = active === 'staff';
   const partnerView = active === 'partner';
@@ -19,19 +20,25 @@ export function AppFrame({ active, children, identity, mode = 'demo', role }: Ap
     <div className={styles.frame}>
       <a className={styles.skip} href="#workspace">Skip to workspace</a>
       <header className={styles.header}>
-        <Link className={styles.brand} href={partnerView ? '/partner' : staffView ? '/staff' : '/director'} aria-label="Passage operations home">
+        <Link className={styles.brand} href={guidedDemoPersona ? '/demo' : partnerView ? '/partner' : staffView ? '/staff' : '/director'} aria-label={guidedDemoPersona ? 'Passage demo home' : 'Passage operations home'}>
           <span className={styles.brandGlyph} aria-hidden="true"><i /><i /><i /></span>
           <span>PASSAGE</span>
         </Link>
         <nav className={styles.nav} aria-label="Operations">
-          {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
-          {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
-          {staffView && <Link aria-current="page" href="/staff">My work</Link>}
-          {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
-          {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
+          {guidedDemoPersona ? <>
+            <Link aria-current={guidedDemoPersona === 'director' ? 'page' : undefined} href="/demo/operator/director">Director</Link>
+            <Link aria-current={guidedDemoPersona === 'staff' ? 'page' : undefined} href="/demo/operator/staff">Staff</Link>
+            <Link aria-current={guidedDemoPersona === 'vendor' ? 'page' : undefined} href="/demo/operator/vendor">Vendor</Link>
+          </> : <>
+            {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
+            {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
+            {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
+            {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
+            {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
+            {staffView && <Link aria-current="page" href="/staff">My work</Link>}
+            {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
+            {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
+          </>}
         </nav>
         <div className={styles.identity}>
           <span><strong>{identity}</strong><small>{role}</small></span>

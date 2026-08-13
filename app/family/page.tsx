@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import FamilyIntentJourney from '../../components/family/FamilyIntentJourney';
 import styles from '../../components/family/FamilyJourney.module.css';
+import { confirmProviderSelection } from './provider-discovery/actions';
+import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 
 export const metadata: Metadata = {
   title: 'Create a family handoff | Passage',
@@ -21,9 +23,16 @@ export default function FamilyPage() {
           <i aria-hidden="true" />
           <strong>Sofia's record</strong>
         </div>
-        <span className={styles.familyProfile} aria-label="Signed in preview identity: Sofia Torres">ST</span>
+        <a className={styles.familyProfile} href="/family/people" aria-label="Manage people with family access">
+          People
+        </a>
       </header>
-      <FamilyIntentJourney />
+      <PassageZeroProvider>
+        <FamilyIntentJourney
+          confirmProviderSelection={confirmProviderSelection}
+          providerMode="authenticated"
+        />
+      </PassageZeroProvider>
     </main>
   );
 }

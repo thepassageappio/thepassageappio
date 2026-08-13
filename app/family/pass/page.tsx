@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ActivePass from '../../../components/family/ActivePass';
 import styles from '../../../components/family/FamilyJourney.module.css';
+import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 
 export const metadata: Metadata = {
   title: 'Active family handoff | Passage',
@@ -24,7 +25,7 @@ export default function FamilyPassPage() {
         <a className={styles.exitPass} href="/family">Family space</a>
       </header>
       <div id="active-pass">
-        <ActivePass />
+        <PassageZeroProvider><ActivePass mode="authenticated" /></PassageZeroProvider>
       </div>
     </div>
   );

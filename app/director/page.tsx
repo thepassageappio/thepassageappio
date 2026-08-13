@@ -39,24 +39,27 @@ export default async function DirectorPage() {
           {tasks.map((task) => {
             const workflow = workflowById.get(task.workflow_id);
             const currentOwner = displayMember(task.assigned_organization_member_id ? memberById.get(task.assigned_organization_member_id) : undefined);
+            const locationName = locationById.get(workflow?.organization_location_id ?? '') ?? 'this location';
             const authorizedCandidates = activeStaff.filter((member) => member.id !== task.assigned_organization_member_id && grants.some((grant) => grant.organization_member_id === member.id && grant.organization_location_id === workflow?.organization_location_id && !grant.revoked_at));
             return (
               <article className={styles.workCard} key={task.id}>
                 <div className={styles.cardTop}><span>{workflow?.case_reference ?? 'CASE'} · {locationById.get(workflow?.organization_location_id ?? '') ?? 'Authorized location'}</span><b data-state={task.status}>{task.assigned_organization_member_id ? humanTaskStatus(task.status) : 'Unassigned'}</b></div>
                 <div className={styles.cardBody}>
                   <p>{humanWorkflowPhase(workflow?.phase)}</p><h3>{task.title ?? 'Untitled commitment'}</h3>
-                  <dl className={styles.facts}>
+                  <dl aria-label="Decision context" className={styles.primaryFacts}>
                     <div><dt>Case</dt><dd>{workflow?.family_name ?? 'Family'} family · {workflow?.person_name ?? 'Person withheld'}</dd></div>
                     <div><dt>Owner</dt><dd>{currentOwner}</dd></div>
                     <div><dt>Waiting</dt><dd>{task.waiting_party ?? 'Nobody recorded'}</dd></div>
                     <div><dt>Due</dt><dd>{formatOperationalTime(task.due_at)}</dd></div>
+                  </dl>
+                  <dl aria-label="Execution and proof" className={styles.supportingFacts}>
                     <div><dt>Visible to</dt><dd>{humanAudience(task.audience)}</dd></div>
                     <div><dt>How Passage helps</dt><dd>{humanAutomationLevel(task.automation_level)}</dd></div>
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                   </dl>
                 </div>
-                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} />}
+                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} locationName={locationName} requestId={randomUUID()} taskId={task.id} version={task.version} workflowId={task.workflow_id} />}
                 <div className={styles.startForm}><p>Review this task, its submitted proof, and its saved history.</p><Link className={styles.primaryLink} href={`/director/cases/${task.workflow_id}?task=${task.id}#proof`}>Review task</Link></div>
               </article>
             );

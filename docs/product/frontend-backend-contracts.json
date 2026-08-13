@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
   "version": 4,
-  "last_updated": "2026-07-27",
+  "last_updated": "2026-08-12",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -42,8 +42,14 @@
         "app/director/invitations/new/actions.ts"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "one row per invitation; unique token_digest; terminal-state check prevents accepted+revoked simultaneously" },
-        { "table": "organization_invitation_locations", "cardinality": "one row per (invitation, location); composite primary key" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "one row per invitation; unique token_digest; terminal-state check prevents accepted+revoked simultaneously"
+        },
+        {
+          "table": "organization_invitation_locations",
+          "cardinality": "one row per (invitation, location); composite primary key"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_manage_invitation(id) -> passage_private.can_manage_organization (active membership, role in owner/director) AND passage_private.can_manage_location for every location on the invitation (active grant to an owner/director member)",
       "append_only_event": {
@@ -75,22 +81,29 @@
       "persona": "staff",
       "frontend": {
         "user_visible": true,
-        "route": "/invite/[token]",
-        "component": "app/invite/[token]/page.tsx",
+        "route": "/invite/continue",
+        "component": "app/invite/continue/page.tsx",
         "files": [
           "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
           "lib/auth/invitations.ts"
         ],
-        "note": "Server component renders the inspection result via public.inspect_organization_invitation before any sign-in is required, and fails closed on invalid/malformed tokens (validInvitationToken)."
+        "note": "The raw URL is immediately exchanged for a secure httpOnly intent and an opaque continue route. The Server Component renders the staff branch of public.inspect_passage_invitation before sign-in and fails closed without carrying the bearer into authentication redirects."
       },
       "action_status": "invitation_state resolves to one of available | accepted | revoked | expired on every page load",
-      "server_command": "public.inspect_organization_invitation(raw_token text) -> passage_private.inspect_organization_invitation",
+      "server_command": "public.inspect_passage_invitation(p_raw_token text) -> bounded staff or participant inspection",
       "backend_files": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
         "lib/auth/invitations.ts"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "one row per invitation, looked up by sha256 token_digest" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "one row per invitation, looked up by sha256 token_digest"
+        }
       ],
       "rls_authority_predicate": "public.inspect_organization_invitation is SECURITY INVOKER over a SECURITY DEFINER passage_private core, granted to anon+authenticated; the private schema itself is not exposed by the Data API. The token digest match is the sole scoping predicate (a session/role is not required pre-sign-in by design).",
       "append_only_event": {
@@ -117,19 +130,22 @@
       "persona": "staff",
       "frontend": {
         "user_visible": true,
-        "route": "/invite/[token]",
+        "route": "/invite/continue",
         "component": [
-          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
           "app/invite/[token]/actions.ts"
         ],
         "files": [
-          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
           "app/invite/[token]/actions.ts",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
           "lib/auth/invitations.ts",
           "lib/auth/redirects.ts",
           "lib/auth/session.ts"
         ],
-        "note": "acceptInvitation is a deliberate POST Server Action bound to a <form>; a GET receipt view may only replay an already-accepted invitation, never perform the first acceptance."
+        "note": "acceptInvitation is a deliberate POST Server Action that reads the bearer only from the server-held intent; an accepted-state GET may only replay an already-accepted invitation, never perform first acceptance."
       },
       "action_status": "pending_acceptance -> accepted (idempotent: a same-user replay RPC call returns the same receipt with replayed=true and no duplicate rows)",
       "server_command": "public.accept_organization_invitation(raw_token text) -> passage_private.accept_organization_invitation",
@@ -139,9 +155,18 @@
         "app/invite/[token]/actions.ts"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "one row created or updated per accepted invitation; unique (organization_id, user_id) where status='active'" },
-        { "table": "organization_member_locations", "cardinality": "one row per (member, granted location); composite primary key with revoked_at upsert on replay" },
-        { "table": "organization_invitations", "cardinality": "accepted_at/accepted_by_user_id/accepted_organization_member_id set exactly once per invitation" }
+        {
+          "table": "organization_members",
+          "cardinality": "one row created or updated per accepted invitation; unique (organization_id, user_id) where status='active'"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "one row per (member, granted location); composite primary key with revoked_at upsert on replay"
+        },
+        {
+          "table": "organization_invitations",
+          "cardinality": "accepted_at/accepted_by_user_id/accepted_organization_member_id set exactly once per invitation"
+        }
       ],
       "rls_authority_predicate": "SECURITY DEFINER RPC requires auth.uid() IS NOT NULL and a verified (email_confirmed_at) email matching invitation.invited_email; the subsequent organization_member_locations select is scoped by passage_private.can_view_member_location.",
       "append_only_event": {
@@ -194,9 +219,18 @@
         "app/staff/layout.tsx"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "exactly one active row expected per (organization,user); more than one triggers membership-selection-required fail-closed" },
-        { "table": "organization_member_locations", "cardinality": "zero or more active (revoked_at is null) grants per member" },
-        { "table": "organization_locations", "cardinality": "read-only join to confirm status='active'" }
+        {
+          "table": "organization_members",
+          "cardinality": "exactly one active row expected per (organization,user); more than one triggers membership-selection-required fail-closed"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "zero or more active (revoked_at is null) grants per member"
+        },
+        {
+          "table": "organization_locations",
+          "cardinality": "read-only join to confirm status='active'"
+        }
       ],
       "rls_authority_predicate": "organization_member_locations select is scoped by passage_private.can_view_member_location(organization_member_id, organization_location_id): either the row's own member (auth.uid()) or a manager with location authority.",
       "append_only_event": {
@@ -244,7 +278,10 @@
         "app/director/layout.tsx"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "role column (owner|director|staff) read once per request to drive the denial decision" }
+        {
+          "table": "organization_members",
+          "cardinality": "role column (owner|director|staff) read once per request to drive the denial decision"
+        }
       ],
       "rls_authority_predicate": "canOpenOperationalPath resolves the authenticated membership server-side before rendering; durable /director reads then pass through organization/location RLS on workflows, tasks, team membership, invitations, and workflow events.",
       "append_only_event": {
@@ -288,8 +325,14 @@
         "app/staff/page.tsx"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per durable task" },
-        { "table": "workflow_events", "cardinality": "one assignment/reassignment/start event per validated command idempotency key" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assigned_organization_member_id and version per durable task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one assignment/reassignment/start event per validated command idempotency key"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_task/workflow permits active staff only when the exact task is assigned to their active membership and the workflow location grant is active; manager projections use managed organization/location authority",
       "append_only_event": {
@@ -335,8 +378,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assignee and monotonically increasing version per task" },
-        { "table": "workflow_events", "cardinality": "one task.reassigned row per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assignee and monotonically increasing version per task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.reassigned row per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "RPC requires active owner/director authority on the workflow organization and location and locks an active staff assignee with an active grant on that same location",
       "append_only_event": {
@@ -380,7 +429,10 @@
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "already implemented (Cycle 7A) -- revoked_at/revoked_by_user_id/revocation_reason columns with a shape check constraint" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "already implemented (Cycle 7A) -- revoked_at/revoked_by_user_id/revocation_reason columns with a shape check constraint"
+        }
       ],
       "rls_authority_predicate": "already implemented: passage_private.can_manage_invitation(id) gate inside the RPC; no direct table UPDATE grant exists for authenticated (writes only via the SECURITY DEFINER function)",
       "append_only_event": {
@@ -426,7 +478,10 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "workflow_events", "cardinality": "one append-only row per accepted idempotent invitation/assignment/start/revocation command" }
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only row per accepted idempotent invitation/assignment/start/revocation command"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_workflow_event requires active organization management and every location carried by the event metadata to be managed; partial-location access cannot read a multi-location revocation event",
       "append_only_event": {
@@ -470,8 +525,14 @@
         "app/director/page.tsx"
       ],
       "durable_tables": [
-        { "table": "workflows", "cardinality": "one durable workflow per case at one organization/location" },
-        { "table": "tasks", "cardinality": "durable commitments reference the same workflow, organization, and assigned member used by staff" }
+        {
+          "table": "workflows",
+          "cardinality": "one durable workflow per case at one organization/location"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "durable commitments reference the same workflow, organization, and assigned member used by staff"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_workflow/task requires active owner/director membership plus an active grant on the workflow location; any location filtering is presentation only",
       "append_only_event": {
@@ -515,8 +576,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per task" },
-        { "table": "workflow_events", "cardinality": "one task.assigned event per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assigned_organization_member_id and version per task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.assigned event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Active owner/director may assign only a managed-location task to an active staff member with an active grant on that exact location",
       "append_only_event": {
@@ -562,8 +629,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current durable status and version per assigned task" },
-        { "table": "workflow_events", "cardinality": "one task.started event per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current durable status and version per assigned task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.started event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Caller must be the task's current active assigned staff member with an active grant on the workflow location; task and member rows are locked before mutation",
       "append_only_event": {
@@ -609,9 +682,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "one revoked_at/revoked_by/reason terminal state for the member" },
-        { "table": "organization_member_locations", "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction" },
-        { "table": "workflow_events", "cardinality": "one organization_member.revoked event per organization/request UUID" }
+        {
+          "table": "organization_members",
+          "cardinality": "one revoked_at/revoked_by/reason terminal state for the member"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one organization_member.revoked event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Active owner/director must manage the organization and every currently granted location; only staff may be revoked and any active task assignment blocks the command",
       "append_only_event": {
@@ -657,9 +739,18 @@
         "app/staff/work/[taskId]/page.tsx"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one root proof per task and at most one replacement successor per prior proof" },
-        { "table": "task_proof_reviews", "cardinality": "at most one append-only director decision per proof" },
-        { "table": "tasks", "cardinality": "one current assignment, status, and version controls staff visibility" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one root proof per task and at most one replacement successor per prior proof"
+        },
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "at most one append-only director decision per proof"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one current assignment, status, and version controls staff visibility"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_task(task_id) requires the caller to remain the current active assigned staff member with an active grant on the workflow location; unavailable, former, revoked, wrong-location, and cross-organization identities receive no rows",
       "append_only_event": {
@@ -742,9 +833,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one immutable proof per successful unique organization/request UUID with one root and no branching successors" },
-        { "table": "tasks", "cardinality": "one atomic proof_submitted status and incremented version per successful submission" },
-        { "table": "workflow_events", "cardinality": "one task.proof_submitted event per successful unique organization/request UUID" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one immutable proof per successful unique organization/request UUID with one root and no branching successors"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one atomic proof_submitted status and incremented version per successful submission"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.proof_submitted event per successful unique organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "The command locks the task and requires auth.uid() to map to its current active assigned staff member with an active exact-location grant; direct table mutation is revoked and privileged inserts are scope-checked",
       "append_only_event": {
@@ -843,9 +943,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proof_reviews", "cardinality": "one immutable review per proof and one review per successful unique organization/request UUID" },
-        { "table": "tasks", "cardinality": "one atomic completed or in_progress state and incremented version per successful decision" },
-        { "table": "workflow_events", "cardinality": "one task.proof_verified or task.proof_replacement_requested event per successful unique organization/request UUID" }
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "one immutable review per proof and one review per successful unique organization/request UUID"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one atomic completed or in_progress state and incremented version per successful decision"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.proof_verified or task.proof_replacement_requested event per successful unique organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "The command locks the task and requires active owner/director authority over the proof's exact workflow location; only the latest unreviewed proof in proof_submitted state can be reviewed",
       "append_only_event": {
@@ -924,7 +1033,10 @@
       "cycle": "8",
       "capability": "Staff and directors share one immutable, task-bound submission and review history without cross-persona leakage",
       "status": "implemented",
-      "persona": ["staff", "director"],
+      "persona": [
+        "staff",
+        "director"
+      ],
       "frontend": {
         "user_visible": true,
         "route": "/staff/work/[taskId] and /director/cases/[workflowId]",
@@ -947,9 +1059,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one non-branching immutable proof chain per task" },
-        { "table": "task_proof_reviews", "cardinality": "one immutable decision attached to each reviewed proof" },
-        { "table": "workflow_events", "cardinality": "one immutable operational receipt for every successful submit or review command" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one non-branching immutable proof chain per task"
+        },
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "one immutable decision attached to each reviewed proof"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one immutable operational receipt for every successful submit or review command"
+        }
       ],
       "rls_authority_predicate": "Both proof tables use passage_private.can_view_task(task_id); direct authenticated writes are revoked; scope-integrity and append-only triggers protect privileged paths; proof-pending reassignment is rejected",
       "append_only_event": {
@@ -1012,6 +1133,121 @@
       ]
     },
     {
+      "id": "m3.shared.workflow_messages",
+      "cycle": "M3",
+      "capability": "Family owners, updates-scoped participants, and managed directors share one append-only case message thread without exposing internal identity or command identifiers",
+      "status": "implemented",
+      "persona": [
+        "family",
+        "participant",
+        "director"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/messages and /director/cases/[workflowId]",
+        "component": [
+          "components/messaging/MessageThread.tsx",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "files": [
+          "components/messaging/MessageThread.tsx",
+          "components/messaging/MessageThread.module.css",
+          "app/case/[id]/messages/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "lib/family/messages-view.ts",
+          "lib/messaging/hosted.ts",
+          "lib/messaging/actions.ts"
+        ],
+        "note": "Both routes use one shared thread and Server Action. The composer is absent when history cannot be loaded, visible times are server-formatted in UTC, and the page explains that the message is saved inside Passage rather than sent by email or text."
+      },
+      "action_status": "load authorized history -> add message -> durable receipt; identical request replay returns the original receipt, while a different actor or body using the same request id conflicts and requires reload",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql",
+        "lib/messaging/hosted.ts",
+        "lib/messaging/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per (workflow_id, creation_request_id); normalized body and server-derived sender/time are stable on identical replay"
+        }
+      ],
+      "rls_authority_predicate": "Authenticated clients have no direct workflow_messages table SELECT or write privilege. Both RPCs use passage_private.can_message_workflow(workflow_id): the linked active family-space owner, an active participant whose category_scope contains updates, or an active owner/director managing the exact workflow location.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The workflow_messages row is itself the append-only task/case communication proof: ordinary clients cannot insert, update, delete, or select the internal table; the idempotent post command creates it and an owner-level trigger rejects later update/delete. No duplicate workflow-event row is created for this thin slice."
+      },
+      "failure_recovery_states": [
+        "history load failure hides the composer, states that nothing was added, and offers a 48-pixel reload action",
+        "signed-out or unauthorized post returns a calm denial and no row",
+        "non-updates and revoked participants plus wrong-location, cross-organization, and unrelated identities receive 42501 for list/post and reveal no message or identity metadata",
+        "identical replay returns the original message id/time without a duplicate row; changed-actor or changed-body replay returns 22023 and directs reload",
+        "direct authenticated SELECT/INSERT/UPDATE/DELETE remains denied; every denial and conflict preserves exact message cardinality",
+        "invalid or oversized body returns validation without a partial row",
+        "visible timestamps use the persisted occurred_at plus a server-produced UTC label so browser timezone cannot change hydration text"
+      ],
+      "persona_projection": "The implemented family/participant and director routes receive only message id, family/staff sender kind, a bounded plain-language sender label, body, occurred time, and server-computed is_own. sender_user_id, organization member id, continuity participant id, organization id, and creation request id never cross the client projection. No user-visible staff messaging route is claimed.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql",
+        "scripts/test-participant-invitation-lifecycle-races.mjs"
+      ]
+    },
+    {
+      "id": "m3.staff.workflow_messages_backend",
+      "cycle": "M3",
+      "capability": "Currently assigned active staff have backend authority to list and post case messages for their assigned workflow",
+      "status": "backend_only",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "files": [],
+        "note": "The database and RPC contract is implemented, but no staff message route or component exists. This contract earns no user-visible staff messaging credit."
+      },
+      "action_status": "assigned active staff backend list/post authority only; user-visible staff messaging remains unimplemented",
+      "server_command": [
+        "public.list_workflow_messages_client_safe(p_workflow_id uuid) -> passage_private.list_workflow_messages_client_safe",
+        "public.post_workflow_message_idempotent(p_workflow_id uuid, p_body text, p_request_id uuid) -> passage_private.post_workflow_message_idempotent"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260727020000_workflow_messages_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflow_messages",
+          "cardinality": "one immutable row per successful assigned-staff request; denial and replay conflict add zero rows"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_message_workflow(workflow_id) requires auth.uid() to map to a current active staff membership with an active grant on the workflow location and at least one task on that exact workflow currently assigned to that membership.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The append-only workflow_messages row is the durable receipt. Direct authenticated writes are revoked and the post RPC is the only mutation path."
+      },
+      "failure_recovery_states": [
+        "unassigned, former, revoked, wrong-location, and cross-organization staff list/post attempts return 42501 and add no row",
+        "direct table SELECT/INSERT/UPDATE/DELETE remains denied",
+        "identical replay returns the original receipt; changed actor or body conflicts without changing cardinality",
+        "staff UI remains explicitly unavailable until a separate reachable route/component slice passes responsive and hosted QA"
+      ],
+      "persona_projection": "Assigned staff can receive the same client-safe RPC projection at the backend boundary. No route or component currently exposes it to the staff persona.",
+      "evidence_test_references": [
+        "supabase/tests/workflow_messages_client_projection.sql",
+        "scripts/test-workflow-messaging-security.js",
+        "scripts/test-frontend-backend-parity.js"
+      ]
+    },
+    {
       "id": "urgent.family.receiver_bound_submission",
       "cycle": "Urgent P1",
       "capability": "A signed-in family requests a Northstar callback or saves the same guidance privately",
@@ -1037,7 +1273,7 @@
       "server_command": "public.submit_urgent_intake_idempotent(p_receiving_organization_id uuid, p_situation_category text, p_person_name text, p_person_location text, p_person_timing text, p_coordinator_name text, p_coordinator_phone text, p_coordinator_email text, p_callback_notes text, p_wants_callback boolean, p_request_id uuid)",
       "backend_files": [
         "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
-        "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
         "app/start/actions.ts"
       ],
       "durable_tables": [
@@ -1090,7 +1326,7 @@
           ]
         },
         {
-          "file": "supabase/migrations/20260727030000_urgent_receiving_organization_boundary.sql",
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
           "includes": [
             "add column receiving_organization_id uuid",
             "p_receiving_organization_id uuid",
@@ -1111,6 +1347,962 @@
             "Exact receiving director callback/private RLS boundary failed",
             "Final receiver-submit request/event cardinality changed",
             "rollback;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "urgent.director.case_first_task",
+      "cycle": "Urgent parity repair",
+      "capability": "The receiving funeral home's active owner or director claims a callback request and atomically opens a case with one assignable first task",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/urgent",
+        "component": [
+          "app/director/urgent/page.tsx",
+          "app/director/urgent/[requestId]/page.tsx",
+          "app/director/urgent/UrgentForms.tsx",
+          "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx"
+        ],
+        "files": [
+          "app/director/urgent/page.tsx",
+          "app/director/urgent/[requestId]/page.tsx",
+          "app/director/urgent/UrgentForms.tsx",
+          "app/director/urgent/actions.ts",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "app/staff/page.tsx",
+          "app/staff/work/[taskId]/page.tsx",
+          "lib/urgent/hosted.ts",
+          "lib/presentation/plain-language.ts"
+        ],
+        "note": "The queue and detail stay bound to the viewer's exact receiving organization. A successful case command returns the durable case and first-task identifiers and opens the Tasks state without rendering either identifier."
+      },
+      "action_status": "submitted -> claimed -> case_created; case creation atomically creates exactly one unassigned first task and returns the original case/task receipt on an exact authorized replay",
+      "server_command": [
+        "public.claim_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_request_id uuid)",
+        "public.create_case_from_urgent_intake_idempotent(p_urgent_intake_request_id uuid, p_expected_version integer, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_request_id uuid)",
+        "public.assign_task_idempotent(p_task_id uuid, p_expected_version integer, p_assignee_member_id uuid, p_reason text, p_request_id uuid)"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260726215450_urgent_family_thin_slice.sql",
+        "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+        "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+        "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
+        "app/director/urgent/actions.ts",
+        "app/director/actions.ts",
+        "lib/urgent/hosted.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "urgent_intake_requests",
+          "cardinality": "one receiver-bound request whose claimed organization is null or exactly equals the receiver"
+        },
+        {
+          "table": "workflows",
+          "cardinality": "one case workflow in the receiving organization and authorized location per successful case-creation key"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "exactly one unassigned version-1 first task in the created workflow per successful case-creation key"
+        },
+        {
+          "table": "urgent_intake_events",
+          "cardinality": "one immutable claim event and one immutable case-created event per successful unique command key"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one immutable task.created event keyed to the urgent request and first task"
+        }
+      ],
+      "rls_authority_predicate": "Queue, detail, and claim require an active owner/director of the exact receiving organization. Case creation also requires management authority for the selected location. Assignment requires an active staff member with a non-revoked grant to the case's exact location.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "urgent_intake_events and workflow_events",
+        "event_type": "urgent_intake.claimed, urgent_intake.case_created, task.created, and task.assigned",
+        "idempotency_key": "urgent_intake_claim:<request UUID>, urgent_intake_case_create:<request UUID>, urgent_intake_first_task:<urgent request UUID>, or the assignment request UUID"
+      },
+      "failure_recovery_states": [
+        "wrong organization, wrong location, staff role, revoked member, unaffiliated user, and unassigned staff fail closed",
+        "stale versions conflict atomically and reload returns durable current state",
+        "exact replay returns the original workflow-and-first-task receipt without duplicate rows or events",
+        "changed replay input or lost current authority returns conflict or denial without mutation",
+        "an authorized workflow with no task shows reload and urgent-queue recovery before any vendor action loads",
+        "no eligible exact-location staff disables assignment and links to team access",
+        "an explicitly requested task outside the workflow fails closed"
+      ],
+      "persona_projection": "Only an active authorized director sees callback detail and case controls. The assigned staff member later sees the task's human owner action, never the director's assignment instruction or raw identifiers.",
+      "evidence_test_references": [
+        "supabase/tests/urgent_family_organization_boundary.sql",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "lib/urgent/hosted.ts",
+          "includes": [
+            ".eq('receiving_organization_id', organizationId)",
+            ".eq('wants_callback', true)",
+            ".neq('status', 'self_handling')",
+            ".eq('claimed_organization_id', organizationId)",
+            "loadUrgentIntakeRequest(client: SupabaseClient, id: string, organizationId: string)"
+          ]
+        },
+        {
+          "file": "app/director/urgent/actions.ts",
+          "includes": [
+            "first_task_id: string",
+            "!receipt?.workflow_id || !receipt.first_task_id",
+            "firstTaskId: receipt.first_task_id"
+          ]
+        },
+        {
+          "file": "app/director/urgent/UrgentForms.tsx",
+          "includes": [
+            "Create the case and first task.",
+            "Open case and choose an owner",
+            "Nothing is sent to the family."
+          ]
+        },
+        {
+          "file": "app/director/cases/[workflowId]/page.tsx",
+          "includes": [
+            "if (query.task && workflowTasks.length > 0 && !selectedTask)",
+            "The case is open, but its first task is unavailable.",
+            "Choose who owns the first task.",
+            "assignmentKind=\"first-task\"",
+            "locationName={humanizePreviewLabel(location?.name ?? '', 'this location')}",
+            "<AssignTaskForm",
+            "member.role === 'staff' && member.status === 'active'",
+            "grant.organization_location_id === workflow.organization_location_id",
+            "!grant.revoked_at",
+            "const activeStage = proofStage ? 'proof' : 'tasks';"
+          ]
+        },
+        {
+          "file": "app/director/CommandForms.tsx",
+          "includes": [
+            "name=\"workflowId\"",
+            "Team member",
+            "assignmentKind === 'first-task' ? 'Assign first task' : 'Assign task'",
+            "Assign first task",
+            "No eligible team members can work at {locationName}. Review team access, then return here."
+          ]
+        },
+        {
+          "file": "app/director/actions.ts",
+          "includes": [
+            "const workflowId = String(formData.get('workflowId')",
+            "!uuid.test(workflowId)",
+            "client.rpc('assign_task_idempotent'",
+            "revalidatePath(`/director/cases/${workflowId}`)"
+          ]
+        },
+        {
+          "file": "lib/presentation/plain-language.ts",
+          "includes": [
+            "urgentFirstTaskOwnerAction",
+            "export function humanTaskOwnerAction"
+          ]
+        },
+        {
+          "file": "app/staff/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action"
+          ]
+        },
+        {
+          "file": "app/staff/work/[taskId]/page.tsx",
+          "includes": [
+            "humanTaskOwnerAction(task.human_action)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727042651_urgent_receiving_organization_boundary.sql",
+          "includes": [
+            "member_row.organization_id = v_request.receiving_organization_id",
+            "urgent_intake_requests_claim_matches_receiver",
+            "urgent_intake_requests_packet1_receiver",
+            "if not v_replay_authorized then"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260727200936_urgent_case_first_commitment.sql",
+          "includes": [
+            "first_task_id uuid",
+            "insert into public.tasks",
+            "'urgent_intake_first_task:' || v_request.id::text",
+            "'task.created'",
+            "'first_task_id', v_first_task_id",
+            "urgent_intake_backfill"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260729063305_urgent_case_public_wrapper_authority_boundary.sql",
+          "includes": [
+            "security definer;",
+            "set search_path = '';",
+            "from public, anon, authenticated, service_role;",
+            "from public, anon, service_role;",
+            "to authenticated;"
+          ]
+        },
+        {
+          "file": "supabase/tests/urgent_family_organization_boundary.sql",
+          "includes": [
+            "Expected wrong-organization case-creation denial",
+            "Urgent first-task assignment did not persist task and append-only event",
+            "Urgent first-task assignment replay duplicated its event",
+            "Assigned staff My Work RLS projection omitted the urgent workflow or task",
+            "Unaffiliated identity can see the urgent workflow or task",
+            "Unassigned exact-location staff can see the urgent workflow or task",
+            "Wrong-location staff can see the urgent workflow or task",
+            "Wrong-organization staff can see the urgent workflow or task",
+            "Former or revoked staff can see the urgent workflow or task",
+            "Former or revoked director can see the urgent workflow or task",
+            "My Work RLS visibility matrix changed durable assignment cardinality",
+            "Expected wrong-organization assignment target denial",
+            "Expected wrong-location assignment target denial",
+            "Expected revoked assignment target denial",
+            "Expected wrong-organization assignment actor denial",
+            "Expected wrong-location assignment actor denial",
+            "Expected unaffiliated assignment actor denial",
+            "Expected former-or-revoked assignment actor denial",
+            "Assignment denials changed durable task or event cardinality",
+            "Northstar director can see requester-private self-handling rows",
+            "Revoked-location public case replay must return 42501 with no receipt",
+            "Case command ACL boundary must expose only the public authenticated entrypoint",
+            "Authenticated direct private case helper must return 42501 with no receipt",
+            "Anon public case wrapper must return 42501 with no receipt",
+            "Service-role public case wrapper must return 42501 with no receipt",
+            "Forbidden case entrypoint changed full retained state",
+            "Postgres final request/workflow/task/event cardinality changed",
+            "rollback;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "participant.coordinator.create_invitation",
+      "cycle": "P1",
+      "capability": "A signed-in family coordinator creates one purpose-limited participant invitation and receives a truthful one-time manual-share receipt",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/InviteParticipantForm.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/InviteParticipantForm.tsx",
+          "app/family/people/actions.ts",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The authenticated owner sees only their continuity space, active people, waiting invitations, and history. P1 enables Family updates only and returns a non-prefetchable raw link once."
+      },
+      "action_status": "ready -> creating -> created one-time receipt, or stable replay without another raw token",
+      "server_command": "public.create_family_space_idempotent(text,uuid) when needed; public.create_participant_invitation_idempotent(uuid,text,text,text,text,text[],timestamptz,uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260723080309_participant_advisor_hardening.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "continuity_spaces",
+          "cardinality": "at most one active owned space selected by the coordinator projection"
+        },
+        {
+          "table": "participant_invitations",
+          "cardinality": "one invitation per continuity-space/request UUID and no second live invitation for the same space/email"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one participant_invitation.created event per successful invitation"
+        }
+      ],
+      "rls_authority_predicate": "The public command derives auth.uid() server-side and requires passage_private.can_manage_continuity_space for the exact active space; the owner projection RPCs return no rows to participants, unrelated users, funeral-home members, or vendors.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.created",
+        "idempotency_key": "participant_invitation:<invitation id>:created"
+      },
+      "failure_recovery_states": [
+        "signed-out and unavailable environments create nothing and retain no token",
+        "invalid input, wrong owner, active participant, live invitation, and changed-payload replay fail without a partial row",
+        "same-key replay preserves the original invitation and time, creates no duplicate, and returns no raw token",
+        "a lost first raw link is not reconstructed; replacement-link recovery remains Packet P2"
+      ],
+      "persona_projection": "The coordinator sees human name, relationship, purpose, Family updates scope, named email, manual-delivery truth, timestamps, and history. Raw identifiers, token digest/hint, event keys, and other family spaces are not rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "participant.invited.inspect_invitation",
+      "cycle": "P1",
+      "capability": "Anyone holding a valid secure link inspects a bounded participant or staff invitation without changing access",
+      "status": "source_partial",
+      "persona": [
+        "participant",
+        "staff"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": "app/invite/continue/page.tsx",
+        "files": [
+          "app/invite/[token]/page.tsx",
+          "app/invite/continue/page.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts",
+          "lib/auth/invitations.ts",
+          "lib/presentation/participant-labels.ts"
+        ],
+        "note": "The raw invitation URL is exchanged immediately for a secure httpOnly intent and an opaque continue route. The continue route calls one unified inspection RPC and branches into typed staff or participant copy and actions without carrying the bearer into login or provider redirects."
+      },
+      "action_status": "read-only available, accepted, expired, revoked, access-ended, invalid, or temporarily unavailable state",
+      "server_command": "public.inspect_passage_invitation(p_raw_token text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/continue/page.tsx",
+        "lib/supabase/proxy.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "participant_invitations or organization_invitations",
+          "cardinality": "zero or one digest-matched invitation returned through a bounded union projection"
+        }
+      ],
+      "rls_authority_predicate": "The public read wrapper exposes only the bounded inspection fields to anon/authenticated callers who possess the valid bearer token; direct private helper/table access remains revoked.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Inspection is deliberately read-only and is not claimed as viewed, delivered, or opened."
+      },
+      "failure_recovery_states": [
+        "malformed or unknown tokens reveal no invitation details",
+        "expired, revoked, accepted, and access-ended states remove first-acceptance controls",
+        "temporary failures state that nothing was joined or changed",
+        "staff inspection retains its organization, location, role, purpose, and POST-only acceptance path"
+      ],
+      "persona_projection": "Participant inspection shows inviter display name, family-space name, relationship, Family updates label, purpose, expiry, and Not sent by Passage. It never exposes either email, roster, case, document, message, token metadata, or Auth existence.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.accept_invitation",
+      "cycle": "P1",
+      "capability": "The exact verified invited account deliberately accepts once and receives a durable bounded-access receipt",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": [
+          "app/invite/continue/page.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/invite/[token]/AcceptInvitationButton.tsx",
+          "app/login/page.tsx"
+        ],
+        "files": [
+          "app/invite/continue/page.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/invite/[token]/AcceptInvitationButton.tsx",
+          "app/login/page.tsx",
+          "app/login/LoginClient.tsx",
+          "lib/auth/invitation-intent.ts",
+          "lib/auth/invitation-intent-cookie.ts",
+          "lib/supabase/proxy.ts"
+        ],
+        "note": "First acceptance is a participant-specific POST Server Action that reads the bearer only from the server-held intent. The accepted-state GET can replay only an already-accepted invitation, and a wrong account receives truthful sign-out recovery without losing the intent."
+      },
+      "action_status": "available -> accepting -> accepted receipt; same-user replay preserves the original authority and time",
+      "server_command": "public.accept_participant_invitation(p_raw_token text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/[token]/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "continuity_participants",
+          "cardinality": "exactly one active participant row for the accepted invitation/account/space"
+        },
+        {
+          "table": "participant_invitations",
+          "cardinality": "accepted user, participant, and timestamp set once"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one participant_invitation.accepted event"
+        }
+      ],
+      "rls_authority_predicate": "The command requires auth.uid(), derives the verified Auth email server-side, and requires an exact invited-email match, active space, available token, and no conflicting active access.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.accepted",
+        "idempotency_key": "participant_invitation:<invitation id>:accepted"
+      },
+      "failure_recovery_states": [
+        "wrong account, another accepting account, expired, revoked, access-ended, and existing-active-access attempts add no participant/event",
+        "pending UI prevents duplicate submit and reports no optimistic success",
+        "same-user replay returns the original participant, space, scope, time, and event",
+        "verification mismatch leaves the route closed and directs a reload"
+      ],
+      "persona_projection": "The receipt shows family-space name, relationship, human category labels, the signed-in account, original acceptance time, audience, proof destination, and /participant next action. It does not grant family decision authority or operations access.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.open_shared_updates",
+      "cycle": "P1",
+      "capability": "An active updates-scoped participant reloads every permitted family space through one bounded human-readable update projection",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/participant",
+        "component": "app/participant/page.tsx",
+        "files": [
+          "app/participant/page.tsx",
+          "app/participant/Participant.module.css",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The landing reconstructs active access from the participant projection RPCs and uses list_participant_family_updates for human-readable updates across every active space. It never queries raw workflow, task, event, proof, or review tables."
+      },
+      "action_status": "active updates participant -> bounded multi-space landing; revoked, missing, or non-updates access closes",
+      "server_command": "public.list_participant_continuity_spaces(); public.list_continuity_participant_projection(); public.list_participant_family_updates()",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260726040000_family_case_workflow_grant.sql",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "lib/continuity/participants.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "continuity_participants",
+          "cardinality": "only the signed-in user's active participant row"
+        },
+        {
+          "table": "continuity_spaces",
+          "cardinality": "only spaces reached by that active row"
+        },
+        {
+          "table": "workflows/tasks/workflow_events",
+          "cardinality": "queried only inside the security-definer bounded projection; no raw identifier or row grant reaches the participant"
+        }
+      ],
+      "rls_authority_predicate": "Participant projection RPCs require an active auth.uid()-bound updates row. can_view_workflow_as_family remains owner-only, so participants receive zero direct workflow, task, event, proof, and review rows. The public family-updates function re-derives auth.uid(), active space, active participant, and updates scope before returning only human fields.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Landing and case navigation are read-only; invitation acceptance owns the access proof."
+      },
+      "failure_recovery_states": [
+        "signed-out redirects to invitation-aware sign-in",
+        "missing or revoked access renders no stale family detail and names the coordinator recovery",
+        "after committed coordinator revocation the next request returns zero space, participant, and family-update rows without relying on browser state",
+        "a space with no linked workflow renders a calm empty state",
+        "non-updates scope receives no family-update projection and no raw table rows",
+        "multiple active family spaces are listed without silently selecting the first",
+        "reload and a separate authenticated session reconstruct from durable rows instead of the token or browser storage"
+      ],
+      "persona_projection": "The participant sees each permitted family-space name, relationship, purpose, human Can see labels, own account, acceptance time, coordinator boundary, current step summary, and the latest eligible progress event mapped into plain language. The coordinator granted the high-level updates category; this source packet does not claim a separate publication approval predicate. No raw workflow/task/event/proof/review identifier, roster, invitation management, organization, vendor, or operator data appears.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "supabase/tests/participant_updates_case_scope.sql",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.rotate_invitation",
+      "cycle": "P2",
+      "capability": "A family coordinator replaces an available or expired participant invitation and receives one new manual-share link while the old link closes",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/ParticipantLifecycleControls.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css"
+        ],
+        "note": "The coordinator confirms replacement beside the affected invitation. A page-level receipt shows the raw replacement once in a read-only copy field, never as a navigation link, and the old invitation leaves the actionable list only after the durable receipt is verified."
+      },
+      "action_status": "available or expired -> confirmed replacement -> old invitation revoked and one available child invitation created; exact replay returns no bearer and conflict requires reload",
+      "server_command": "public.rotate_participant_invitation_idempotent(p_invitation_id uuid, p_expires_at timestamptz, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "participant_invitations",
+          "cardinality": "one old invitation changes from available or expired to revoked and exactly one replacement row references it through rotates_invitation_id"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "exactly one participant_invitation.rotated event for the old row and one participant_invitation.created event for the replacement"
+        }
+      ],
+      "rls_authority_predicate": "The command derives auth.uid() and requires passage_private.can_manage_continuity_space for the old invitation's exact active space. Accepted, declined, canceled, unrelated, and malformed invitations remain closed.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.rotated and participant_invitation.created",
+        "idempotency_key": "participant_invitation:<old invitation id>:rotated and participant_invitation:<replacement invitation id>:created"
+      },
+      "failure_recovery_states": [
+        "validation or authority failure states that nothing changed",
+        "a stale terminal-state or altered-request conflict directs the coordinator to reload People",
+        "a malformed receipt makes no success claim and directs reload before sharing",
+        "same request and expiry returns the saved replacement with no raw token or duplicate row/event",
+        "clipboard denial focuses and selects the read-only link for manual copy; reload, navigation, back restoration, or reconnect removes it"
+      ],
+      "persona_projection": "The coordinator sees the person's human name, relationship, category, expiration, old-link consequence, one-time replacement link, proof destination, audience, and recovery. UUIDs, token hints, event keys, and stored reason text are never rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.invited.decline_invitation",
+      "cycle": "P2",
+      "capability": "The exact verified invited account declines an available participant invitation without receiving family access",
+      "status": "source_partial",
+      "persona": "participant",
+      "frontend": {
+        "user_visible": true,
+        "route": "/invite/continue",
+        "component": "app/invite/continue/ParticipantInvitationDecision.tsx",
+        "files": [
+          "app/invite/continue/page.tsx",
+          "app/invite/continue/ParticipantInvitationDecision.tsx",
+          "app/invite/[token]/actions.ts",
+          "app/login/Auth.module.css",
+          "lib/auth/invitations.ts"
+        ],
+        "note": "Accept remains the primary decision. Decline opens a lower-emphasis inline confirmation and, after verified success, replaces every decision control with a saved receipt for the current interaction."
+      },
+      "action_status": "available -> declining -> declined receipt with zero participant grant; same actor and fixed reason replay returns the original receipt",
+      "server_command": "public.decline_participant_invitation(p_raw_token text, p_reason text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/invite/[token]/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "participant_invitations",
+          "cardinality": "one invitation is revoked by the exact verified invited account"
+        },
+        {
+          "table": "continuity_participants",
+          "cardinality": "zero participant rows are added by decline"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "exactly one participant_invitation.declined event"
+        }
+      ],
+      "rls_authority_predicate": "The Server Action reads the bearer only from the secure httpOnly intent. The RPC derives auth.uid() and verified email and requires an exact available invitation/email match under a row lock.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.declined",
+        "idempotency_key": "participant_invitation:<invitation id>:declined"
+      },
+      "failure_recovery_states": [
+        "wrong account, expired, accepted, canceled, and unknown invitation attempts add no grant or event",
+        "changed stored state requires reload and reveals no protected invitation detail",
+        "verification uncertainty makes no claim that nothing changed and requires reload",
+        "same actor and fixed reason returns the original time/event with no duplicate"
+      ],
+      "persona_projection": "The verified current-interaction receipt shows only declined outcome, saved time, audience, proof destination, zero-access truth, and recovery. Terminal reload shows no inviter, family, relationship, purpose, scope, email, case, message, or token detail.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.cancel_invitation",
+      "cycle": "P2",
+      "capability": "A family coordinator cancels one pending participant invitation before access is granted",
+      "status": "source_partial",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people",
+        "component": "app/family/people/ParticipantLifecycleControls.tsx",
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css"
+        ],
+        "note": "Cancellation is available only beside a waiting invitation, uses an inline consequence confirmation, and removes the waiting control only after a verified saved receipt."
+      },
+      "action_status": "available -> confirmed cancellation -> invitation revoked and retained as Invitation canceled history with zero grant",
+      "server_command": "public.revoke_participant_invitation(p_invitation_id uuid, p_reason text)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "app/family/people/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "participant_invitations",
+          "cardinality": "one pending invitation changes to revoked with server actor/time and the fixed cancellation reason"
+        },
+        {
+          "table": "continuity_participants",
+          "cardinality": "zero participant rows are added"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "exactly one participant_invitation.revoked event"
+        }
+      ],
+      "rls_authority_predicate": "The RPC derives auth.uid() and requires passage_private.can_manage_continuity_space for the invitation. Accepted invitations and unrelated coordinators cannot use this command.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "participant_invitation.revoked",
+        "idempotency_key": "participant_invitation:<invitation id>:revoked"
+      },
+      "failure_recovery_states": [
+        "signed-out, unrelated owner, participant, staff, vendor, accepted, and malformed requests make no partial write",
+        "same fixed reason returns the original receipt without another event",
+        "changed reason or a competing acceptance requires reload",
+        "old-link inspection becomes minimum-safe and exposes no action or protected detail"
+      ],
+      "persona_projection": "The coordinator sees Invitation canceled in history without stored reason text. The invited person sees only that the invitation is no longer available and should ask the family coordinator if access is still needed.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql"
+      ]
+    },
+    {
+      "id": "participant.coordinator.revoke_access",
+      "cycle": "P2",
+      "capability": "A family coordinator ends one active participant's access while preserving append-only invitation and access history",
+      "status": "source_partial",
+      "persona": [
+        "family",
+        "participant"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/family/people and /participant",
+        "component": [
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/participant/page.tsx"
+        ],
+        "files": [
+          "app/family/people/page.tsx",
+          "app/family/people/ParticipantLifecycleControls.tsx",
+          "app/family/people/actions.ts",
+          "app/family/people/People.module.css",
+          "app/participant/page.tsx",
+          "lib/continuity/participants.ts"
+        ],
+        "note": "The coordinator confirms the exact person and immediate consequence. Verified success moves the person out of active access and Past access preserves human relationship, prior categories, began time, and ended time without a restore control."
+      },
+      "action_status": "active -> confirmed access ending -> revoked; next participant update and message request is denied while prior invitation/activity history remains",
+      "server_command": "public.revoke_continuity_participant_idempotent(p_participant_id uuid, p_reason text, p_request_id uuid); revocation is enforced by list_participant_continuity_spaces(), list_continuity_participant_projection(), list_participant_family_updates(), list_workflow_messages_client_safe(uuid), and post_workflow_message_idempotent(uuid,text,uuid)",
+      "backend_files": [
+        "supabase/migrations/20260723072450_participant_invitation_thin_slice.sql",
+        "supabase/migrations/20260729034001_workflow_messages_client_projection.sql",
+        "supabase/migrations/20260730021524_participant_updates_case_scope.sql",
+        "app/family/people/actions.ts",
+        "lib/continuity/participants.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "continuity_participants",
+          "cardinality": "exactly one active row changes to revoked with actor, time, and fixed reason"
+        },
+        {
+          "table": "participant_invitations",
+          "cardinality": "accepted invitation remains accepted and linked; no invitation row is deleted"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "exactly one continuity_participant.revoked event"
+        },
+        {
+          "table": "workflow_messages",
+          "cardinality": "a participant post begun after committed revocation adds zero message rows"
+        }
+      ],
+      "rls_authority_predicate": "The revocation command derives auth.uid() and requires coordinator authority for the participant's exact active space. Every participant update and message predicate independently requires the same auth.uid()-bound participant row to remain active with updates scope.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "continuity_participant.revoked",
+        "idempotency_key": "continuity_participant:<participant id>:revoked"
+      },
+      "failure_recovery_states": [
+        "unrelated coordinator, participant self-revocation, staff, vendor, and malformed requests make no partial write",
+        "same request and reason returns the original receipt without another event",
+        "changed reason conflicts and directs reload",
+        "verification uncertainty makes no claim that access ended",
+        "the revoked account receives empty participant projections, message list/post denial, and no raw workflow/task/event/proof/review rows on its next request"
+      ],
+      "persona_projection": "The coordinator sees Access ended and a Past access record with human labels and times. The revoked participant sees a closed Shared with me state and no stale family or message detail. No restore action, internal identifier, event key, or stored reason is rendered.",
+      "evidence_test_references": [
+        "scripts/test-participant-invitation-security.js",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-participant-invitation-lifecycle-races.mjs",
+        "supabase/tests/participant_invitation_lifecycle_p2.sql",
+        "supabase/tests/participant_updates_case_scope.sql",
+        "supabase/tests/workflow_messages_client_projection.sql"
+      ]
+    },
+    {
+      "id": "participant.family.bounded_case_today",
+      "cycle": "PR78 repair",
+      "capability": "An invited participant sees the current family update without receiving the family's raw operational case record",
+      "status": "implemented",
+      "persona": [
+        "family",
+        "participant"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/today",
+        "component": [
+          "app/case/[id]/today/page.tsx",
+          "lib/family/case-view.ts"
+        ],
+        "files": [
+          "app/case/[id]/today/page.tsx",
+          "lib/family/case-view.ts",
+          "app/proof-loop.module.css"
+        ],
+        "note": "The continuity-space owner keeps the existing family case view. An active participant with updates scope falls back to one privacy-minimizing update for the exact case id; all denied callers receive the closed state without case detail."
+      },
+      "action_status": "read-only: owner raw view or active updates-scoped participant bounded projection; denial and temporary failure do not mutate state",
+      "server_command": "public.get_family_case_update_for_workflow(p_workflow_id uuid)",
+      "backend_files": [
+        "lib/family/case-view.ts",
+        "supabase/migrations/20260810230000_participant_case_update_for_workflow.sql",
+        "supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql",
+        "supabase/migrations/20260811162128_participant_case_scope_source_reconciliation.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "continuity_spaces",
+          "cardinality": "one active owner-scoped space linked to the requested workflow"
+        },
+        {
+          "table": "continuity_participants",
+          "cardinality": "one active exact-user participant with updates in category_scope"
+        },
+        {
+          "table": "workflows",
+          "cardinality": "one exact requested workflow linked to that continuity space"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "zero or one current step returned through the bounded projection"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "zero or one latest plain-language update returned through the bounded projection"
+        }
+      ],
+      "rls_authority_predicate": "Raw workflow, task, proof, proof-review, and workflow-event SELECT remains owner-only through passage_private.can_view_workflow_as_family(workflow_id), which requires the active continuity-space owner to equal auth.uid(). The participant RPC separately requires auth.uid(), the exact requested workflow, an active continuity space, an active exact-user participant, and updates in category_scope. PUBLIC, anon, service_role, revoked, wrong-user, wrong-workflow, and wrong-category access is denied.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This slice is a read-only persona projection. It neither mutates the case nor creates an event; existing task and workflow-event history remains append-only."
+      },
+      "failure_recovery_states": [
+        "an empty owner-only workflow read attempts the bounded participant RPC for the same workflow id",
+        "a missing bounded row returns not-authorized and the route shows no case detail",
+        "an RPC error returns unavailable and the route states that nothing changed",
+        "revoked, wrong-user, wrong-workflow, wrong-category, and anon callers receive no projection",
+        "the rollback-only authority test restores the exact function definitions and ACLs and leaves zero fixture rows",
+        "reload and cross-session reads repeat the same durable owner or participant projection without mutation"
+      ],
+      "persona_projection": "The owner sees the existing family-facing current step and recent updates. An active updates participant sees only family/person names, one current-step summary and care-team label, and one latest plain-language update. Neither path exposes raw proof, review, event metadata, staff identity, UUID, or operator status; denied callers see no case detail.",
+      "evidence_test_references": [
+        "supabase/tests/participant_case_scope_source_reconciliation.sql",
+        "scripts/test-participant-case-scope-source.mjs",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "lib/family/case-view.ts",
+          "includes": [
+            "if (!workflowResult.data) return loadFamilyCaseViewAsParticipant(client, workflowId);",
+            "client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId })",
+            "if (!row) return { ok: false, reason: 'not-authorized' };",
+            "return { ok: true, data: buildParticipantCaseView(workflowId, row) };"
+          ]
+        },
+        {
+          "file": "app/case/[id]/today/page.tsx",
+          "includes": [
+            "const result: FamilyCaseViewResult = await loadFamilyCaseView(id);",
+            "This case is not available to your account.",
+            "Nothing changed, and no case details were shown."
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260811162128_participant_case_scope_source_reconciliation.sql",
+          "includes": [
+            "space_row.owner_user_id = (select auth.uid())",
+            "set search_path = ''",
+            "from public, anon, service_role",
+            "to authenticated"
+          ]
+        },
+        {
+          "file": "supabase/tests/participant_case_scope_source_reconciliation.sql",
+          "includes": [
+            "owner_matrix",
+            "active_updates_participant_matrix",
+            "revoked_matrix",
+            "wrong_category_matrix",
+            "wrong_user_matrix",
+            "c7b10002-7b00-47b0-87b0-000000000002",
+            "anon_matrix",
+            "rollback;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a16.family.provider_discovery",
+      "cycle": "A16",
+      "capability": "A family coordinator finds, reviews, and durably saves one funeral-home choice without contacting it or granting access",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/family",
+        "component": [
+          "components/family/TransferComposer.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.tsx"
+        ],
+        "files": [
+          "components/family/TransferComposer.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.tsx",
+          "components/family/provider-discovery/FuneralHomeDiscovery.module.css",
+          "app/family/provider-discovery/actions.ts",
+          "app/family/provider-discovery/search/route.ts",
+          "app/family/provider-discovery/selection/route.ts"
+        ],
+        "note": "The real Family receiver step uses a debounced combobox, explicit structured confirmation, always-visible manual recovery, durable reload projection, and truthful connected-versus-save-only boundaries. Searching and saving never contact a funeral home or grant access."
+      },
+      "action_status": "query remains memory-only, then unconfirmed structured choice, then explicit save receipt; replacement atomically supersedes the prior active choice; same request replays the original receipt; conflict preserves the saved choice",
+      "server_command": [
+        "POST /family/provider-discovery/search through server-only deterministic ProviderDiscoveryAdapter",
+        "public.confirm_family_provider_selection through passage_private.confirm_family_provider_selection",
+        "public.get_family_provider_selection_projection(uuid)"
+      ],
+      "backend_files": [
+        "lib/provider-discovery/synthetic-directory.ts",
+        "lib/provider-discovery/family-selection.ts",
+        "supabase/migrations/20260723092402_family_provider_discovery.sql",
+        "supabase/migrations/20260813035045_a16_new_york_sample.sql",
+        "app/family/provider-discovery/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "family_provider_selections",
+          "cardinality": "one active selection per continuity space plus retained superseded history and one unique request UUID per space"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only confirmed or superseded receipt per successful request"
+        }
+      ],
+      "rls_authority_predicate": "Confirmation requires a verified user who can manage the exact continuity space; projection requires current continuity-space view authority. Authenticated clients have no direct table mutation or directory access, and server code resolves source version and handoff truth.",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "family_provider_selection.confirmed or family_provider_selection.superseded",
+        "idempotency_key": "family-provider-selection:<request-id>"
+      },
+      "failure_recovery_states": [
+        "under-two-character, loading, result, empty, unavailable, offline, and rate-limit states preserve an editable input and manual entry",
+        "unknown save outcome retains the request UUID and directs the family to reload before another choice",
+        "same-request replay returns the original selection and event while changed-payload replay fails without mutation",
+        "stale expected selection, wrong family, unrelated user, unverified user, and revoked viewer fail closed",
+        "manual partial address is saved with Needs address review and never gains connected handoff status"
+      ],
+      "persona_projection": "The family sees only confirmed provider name, structured address, server save time, actual family audience, address-review state, and connected-versus-plan-only next step. Internal identifiers, source details, raw queries, supersession internals, and other families are excluded.",
+      "evidence_test_references": [
+        "scripts/test-family-provider-discovery.mjs",
+        "supabase/tests/family_provider_discovery.sql",
+        "supabase/tests/family_provider_discovery_reversibility.sql",
+        "docs/product/funeral-home-discovery-thin-slice.md"
+      ],
+      "source_assertions": [
+        {
+          "file": "components/family/provider-discovery/FuneralHomeDiscovery.tsx",
+          "includes": [
+            "role=\"combobox\"",
+            "Enter funeral home details manually",
+            "Use this funeral home",
+            "We couldn't confirm whether it was saved. Reload and check your funeral home before trying again."
+          ]
+        },
+        {
+          "file": "app/family/provider-discovery/actions.ts",
+          "includes": [
+            "export async function confirmProviderSelection",
+            "'confirm_family_provider_selection'",
+            "'get_family_provider_selection_projection'"
+          ]
+        },
+        {
+          "file": "lib/provider-discovery/synthetic-directory.ts",
+          "includes": [
+            "rankSyntheticProviders",
+            "main-street-new-york",
+            "queryTokens",
+            "candidateToken.startsWith(queryToken)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260813035045_a16_new_york_sample.sql",
+          "includes": [
+            "'main-street-new-york'",
+            "'10 Main Street'",
+            "'New York'",
+            "'10001'"
+          ]
+        },
+        {
+          "file": "supabase/tests/family_provider_discovery.sql",
+          "includes": [
+            "Exact confirmation replay changed cardinality",
+            "exception when sqlstate '28000' then null",
+            "Stale-selection conflict left partial state",
+            "Revoked participant retained provider selection access",
+            "Append-only denial changed provider event history"
           ]
         }
       ]

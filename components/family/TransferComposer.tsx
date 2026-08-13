@@ -1,11 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
-import { DEFAULT_DRAFT, EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
+import { DEFAULT_DRAFT, EXPIRIES, SCOPES, type FamilyIntent, type Recipient, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
+import { deriveDemoExpiry, formatDemoExpiry } from '../../lib/presentation/demo-expiry';
+import FuneralHomeDiscovery, {
+  type ProviderDiscoveryModeProps,
+} from './provider-discovery/FuneralHomeDiscovery';
+import type { ProviderSelectionSummary } from '@/lib/provider-discovery/types';
+import { createDemoHandoffSnapshot } from '../../lib/presentation/demo-handoff-snapshot';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -14,16 +20,33 @@ const STEPS = [
   { id: 'review', label: 'Review' },
 ] as const;
 
-export default function TransferComposer() {
+export default function TransferComposer(
+  props: ProviderDiscoveryModeProps & { intent: FamilyIntent | null },
+) {
   const router = useRouter();
-  const { dispatch } = usePassageZero();
+  const { dispatchAtomic, persistenceIssue } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
+  const [providerSelection, setProviderSelection] =
+    useState<ProviderSelectionSummary | null>(null);
   const [activating, setActivating] = useState(false);
+  const [activationMessage, setActivationMessage] = useState('');
+  const activationRecovery = useRef<HTMLParagraphElement>(null);
   const stageHeading = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
 
-  const recipient = useMemo(() => RECIPIENTS.find((item) => item.id === draft.recipientId), [draft.recipientId]);
+  const recipient = useMemo<Recipient | undefined>(() => {
+    if (!providerSelection) return undefined;
+    return {
+      id: providerSelection.selectedAt,
+      organization: providerSelection.displayName,
+      person: providerSelection.handoffAvailability === 'connected_preview'
+        ? 'Connected Preview destination'
+        : 'Saved planning choice',
+      role: 'Not contacted by Passage',
+      location: providerSelection.address.formatted,
+    };
+  }, [providerSelection]);
   const expiry = useMemo(() => EXPIRIES.find((item) => item.id === draft.expiryId), [draft.expiryId]);
   const included = useMemo(() => SCOPES.filter((item) => draft.scopeIds.includes(item.id)), [draft.scopeIds]);
   const excluded = useMemo(() => SCOPES.filter((item) => !draft.scopeIds.includes(item.id)), [draft.scopeIds]);
@@ -39,9 +62,13 @@ export default function TransferComposer() {
     stageHeading.current?.focus();
   }, [phase]);
 
-  function selectRecipient(recipientId: string) {
-    setDraft((current) => ({ ...current, recipientId }));
-  }
+  const selectProvider = useCallback((selection: ProviderSelectionSummary | null) => {
+    setProviderSelection(selection);
+    setDraft((current) => ({
+      ...current,
+      recipientId: selection ? 'saved-provider' : '',
+    }));
+  }, []);
 
   function toggleScope(scopeId: string) {
     setDraft((current) => ({
@@ -56,19 +83,99 @@ export default function TransferComposer() {
     if (phase < STEPS.length - 1 && canContinue) setPhase((current) => current + 1);
   }
 
+  function focusActivationRecovery() {
+    window.requestAnimationFrame(() => activationRecovery.current?.focus());
+  }
+
   function activate() {
-    if (!recipient || !expiry || included.length === 0) return;
+    if (!recipient || !providerSelection || !expiry || included.length === 0) return;
     setActivating(true);
-    const activated: TransferDraft = { ...draft, activatedAt: new Date().toISOString() };
-    window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
-    dispatch({
-      type: 'issue_transfer_pass',
-      actorId: 'maya-rivera',
-      idempotencyKey: `family:issue:${activated.activatedAt}`,
-      scope: included.map((item) => ({ name: item.label, detail: item.detail })),
-      expiresLabel: expiry.moment,
-    });
-    router.push('/family/pass');
+    setActivationMessage('');
+    const activatedAt = new Date().toISOString();
+    const expiresAt = deriveDemoExpiry(activatedAt, expiry.id);
+    if (!expiresAt) {
+      setActivating(false);
+      return;
+    }
+    const activated: TransferDraft = { ...draft, activatedAt, expiresAt };
+    const selectionId = 'demoSelectionId' in providerSelection
+      && typeof providerSelection.demoSelectionId === 'string'
+      ? providerSelection.demoSelectionId
+      : `demo-selection:${providerSelection.selectedAt}`;
+    const snapshot = props.providerMode === 'browser_demo' ? createDemoHandoffSnapshot({
+      intent: props.intent,
+      receiver: {
+        selectionId,
+        source: 'browser_demo',
+        displayName: providerSelection.displayName,
+        address: providerSelection.address,
+        handoffAvailability: providerSelection.handoffAvailability,
+        role: 'Not contacted by Passage',
+      },
+      scopeIds: draft.scopeIds,
+      expiryId: draft.expiryId,
+      activatedAt,
+      expiresAt,
+    }) : null;
+    if (props.providerMode === 'browser_demo' && !snapshot) {
+      setActivating(false);
+      setActivationMessage('The example handoff was not created. Nothing was saved. Review your choices and try again.');
+      focusActivationRecovery();
+      return;
+    }
+    const serializedHandoff = props.providerMode === 'browser_demo'
+      ? JSON.stringify(snapshot)
+      : JSON.stringify(activated);
+    try {
+      window.sessionStorage.setItem('passage.family.transfer.v1', serializedHandoff);
+    } catch {
+      setActivating(false);
+      setActivationMessage('The example handoff was not created. Nothing was saved. Your choices are still here. Try again.');
+      focusActivationRecovery();
+      return;
+    }
+
+    try {
+      const sandboxResult = dispatchAtomic({
+        type: 'issue_transfer_pass',
+        actorId: 'maya-rivera',
+        idempotencyKey: `family:issue:${props.providerMode === 'browser_demo' ? snapshot!.activatedAt : activated.activatedAt}`,
+        scope: (props.providerMode === 'browser_demo' ? snapshot!.scopeIds : included.map((item) => item.id)).map((scopeId) => {
+          const item = SCOPES.find((scope) => scope.id === scopeId)!;
+          return { name: item.label, detail: item.detail };
+        }),
+        expiresLabel: formatDemoExpiry(props.providerMode === 'browser_demo' ? snapshot!.expiresAt : expiresAt) ?? expiry.moment,
+      });
+      if (!sandboxResult.persisted) {
+        let incompleteCopyRemoved = false;
+        try {
+          window.sessionStorage.removeItem('passage.family.transfer.v1');
+          incompleteCopyRemoved = true;
+        } catch {
+          // The handoff is still not presented as successful. Reset remains available.
+        }
+        setActivating(false);
+        setActivationMessage(incompleteCopyRemoved
+          ? 'The example handoff was not created. Nothing was saved. Your choices are still here. Try again.'
+          : 'The example handoff was not created. Your choices are still here, but the browser could not remove its incomplete saved copy. Reset the family demo before retrying.');
+        focusActivationRecovery();
+        return;
+      }
+      router.push('/demo/family/pass');
+    } catch {
+      let incompleteCopyRemoved = false;
+      try {
+        window.sessionStorage.removeItem('passage.family.transfer.v1');
+        incompleteCopyRemoved = true;
+      } catch {
+        // The handoff is still not presented as successful. Reset remains available.
+      }
+      setActivating(false);
+      setActivationMessage(incompleteCopyRemoved
+        ? 'The example handoff was not created. Nothing was saved. Your choices are still here. Try again.'
+        : 'The example handoff was not created. Your choices are still here, but the browser could not remove its incomplete saved copy. Reset the family demo before retrying.');
+      focusActivationRecovery();
+    }
   }
 
   return (
@@ -78,7 +185,7 @@ export default function TransferComposer() {
           <span>SOFIA RIVERA</span>
           <strong>Family handoff</strong>
         </div>
-        <div className={styles.saveState}><span aria-hidden="true" /> Saved in this family space</div>
+        <div className={styles.saveState}><span aria-hidden="true" /> Saved in this browser demo</div>
       </div>
 
       <nav className={styles.steps} aria-label="Handoff steps">
@@ -109,31 +216,10 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>01 / RECEIVER</p>
-                <h1 ref={stageHeading} tabIndex={-1}>Who is expecting this handoff?</h1>
-                <span>Choose one named organization. The pass will be made for them alone.</span>
+                <h1 ref={stageHeading} tabIndex={-1}>Which funeral home did you choose?</h1>
+                <span>Find it, review the address, and save one clear choice. Passage will not contact anyone at this step.</span>
               </div>
-              <fieldset className={styles.recipientList}>
-                <legend className={styles.srOnly}>Receiving organization</legend>
-                {RECIPIENTS.map((item, index) => {
-                  const selected = draft.recipientId === item.id;
-                  const available = item.id === 'northstar';
-                  return (
-                    <label className={selected ? styles.recipientSelected : styles.recipient} key={item.id}>
-                      <input checked={selected} disabled={!available} name="recipient" onChange={() => selectRecipient(item.id)} type="radio" />
-                      <span className={styles.recipientIndex}>{String(index + 1).padStart(2, '0')}</span>
-                      <span className={styles.recipientMain}>
-                        <strong>{item.organization}</strong>
-                        <small>{item.location}</small>
-                      </span>
-                      <span className={styles.recipientPerson}>
-                        <strong>{item.person}</strong>
-                        <small>{available ? item.role : 'Available in a later partner slice'}</small>
-                      </span>
-                      <span className={styles.radioMark} aria-hidden="true"><i /></span>
-                    </label>
-                  );
-                })}
-              </fieldset>
+              <FuneralHomeDiscovery {...props} onSelectionChange={selectProvider} />
             </div>
           )}
 
@@ -141,7 +227,7 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>02 / ACCESS</p>
-                <h1 ref={stageHeading} tabIndex={-1}>Choose exactly what they can open.</h1>
+                <h2 ref={stageHeading} tabIndex={-1}>Choose exactly what they can open.</h2>
                 <span>Every category starts private. Turn on only what this handoff needs.</span>
               </div>
               <fieldset className={styles.scopeList}>
@@ -172,8 +258,8 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>03 / TIMING</p>
-                <h1 ref={stageHeading} tabIndex={-1}>How long should the bridge stay open?</h1>
-                <span>The pass closes at the time shown. You can close it earlier from your family space.</span>
+                <h2 ref={stageHeading} tabIndex={-1}>How long should they have access?</h2>
+                <span>The example handoff closes at the time shown. You can close it earlier from this browser demo.</span>
               </div>
               <fieldset className={styles.expiryList}>
                 <legend className={styles.srOnly}>Access duration</legend>
@@ -206,14 +292,14 @@ export default function TransferComposer() {
             <div className={styles.stageInner}>
               <div className={styles.stageIntro}>
                 <p>04 / REVIEW</p>
-                <h1 ref={stageHeading} tabIndex={-1}>One receiver. A clear boundary.</h1>
+                <h2 ref={stageHeading} tabIndex={-1}>Review who can open what.</h2>
                 <span>Check the complete handoff before it becomes available.</span>
               </div>
 
               <div className={styles.reviewRoute}>
                 <div><span>FROM</span><strong>Sofia's family</strong><small>Family-controlled record</small></div>
                 <div className={styles.routeLine} aria-hidden="true"><span /><i>HANDOFF</i><span /></div>
-                <div><span>TO</span><strong>{recipient.organization}</strong><small>{recipient.person}</small></div>
+                <div><span>TO</span><strong>{recipient.organization}</strong><small>{recipient.location}</small></div>
               </div>
 
               <div className={styles.reviewBoundary}>
@@ -228,7 +314,7 @@ export default function TransferComposer() {
               </div>
 
               <dl className={styles.reviewFacts}>
-                <div><dt>Receiving contact</dt><dd>{recipient.person}, {recipient.role}</dd></div>
+                <div><dt>Funeral-home status</dt><dd>{recipient.person}. {recipient.role}.</dd></div>
                 <div><dt>Access window</dt><dd>{expiry.label}</dd></div>
                 <div><dt>Closes</dt><dd>{expiry.moment}</dd></div>
               </dl>
@@ -242,11 +328,33 @@ export default function TransferComposer() {
                 Continue <span aria-hidden="true">-&gt;</span>
               </button>
             ) : (
-              <button className={styles.activate} disabled={activating} onClick={activate} type="button">
-                {activating ? 'Creating preview pass...' : 'Create preview pass'} <span aria-hidden="true">-&gt;</span>
+              <button
+                className={styles.activate}
+                disabled={
+                  activating
+                  || (
+                    props.providerMode === 'authenticated'
+                    && providerSelection?.handoffAvailability !== 'connected_preview'
+                  )
+                }
+                onClick={activate}
+                type="button"
+              >
+                {activating
+                  ? 'Creating preview pass...'
+                  : props.providerMode === 'browser_demo'
+                    || providerSelection?.handoffAvailability === 'connected_preview'
+                    ? 'Create preview pass'
+                    : 'Preview handoff is not connected'}{' '}
+                 <span aria-hidden="true">-&gt;</span>
               </button>
             )}
           </footer>
+          {(activationMessage || persistenceIssue) && (
+            <p className={styles.recoveryMessage} ref={activationRecovery} role="alert" tabIndex={-1}>
+              {activationMessage || persistenceIssue}
+            </p>
+          )}
         </section>
 
         <BoundarySignal recipient={recipient} included={included} excluded={excluded} expiry={expiry} />

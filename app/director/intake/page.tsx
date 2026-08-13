@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { usePassageZero } from '../../../components/PassageZeroProvider';
+import { PassageZeroProvider, usePassageZero } from '../../../components/PassageZeroProvider';
 import { AppFrame } from '../../../components/operations/AppFrame';
 import { ContinuityRail } from '../../../components/operations/ContinuityRail';
 import { Signal } from '../../../components/operations/Signal';
@@ -13,6 +13,10 @@ type IntakeMode = 'pass' | 'manual';
 type IntakeState = 'start' | 'verified' | 'created';
 
 export default function DirectorIntakePage() {
+  return <PassageZeroProvider><DirectorIntakeWorkspace /></PassageZeroProvider>;
+}
+
+function DirectorIntakeWorkspace() {
   const { record, dispatch } = usePassageZero();
   const [mode, setMode] = useState<IntakeMode>('pass');
   const [state, setState] = useState<IntakeState>('start');

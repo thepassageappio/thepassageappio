@@ -4,7 +4,18 @@ Status: canonical internal roadmap for the greenfield Passage Zero rebuild.
 
 Owner audience: Passage System Admin, Product, UX, Engineering, QA, and Deploy roles. This document is not a public or persona-facing roadmap and its percentages, sprint language, founder goals, and readiness evidence must never appear on family, funeral-home, staff, participant, or vendor surfaces.
 
-Last updated: 2026-07-26 (America/Los_Angeles)
+Last updated: 2026-08-10 (America/Los_Angeles)
+
+## Active launch Lane A - public conversion and Steve demo integration - 2026-08-10
+
+- Exact implementation base: `02a743e3adfa4c7bfaf8db14750dab9be15d6496`, which includes the current combined product and participant P2 source candidate.
+- Current hosted state: the existing Preview head lacks the public/conversion package; `/pricing` and `/demo` return 404. No hosted launch claim is valid.
+- Active packet: restore the planned public route set and private family demo without the historical 81-file combined release; close the six recorded UX blockers for demo routing, visible local reset, browser failure truth, close-confirm focus, page-specific actions, and literal family instructions; remove the external Google Font build dependency; then freeze one exact source head for independent QA.
+- Demo reset boundary: this packet restores a deterministic family example in the current browser. It does not claim to reset the shared hosted director, staff, or vendor data. The page must say that before and after reset. A complete isolated hosted seed/reset remains required for the deterministic-demo domain floor.
+- Source QA: NOT RUN. Hosted Preview QA: NOT RUN. Production Deployment: NOT DEPLOYED. Production QA: NOT RUN. Overall release state: PM COMPLETE / ENGINEERING AUTHORIZED / SOURCE ONLY / NON-PRODUCTION.
+- Certified whole-platform checkpoint remains `0`. Public source existence, a local browser result, or a Vercel READY build cannot advance it.
+- Exact scope, file allowlist, frontend/backend matrix, three-width and 200 percent text matrix, risks, non-goals, and hosted plan are recorded in the 2026-08-10 Product Lane A PM Sprint Brief in `docs/agent-operating-context.md`.
+- Engineering update, 2026-08-10: the bounded current-head source candidate now restores every named public route and redirect, separates the family example from real help, adds the visible browser-only family reset, adds truthful browser and hosted-entry recovery, completes close-confirm focus, adds page-specific next actions, uses literal family copy, and self-hosts both Passage fonts. The public conversion guard, all retained persona and security regressions, TypeScript, optimized build, and local 1440/390/360 plus deterministic 200 percent reflow checks pass. This is source and local evidence only. Distinct exact-head QA, review, Development Head approval, branch-only Preview, and hosted QA remain required. The certified checkpoint remains `0`.
 
 ## Canonical product decision — owner-approved 2026-07-18
 
@@ -12,7 +23,44 @@ Passage Zero is the sole target architecture and redesign implementation. Thresh
 
 This decision does not authorize a public relaunch or Production changes. It removes duplicate implementation work while preserving a narrow hotfix lane for current live defects.
 
-The repository and copy controls in `docs/product/release-governance-and-plain-language-policy.md` are part of every roadmap exit gate: Bot-authored agent work, no agent/schedule direct-main push, exact-head Independent Agent Review, founder review before merge, separate founder Production authorization, bounded PR/review packets, one disposition for overlapping drafts, and plain-language comprehension at 1440/390/360.
+The repository and copy controls in `docs/product/release-governance-and-plain-language-policy.md` are part of every roadmap exit gate: Bot-authored agent work, no agent/schedule direct-main push, author/merge-identity separation, exact-head Independent Agent Review, exact-head Development Head / Release Authority approval before merge, distinct Production Reviewer authorization, bounded PR/review packets, one disposition for overlapping drafts, roadmap freshness, and plain-language comprehension at 1440/390/360.
+
+## 12-hour whole-platform 75% objective — owner-directed 2026-07-22
+
+The active objective is to reach an evidence-backed 75% platform checkpoint while continuing autonomously through the agent role chain. This is a target, not a score award. The official baseline begins at 0 until one complete six-domain matrix passes.
+
+| Domain | Weight | Mandatory 75% evidence |
+| --- | ---: | --- |
+| D2C, family, and participants | 20% | Planning and urgent onboarding plus complete scoped participant invite, identity binding, least-privilege access, persistence, expiry/replay/wrong-user denial, resend, revocation, and proof |
+| Funeral-home directors and dashboards | 20% | Authenticated intake/workload, assignment/reassignment, team/invitation control, activity/proof, recovery, and useful responsive decision hierarchy |
+| Funeral-home employees | 15% | Invitation/onboarding, assigned-only work, start/progress/proof, replacement/revocation denial, recovery, and responsive clarity |
+| Vendor experience | 10% | Reachable bounded request, response/quote, status, proof, privacy boundary, denial/recovery, and no family-record browsing |
+| Public and conversion pages | 15% | Home, pricing, guides/blog, Our Story/mission, trust, resources redirects, and care-provider paths with clear next actions and clean direct/client responsive navigation |
+| Deterministic Steve demo sandbox | 20% | Isolated synthetic seed/reset, repeatable funeral-home and D2C stories, full persona switching without authority leakage, blocked real outbound effects, and automated smoke |
+
+Certified checkpoints are `0, 10, 20, 30, 40, 50, 60, 70, 75`. Platform score is the greatest checkpoint whose aggregate, domain floors, and fresh complete E2E matrix pass. No legacy funeral-home or D2C percentage seeds this score, and no strong domain may average away an absent participant, vendor, public, employee, director, or demo flow. Each 10-point advancement and the final `70 -> 75` step requires full E2E. At 75, a separate massive full-platform responsive, accessibility, smoke, adversarial, concurrency, failure-injection, security-boundary, observability, reset/restore, and rollback pass is mandatory.
+
+| Certified checkpoint | 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 75 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Minimum score required in every domain | 0 | 5 | 10 | 20 | 30 | 40 | 50 | 60 | 65 |
+
+Immediate product sequence: close the current urgent/messaging hosted evidence truthfully; implement the full participant invitation journey; implement the deterministic Steve demo seed/reset/smoke envelope; complete Passage Zero public/conversion and funeral-home discovery paths; then advance only through certified checkpoint gates.
+
+### Participant invitation P1 source packet - 2026-07-29
+
+Packet P1 now has a replacement source candidate for the invite-to-access core: authenticated `/family/people`, one `Family updates`-scoped invitation, a one-time `Not sent by Passage` copy receipt, typed staff/participant inspection, invitation-aware sign-in, participant-specific POST acceptance, and durable multi-space `/participant` reconstruction. Independent pre-freeze review invalidated the first source candidate because its raw bearer entered login/provider redirect URLs and its `updates` participant inherited direct workflow, task, event, proof, and review reads. Independent re-review then returned the replacement because terminal invitation states could still expose inviter/family/relationship/purpose/scope/expiry details, account switching did not inspect sign-out failure, immutable states could retry the same route, and participant update copy overstated a separate family publication decision. The corrected candidate immediately exchanges the raw invitation URL for a short-lived secure httpOnly intent and an opaque `/invite/continue` path, keeps the existing family workflow predicate owner-only, and gives participants one authenticated bounded projection containing human update fields and no protected record identifiers. Full invitation details render only for an actionable available invitation or a verified same-user receipt; accepted without that receipt, expired, revoked, and access-ended states render generic minimum-safe recovery. Account switching uses inspected local-only sign-out and fails closed, existing/current access routes to `/participant`, immutable states do not offer identical-route retries, and copy now says the coordinator grants the high-level updates category while Passage maps eligible progress events. Wrong-account recovery preserves the intent, accepted-state replay denial is visible, invalid acceptance controls stay suppressed, `/family` reaches People, purpose is consistently limited to 240 characters, and the form/receipt states are field-associated and announced.
+
+This is **SOURCE PARTIAL / NOT RELEASED**. Every P1 parity row remains deliberately `source_partial`. Distinct Data QA applied the exact reviewed migration blob only to isolated project `uyacxqtsiwlvtmhxvoxr`; Supabase recorded the normal apply operation as version `20260730040617` with exact name `participant_updates_case_scope`. The exact committed rollback matrix returned PARTIAL on two test-only defects: it assumed the source filename timestamp would be the remote history version, then attempted two active spaces for one owner despite the valid one-active-space-per-owner constraint. A runtime-adapted matrix changing only those two assumptions passed the bounded projection, owner access, raw-table/private-helper denials, non-updates/revoked/unrelated denials, repeat stability, nonmutation, and rollback behavior. The first source-test replacement correctly bound history by exact migration name plus recorded feature/catalog behavior and used two owners, but independent review rejected its function `search_path` check because a missing `proconfig` could evaluate to SQL `NULL` and escape a negative pattern predicate. The current replacement counts exactly both reviewed `SECURITY DEFINER` functions only when each catalog row contains exactly `search_path=""`, and explicitly excludes any nonempty path; focused adversarial source mutations prove missing and nonempty configurations fail. A fresh immutable exact-source Data QA rerun and hosted multi-session 1440/390/360 QA remain required. Packet P2 still owns replacement-link rotation, decline, pending cancellation, accepted-access revocation, expiry recovery, and human history controls; Packet P3 still owns hosted closure. P1 earns no certified whole-platform checkpoint or Production claim.
+
+### Required branch-reconciliation proposal after repeated divergence
+
+Independent review recorded at least two consecutive unresolved divergence cycles: `main` contains the verified Production maintenance/governance line while `greenfield/passage-zero` contains the canonical rebuild. Development Head disposition is required on this recommendation; no owner review is requested.
+
+1. Freeze verified `main` as the Production-maintenance baseline except separately reviewed P0/P1 repairs.
+2. Reconcile installed Bot/App/check governance into Passage Zero without porting legacy Pages Router IA or product implementation.
+3. Keep PR #24 as the integration/evidence umbrella only and present identity/authority, proof, participant invitation, provider discovery, public conversion, vendor, demo, and cutover as bounded review packets.
+4. Treat closed PRs #17, #19, and #23 as superseded historical inputs.
+5. After all bounded packets pass and the public/durable route contract is reconciled, open a fresh Bot-authored cutover PR from the exact reviewed Passage Zero head to current `main`; repeat full-platform E2E, rollback, exact-head review, and Production gates on that vehicle.
 
 ## Single-source rule
 
@@ -106,7 +154,7 @@ This V5 link creates no active sprint, score, milestone, implementation authoriz
 
 | Path | Guided readiness | Operational readiness | Verified now | Principal gap |
 | --- | ---: | ---: | --- | --- |
-| Funeral home | 94% | 40% | Hosted isolated director/staff authority; accepted invitation projection; assigned workload, start, reassignment, invitation/member revocation, append-only Activity, replay/conflict/denial, reload persistence, and 1440/390/360 evidence | Task-bound proof/review Case Room, delivery/recovery, integrations, founder-reviewed Bot-authored cutover, and pilot controls |
+| Funeral home | 94% | 40% | Hosted isolated director/staff authority; accepted invitation projection; assigned workload, start, reassignment, invitation/member revocation, append-only Activity, replay/conflict/denial, reload persistence, and 1440/390/360 evidence | Task-bound proof/review Case Room, delivery/recovery, integrations, Development Head-approved Bot-authored cutover, and pilot controls |
 | Family / D2C | 85% | 25% | Planning-versus-urgent entry, Transfer Pass demonstration, family-safe status/proof projection, and responsive guidance | Real account lifecycle, durable family grants, participant invitations, recovery, funeral-home handoff, notification delivery, and data controls |
 | Separate demo instance | 20% | 10% | Branch-bound Preview and isolated Supabase lab prove a synthetic director/staff authority loop; production remains untouched | Deterministic full seed/reset, blocked external communications, integration simulation, automated smoke, and isolated domain/environment |
 | Production readiness | 15% | 10% | Buildable Next.js application, controlled migration discipline, explicit environment guard, security preflight, and evidence habit | Production-safe migrations, monitoring, backups/restore, support/break-glass, notification/integration operations, security/privacy review, and rollout/runbooks |
@@ -158,7 +206,7 @@ Also fixed today, independently two-pass QA'd (PR #56): the `/staff` role-mismat
 
 **Honest punch list — what's actually left before PR #24 could be reconsidered:**
 
-1. **Owner-only governance gates (no agent can close these):** PR #24's "Development Head / Release Authority" section is still unchecked with "UNASSIGNED" as the reviewed head; founder bootstrap attestation and live Bot/branch-protection/protected-environment activation have not happened; separate founder Production authorization has not been requested. These are explicitly owner-gated per this document's own "Decision ownership and change control" section and are not something a PM/Engineering/QA loop can satisfy on its own.
+1. **Agent-governed release gates:** PR #24 must remain draft until its current exact head receives distinct Independent Agent Review and Development Head / Release Authority approval. Routine founder review, bootstrap attestation, and owner Production authorization are not required. Production remains a separate later gate owned by the distinct Production Reviewer, with owner involvement only for destructive data, spend, or material legal/privacy/security judgment.
 2. **Refresh PR #24's body** so its Cycle 8 and PR #17/#19/#23 claims match current, verified reality before it goes to review.
 3. **Fix the vendor category-validation gap** (Medium, PR #57) — small, scoped, not yet done.
 4. **Wire the case-detail lane to real data.** Currently 100% placeholder; the backend it needs is confirmed ready.
@@ -169,7 +217,7 @@ Also fixed today, independently two-pass QA'd (PR #56): the `/staff` role-mismat
 9. **Per-organization feature flags** — not built, sized below (small, roughly half a day to one day).
 10. **Demo sandbox refresh/redeploy mechanism** — not built, sized below (real multi-part infrastructure item, includes an owner-gated new-project step).
 
-Net honest read: Passage Zero is materially closer to a defensible cutover conversation than it was this morning — a second persona (vendor) went from entirely absent to a real, independently adversarially-tested MVP, four real UX bugs got fixed and independently re-QA'd, and the Cycle 8 data-layer and core interactive-loop evidence both got substantially stronger with real, reproducible verification rather than assumption. But "PR #24 could actually be reconsidered" is still gated on real, unfinished product work (items 3-8) in addition to the purely owner-side governance steps (items 1-2) — this is not yet a "just get founder sign-off" situation.
+Net honest read at the time of this dated entry: Passage Zero was materially closer to a defensible cutover conversation, but real product work in items 3-8 remained. The original reference to owner-side governance is superseded by the agent-governed Development Head and Production Reviewer model above.
 
 ### Two new near-term architecture items (owner-requested) — 2026-07-26 (later)
 
@@ -193,7 +241,7 @@ Sizing only, per the owner's request — neither of these is built in this entry
 
 Readiness caps:
 
-- Hosted Auth/membership and assigned-work RLS are proven only in the isolated synthetic Preview. Until the complete M2 score gate, plain-language review, Independent Agent Review, and founder review of a Bot-authored cutover pass, funeral-home operational readiness remains 40%.
+- Hosted Auth/membership and assigned-work RLS are proven only in the isolated synthetic Preview. Until the complete M2 score gate, plain-language review, Independent Agent Review, and Development Head / Release Authority approval of a Bot-authored cutover pass, funeral-home operational readiness remains 40%.
 - No task-bound proof/review Case Room and durable failure recovery: funeral-home operational readiness remains below the M3 range.
 - No durable notifications and recovery: either path remains below 80%.
 - No complete family-to-funeral-home handoff and family-safe proof return: either path remains below 85%.
@@ -203,13 +251,13 @@ Readiness caps:
 
 Passage Zero remains the one product lane. The live-site P1 below is a narrowly governed Threshold/main maintenance lane, not a second product initiative:
 
-Audit trigger: PRs #17, #19, #23, and #24 were all draft with zero founder approvals; PR #17's required release-train check had remained red because `## Product Manager scope` did not match the required `## Product Manager Scope`; and two direct-main release commits landed 2 minutes 49 seconds apart. These are confirmed control failures, not hypothetical risks.
+Audit trigger: PRs #17, #19, #23, and #24 were all draft with zero independent merge approvals; PR #17's required release-train check had remained red because `## Product Manager scope` did not match the required `## Product Manager Scope`; and two direct-main release commits landed 2 minutes 49 seconds apart. These are confirmed control failures, not hypothetical risks.
 
 1. **Production P1 maintenance:** one reviewed Threshold/main hotfix PR fixes the shared hydration failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission`; every route receives console/hydration/runtime and responsive verification. This is live-site reliability work, not Passage Zero progress.
-2. **Repository governance:** correct PR #17's exact required heading or close it as superseded, move agent authorship to the dedicated GitHub App/Bot, prohibit agent and scheduled direct-main pushes, require passing current-head checks plus Independent Agent Review and founder approval, protect Production with separate founder authorization, serialize release jobs, and reconcile draft PRs #17, #19, and #23 against Passage Zero umbrella PR #24. **PRs #17, #19, and #23 were all confirmed closed (not merged) on 2026-07-21 — this reconciliation is done; PR #24's own body has not yet been updated to say so.**
+2. **Repository governance:** keep agent authorship on the dedicated GitHub App/Bot, prohibit agent and scheduled direct-main pushes, require current-head checks plus Independent Agent Review and Development Head approval, protect reversible Production promotion with distinct Production Reviewer authorization, serialize release jobs, and preserve the recorded disposition of closed PRs #17, #19, and #23 against Passage Zero umbrella PR #24.
 3. **Human-readable Passage Zero:** audit all reachable public/persona Preview routes against the seven-question gate in `docs/product/release-governance-and-plain-language-policy.md`. Remove raw enums/UUIDs, cycle/fixture/QA narration, architecture wording, and contradictory demo/hosted labels. Validate comprehension at 1440/390/360.
 4. **Cycle 8 recovery:** resume independent two-session proof/review QA on the existing bound replacement Preview when the supported protected-browser handshake works; prove replacement history, replay/conflict/reload, authority denials, and 1440/390/360 comprehension/accessibility/runtime evidence. Retain PARTIAL until the complete hosted QA and Deploy gates pass. As of 2026-07-26 the underlying SQL/RLS regression evidence for this gate is machine-verified PASS, and the core interactive proof-review loop has been independently proven live twice (see the two 2026-07-26 entries above); the outstanding blocker is now narrowly the denial-matrix/reload/1440-390-360 sub-evidence for these specific routes, not the data layer or the core loop.
-5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present bounded packets/stacked PRs for Independent Agent Review and founder review across identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. The final cutover vehicle must be Bot-authored; Production remains separately closed.
+5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present bounded packets/stacked PRs for Independent Agent Review and Development Head / Release Authority approval across identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. The final cutover vehicle must be Bot-authored; Production remains separately closed.
 
 ## Critical path
 
@@ -250,7 +298,7 @@ The work that consumes time is not drawing more screens:
 
 Target after complete evidence: funeral home **55–60% operational**; D2C remains **25% operational / 85% guided**. This is an isolated, non-production, synthetic, manually supported functional beta. It is not the 85-ish allowlisted pilot and is not full production readiness.
 
-Evidence status: Cycle 7A and Cycle 7B functional-beta behavior passed in the isolated Preview, but the readiness score remains 40% by explicit release disposition. The score does not advance merely because the three-day feature evidence exists; the canonical scoring, plain-language, review-packet, Independent Agent Review, founder review, and protected-Production gates still apply.
+Evidence status: Cycle 7A and Cycle 7B functional-beta behavior passed in the isolated Preview, but the readiness score remains 40% by explicit release disposition. The score does not advance merely because the three-day feature evidence exists; the canonical scoring, plain-language, review-packet, Independent Agent Review, Development Head / Release Authority, and protected-Production gates still apply.
 
 Day 1 closes hosted authority: exact-branch Preview variables, isolated Auth redirects and synthetic users, guarded director fixture, independent director/staff invitation creation and acceptance, reload, replay, denial, exact cardinality, and 1440/390/360 evidence.
 
@@ -289,7 +337,7 @@ Documentation-first synthetic hosted-QA fixture gate:
 
 ### M2 - Assigned work and authority enforcement
 
-Evidence status: PASS for the bounded isolated synthetic Cycle 7B slice. The score remains 40% pending the integrated roadmap scoring, Bot-author, Independent Agent Review, founder-review, and protected-Production gates stated above.
+Evidence status: PASS for the bounded isolated synthetic Cycle 7B slice. The score remains 40% pending the integrated roadmap scoring, Bot-author, Independent Agent Review, Development Head / Release Authority, and protected-Production gates stated above.
 
 Target: funeral home 55-60%; D2C 25%; demo 35%; production readiness 25%.
 
@@ -347,7 +395,7 @@ Scope:
 - Family and participant task-bound communication with audience, delivery truth, reviewed prepared output, and structured proof translation.
 - Account/data controls: collaborator removal, invitation revoke, export receipt, correction path, and deletion request workflow without promising unapproved retention outcomes.
 
-Dependency note (2026-07-26): the family/participant identity and case-visibility backend needed for this scope — a real (non-mocked) authority link from an existing family continuity/participant record to a case's `workflows`/`tasks`/`task_proofs` — now exists (PR #52, `docs/product/family-case-workflow-grant-2026-07-26.md`). This is schema/RLS only, verified with adversarial checks, and does not itself advance the M4 score; it unblocks building `/case/[id]/*` family-facing routes against real data instead of mocked arrays. **As of the later 2026-07-26 assessment above, the case-detail lane has not yet started that wiring — the shell/placeholder from PR #51 is still the only thing built.**
+Dependency note (updated 2026-07-29): the family/participant identity foundation exists through the reconciled continuity migrations and PR #52. The existing owner-facing `/case/[id]/today` path stays wired to the family-owner grant. The replacement P1 packet does not extend that raw-table grant to participants; it adds the missing invitation/landing path and an `updates`-only, human-field projection across every active family space. The migration remains un-applied and unverified in hosted QA, so it does not advance M4 or the whole-platform score.
 
 Exit evidence:
 
@@ -528,7 +576,7 @@ This entry corrects two stale status claims from the punch list above, closes it
 
 **Item 8: Vendor / partner path scored at 90% guided / 28% operational.** No row for this path exists in the Verified-baseline table above; this fills that gap in prose, in the same "X% guided / Y% operational" form the table and the entries above already use, without editing the existing table. The vendor/partner MVP (PR #53, merged) shipped a full queue -> accept/quote -> delivery-proof -> verify state machine with real RLS and idempotent RPCs, and passed two rounds of QA: the builder's own hosted Chrome walkthrough of the full loop, run twice, plus an independent adversarial pass (PR #57) that specifically tried cross-tenant reads and writes, vendor self-verification, idempotent replay, and malformed state transitions — all denied or handled correctly. That is a deeper evidence bar than D2C's current 85% guided score rests on (planning-versus-urgent entry and a Transfer Pass demonstration alone), which is why guided readiness sits meaningfully above D2C here; it stays below funeral home's 94% because, unlike funeral home's evidence, no 1440/390/360 responsive or comprehension pass has been run against `/partner` specifically. Operational readiness is capped well below funeral home's 40% and close to D2C's 25% for two concrete, unresolved reasons rather than general caution: one open Medium bug, unfixed as of this entry, where vendor request `category` is never validated against the target vendor's specialty at any layer, so a request can silently misroute the moment a second vendor exists (invisible today only because a single vendor is seeded); and the complete absence of any responsive or device-QA evidence for `/partner`, the same category of sub-evidence Cycle 8's own routes are still tracked above as separately outstanding. Per this document's own rule that a score moves only after a milestone's full exit gate passes, 28% reflects real but incomplete operational proof, not a rounded-up estimate.
 
-### Punch list closed except owner-only governance — items 3, 5, 6 confirmed merged — 2026-07-27 (later)
+### Historical punch-list closeout — agent-governed release gates supersede owner-only wording — 2026-07-27 (later)
 
 This entry follows minutes after the correction above and closes three more items from the 2026-07-26 honest punch list, one of which corrects a status claim that went stale within about fifteen minutes of being written because other concurrent lanes merged more work in the meantime.
 
@@ -538,7 +586,7 @@ This entry follows minutes after the correction above and closes three more item
 
 **Item 6 closed: the Cycle 8 M3 evidence gap is filled.** PR #65 merged, adding `docs/product/passage-zero-cycle8-m3-evidence-2026-07-26.md`. That document reports 8/8 correct denial-matrix results — six denial cases (wrong-org director, wrong-location director, revoked-membership staff, wrong-org staff, unassigned staff, and revoked-location-grant director) plus two positive controls — obtained via direct SQL against the real RLS-enforced read path in the isolated QA project, with four of the six denials (both denial reasons, on both routes) additionally corroborated live in a hosted browser showing clean, plain-language denial screens with no raw ids or engineering jargon. Reload-persistence was confirmed on both `/director/cases/[id]` and `/staff/work/[id]` via fresh authenticated navigations, with no stale or blank intermediate state. The 1440/390/360 responsive pass itself could not be obtained live — the pass's browser sandbox is hard-capped at 640×480 and rejects resizing even up to 1440×900 outright, a confirmed tooling limitation the evidence document flags explicitly as environmental, not a product gap. In its place, the document substitutes code-level evidence: both routes render through the same shared stylesheet, `app/proof-loop.module.css`, which has explicit breakpoints at 900px (collapsing the two-column case layout to one column) and 620px (stacking the hero and facts grid, collapsing actions to one column, and tightening panel padding) that directly cover the 390/360 portion of the acceptance bar, with the fluid, non-fixed-width layout above 900px giving no indication of overflow risk at 1440.
 
-As of this entry, every item on the 2026-07-26 honest punch list is closed except item 1 — the owner-only governance gates on PR #24 (Development Head approval, founder bootstrap attestation, live branch-protection/Bot activation, and separate founder Production authorization), which remains explicitly owner-only and outside this document's authority to close or advance — and item 2, refreshing PR #24's body, which has also been done separately.
+As of this dated entry, the product punch-list items were closed. Its original owner-only governance wording is superseded: exact-head Independent Agent Review and Development Head approval are agent responsibilities, routine founder/bootstrap approval is not required, and reversible Production authorization belongs to the distinct Production Reviewer. PR #24 remains draft until current evidence—not a founder signature—earns release readiness.
 
 ### Urgent/red completion invalidated by receiver submit P1 — 2026-07-28
 
@@ -561,3 +609,22 @@ Release truth for this P1:
 - **Overall release state:** SOURCE ONLY / NON-PRODUCTION PARTIAL; PR #24 is not ready.
 
 This is a defect correction, not a product-direction, scope, milestone-order, readiness-doctrine, persona-coverage, or architecture change. No readiness score advances. The next gate is exact-head independent source/SQL/RLS review, followed by one non-production Preview and hosted first-submit/replay/reload/denial/cardinality/1440/390/360 proof.
+
+### Post-merge urgent first-task parity invalidation — 2026-07-28
+
+The later merge head `e25c6d2dc64e64687ec55d31d711ffeba9569266` does not restore PR #24 readiness. Exact-source parity was 16/17: the ledger referenced nonexistent `20260727030000_urgent_receiving_organization_boundary.sql` instead of the committed/applied `20260727042651` file, while the isolated database also contained `urgent_case_first_commitment` at applied version `20260727200936` with no matching source file. The earlier source-PASS and “migration drift closed” claims are therefore invalidated.
+
+The bounded source repair restores the exact first-commitment statements under the truthful applied filename, restores the broad rollback-only authority/replay/cardinality matrix, returns both durable case and first-task receipts, opens Case Room Tasks at the returned task, and limits assignment choices to active staff with a non-revoked exact-location grant. Missing-task and no-candidate recovery remain visible, human, and non-destructive.
+
+Roadmap classification: defect and source/database parity correction only. It changes no product direction, milestone order, readiness doctrine, persona scope, or score. Funeral home remains **94% guided / 40% operational**; D2C remains **85% guided / 25% operational**; vendor remains **90% guided / 28% operational**. Source gates, independent SQL/RLS QA, one exact-head non-production Preview, and complete hosted first-submit/replay/reload/assignment/denial/cardinality/1440/390/360 evidence remain required before any hosted PASS or cutover claim.
+
+### Urgent first-task QA return closed in source - 2026-07-28 21:44 -07:00
+
+The replacement urgent packet closes four source-level QA findings without changing roadmap direction or scores:
+
+- zero-task Case Rooms show missing-first-task recovery before generic invalid-task denial, while invalid task selectors on nonempty workflows still fail closed;
+- ordinary workload assignment says `Assign task`, and only the urgent first commitment says `Assign first task`;
+- no-candidate recovery names the exact humanized case location and directs the director to review team access before returning;
+- the rollback-only SQL matrix executes first-task assignment and proves durable assignment, one append-only event, idempotent replay, and wrong-organization, wrong-location, unaffiliated, former/revoked actor plus invalid target denials without cardinality drift.
+
+This is a defect and frontend/backend parity correction only. It changes no product direction, scope, milestone order, readiness doctrine, persona coverage, architecture, or score. Candidate `AGENTS.md` is intentionally unchanged from exact merge source; the requested governance doctrine replacement is a separate bounded packet. Funeral home remains **94% guided / 40% operational**; D2C remains **85% guided / 25% operational**; vendor remains **90% guided / 28% operational**. Independent source/SQL/RLS QA, one non-production Preview, and complete hosted 1440/390/360 assignment/replay/reload/denial/cardinality evidence remain required.
