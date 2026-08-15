@@ -7,6 +7,13 @@ type TopShellProps = {
   mode?: 'gateway' | 'workspace';
 };
 
+const marketingNav = [
+  { href: '/mission', label: 'Mission' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/guides', label: 'Guides' },
+  { href: '/contact', label: 'Contact' },
+];
+
 export function TopShell({ children, context = 'Connected care', mode = 'workspace' }: TopShellProps) {
   return (
     <div className={`top-shell top-shell--${mode}`}>
@@ -17,6 +24,10 @@ export function TopShell({ children, context = 'Connected care', mode = 'workspa
           <strong>PASSAGE</strong>
         </Link>
         <span className="top-shell__context"><i aria-hidden="true" />{context}</span>
+        <nav className="top-shell__nav" aria-label="Passage">
+          {marketingNav.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
+          <Link className="top-shell__navSignIn" href="/login">Sign in</Link>
+        </nav>
       </header>
       {children}
     </div>

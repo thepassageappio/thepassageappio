@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useStartWizard } from '../StartWizardContext';
+import { StartWordmark } from '../StartWordmark';
 import styles from '../Start.module.css';
 
 export default function StartPeoplePage() {
@@ -31,7 +32,7 @@ export default function StartPeoplePage() {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">PASSAGE</Link>
+        <StartWordmark />
         <Link className={styles.exit} href="/start">Exit</Link>
       </header>
       <div className={styles.progress} aria-hidden="true">
@@ -65,7 +66,7 @@ export default function StartPeoplePage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="coordinatorEmail">Email <span style={{ fontWeight: 400, color: '#6b6258' }}>(optional if you gave a phone number)</span></label>
+            <label htmlFor="coordinatorEmail">Email <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional if you gave a phone number)</span></label>
             <input
               id="coordinatorEmail"
               inputMode="email"
@@ -75,7 +76,7 @@ export default function StartPeoplePage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="callbackNotes">Anything else we should know? <span style={{ fontWeight: 400, color: '#6b6258' }}>(optional)</span></label>
+            <label htmlFor="callbackNotes">Anything else we should know? <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span></label>
             <textarea
               id="callbackNotes"
               onChange={(event) => update({ callbackNotes: event.target.value })}

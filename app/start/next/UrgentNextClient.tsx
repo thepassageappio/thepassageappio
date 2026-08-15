@@ -7,6 +7,7 @@ import { getPassageBrowserClient } from '@/lib/supabase/browser';
 import { humanSituationCategory, PREVIEW_RECEIVING_ORGANIZATION, situationGuidance, type SituationCategory } from '@/lib/urgent/situations';
 import { submitUrgentIntake, type UrgentCommandState } from '../actions';
 import { useStartWizard } from '../StartWizardContext';
+import { StartWordmark } from '../StartWordmark';
 import styles from '../Start.module.css';
 
 const initialState: UrgentCommandState = { status: 'idle' };
@@ -118,7 +119,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">PASSAGE</Link>
+        <StartWordmark />
         <Link className={styles.exit} href="/start">Exit</Link>
       </header>
       <div className={styles.progress} aria-hidden="true">
@@ -201,7 +202,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
               </div>
               <button className={styles.primaryButton} disabled={authBusy} type="submit">{authBusy ? 'Please wait…' : authMode === 'create' ? 'Create account and continue' : 'Sign in and continue'}</button>
             </form>
-            <p style={{ fontSize: 12.5, color: '#6b6258', marginTop: 10 }}>This is a preview workspace using test data. No real messages are sent.</p>
+            <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 10 }}>This is a preview workspace using test data. No real messages are sent.</p>
           </div>
         )}
 

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StartWordmark } from './StartWordmark';
 import styles from './Start.module.css';
 
 export const metadata = { title: 'Someone needs help now | Passage' };
@@ -7,7 +8,7 @@ export default function StartPage() {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">PASSAGE</Link>
+        <StartWordmark />
       </header>
       <main className={styles.main} id="main-content">
         <p className={styles.eyebrow}>START HERE</p>
@@ -16,8 +17,8 @@ export default function StartPage() {
         <Link className={styles.primaryButton} href="/start/situation" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
           Someone needs help now
         </Link>
-        <p className={styles.lede} style={{ marginTop: 24, marginBottom: 0, fontSize: 13.5, color: '#6b6258' }}>
-          Planning ahead for the future, not an urgent situation? That part of Passage is coming soon.
+        <p className={styles.lede} style={{ marginTop: 24, marginBottom: 0, fontSize: 13.5 }}>
+          Planning ahead for the future, not an urgent situation? <Link href="/contact?category=planning" style={{ color: 'var(--ink)', fontWeight: 650 }}>Talk to Passage about planning ahead</Link>.
         </p>
       </main>
     </div>
