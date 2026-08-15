@@ -1,5 +1,6 @@
 const canonicalProjectId = 'prj_b7CKwanQaKwFQSHInr3l6wsZy9nD';
 const previewBranch = 'greenfield/passage-zero';
+const approvedPreviewBranches = [previewBranch, 'demo'];
 const productionBranch = 'main';
 const env = process.env.VERCEL_ENV || 'unknown';
 const branch = process.env.VERCEL_GIT_COMMIT_REF || '';
@@ -37,7 +38,7 @@ if (explicitlySkipped) {
 }
 
 if (env === 'preview') {
-  if (branch !== previewBranch) finish(false, 'preview branch is not approved');
+  if (!approvedPreviewBranches.includes(branch)) finish(false, 'preview branch is not approved');
   if (literalPreviewMarkers) finish(true, 'approved Passage Zero preview');
   if (verificationPreview && literalVerificationPreviewMarkers) {
     finish(true, 'owner-authorized Passage Zero verification preview');
