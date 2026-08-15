@@ -36,6 +36,11 @@ export function AppFrame({ active, children, identity, mode = 'demo', role }: Ap
         <div className={styles.identity}>
           <span><strong>{identity}</strong><small>{role}</small></span>
           <b aria-hidden="true">{initials}</b>
+          {/* Plain HTML form POST, not a client dropdown - same auth-escape-hatch pattern used
+              in OperationalBoundary/PartnerBoundary, so signing out doesn't depend on client JS. */}
+          <form className={styles.signOut} action="/auth/signout" method="post">
+            <button type="submit">Sign out</button>
+          </form>
         </div>
       </header>
       <main id="workspace" className={styles.main}>{children}</main>
