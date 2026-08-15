@@ -68,9 +68,13 @@
 .closed { width: min(760px, calc(100% - 32px)); margin: 8vh auto; }
 
 @media (max-width: 980px) {
-  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .facts div:nth-child(4n) { border-right: 1px solid var(--line); }
-  .facts div:nth-child(2n) { border-right: 0; }
+  /* Collapse straight to one column rather than a cramped 2-up grid: at 6-8
+     fields per card (Case, Owner, Waiting, Due, Visible To, How Passage Helps,
+     Passage Prepared, Proof Destination) a half-width column still wraps
+     multi-sentence values to 2-3 lines and reads like a spec sheet rather than
+     the one-focal-question restraint the family-side surfaces use. */
+  .facts { grid-template-columns: 1fr; }
+  .facts div { min-height: 0; border-right: 0; }
   .commandForm { grid-template-columns: 1fr 1fr; }
   .commandForm > p, .commandForm > button { grid-column: 1 / -1; }
   .teamCard { grid-template-columns: 1fr; }
