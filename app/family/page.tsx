@@ -21,7 +21,7 @@ export default function FamilyPage() {
           <i aria-hidden="true" />
           <strong>Sofia's record</strong>
         </div>
-        <span className={styles.familyProfile} aria-label="Signed in preview identity: Sofia Torres">ST</span>
+        <span className={styles.familyProfile} aria-label="Signed in as Sofia Torres">ST</span>
       </header>
       <FamilyIntentJourney />
     </main>

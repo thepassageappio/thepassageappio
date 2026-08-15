@@ -8,8 +8,8 @@ export default function DemoGateway() {
       <main id="main-content" className="gateway">
         <section className="gateway__intro" aria-labelledby="gateway-title">
           <div className="gateway__status">
-            <span className="gateway__edition">PASSAGE PREVIEW</span>
-            <span className="gateway__sync"><i aria-hidden="true" />Sample information only</span>
+            <span className="gateway__edition">PASSAGE</span>
+            <span className="gateway__sync"><i aria-hidden="true" />Example case shown below</span>
           </div>
           <div className="gateway__heading">
             <p>Keep the next step clear</p>
@@ -19,8 +19,8 @@ export default function DemoGateway() {
               <p>Passage carries approved details and next steps between the people helping, so families repeat less.</p>
             </div>
           </div>
-          <div className="gateway__case" aria-label="Demo case">
-            <span>PREVIEW EXAMPLE</span>
+          <div className="gateway__case" aria-label="Example case">
+            <span>EXAMPLE CASE</span>
             <strong>{demoCase.person}</strong>
             <small>{demoCase.id} · Last aligned {demoCase.lastSync}</small>
           </div>
@@ -43,7 +43,7 @@ export default function DemoGateway() {
                   <span className="persona__number">{persona.order}</span>
                   <span className="persona__identity"><strong>{persona.name}</strong><small>{persona.role}</small></span>
                   <span className="persona__action"><b>{persona.action}</b><small>{persona.detail}</small></span>
-                  <span className="persona__enter">PREVIEW <i aria-hidden="true">↗</i></span>
+                  <span className="persona__enter">OPEN <i aria-hidden="true">↗</i></span>
                 </Link>
               </li>
             ))}
@@ -59,7 +59,7 @@ export default function DemoGateway() {
         </section>
 
         <footer className="gateway__footer">
-          <span>PASSAGE PREVIEW</span>
+          <span>PASSAGE</span>
           <p>Purpose-built for the people carrying the details.</p>
           <span>WARM PRECISION · 2026</span>
         </footer>

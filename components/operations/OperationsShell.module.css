@@ -31,17 +31,21 @@
 .identity strong { display: block; font-size: 12px; }
 .identity small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .identity b { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: var(--surface); font-size: 12px; }
+.signOut { margin: 0; }
+.signOut button { min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.signOut button:hover { color: var(--ink); border-color: var(--ink); }
 .main { width: min(1540px, 100%); margin: 0 auto; padding: 32px clamp(20px, 3.4vw, 54px) 64px; }
 .frame :is(h1, h2, h3) { font-family: var(--font-display); font-weight: 600; }
 .frame :is(button, a, input, select):focus-visible { outline: 3px solid var(--signal-soft); outline-offset: 2px; }
 @media (max-width: 720px) {
-  .header { height: 56px; grid-template-columns: 56px minmax(0, 1fr) 56px; }
+  .header { height: 56px; grid-template-columns: 56px minmax(0, 1fr) auto; }
   .brand { width: 56px; gap: 0; padding: 0 18px; border-right: 1px solid var(--line); font-size: 0; }
   .brandGlyph { flex: 0 0 20px; }
   .nav { position: static; min-width: 0; width: 100%; justify-content: center; }
   .nav a { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 5px; border-bottom: 3px solid transparent; font-size: 12px; }
   .nav a[aria-current="page"] { border-bottom-color: var(--signal); }
-  .identity { border-left: 0; }
+  .identity { border-left: 0; gap: 8px; padding: 0 10px; }
   .identity > span { display: none; }
+  .signOut button { padding: 0 8px; font-size: 10px; min-height: 28px; }
   .main { padding: 22px 16px 64px; }
 }
