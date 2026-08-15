@@ -5,6 +5,7 @@ import { signOut } from '@/app/auth/actions';
 import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { loginPath } from '@/lib/auth/redirects';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
+import { WorkspaceHeader } from '@/components/core/WorkspaceHeader';
 import styles from './OperationalBoundary.module.css';
 
 // Vendor/partner equivalent of OperationalBoundary. Deliberately separate and
@@ -31,7 +32,7 @@ export async function PartnerBoundary({ children }: PartnerBoundaryProps) {
     return <AccessSurface message={reasonCopy[result.reason]} runtime={publicRuntimeLabel(configuration.runtime)} title="Vendor access remains closed" />;
   }
 
-  return children;
+  return <><WorkspaceHeader displayName={result.viewer.displayName} detail={`${result.viewer.partnerOrganizationName} · Vendor`} />{children}</>;
 }
 
 function AccessSurface({ title, message, runtime }: { title: string; message: string; runtime: string }) {

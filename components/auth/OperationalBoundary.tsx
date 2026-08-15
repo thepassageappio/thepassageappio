@@ -6,6 +6,7 @@ import { canOpenOperationalPath, landingPathForRole, resolveOperationalViewer } 
 import { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath, OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
 import { loginPath } from '@/lib/auth/redirects';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
+import { WorkspaceHeader } from '@/components/core/WorkspaceHeader';
 import styles from './OperationalBoundary.module.css';
 
 // Plain HTML form POST to a route handler, not a Server Action - this must
@@ -48,31 +49,36 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
     return <AccessSurface title="This workspace is outside your role" message={viewer.role === 'staff' ? 'Your funeral-home employee membership opens My work, not the director workspace.' : 'Your director membership opens the director workspace, not an employee’s assigned queue.'} runtime={publicRuntimeLabel(configuration.runtime)} recoveryHref={correctPath} recoveryLabel={correctPath === '/staff' ? 'Open My work' : 'Open director workspace'} />;
   }
 
+  const headerDetail = `${viewer.organizationName} · ${viewer.role}`;
+
   if (configuration.runtime === 'demo' && pathname !== DIRECTOR_INVITATION_PATH) {
-    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SECURE PREVIEW · CHANGES ARE SAVED</span><p>You’re signed in as {viewer.displayName}. This workspace uses sample information, and no real messages are sent.</p><SignOutButton /></div>{children}</div>;
+    return <><WorkspaceHeader displayName={viewer.displayName} detail={headerDetail} /><div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SECURE PREVIEW · CHANGES ARE SAVED</span><p>You’re signed in as {viewer.displayName}. This workspace uses sample information, and no real messages are sent.</p><SignOutButton /></div>{children}</div></>;
   }
 
-  if (canRenderVerifiedOperationalChild(pathname, configuration)) return children;
+  if (canRenderVerifiedOperationalChild(pathname, configuration)) return <><WorkspaceHeader displayName={viewer.displayName} detail={headerDetail} />{children}</>;
 
   return (
-    <main className={styles.shell} id="main-content">
-      <section className={styles.ready} aria-labelledby="workspace-ready-title">
-        <p className={styles.eyebrow}>SECURE PREVIEW</p>
-        <h1 id="workspace-ready-title">You’re signed in.</h1>
-        <p>You can manage team access, but no cases are assigned to this account yet.</p>
-        <dl>
-          <div><dt>Account</dt><dd>{viewer.displayName}<small>{viewer.email}</small></dd></div>
-          <div><dt>Organization</dt><dd>{viewer.organizationName}</dd></div>
-          <div><dt>Role</dt><dd>{viewer.role}</dd></div>
-          <div><dt>Authorized locations</dt><dd>{viewer.locations.map((location) => location.name).join(' · ')}</dd></div>
-          <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
-        </dl>
-        <div className={styles.recovery}>
-          {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
-          <SignOutButton />
-        </div>
-      </section>
-    </main>
+    <>
+      <WorkspaceHeader displayName={viewer.displayName} detail={headerDetail} />
+      <main className={styles.shell} id="main-content">
+        <section className={styles.ready} aria-labelledby="workspace-ready-title">
+          <p className={styles.eyebrow}>SECURE PREVIEW</p>
+          <h1 id="workspace-ready-title">You’re signed in.</h1>
+          <p>You can manage team access, but no cases are assigned to this account yet.</p>
+          <dl>
+            <div><dt>Account</dt><dd>{viewer.displayName}<small>{viewer.email}</small></dd></div>
+            <div><dt>Organization</dt><dd>{viewer.organizationName}</dd></div>
+            <div><dt>Role</dt><dd>{viewer.role}</dd></div>
+            <div><dt>Authorized locations</dt><dd>{viewer.locations.map((location) => location.name).join(' · ')}</dd></div>
+            <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
+          </dl>
+          <div className={styles.recovery}>
+            {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
+            <SignOutButton />
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
 
