@@ -8,8 +8,8 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #faf8f5;
-  color: #2a2622;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .header {
@@ -17,19 +17,45 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
+  border-bottom: 1px solid var(--hairline);
 }
 
 .wordmark {
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  font-size: 15px;
-  color: #2a2622;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
 }
 
+.wordmark strong {
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.17em;
+  color: var(--ink);
+}
+
+.wordmarkMark {
+  width: 25px;
+  height: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.wordmarkMark i {
+  display: block;
+  width: 5px;
+  border-radius: 2px;
+  background: var(--cobalt);
+}
+
+.wordmarkMark i:nth-child(1) { height: 8px; background: var(--sky); }
+.wordmarkMark i:nth-child(2) { height: 19px; }
+.wordmarkMark i:nth-child(3) { height: 13px; background: var(--lilac); }
+
 .exit {
   font-size: 14px;
-  color: #6b6258;
+  color: var(--muted);
   text-decoration: none;
 }
 
@@ -47,7 +73,7 @@
 }
 
 .progressStep[data-done="true"] {
-  background: #b86b6f;
+  background: var(--danger);
 }
 
 .main {
@@ -66,21 +92,23 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #b86b6f;
+  color: var(--danger);
   margin: 0 0 8px;
 }
 
 .title {
-  font-size: 24px;
-  line-height: 1.25;
-  margin: 0 0 8px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .lede {
   font-size: 15px;
   line-height: 1.5;
-  color: #554d44;
+  color: var(--muted);
   margin: 0 0 24px;
 }
 
@@ -107,9 +135,9 @@
   font-size: 16px;
   padding: 13px 14px;
   border-radius: 10px;
-  border: 1px solid #d9d0c3;
-  background: #fff;
-  color: #2a2622;
+  border: 1px solid var(--hairline);
+  background: var(--surface-raised);
+  color: var(--ink);
   font-family: inherit;
 }
 
@@ -129,16 +157,16 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid #d9d0c3;
+  border: 1px solid var(--hairline);
   border-radius: 12px;
   padding: 14px 16px;
   font-size: 15px;
-  background: #fff;
+  background: var(--surface-raised);
 }
 
 .optionList label[data-checked="true"] {
-  border-color: #b86b6f;
-  background: #fbf1f1;
+  border-color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .optionList input {
@@ -154,8 +182,8 @@
   padding: 15px 18px;
   border-radius: 12px;
   border: none;
-  background: #2a2622;
-  color: #fff;
+  background: var(--ink);
+  color: var(--surface-raised);
   cursor: pointer;
 }
 
@@ -170,24 +198,24 @@
   font-weight: 650;
   padding: 14px 18px;
   border-radius: 12px;
-  border: 1px solid #d9d0c3;
-  background: #fff;
-  color: #2a2622;
+  border: 1px solid var(--hairline);
+  background: var(--surface-raised);
+  color: var(--ink);
   cursor: pointer;
   margin-top: 10px;
 }
 
 .backLink {
   font-size: 14px;
-  color: #6b6258;
+  color: var(--muted);
   margin-top: 18px;
   display: inline-block;
   text-decoration: none;
 }
 
 .guidance {
-  background: #fff;
-  border: 1px solid #ecd9da;
+  background: var(--surface-raised);
+  border: 1px solid var(--danger-soft);
   border-radius: 14px;
   padding: 18px;
   margin-bottom: 22px;
@@ -277,8 +305,8 @@
 }
 
 .authCard {
-  background: #fff;
-  border: 1px solid #d9d0c3;
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: 14px;
   padding: 18px;
   margin-bottom: 20px;
@@ -291,7 +319,7 @@
 
 .authCard p {
   font-size: 13.5px;
-  color: #6b6258;
+  color: var(--muted);
   margin: 0 0 14px;
 }
 
@@ -307,21 +335,21 @@
   font-weight: 650;
   padding: 9px 10px;
   border-radius: 8px;
-  border: 1px solid #d9d0c3;
-  background: #fff;
-  color: #2a2622;
+  border: 1px solid var(--hairline);
+  background: var(--surface-raised);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .authToggle button[data-active="true"] {
-  background: #2a2622;
-  color: #fff;
-  border-color: #2a2622;
+  background: var(--ink);
+  color: var(--surface-raised);
+  border-color: var(--ink);
 }
 
 .receipt {
-  background: #fff;
-  border: 1px solid #cfe3cb;
+  background: var(--surface-raised);
+  border: 1px solid var(--success-soft);
   border-radius: 14px;
   padding: 22px;
   text-align: left;

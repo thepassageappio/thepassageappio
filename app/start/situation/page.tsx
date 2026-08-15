@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { SITUATION_OPTIONS, type SituationCategory } from '@/lib/urgent/situations';
 import { useStartWizard } from '../StartWizardContext';
+import { StartWordmark } from '../StartWordmark';
 import styles from '../Start.module.css';
 
 export default function StartSituationPage() {
@@ -24,7 +25,7 @@ export default function StartSituationPage() {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">PASSAGE</Link>
+        <StartWordmark />
         <Link className={styles.exit} href="/start">Exit</Link>
       </header>
       <div className={styles.progress} aria-hidden="true">
@@ -70,7 +71,7 @@ export default function StartSituationPage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="personTiming">When did this happen? <span style={{ fontWeight: 400, color: '#6b6258' }}>(optional)</span></label>
+            <label htmlFor="personTiming">When did this happen? <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span></label>
             <input
               id="personTiming"
               onChange={(event) => update({ personTiming: event.target.value })}
