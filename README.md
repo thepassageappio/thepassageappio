@@ -36,4 +36,3 @@ The shared continuity rail is the only cross-persona primitive:
 - TypeScript
 - CSS without an external component library
 - Synthetic demo data until isolated Supabase infrastructure is provisioned
-
