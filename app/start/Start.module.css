@@ -1,0 +1,422 @@
+/* Passage Zero: urgent/red family persona (/start/*).
+   Deliberately calmer and simpler than the operator surfaces: one column,
+   one question at a time, large tap targets, minimal chrome. Read by
+   someone in crisis, often on a phone. Never introduce a second column,
+   a dense table, or more than one primary action per screen. */
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #faf8f5;
+  color: #2a2622;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.wordmark {
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  font-size: 15px;
+  color: #2a2622;
+  text-decoration: none;
+}
+
+.exit {
+  font-size: 14px;
+  color: #6b6258;
+  text-decoration: none;
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 4px;
+}
+
+.progressStep {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e7e0d6;
+}
+
+.progressStep[data-done="true"] {
+  background: #b86b6f;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 20px 40px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b86b6f;
+  margin: 0 0 8px;
+}
+
+.title {
+  font-size: 24px;
+  line-height: 1.25;
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.lede {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #554d44;
+  margin: 0 0 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.field small {
+  font-size: 13px;
+  color: #6b6258;
+}
+
+.field input,
+.field textarea,
+.field select {
+  font-size: 16px;
+  padding: 13px 14px;
+  border-radius: 10px;
+  border: 1px solid #d9d0c3;
+  background: #fff;
+  color: #2a2622;
+  font-family: inherit;
+}
+
+.field textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.optionList label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #d9d0c3;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  background: #fff;
+}
+
+.optionList label[data-checked="true"] {
+  border-color: #b86b6f;
+  background: #fbf1f1;
+}
+
+.optionList input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.primaryButton {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px 18px;
+  border-radius: 12px;
+  border: none;
+  background: #2a2622;
+  color: #fff;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.secondaryButton {
+  width: 100%;
+  font-size: 15px;
+  font-weight: 650;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #d9d0c3;
+  background: #fff;
+  color: #2a2622;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.backLink {
+  font-size: 14px;
+  color: #6b6258;
+  margin-top: 18px;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.guidance {
+  background: #fff;
+  border: 1px solid #ecd9da;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 22px;
+}
+
+.guidance h2 {
+  font-size: 17px;
+  margin: 0 0 10px;
+}
+
+.guidance ol {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guidance li {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: #3c3630;
+}
+
+.receivingHome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: -6px 0 22px;
+  padding: 14px 16px;
+  border: 1px solid #cfe0d1;
+  border-radius: 12px;
+  background: #f2f7f2;
+}
+
+.receivingHome span,
+.receivingHome p {
+  color: #4f5d53;
+  font-size: 14px;
+}
+
+.receivingHome strong {
+  color: #244b3c;
+  font-size: 16px;
+}
+
+.receivingHome p {
+  margin: 2px 0 0;
+  line-height: 1.45;
+}
+
+.alert {
+  background: #fbeaea;
+  border: 1px solid #edbdbd;
+  color: #7a2c2c;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.recoveryButton {
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notice {
+  background: #f1f6f0;
+  border: 1px solid #cfe3cb;
+  color: #33502e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.authCard {
+  background: #fff;
+  border: 1px solid #d9d0c3;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.authCard h2 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+
+.authCard p {
+  font-size: 13.5px;
+  color: #6b6258;
+  margin: 0 0 14px;
+}
+
+.authToggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.authToggle button {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid #d9d0c3;
+  background: #fff;
+  color: #2a2622;
+  cursor: pointer;
+}
+
+.authToggle button[data-active="true"] {
+  background: #2a2622;
+  color: #fff;
+  border-color: #2a2622;
+}
+
+.receipt {
+  background: #fff;
+  border: 1px solid #cfe3cb;
+  border-radius: 14px;
+  padding: 22px;
+  text-align: left;
+}
+
+.receiptMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #eaf3e8;
+  color: #3d6b37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.receipt h2 {
+  font-size: 21px;
+  margin: 0 0 8px;
+}
+
+.receipt p {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #3c3630;
+  margin: 0 0 10px;
+}
+
+.receiptFacts {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.receiptFacts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13.5px;
+  border-top: 1px solid #eee4d8;
+  padding-top: 8px;
+}
+
+.receiptFacts dt {
+  color: #6b6258;
+}
+
+.receiptFacts dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.wordmark,
+.exit,
+.backLink,
+.primaryButton,
+.secondaryButton,
+.recoveryButton,
+.authToggle button,
+.field input,
+.field textarea,
+.field select {
+  min-height: 48px;
+}
+
+.wordmark,
+.exit,
+.backLink {
+  display: inline-flex;
+  align-items: center;
+}
+
+.shell :focus-visible {
+  outline: 3px solid #5f566d;
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .main {
+    padding: 8px 16px 32px;
+  }
+  .title {
+    font-size: 21px;
+  }
+  .receiptFacts div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .receiptFacts dd {
+    text-align: left;
+  }
+}

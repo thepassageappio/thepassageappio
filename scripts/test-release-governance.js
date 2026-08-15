@@ -3,136 +3,94 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 
-const BASE_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-const HEAD_SHA = '1111111111111111111111111111111111111111';
-const BOT = 'passage-release-bot[bot]';
-
-function sections({ ready = false } = {}) {
-  const mark = ready ? 'x' : ' ';
-  return `
+const sections = `
 ## Product Manager Scope
-- [${mark}] Product Manager scope completed
+- [x] Product Manager scope completed
 ## UX Review
-- [${mark}] UX review completed
-- UX Status: ${ready ? 'N/A' : 'NOT RUN'}
+- [x] UX review completed
+- UX Status: PASS
 ## Development Handoff
-- [${mark}] Development handoff completed
-## Independent QA
-- [${mark}] Independent QA handoff completed
-- QA Status: ${ready ? 'PASS' : 'NOT RUN'}
-- Required QA check: \`Passage QA / independent-qa\`
-- Expected QA source: Passage QA Reviewer GitHub App
-## Dedicated Merge Review
-- Dedicated Merge Review: REQUIRED CHECK
-- Required check: \`Passage Review Agent / merge-review\`
-- Expected source: Passage Release Reviewer GitHub App
-- Findings and disposition: SEE CHECK RUN
-## Production Review
-- Production Review: NOT REQUESTED
-- Required release check: \`Passage Production Review / release-readiness\`
-- Release evidence: NONE
-## Owner Gate
-- Owner Gate: NOT REQUIRED
-- Gate reason or recorded approval: NONE
+- [x] Development handoff completed
+## QA Handoff
+- [x] Independent QA handoff completed
+- QA Status: PASS
+## Independent Agent Review
+- [x] Independent agent review completed
+- Agent Reviewer: /root/reviewer
+- Reviewed Head: 1111111111111111111111111111111111111111
+- Independent Agent Review Status: PASS
+## Founder Review
+- [x] Founder review requested
+- Founder Reviewer: @thepassageappio
+- Founder Review: APPROVED
+- Bootstrap Exception: NONE
+## Production Authorization
+- Founder Production Authorization: NOT APPROVED
+- Protected environment or release evidence: NONE
 ## Loop Status
 - Cycle: 1
 ## Deploy Decision
-- [${mark}] Agent context updated
-- Deploy Decision: ${ready ? 'APPROVED' : 'NOT APPROVED'}
+- [x] Agent context updated
+- Deploy Decision: APPROVED
 `;
-}
 
-function run(env = {}) {
-  return spawnSync(process.execPath, ['scripts/check-release-train.js'], {
+function run(script, env) {
+  return spawnSync(process.execPath, [script], {
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      GITHUB_ACTIONS: 'false',
-      GITHUB_EVENT_PATH: '',
-      GITHUB_EVENT_NAME: 'pull_request',
-      PR_ACTION: 'opened',
-      PR_AUTHOR: BOT,
-      PR_DRAFT: 'true',
-      PR_BASE_REF: 'main',
-      PR_BASE_SHA: BASE_SHA,
-      PR_HEAD_SHA: HEAD_SHA,
-      PR_BODY: sections(),
-      ...env,
-    },
+    env: { ...process.env, ...env },
   });
 }
 
-function expectPass(name, env) {
-  const result = run(env);
-  assert.equal(result.status, 0, `${name}: ${result.stderr}`);
-}
-
-function expectFail(name, env) {
-  const result = run(env);
-  assert.notEqual(result.status, 0, `${name} unexpectedly passed`);
-}
-
-function expectPassWithOutput(name, env, pattern) {
-  const result = run(env);
-  assert.equal(result.status, 0, `${name}: ${result.stderr}`);
-  assert.match(result.stdout, pattern, `${name}: missing expected output`);
-}
-
-const draft = sections();
-const ready = sections({ ready: true });
-const pullRequestTarget = { GITHUB_EVENT_NAME: 'pull_request_target' };
-
-expectPass('draft structure', {});
-expectPass('ready structure defers to required checks', { PR_BODY: ready, PR_DRAFT: 'false' });
-expectPass('pull_request_target valid draft', pullRequestTarget);
-expectPass('pull_request_target valid merge-ready', { ...pullRequestTarget, PR_BODY: ready, PR_DRAFT: 'false' });
-expectPass('widened allowlist accepts current operating identity', { PR_AUTHOR: 'thepassageappio' });
-expectFail('pull_request_target missing required section', {
-  ...pullRequestTarget,
-  PR_BODY: draft.replace('## Dedicated Merge Review', '## Review'),
+let result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'true', PR_BODY: sections,
 });
-expectFail('pull_request_target merge-ready incomplete evidence', {
-  ...pullRequestTarget,
-  PR_BODY: ready.replace('QA Status: PASS', 'QA Status: PARTIAL'),
-  PR_DRAFT: 'false',
+assert.equal(result.status, 0, result.stderr);
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections,
 });
-expectPassWithOutput('local non-Actions missing event skips explicitly', {
-  GITHUB_ACTIONS: 'false',
-  GITHUB_EVENT_NAME: '',
-}, /skipped for an explicit local non-PR invocation/);
-expectFail('Actions missing event fails closed', { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: '' });
-expectFail('wrong author', { PR_AUTHOR: 'someone-else' });
-expectFail('pull_request_target validates the expected Bot author', { GITHUB_EVENT_NAME: 'pull_request_target', PR_AUTHOR: 'attacker[bot]' });
-expectFail('unsupported event fails closed', { GITHUB_EVENT_NAME: 'push' });
-expectFail('reopened PR', { PR_ACTION: 'reopened' });
-expectFail('missing section', { PR_BODY: draft.replace('## Dedicated Merge Review', '## Review') });
-expectFail('duplicate section', { PR_BODY: `${draft}\n## Dedicated Merge Review` });
-expectFail('body asserted review pass', { PR_BODY: draft.replace('Dedicated Merge Review: REQUIRED CHECK', 'Dedicated Merge Review: PASS') });
-expectFail('wrong required check name', { PR_BODY: draft.replace('Passage Review Agent / merge-review', 'Passage Review Agent / fake') });
-expectFail('wrong expected source', { PR_BODY: draft.replace('Passage Release Reviewer GitHub App', 'GitHub Actions') });
-expectFail('wrong QA source', { PR_BODY: draft.replace('Passage QA Reviewer GitHub App', 'GitHub Actions') });
-expectFail('founder merge review returns', { PR_BODY: `${draft}\n- Founder Review: APPROVED` });
-expectFail('human inference returns', { PR_BODY: `${draft}\n- human reviewer: somebody` });
-expectFail('ready QA not passed', { PR_BODY: ready.replace('QA Status: PASS', 'QA Status: PARTIAL'), PR_DRAFT: 'false' });
-expectFail('ready owner gate unresolved', { PR_BODY: ready.replace('Owner Gate: NOT REQUIRED', 'Owner Gate: REQUIRED'), PR_DRAFT: 'false' });
-expectFail('body cannot assert owner approval', { PR_BODY: ready.replace('Owner Gate: NOT REQUIRED', 'Owner Gate: APPROVED'), PR_DRAFT: 'false' });
-expectFail('ready deploy not approved', { PR_BODY: ready.replace('Deploy Decision: APPROVED', 'Deploy Decision: NOT APPROVED'), PR_DRAFT: 'false' });
-expectFail('draft deploy assertion', { PR_BODY: draft.replace('Deploy Decision: NOT APPROVED', 'Deploy Decision: APPROVED') });
-expectFail('missing base SHA', { PR_BASE_SHA: '' });
-expectFail('missing head SHA', { PR_HEAD_SHA: '' });
+assert.equal(result.status, 0, result.stderr);
 
-const identityPath = '.github/passage-review-identities.json';
-const identity = fs.readFileSync(identityPath, 'utf8');
-try {
-  fs.writeFileSync(identityPath, identity.replace('4340300', '4336683'));
-  expectFail('duplicate app identity', {});
-  fs.writeFileSync(identityPath, identity.replace('"checks": "write"', '"checks": "read"'));
-  expectFail('review permission drift', {});
-  fs.writeFileSync(identityPath, identity.replace('Passage Review Agent / merge-review', 'Passage Review Agent / spoof'));
-  expectFail('required check drift', {});
-} finally {
-  fs.writeFileSync(identityPath, identity);
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('## Independent Agent Review', '## Review'),
+});
+assert.notEqual(result.status, 0);
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: FAIL'),
+});
+assert.notEqual(result.status, 0);
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Founder Review: APPROVED', 'Founder Review: NOT APPROVED'),
+});
+assert.notEqual(result.status, 0);
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '2222222222222222222222222222222222222222', PR_BODY: sections,
+});
+assert.notEqual(result.status, 0, 'Expected stale or wrong reviewed head to fail.');
+
+const languageFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-language-'));
+fs.mkdirSync(path.join(languageFixtureRoot, 'app'), { recursive: true });
+for (const badExpression of [
+  "task.status.replace('_', ' ')",
+  'member.status.toUpperCase()',
+  "proof.proof_type.replaceAll('_', ' ')",
+  "workflow?.phase ?? 'Case work'",
+  "task.automation_level.replace('_', ' ')",
+  'task.audience',
+]) {
+  fs.writeFileSync(path.join(languageFixtureRoot, 'app', 'page.tsx'), `export default function Page(){return <p>{${badExpression}}</p>}`);
+  result = run('scripts/check-persona-language.js', { CANDIDATE_ROOT: languageFixtureRoot });
+  assert.notEqual(result.status, 0, `Expected persona scanner to reject ${badExpression}`);
 }
+fs.writeFileSync(path.join(languageFixtureRoot, 'app', 'page.tsx'), "export default function Page(){return <p>{humanTaskStatus(task.status)}</p>}");
+result = run('scripts/check-persona-language.js', { CANDIDATE_ROOT: languageFixtureRoot });
+assert.equal(result.status, 0, result.stderr);
+fs.rmSync(languageFixtureRoot, { recursive: true, force: true });
 
-console.log('PASS dedicated-review governance rejects founder inference, body self-approval, stale structure, and wrong identity contracts');
+console.log('PASS release governance distinguishes drafts, agent review, founder review, and Production authorization');

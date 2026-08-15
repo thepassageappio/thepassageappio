@@ -1,8 +1,6 @@
 # Supabase
 .branches
 .temp
-.tmp-*.sql
-backups/
 
 # dotenvx
 .env.keys

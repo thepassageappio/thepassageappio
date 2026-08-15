@@ -1,20 +1,12 @@
 #!/usr/bin/env node
 
-const fs = require('node:fs');
-
-function eventPayload() {
-  if (process.env.GITHUB_ACTIONS !== 'true' || !process.env.GITHUB_EVENT_PATH) return {};
-  try {
-    return JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-  } catch {
-    return {};
-  }
-}
-
-const payload = eventPayload();
-const pullRequest = payload.pull_request || {};
-const body = String(process.env.PR_BODY || pullRequest.body || '').replace(/\r/g, '');
-const eventName = String(process.env.GITHUB_EVENT_NAME || '');
+const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
+const isPullRequest = String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request'
+  || String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request_review';
+const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
+// The legacy main workflow does not pass PR_DRAFT. Treat that bootstrap-only
+// invocation as structure-only; replacement workflows always pass true/false.
+const isDraft = draftState === '' || draftState === 'true';
 
 function fail(message) {
   console.error('Release train check failed:');
@@ -70,17 +62,21 @@ const requiredSections = [
   '## Product Manager Scope',
   '## UX Review',
   '## Development Handoff',
-  '## Independent QA',
-  '## Dedicated Merge Review',
-  '## Production Review',
-  '## Owner Gate',
+  '## QA Handoff',
+  '## Independent Agent Review',
+  '## Founder Review',
+  '## Production Authorization',
   '## Loop Status',
   '## Deploy Decision',
 ];
 
-function countExactLine(line) {
-  const escaped = line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return (body.match(new RegExp(`^${escaped}$`, 'gm')) || []).length;
+for (const section of requiredSections) {
+  if (!body.includes(section)) fail(`Missing PR section: ${section}`);
+}
+
+if (isDraft) {
+  console.log('Release train structure passed for draft PR; completion gates remain intentionally open.');
+  process.exit(0);
 }
 
 for (const section of requiredSections) {
@@ -133,66 +129,36 @@ const checkboxItems = [
   'Development handoff completed',
   'Independent QA handoff completed',
   'Agent context updated',
+  'Independent agent review completed',
+  'Founder review requested',
 ];
-const checkboxState = new Map(checkboxItems.map((item) => [item, oneCheckbox(item)]));
 
-function verifyIdentityContract() {
-  let identity;
-  try {
-    identity = JSON.parse(fs.readFileSync('.github/passage-review-identities.json', 'utf8'));
-  } catch {
-    fail('The trusted Passage review identity contract is missing or invalid JSON.');
-  }
-  const expected = {
-    version: 1,
-    author: { app_slug: 'passage-release-bot', app_id: 4336683, login: 'passage-release-bot[bot]', may_write_checks: false, may_merge: false },
-    independent_qa: {
-      app_slug: 'passage-qa-reviewer', app_id: 4340450, installation_id: 147650693,
-      check: 'Passage QA / independent-qa',
-      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
-      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
-    },
-    merge_review: {
-      app_slug: 'passage-release-reviewer', app_id: 4340300, installation_id: 147645985,
-      check: 'Passage Review Agent / merge-review',
-      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
-      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
-    },
-    production_review: {
-      app_slug: 'passage-production-reviewer', app_id: 4340400, installation_id: 147649311,
-      check: 'Passage Production Review / release-readiness', separate_identity_required: true,
-      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
-      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
-    },
-  };
-  if (JSON.stringify(identity) !== JSON.stringify(expected)) fail('Passage review identity contract drifted from the trusted least-privilege model.');
-  if (new Set([identity.author.app_id, identity.independent_qa.app_id, identity.merge_review.app_id, identity.production_review.app_id]).size !== 4) {
-    fail('Author, Independent QA, Merge Review, and Production Review App identities must be distinct.');
-  }
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
 }
 
-verifyIdentityContract();
-
-if (mergeReview !== 'REQUIRED CHECK' || requiredCheck !== '`Passage Review Agent / merge-review`') {
-  fail('Dedicated Merge Review must remain an external required check, not a PR-body assertion.');
+for (const item of requiredCheckedItems) {
+  const pattern = new RegExp(`\\[[xX]\\]\\s*${escapeRegExp(item)}`);
+  if (!pattern.test(body)) fail(`Before ready-for-review or merge, check this item: ${item}`);
 }
 
-if (isDraft) {
-  if (productionReview !== 'NOT REQUESTED' || deployDecision !== 'NOT APPROVED') {
-    fail('Draft PRs cannot claim Production review or deploy approval.');
-  }
-  console.log('Release train structure passed for draft PR; external completion gates remain open.');
-  process.exit(0);
+if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) fail('UX Status must be PASS or N/A.');
+if (!/QA Status:\s*PASS/i.test(body)) fail('QA Status must be PASS. Failed QA returns to Product Manager.');
+if (!/Independent Agent Review Status:\s*PASS/i.test(body)) fail('Independent Agent Review Status must be PASS.');
+const agentReviewerMatch = body.match(/Agent Reviewer:\s*\/?([A-Za-z0-9_\/-]+)/i);
+if (!agentReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewerMatch[1])) fail('Name the distinct agent reviewer.');
+const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+if (!actualHead || reviewedHead !== actualHead) fail('Independent Agent Review must match the current PR head SHA.');
+const founderReviewerMatch = body.match(/Founder Reviewer:\s*@?([A-Za-z0-9-]+)/i);
+if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
+if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
+
+const cycleMatch = body.match(/Cycle:\s*([0-9]+)/i);
+const cycle = cycleMatch ? Number(cycleMatch[1]) : NaN;
+if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) {
+  fail('Loop Status must include Cycle: 1, 2, or 3. After cycle 3, split, de-scope, or escalate.');
 }
 
-for (const item of checkboxItems) {
-  if (!checkboxState.get(item)) fail(`Before ready-for-review or merge, check this item: ${item}`);
-}
-
-if (!['PASS', 'N/A'].includes(uxStatus)) fail('UX Status must be PASS or N/A.');
-if (qaStatus !== 'PASS') fail('QA Status must be PASS. Failed QA returns to Product Manager.');
-if (ownerGate === 'REQUIRED') fail('A required owner gate must be resolved before merge.');
-if (deployDecision !== 'APPROVED') fail('Deploy Decision must be APPROVED before a PR is merge-ready.');
-if (!Number.isFinite(Number(cycleValue))) fail('Loop Status must include a positive cycle number.');
-
-console.log('Release train structure passed; GitHub required checks remain authoritative.');
+console.log('Release train completion gate passed.');

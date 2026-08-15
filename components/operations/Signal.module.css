@@ -1,0 +1,5 @@
+.signal { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 9px; font-weight: 720; letter-spacing: .05em; text-transform: uppercase; }
+.signal i { width: 7px; height: 7px; border-radius: 2px; background: var(--signal); }
+.warm i { background: var(--warm); }
+.success i { background: var(--success); }
+.muted i { background: var(--line); }

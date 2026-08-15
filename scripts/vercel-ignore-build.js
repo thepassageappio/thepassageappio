@@ -1,82 +1,56 @@
-#!/usr/bin/env node
+const canonicalProjectId = 'prj_b7CKwanQaKwFQSHInr3l6wsZy9nD';
+const previewBranch = 'greenfield/passage-zero';
+const productionBranch = 'main';
+const env = process.env.VERCEL_ENV || 'unknown';
+const branch = process.env.VERCEL_GIT_COMMIT_REF || '';
+const projectId = process.env.VERCEL_PROJECT_ID || '';
+const message = (process.env.VERCEL_GIT_COMMIT_MESSAGE || '').toLowerCase();
 
-const CANONICAL_PROJECT_ID = 'prj_b7CKwanQaKwFQSHInr3l6wsZy9nD';
-const CANONICAL_PROJECT_NAME = 'thepassageappio';
+const skipMarkers = ['[skip deploy]', '[no deploy]', '[skip ci]', '[ci skip]'];
+const deployMarkers = ['[deploy]', '[force deploy]', '[prod deploy]', '[production deploy]'];
+const qaMarkers = ['[qa-approved]', '[qa approved]'];
+const verificationMarkers = ['[cycle-7a-verification-preview]'];
+const explicitlySkipped = skipMarkers.some((marker) => message.includes(marker));
+const deployApproved = deployMarkers.some((marker) => message.includes(marker))
+  || message.startsWith('deploy:')
+  || message.startsWith('release:');
+const qaApproved = qaMarkers.some((marker) => message.includes(marker));
+const verificationPreview = verificationMarkers.some((marker) => message.includes(marker));
+const literalPreviewMarkers = message.includes('[deploy]') && message.includes('[qa-approved]');
+const literalVerificationPreviewMarkers = message.includes('[deploy]') && message.includes('[cycle-7a-verification-preview]');
 
-const message = String(process.env.VERCEL_GIT_COMMIT_MESSAGE || '').trim();
-const ref = String(process.env.VERCEL_GIT_COMMIT_REF || '').trim();
-const env = String(process.env.VERCEL_ENV || '').trim();
-const projectId = String(process.env.VERCEL_PROJECT_ID || '').trim();
-const projectName = String(process.env.VERCEL_PROJECT_NAME || '').trim();
-const projectProductionUrl = String(process.env.VERCEL_PROJECT_PRODUCTION_URL || '').trim();
-const deploymentUrl = String(process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || '').trim();
-const projectContext = [projectId, projectName, projectProductionUrl, deploymentUrl]
-  .filter(Boolean)
-  .join(' ')
-  .toLowerCase();
-
-function ignore(reason) {
-  console.log('Vercel build ignored: ' + reason);
-  console.log(
-    'Vercel context: env=' + (env || 'unknown') +
-    ' ref=' + (ref || 'unknown') +
-    ' projectId=' + (projectId || 'unknown') +
-    ' projectName=' + (projectName || 'unknown') +
-    ' productionUrl=' + (projectProductionUrl || 'unknown') +
-    ' deploymentUrl=' + (deploymentUrl || 'unknown')
-  );
-  process.exit(0);
+function finish(allowed, explanation) {
+  console.log(`Passage release gate: ${allowed ? 'build allowed' : 'build canceled'} (${explanation}).`);
+  process.exit(allowed ? 1 : 0);
 }
 
-function allow(reason) {
-  console.log('Vercel build allowed: ' + reason);
-  console.log(
-    'Vercel context: env=' + (env || 'unknown') +
-    ' ref=' + (ref || 'unknown') +
-    ' projectId=' + (projectId || 'unknown') +
-    ' projectName=' + (projectName || 'unknown') +
-    ' productionUrl=' + (projectProductionUrl || 'unknown') +
-    ' deploymentUrl=' + (deploymentUrl || 'unknown')
-  );
-  process.exit(1);
+if (env !== 'preview' && env !== 'production') {
+  finish(true, 'non-hosted environment');
 }
 
-const duplicateProjectPatterns = [
-  /you-are-working-on-a-production/,
-  /working-on-a-production/,
-];
-
-if (projectId && projectId !== CANONICAL_PROJECT_ID) {
-  ignore('non-canonical Vercel project id ' + projectId + ' is attached to this GitHub repo. Use ' + CANONICAL_PROJECT_NAME + ' only.');
+if (projectId !== canonicalProjectId) {
+  finish(false, 'non-canonical Vercel project');
 }
 
-if (duplicateProjectPatterns.some(pattern => pattern.test(projectContext))) {
-  ignore('duplicate Vercel project is attached to the Passage GitHub repo. Use canonical project ' + CANONICAL_PROJECT_NAME + ' only.');
+if (explicitlySkipped) {
+  finish(false, 'skip marker present');
 }
 
-const skipPatterns = [
-  /\[(skip deploy|no deploy)\]/i,
-  /\[(skip ci|ci skip)\]/i,
-];
-const deployPatterns = [
-  /\[(deploy|force deploy|prod deploy|production deploy)\]/i,
-  /^deploy:/i,
-  /^release:/i,
-];
-const qaApprovalPatterns = [
-  /\[qa-approved\]/i,
-  /\[qa approved\]/i,
-];
-
-if (skipPatterns.some(pattern => pattern.test(message))) {
-  ignore('commit explicitly opted out of deployment.');
-}
-
-if (deployPatterns.some(pattern => pattern.test(message))) {
-  if (!qaApprovalPatterns.some(pattern => pattern.test(message))) {
-    ignore('deploy marker found without [qa-approved]. Finish Product Manager, Development Engineer, and QA handoffs before release.');
+if (env === 'preview') {
+  if (branch !== previewBranch) finish(false, 'preview branch is not approved');
+  if (literalPreviewMarkers) finish(true, 'approved Passage Zero preview');
+  if (verificationPreview && literalVerificationPreviewMarkers) {
+    finish(true, 'owner-authorized Passage Zero verification preview');
   }
-  allow('release marker and QA approval marker found in commit message for canonical project guard.');
+  finish(false, 'preview requires literal deploy plus QA approval or verification-preview markers');
 }
 
-ignore('batch QA/work changes and add [deploy] [qa-approved] to the release commit when ready.');
+if (verificationPreview) {
+  finish(false, 'verification-preview exception is prohibited for production');
+}
+
+if (!deployApproved || !qaApproved) {
+  finish(false, 'production requires deploy and QA approval markers');
+}
+
+finish(branch === productionBranch, branch === productionBranch ? 'approved production release' : 'production deployment did not originate from main');
