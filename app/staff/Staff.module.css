@@ -69,6 +69,11 @@
   .queue { border-right: 0; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; }
   .queueHead, .boundary { display: none; }
   .queue > button { min-width: 210px; max-width: 230px; border-right: 1px solid var(--line); }
+  /* Same restraint fix as the director surfaces: a dense 4-field metadata
+     band should not linger at a cramped 2-up grid on tablet widths -- drop
+     straight to one column so each field reads as its own line. */
+  .taskContract { grid-template-columns: 1fr; }
+  .taskContract div { border-right: 0; }
 }
 @media (max-width: 560px) {
   .heading { align-items: start; }
@@ -85,7 +90,7 @@
   .conditions { grid-template-columns: 1fr; }
   .conditions div { min-height: 65px; border-left: 0; border-top: 1px solid var(--line); }
   .conditions div:first-child { border-top: 0; }
-  .taskContract { grid-template-columns: 1fr 1fr; }
+  .taskContract { grid-template-columns: 1fr; }
   .actions { padding: 14px 16px; }
   .actions button:first-child { flex: 1; }
   .actions small { display: none; }
