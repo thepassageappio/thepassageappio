@@ -132,10 +132,10 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
     await service.from('users').update({ referral_source: `funeral_home_referral:${acquisition.referringOrganizationName}` }).eq('id', userId);
   }
 
-  // B2B only: the funeral home gets a real Passage workspace the instant
-  // payment clears -- no manual admin step, matching the "no bottleneck"
-  // priority applied to vendor payouts. Best-effort: a failure here must
-  // never block the payment record or the HubSpot deal below.
+  // Both branches: a payer gets something real the instant payment clears --
+  // no manual admin step, matching the "no bottleneck" priority applied to
+  // vendor payouts. Best-effort: a failure here must never block the
+  // payment record or the HubSpot deal below.
   if (isB2b) {
     try {
       await provisionB2bOrganizationIfNeeded(service, {
@@ -151,6 +151,12 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
       });
     } catch (error) {
       console.error('b2b auto-provision failed', error);
+    }
+  } else {
+    try {
+      await provisionD2cFamilyRecordIfNeeded(service, { email, userId, stripeSubscriptionId: subscriptionId, stripeCheckoutSessionId: session.id });
+    } catch (error) {
+      console.error('d2c auto-provision failed', error);
     }
   }
 
@@ -273,6 +279,55 @@ async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: 
     .insert({ organization_member_id: newMember.id, organization_location_id: newLocation.id, granted_by_user_id: ownerUserId });
 }
 
+// D2C mirror of provisionB2bOrganizationIfNeeded. Found while auditing why a
+// paying D2C customer had no product: pricing/success's own copy promises
+// "use the secure link in your confirmation email to sign in and start your
+// family record" -- but nothing ever sent that email or created that
+// record, and subscriptions.metadata.pending_account_email was written by
+// this same file but never read anywhere. Fixed both: a brand-new email
+// gets Supabase's built-in invite email (the "secure link" the copy already
+// promised) and their subscription row is linked to the new account the
+// moment it's created; either a new or an already-existing account then
+// gets their first family record (public.workflows, user_id-owned, no
+// organization) created automatically -- never a second one if they already
+// have one, matching self_serve_create_family_record's own invariant.
+async function provisionD2cFamilyRecordIfNeeded(service: ServiceClient, params: {
+  email: string;
+  userId: string | null;
+  stripeSubscriptionId: string | null;
+  stripeCheckoutSessionId: string;
+}): Promise<void> {
+  let ownerUserId = params.userId;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
+
+  if (!ownerUserId) {
+    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(params.email, { redirectTo: `${origin}/case` });
+    if (inviteError || !invited?.user) {
+      console.error('d2c auto-provision: invite failed, family record not created', inviteError);
+      return;
+    }
+    ownerUserId = invited.user.id;
+
+    const linkQuery = service.from('subscriptions').update({ user_id: ownerUserId, metadata: {} });
+    await (params.stripeSubscriptionId
+      ? linkQuery.eq('stripe_subscription_id', params.stripeSubscriptionId)
+      : linkQuery.eq('stripe_checkout_session_id', params.stripeCheckoutSessionId));
+  }
+
+  const { data: existingWorkflow } = await service.from('workflows').select('id').eq('user_id', ownerUserId).limit(1).maybeSingle();
+  if (existingWorkflow) return;
+
+  await service.from('workflows').insert({
+    user_id: ownerUserId,
+    name: 'My family record',
+    trigger_type: 'death_confirmed',
+    mode: 'green',
+    path: 'green',
+    status: 'planning_active',
+    phase: 'Planning started',
+  });
+}
+
 // One-time purchases (single-estate lifetime, urgent one-time) -- no
 // recurring subscription id exists, so this is a standalone record
 // (interval='once', already a valid legacy status/interval value) rather
@@ -307,6 +362,12 @@ async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: S
 
   if (userId && acquisition.referringOrganizationName) {
     await service.from('users').update({ referral_source: `funeral_home_referral:${acquisition.referringOrganizationName}` }).eq('id', userId);
+  }
+
+  try {
+    await provisionD2cFamilyRecordIfNeeded(service, { email, userId, stripeSubscriptionId: null, stripeCheckoutSessionId: session.id });
+  } catch (error) {
+    console.error('d2c auto-provision failed', error);
   }
 
   const planName = kind === 'urgent' ? 'Urgent · One-time' : 'Single Estate · One-time';

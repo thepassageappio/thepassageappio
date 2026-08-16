@@ -23,6 +23,13 @@ export default async function PricingSuccessPage({ searchParams }: { searchParam
               : 'We could not confirm this checkout session. If you completed payment, check your email for a receipt, or contact Passage.'}
           </p>
         </section>
+        {paid && (
+          <section className={styles.section}>
+            <div className={styles.card}>
+              <p className={styles.note}>Already signed in? <Link href="/case">Go to your family record</Link>.</p>
+            </div>
+          </section>
+        )}
         <section className={styles.section}>
           <div className={styles.card}>
             <p className={styles.note}>
