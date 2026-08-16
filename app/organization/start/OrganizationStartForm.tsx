@@ -25,6 +25,10 @@ export function OrganizationStartForm() {
       <input id="organizationName" maxLength={200} name="organizationName" placeholder="Riverside Family Funeral Home" required type="text" />
       <label htmlFor="locationName">First location name</label>
       <input id="locationName" maxLength={200} name="locationName" placeholder="Main location" required type="text" />
+      <label htmlFor="city">City <span>Optional, helps families find you later</span></label>
+      <input id="city" maxLength={100} name="city" placeholder="Riverside" type="text" />
+      <label htmlFor="state">State <span>Optional</span></label>
+      <input id="state" maxLength={56} name="state" placeholder="CA" type="text" />
       <button className={styles.primary} disabled={pending} type="submit">{pending ? 'Setting up…' : 'Create my organization'}</button>
       {state.status !== 'idle' && state.message && <p className={styles.alert} role="alert">{state.message}</p>}
     </form>

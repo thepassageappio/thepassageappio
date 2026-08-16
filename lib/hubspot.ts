@@ -328,9 +328,15 @@ export async function createChurnDeal(input: ChurnDealInput): Promise<string | n
 // here -- search for an existing exact-name match first, then PATCH or
 // CREATE, same effect without relying on a property HubSpot doesn't enforce
 // uniqueness on.
-export async function upsertOrganizationCompany(input: { name: string; locationCount: number; domain?: string }): Promise<{ companyId: string } | null> {
+export async function upsertOrganizationCompany(input: { name: string; locationCount: number; domain?: string; city?: string; state?: string }): Promise<{ companyId: string } | null> {
   if (!hubspotToken()) return null;
-  const properties = { name: input.name, number_of_locations: String(input.locationCount), ...(input.domain ? { domain: input.domain } : {}) };
+  const properties = {
+    name: input.name,
+    number_of_locations: String(input.locationCount),
+    ...(input.domain ? { domain: input.domain } : {}),
+    ...(input.city ? { city: input.city } : {}),
+    ...(input.state ? { state: input.state } : {}),
+  };
 
   const searchResult = await hubspotFetch('/crm/v3/objects/companies/search', {
     method: 'POST',

@@ -118,6 +118,10 @@ export async function startB2bCheckout(formData: FormData): Promise<void> {
     cancel_url: `${origin()}/pricing?checkout=cancelled`,
     metadata: { plan, period: 'monthly', segment: 'b2b_funeral_home' },
     allow_promotion_codes: true,
+    // Required (not just collected if Stripe happens to ask) so the
+    // auto-provisioned organization's first location -- and its HubSpot
+    // Company record -- get a real city/state instead of staying null.
+    billing_address_collection: 'required',
     // Captured here (not guessed from the cardholder's personal name) so the
     // webhook can auto-provision a real Passage workspace under the correct
     // name the instant payment clears -- see handleCheckoutCompleted's B2B

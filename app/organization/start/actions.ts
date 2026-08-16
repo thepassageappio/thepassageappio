@@ -19,9 +19,13 @@ function failure(status: OrganizationCreationState['status'], message: string): 
 export async function createOrganization(_previous: OrganizationCreationState, formData: FormData): Promise<OrganizationCreationState> {
   const organizationName = String(formData.get('organizationName') ?? '').trim();
   const locationName = String(formData.get('locationName') ?? '').trim();
+  const city = String(formData.get('city') ?? '').trim();
+  const state = String(formData.get('state') ?? '').trim();
 
   if (!organizationName || organizationName.length > 200) return failure('validation', 'Enter your funeral home’s name. Nothing was created.');
   if (!locationName || locationName.length > 200) return failure('validation', 'Enter your first location’s name. Nothing was created.');
+  if (city.length > 100) return failure('validation', 'Shorten the city name. Nothing was created.');
+  if (state.length > 56) return failure('validation', 'Shorten the state. Nothing was created.');
 
   const client = await createPassageServerClient();
   if (!client) return failure('unavailable', 'Passage could not verify sign-in right now. Nothing was created.');
@@ -31,6 +35,8 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   const result = await client.rpc('self_serve_create_organization', {
     p_organization_name: organizationName,
     p_location_name: locationName,
+    p_city: city || null,
+    p_state: state || null,
   });
 
   if (result.error) {
@@ -46,8 +52,9 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   if (!receipt?.organization_id) return failure('unavailable', 'Passage did not confirm the new organization. Nothing is shown as created.');
 
   // Non-blocking: HubSpot tracking must never stand between a funeral home
-  // and its own new organization existing.
-  await upsertOrganizationCompany({ name: organizationName, locationCount: 1 }).catch(() => null);
+  // and its own new organization existing. Every piece of onboarding data
+  // collected here should land in HubSpot, not just the Supabase row.
+  await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
 
   return { status: 'created' };
 }

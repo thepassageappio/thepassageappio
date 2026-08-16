@@ -1,7 +1,7 @@
 import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
-import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, type RevenueSegment } from '@/lib/hubspot';
+import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
 import { getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
@@ -146,6 +146,8 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
         stripeSubscriptionId: subscriptionId,
         stripePriceId: primaryItem?.price.id ?? '',
         legacyPlan,
+        billingCity: session.customer_details?.address?.city ?? null,
+        billingState: session.customer_details?.address?.state ?? null,
       });
     } catch (error) {
       console.error('b2b auto-provision failed', error);
@@ -178,6 +180,9 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
 // account but no active org membership gets the org created directly, ready
 // the next time they sign in normally. An email that already manages an
 // active org is left untouched -- never create a duplicate workspace.
+// Billing city/state (required at checkout -- see startB2bCheckout) is
+// written to both the location row and the HubSpot Company record, so real
+// location data exists for this org from day one instead of staying null.
 async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: {
   email: string;
   userId: string | null;
@@ -186,8 +191,10 @@ async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: 
   stripeSubscriptionId: string;
   stripePriceId: string;
   legacyPlan: string;
+  billingCity: string | null;
+  billingState: string | null;
 }): Promise<void> {
-  const { email, organizationName, stripeCustomerId, stripeSubscriptionId, stripePriceId, legacyPlan } = params;
+  const { email, organizationName, stripeCustomerId, stripeSubscriptionId, stripePriceId, legacyPlan, billingCity, billingState } = params;
   let ownerUserId = params.userId;
 
   if (ownerUserId) {
@@ -231,9 +238,16 @@ async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: 
     return;
   }
 
+  // Non-blocking, matching every other HubSpot call in this file: Passage's
+  // own record of the organization must never depend on HubSpot being
+  // reachable. Every piece of onboarding data collected at checkout --
+  // including the billing city/state Stripe just required -- should land in
+  // the Company record, not just Supabase.
+  await upsertOrganizationCompany({ name: orgName, locationCount: 1, city: billingCity ?? undefined, state: billingState ?? undefined }).catch(() => null);
+
   const { data: newLocation, error: locationError } = await service
     .from('organization_locations')
-    .insert({ organization_id: newOrg.id, name: `${orgName} — Main location` })
+    .insert({ organization_id: newOrg.id, name: `${orgName} — Main location`, city: billingCity, state: billingState })
     .select('id')
     .single();
   if (locationError || !newLocation) {
