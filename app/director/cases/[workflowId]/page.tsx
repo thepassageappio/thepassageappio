@@ -3,8 +3,11 @@ import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadPartnerContextForWorkflow } from '@/lib/partner/hosted';
+import { loadWorkflowMessages } from '@/lib/messaging/hosted';
+import { postWorkflowMessage } from '@/lib/messaging/actions';
 import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
+import { MessageThread } from '@/components/messaging/MessageThread';
 import { FamilyInvitationForm } from './FamilyInvitationForm';
 import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
@@ -42,6 +45,7 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   // their own table lineage, not part of the funeral-home operational data set.
   const client = await createPassageServerClient();
   const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+  const messagesResult = client ? await loadWorkflowMessages(client, workflow.id) : { ok: false as const, message: 'Passage could not open this case right now.' };
   // Fix (PR #57 finding): show each vendor's own specialty next to its name in
   // the picker, so a director has an on-screen cue before choosing a category
   // that must match it (enforced authoritatively by the RPC as of this fix).
@@ -84,6 +88,17 @@ export default async function DirectorCasePage({ params, searchParams }: { param
     <section className={styles.panel} aria-labelledby="family-heading" style={{ marginTop: 18 }}>
       <p className={styles.eyebrow}>Family access</p><h2 id="family-heading">Invite a family member to this case.</h2>
       <FamilyInvitationForm requestId={randomUUID()} workflowId={workflow.id} />
+    </section>
+
+    <section className={styles.panel} aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Messages</p><h2 id="messages-heading">Talk with the family on this case.</h2>
+      <MessageThread
+        loadError={messagesResult.ok ? undefined : messagesResult.message}
+        messages={messagesResult.ok ? messagesResult.messages : []}
+        postAction={postWorkflowMessage}
+        requestId={randomUUID()}
+        workflowId={workflow.id}
+      />
     </section>
   </AppFrame>;
 }
