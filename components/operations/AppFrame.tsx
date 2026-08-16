@@ -6,11 +6,12 @@ type AppFrameProps = {
   active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
   children: ReactNode;
   identity: string;
+  isPlatformAdmin?: boolean;
   mode?: 'demo' | 'verified';
   role: string;
 };
 
-export function AppFrame({ active, children, identity, mode = 'demo', role }: AppFrameProps) {
+export function AppFrame({ active, children, identity, isPlatformAdmin = false, mode = 'demo', role }: AppFrameProps) {
   const initials = identity.split(' ').map((word) => word[0]).join('').slice(0, 2);
   const staffView = active === 'staff';
   const partnerView = active === 'partner';
@@ -32,6 +33,7 @@ export function AppFrame({ active, children, identity, mode = 'demo', role }: Ap
           {staffView && <Link aria-current="page" href="/staff">My work</Link>}
           {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
           {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
+          {isPlatformAdmin && <Link href="/demo">Walkthrough</Link>}
         </nav>
         <div className={styles.identity}>
           <span><strong>{identity}</strong><small>{role}</small></span>

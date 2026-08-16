@@ -4,6 +4,7 @@ import { AppFrame } from '@/components/operations/AppFrame';
 import { AssignTaskForm } from './CommandForms';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { humanAudience, humanAutomationLevel, humanizePreviewIdentity, humanizePreviewLabel, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
+import { createPassageServerClient } from '@/lib/supabase/server';
 import styles from '../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,9 @@ export default async function DirectorPage() {
   const result = await loadHostedOperations();
   if (!result.ok) return <Unavailable message={result.message} />;
   const { viewer, workflows, tasks, members, grants } = result.data;
+  const client = await createPassageServerClient();
+  const adminCheck = client ? await client.rpc('is_platform_admin') : null;
+  const isPlatformAdmin = adminCheck?.data === true;
   const workflowById = new Map(workflows.map((workflow) => [workflow.id, workflow]));
   const memberById = new Map(members.map((member) => [member.id, member]));
   const locationById = new Map(viewer.locations.map((location) => [location.id, humanizePreviewLabel(location.name)]));
@@ -21,7 +25,7 @@ export default async function DirectorPage() {
   const inProgressCount = tasks.filter((task) => task.status === 'in_progress').length;
 
   return (
-    <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName)}`}>
+    <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} isPlatformAdmin={isPlatformAdmin} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName)}`}>
       <header className={styles.pageHeading}>
         <div><p>DIRECTOR / TODAY</p><h1>What needs your attention today?</h1><span>See unassigned work, who is waiting, and what your team needs to do next.</span></div>
         <dl><div><dt>Active</dt><dd>{tasks.filter((task) => task.status !== 'completed').length}</dd></div><div><dt>Assigned</dt><dd>{assignedCount}</dd></div><div><dt>In progress</dt><dd>{inProgressCount}</dd></div></dl>
