@@ -2,7 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import { upsertOrganizationCompany } from '@/lib/hubspot';
+import { upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type AdminOrganizationCreationState = {
@@ -56,6 +56,7 @@ export async function adminCreateOrganization(_previous: AdminOrganizationCreati
   if (!receipt?.organization_id || !receipt.invitation_id) return failure('unavailable', 'Passage did not return a complete creation receipt.');
 
   await upsertOrganizationCompany({ name: organizationName, locationCount: 1 }).catch(() => null);
+  await upsertContact(directorEmail).catch(() => null);
 
   return {
     status: 'created',

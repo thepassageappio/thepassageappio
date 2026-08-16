@@ -2,6 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
+import { HUBSPOT_VENDOR_CATEGORY, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { VENDOR_CATEGORIES, type VendorCategory } from '@/lib/partner/categories';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
@@ -48,6 +49,19 @@ export async function createVendorOrganization(_previous: VendorSignupState, for
 
   const receipt = firstRpcRow<RpcReceipt>(result.data);
   if (!receipt?.partner_organization_id) return failure('unavailable', 'Passage did not confirm the new vendor account. Nothing is shown as created.');
+
+  // Non-blocking: HubSpot tracking must never stand between a vendor and
+  // their own new account existing. Every vendor self-serve signup should
+  // land in HubSpot as a Company, same as funeral-home onboarding -- and as
+  // a marketable Contact by email, so they're reachable for future
+  // marketing/newsletter sends even before any transaction happens.
+  await upsertOrganizationCompany({
+    name: organizationName,
+    vendorCategory: HUBSPOT_VENDOR_CATEGORY[category],
+    phone: contactPhone || undefined,
+  }).catch(() => null);
+  const marketingEmail = contactEmail || user.email;
+  if (marketingEmail) await upsertContact(marketingEmail).catch(() => null);
 
   return { status: 'created' };
 }

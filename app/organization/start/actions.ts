@@ -2,7 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import { upsertOrganizationCompany } from '@/lib/hubspot';
+import { upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type OrganizationCreationState = {
@@ -53,8 +53,11 @@ export async function createOrganization(_previous: OrganizationCreationState, f
 
   // Non-blocking: HubSpot tracking must never stand between a funeral home
   // and its own new organization existing. Every piece of onboarding data
-  // collected here should land in HubSpot, not just the Supabase row.
+  // collected here should land in HubSpot, not just the Supabase row --
+  // including the owner as a marketable Contact for future newsletters,
+  // not just a Company record nobody can email.
   await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
+  if (user.email) await upsertContact(user.email).catch(() => null);
 
   return { status: 'created' };
 }

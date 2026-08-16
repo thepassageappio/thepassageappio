@@ -155,7 +155,12 @@ function dealDateProperty(isoOrNull: string | null): string | undefined {
   return isoOrNull.slice(0, 10);
 }
 
-async function upsertContact(email: string, firstName?: string, lastName?: string, lifetimeValueCents?: number): Promise<string | null> {
+// Exported (was internal to the deal-creation flow) so any onboarding path
+// -- not just a paying subscriber -- can get the person into HubSpot as a
+// real, marketable Contact the moment they sign up. Idempotent by email via
+// HubSpot's own upsert (idProperty: 'email'), so calling this again for the
+// same person just updates the existing record.
+export async function upsertContact(email: string, firstName?: string, lastName?: string, lifetimeValueCents?: number): Promise<string | null> {
   const [firstname, ...rest] = (firstName ? `${firstName} ${lastName ?? ''}` : email).trim().split(/\s+/).filter(Boolean);
   const lastname = lastName ?? rest.join(' ');
   const result = await hubspotFetch('/crm/v3/objects/contacts/batch/upsert', {
@@ -321,6 +326,23 @@ export async function createChurnDeal(input: ChurnDealInput): Promise<string | n
   );
 }
 
+// Maps Passage's vendor category enum (lib/partner/categories.ts) to the
+// exact option values of the "Vendor Category" property the founder created
+// directly in HubSpot -- values differ in spelling/wording from Passage's
+// own labels ("Transport" vs "Car Service", "Printer / Stationery" vs
+// "Printer/Stationary") so this cannot be derived from VENDOR_CATEGORY_LABELS.
+// Confirmed against HubSpot's live property definition, not guessed.
+export const HUBSPOT_VENDOR_CATEGORY: Record<string, string> = {
+  florist: 'Florist',
+  caterer: 'Caterer',
+  restaurant: 'Restaurant',
+  cemetery: 'Cemetery',
+  transport: 'Car Service',
+  printer_stationery: 'Printer/Stationary',
+  memorial_products: 'Memorial Products',
+  other: 'Other',
+};
+
 // Upserts the funeral-home Company by name and records its current location
 // count in the already-provisioned (but previously never-written)
 // number_of_locations field. `name` has no uniqueness constraint in HubSpot
@@ -328,14 +350,24 @@ export async function createChurnDeal(input: ChurnDealInput): Promise<string | n
 // here -- search for an existing exact-name match first, then PATCH or
 // CREATE, same effect without relying on a property HubSpot doesn't enforce
 // uniqueness on.
-export async function upsertOrganizationCompany(input: { name: string; locationCount: number; domain?: string; city?: string; state?: string }): Promise<{ companyId: string } | null> {
+export async function upsertOrganizationCompany(input: {
+  name: string;
+  locationCount?: number;
+  domain?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  vendorCategory?: string;
+}): Promise<{ companyId: string } | null> {
   if (!hubspotToken()) return null;
   const properties = {
     name: input.name,
-    number_of_locations: String(input.locationCount),
+    ...(input.locationCount !== undefined ? { number_of_locations: String(input.locationCount) } : {}),
     ...(input.domain ? { domain: input.domain } : {}),
     ...(input.city ? { city: input.city } : {}),
     ...(input.state ? { state: input.state } : {}),
+    ...(input.phone ? { phone: input.phone } : {}),
+    ...(input.vendorCategory ? { vendor_category: input.vendorCategory } : {}),
   };
 
   const searchResult = await hubspotFetch('/crm/v3/objects/companies/search', {
