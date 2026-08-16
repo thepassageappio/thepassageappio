@@ -23,3 +23,6 @@ export function priceIdForPlan(plan: PricingPlanKey, period: BillingPeriod): str
   if (!envVar) return null;
   return process.env[envVar]?.trim() || null;
 }
+
+export const VENDOR_PLATFORM_FEE_PERCENT = 12;
+

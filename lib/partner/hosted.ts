@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { resolvePartnerViewer, type PartnerViewer } from '@/lib/auth/partner-authorization';
+import { VENDOR_CATEGORY_LABELS } from '@/lib/partner/categories';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type HostedPartnerRequest = {
@@ -93,7 +94,10 @@ export type PassageServerClient = NonNullable<Awaited<ReturnType<typeof createPa
 export async function loadPartnerContextForWorkflow(client: PassageServerClient, workflowId: string) {
   const [requestResult, organizationResult] = await Promise.all([
     client.from('partner_requests').select(PARTNER_REQUEST_COLUMNS).eq('workflow_id', workflowId).order('sent_at', { ascending: false }),
-    client.from('partner_organizations').select('id, name, category').eq('status', 'active').order('name'),
+    // A vendor cannot receive requests until payout setup (Stripe Connect) is
+    // complete -- founder decision 2026-08-16 -- so the picker only ever
+    // shows vendors who can actually be paid out once an order is verified.
+    client.from('partner_organizations').select('id, name, category').eq('status', 'active').eq('stripe_connect_payouts_enabled', true).order('name'),
   ]);
   return {
     requests: (requestResult.data ?? []) as HostedPartnerRequest[],
@@ -102,13 +106,7 @@ export async function loadPartnerContextForWorkflow(client: PassageServerClient,
   };
 }
 
-const categoryLabels: Record<string, string> = {
-  florist: 'Florist',
-  catering: 'Catering',
-  transport: 'Transport',
-  memorial_products: 'Memorial products',
-  other: 'Other vendor',
-};
+const categoryLabels: Record<string, string> = VENDOR_CATEGORY_LABELS;
 
 const statusLabels: Record<string, string> = {
   sent: 'Waiting for vendor response',

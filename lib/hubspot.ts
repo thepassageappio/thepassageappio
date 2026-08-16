@@ -71,37 +71,28 @@ export async function recordContactInquiry(input: ContactInquiryInput): Promise<
   return { contactId };
 }
 
-// Custom properties this app depends on. Created idempotently (GET, then
-// POST only if missing) the first time they're needed, using the same
-// private-app token as everything else in this file -- avoids requiring a
-// manual HubSpot Settings click before the webhook can run, but degrades
-// gracefully (logs and continues without the field) if the token ever lacks
-// crm.schemas.deals.write scope, since a payment-confirmation record must
+// Custom properties this app depends on, beyond the native `dealtype` and
+// the `revenue_segment` custom property (both already configured directly
+// in HubSpot's UI by the founder -- Deal Type: New Business/Renewal/Renewal
+// - Upgrade/Renewal - Downgrade/Churn/Marketplace Order; Revenue Segment:
+// D2C Planning/D2C Urgent/B2B Funeral Home/B2B Assisted Living Facility/
+// Marketplace Order -- so this file only ensures the plain scalar fields,
+// never touches those two enums). Created idempotently (GET, then POST only
+// if missing), degrading gracefully (skip, continue) if the token ever
+// lacks crm.schemas.deals.write scope -- a payment-confirmation record must
 // never be lost over a CRM schema hiccup.
 type PropertyDefinition = { name: string; label: string; type: 'string' | 'number' | 'enumeration' | 'date' | 'datetime'; fieldType: string; options?: { label: string; value: string }[] };
 
 const DEAL_PROPERTIES: PropertyDefinition[] = [
-  { name: 'revenue_stream', label: 'Revenue Stream', type: 'enumeration', fieldType: 'select', options: [
-    { label: 'Planning (D2C)', value: 'planning' },
-    { label: 'Urgent', value: 'urgent' },
-    { label: 'Funeral Home', value: 'funeral_home' },
-    { label: 'Assisted Living', value: 'assisted_living' },
-  ] },
   { name: 'plan_name', label: 'Plan Name', type: 'string', fieldType: 'text' },
   { name: 'stripe_subscription_id', label: 'Stripe Subscription ID', type: 'string', fieldType: 'text' },
   { name: 'stripe_customer_id', label: 'Stripe Customer ID', type: 'string', fieldType: 'text' },
   { name: 'renewal_date', label: 'Renewal Date', type: 'date', fieldType: 'date' },
+  { name: 'prior_subscription_amount_cents', label: 'Prior Subscription Amount (cents)', type: 'number', fieldType: 'number' },
   { name: 'subscription_status', label: 'Subscription Status', type: 'enumeration', fieldType: 'select', options: [
     { label: 'Active', value: 'active' },
     { label: 'Past Due', value: 'past_due' },
     { label: 'Canceled', value: 'canceled' },
-  ] },
-  { name: 'mrr_movement_type', label: 'MRR Movement Type', type: 'enumeration', fieldType: 'select', options: [
-    { label: 'New', value: 'new' },
-    { label: 'Expansion', value: 'expansion' },
-    { label: 'Contraction', value: 'contraction' },
-    { label: 'Churn', value: 'churn' },
-    { label: 'Reactivation', value: 'reactivation' },
   ] },
   { name: 'acquisition_channel', label: 'Acquisition Channel', type: 'enumeration', fieldType: 'select', options: [
     { label: 'Organic / Direct', value: 'organic_direct' },
@@ -110,57 +101,50 @@ const DEAL_PROPERTIES: PropertyDefinition[] = [
     { label: 'Guide Lead', value: 'guide_lead' },
     { label: 'Contact Form', value: 'contact_form' },
   ] },
+  { name: 'churn_reason', label: 'Churn Reason', type: 'string', fieldType: 'text' },
   { name: 'platform_fee_cents', label: 'Platform Fee (cents)', type: 'number', fieldType: 'number' },
   { name: 'vendor_payout_cents', label: 'Vendor Payout (cents)', type: 'number', fieldType: 'number' },
 ];
 
+const CONTACT_PROPERTIES: PropertyDefinition[] = [
+  { name: 'lifetime_value_cents', label: 'Lifetime Value (cents)', type: 'number', fieldType: 'number' },
+];
+
 let propertiesEnsured = false;
 
-export async function ensureHubspotDealProperties(): Promise<void> {
-  if (propertiesEnsured || !hubspotToken()) return;
-  for (const property of DEAL_PROPERTIES) {
-    const existing = await hubspotFetch(`/crm/v3/properties/deals/${property.name}`, { method: 'GET' }).catch(() => null);
+async function ensureProperties(objectType: 'deals' | 'contacts', properties: PropertyDefinition[]): Promise<void> {
+  for (const property of properties) {
+    const existing = await hubspotFetch(`/crm/v3/properties/${objectType}/${property.name}`, { method: 'GET' }).catch(() => null);
     if (existing?.ok) continue;
-    const groupName = property.type === 'enumeration' ? 'dealinformation' : 'dealinformation';
-    await hubspotFetch('/crm/v3/properties/deals', {
+    await hubspotFetch(`/crm/v3/properties/${objectType}`, {
       method: 'POST',
       body: JSON.stringify({
         name: property.name,
         label: property.label,
         type: property.type,
         fieldType: property.fieldType,
-        groupName,
+        groupName: objectType === 'deals' ? 'dealinformation' : 'contactinformation',
         options: property.options?.map((option, index) => ({ ...option, displayOrder: index })),
       }),
     }).catch(() => null);
   }
+}
+
+export async function ensureHubspotDealProperties(): Promise<void> {
+  if (propertiesEnsured || !hubspotToken()) return;
+  await Promise.all([ensureProperties('deals', DEAL_PROPERTIES), ensureProperties('contacts', CONTACT_PROPERTIES)]);
   propertiesEnsured = true;
 }
 
-export type RevenueStream = 'planning' | 'urgent' | 'funeral_home' | 'assisted_living';
+// Matches the exact Deal Type options configured in HubSpot (Settings ->
+// Properties -> Deal Type). "Renewal" covers a flat renewal with no amount
+// change; a real amount change at renewal gets Upgrade/Downgrade instead --
+// there is deliberately no bare "Upgrade"/"Downgrade" outside the renewal
+// family, since every amount change happens at a renewal/invoice event, not
+// as a standalone transaction type.
+export type DealTypeValue = 'New Business' | 'Renewal' | 'Renewal - Upgrade' | 'Renewal - Downgrade' | 'Churn' | 'Marketplace Order';
+export type RevenueSegment = 'D2C Planning' | 'D2C Urgent' | 'B2B Funeral Home' | 'B2B Assisted Living Facility' | 'Marketplace Order';
 export type AcquisitionChannel = 'organic_direct' | 'funeral_home_referral' | 'urgent_intake' | 'guide_lead' | 'contact_form';
-export type MrrMovementType = 'new' | 'expansion' | 'contraction' | 'churn' | 'reactivation';
-
-export type SubscriptionDealInput = {
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  dealName: string;
-  amountCents: number;
-  planName: string;
-  revenueStream: RevenueStream;
-  renewalDateIso: string | null;
-  subscriptionStatus: 'active' | 'past_due' | 'canceled';
-  stripeSubscriptionId: string;
-  stripeCustomerId: string;
-  acquisitionChannel: AcquisitionChannel;
-  movementType: MrrMovementType;
-  existingDealId?: string | null;
-};
-
-const CLOSED_WON_STAGE = 'closedwon';
-const NEW_BUSINESS_TYPE = 'newbusiness';
-const EXISTING_BUSINESS_TYPE = 'existingbusiness';
 
 function dollarsFromCents(cents: number): string {
   return (cents / 100).toFixed(2);
@@ -171,87 +155,170 @@ function dealDateProperty(isoOrNull: string | null): string | undefined {
   return isoOrNull.slice(0, 10);
 }
 
-// Upserts the master subscription Deal (updated in place across its
-// lifetime, never recreated) and, for expansion/contraction movements, also
-// creates a small companion existingbusiness Deal for just the delta so
-// New-vs-Expansion pipeline reporting works. Contact is upserted by email
-// first so the Deal always has a real association. Best-effort: returns null
-// on any HubSpot failure rather than throwing, since a webhook must persist
-// subscription state in Supabase regardless of CRM availability.
-export async function upsertSubscriptionDeal(input: SubscriptionDealInput): Promise<{ dealId: string; contactId: string } | null> {
-  if (!hubspotToken()) return null;
-  await ensureHubspotDealProperties();
-
-  const [firstname, ...rest] = (input.firstName ? `${input.firstName} ${input.lastName ?? ''}` : input.email).trim().split(/\s+/).filter(Boolean);
-  const lastname = input.lastName ?? rest.join(' ');
-  const contactResult = await hubspotFetch('/crm/v3/objects/contacts/batch/upsert', {
-    method: 'POST',
-    body: JSON.stringify({ inputs: [{ idProperty: 'email', id: input.email, properties: { email: input.email, ...(firstname ? { firstname } : {}), ...(lastname ? { lastname } : {}) } }] }),
-  }).catch(() => null);
-  if (!contactResult?.ok) return null;
-  const contactBody = await contactResult.json();
-  const contactId: string | undefined = contactBody?.results?.[0]?.id;
-  if (!contactId) return null;
-
-  const dealProperties: Record<string, string> = {
-    dealname: input.dealName,
-    amount: dollarsFromCents(input.amountCents),
-    pipeline: 'default',
-    dealstage: CLOSED_WON_STAGE,
-    dealtype: NEW_BUSINESS_TYPE,
-    revenue_stream: input.revenueStream,
-    plan_name: input.planName,
-    stripe_subscription_id: input.stripeSubscriptionId,
-    stripe_customer_id: input.stripeCustomerId,
-    subscription_status: input.subscriptionStatus,
-    acquisition_channel: input.acquisitionChannel,
-    mrr_movement_type: input.movementType,
-    ...(dealDateProperty(input.renewalDateIso) ? { renewal_date: dealDateProperty(input.renewalDateIso)! } : {}),
-  };
-
-  if (input.existingDealId) {
-    const updateResult = await hubspotFetch(`/crm/v3/objects/deals/${input.existingDealId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ properties: dealProperties }),
-    }).catch(() => null);
-    if (!updateResult?.ok) return null;
-    return { dealId: input.existingDealId, contactId };
-  }
-
-  const createResult = await hubspotFetch('/crm/v3/objects/deals', {
-    method: 'POST',
-    body: JSON.stringify({ properties: dealProperties, associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }] }),
-  }).catch(() => null);
-  if (!createResult?.ok) return null;
-  const createBody = await createResult.json();
-  const dealId: string | undefined = createBody?.id;
-  if (!dealId) return null;
-  return { dealId, contactId };
-}
-
-// Companion deal for an expansion/contraction delta -- reported separately
-// from the master deal's total so New vs Expansion MRR is distinguishable in
-// pipeline views. amountDeltaCents may be negative for a contraction.
-export async function createMovementCompanionDeal(input: { email: string; dealName: string; amountDeltaCents: number; revenueStream: RevenueStream; movementType: 'expansion' | 'contraction'; contactId: string }): Promise<string | null> {
-  if (!hubspotToken()) return null;
-  const result = await hubspotFetch('/crm/v3/objects/deals', {
+async function upsertContact(email: string, firstName?: string, lastName?: string, lifetimeValueCents?: number): Promise<string | null> {
+  const [firstname, ...rest] = (firstName ? `${firstName} ${lastName ?? ''}` : email).trim().split(/\s+/).filter(Boolean);
+  const lastname = lastName ?? rest.join(' ');
+  const result = await hubspotFetch('/crm/v3/objects/contacts/batch/upsert', {
     method: 'POST',
     body: JSON.stringify({
-      properties: {
-        dealname: input.dealName,
-        amount: dollarsFromCents(Math.abs(input.amountDeltaCents)),
-        pipeline: 'default',
-        dealstage: CLOSED_WON_STAGE,
-        dealtype: EXISTING_BUSINESS_TYPE,
-        revenue_stream: input.revenueStream,
-        mrr_movement_type: input.movementType,
-      },
-      associations: [{ to: { id: input.contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }],
+      inputs: [{
+        idProperty: 'email',
+        id: email,
+        properties: {
+          email,
+          ...(firstname ? { firstname } : {}),
+          ...(lastname ? { lastname } : {}),
+          ...(lifetimeValueCents !== undefined ? { lifetime_value_cents: String(lifetimeValueCents) } : {}),
+        },
+      }],
     }),
   }).catch(() => null);
   if (!result?.ok) return null;
   const body = await result.json();
+  return body?.results?.[0]?.id ?? null;
+}
+
+async function createDeal(properties: Record<string, string>, contactId: string): Promise<string | null> {
+  const result = await hubspotFetch('/crm/v3/objects/deals', {
+    method: 'POST',
+    body: JSON.stringify({ properties, associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }] }),
+  }).catch(() => null);
+  if (!result?.ok) return null;
+  const body = await result.json();
   return body?.id ?? null;
+}
+
+export type NewBusinessDealInput = {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  dealName: string;
+  amountCents: number;
+  planName: string;
+  revenueSegment: RevenueSegment;
+  renewalDateIso: string | null;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  acquisitionChannel: AcquisitionChannel;
+};
+
+// The one-time anchor deal for a subscription, created at first payment and
+// never mutated again -- its amount stays the historically accurate
+// original sale. Ongoing state (current amount, renewal date) lives on the
+// Renewal-family deals created at each cycle instead. Best-effort: returns
+// null on any HubSpot failure rather than throwing, since a webhook must
+// persist subscription state in Supabase regardless of CRM availability.
+export async function createNewBusinessDeal(input: NewBusinessDealInput): Promise<{ dealId: string; contactId: string } | null> {
+  if (!hubspotToken()) return null;
+  await ensureHubspotDealProperties();
+
+  const contactId = await upsertContact(input.email, input.firstName, input.lastName, input.amountCents);
+  if (!contactId) return null;
+
+  const dealId = await createDeal(
+    {
+      dealname: input.dealName,
+      amount: dollarsFromCents(input.amountCents),
+      pipeline: 'default',
+      dealstage: 'closedwon',
+      dealtype: 'New Business' satisfies DealTypeValue,
+      revenue_segment: input.revenueSegment,
+      plan_name: input.planName,
+      stripe_subscription_id: input.stripeSubscriptionId,
+      stripe_customer_id: input.stripeCustomerId,
+      subscription_status: 'active',
+      acquisition_channel: input.acquisitionChannel,
+      ...(dealDateProperty(input.renewalDateIso) ? { renewal_date: dealDateProperty(input.renewalDateIso)! } : {}),
+    },
+    contactId,
+  );
+  if (!dealId) return null;
+  return { dealId, contactId };
+}
+
+export type RenewalDealInput = {
+  email: string;
+  dealName: string;
+  amountCents: number;
+  priorAmountCents: number;
+  planName: string;
+  revenueSegment: RevenueSegment;
+  renewalDateIso: string | null;
+  stripeSubscriptionId: string;
+  cumulativeLifetimeValueCents: number;
+};
+
+// Creates a new deal at every renewal cycle (invoice.paid, billing_reason
+// subscription_cycle) -- not an update to any prior deal -- so the deal
+// history reads as a ledger of what was actually charged each cycle, not a
+// single mutated record. Deal Type is derived from comparing this cycle's
+// amount to the prior one: unchanged is a flat Renewal, higher is Renewal -
+// Upgrade, lower is Renewal - Downgrade.
+export async function createRenewalDeal(input: RenewalDealInput): Promise<string | null> {
+  if (!hubspotToken()) return null;
+  await ensureHubspotDealProperties();
+
+  const contactId = await upsertContact(input.email, undefined, undefined, input.cumulativeLifetimeValueCents);
+  if (!contactId) return null;
+
+  const dealType: DealTypeValue = input.amountCents === input.priorAmountCents
+    ? 'Renewal'
+    : input.amountCents > input.priorAmountCents
+      ? 'Renewal - Upgrade'
+      : 'Renewal - Downgrade';
+
+  return createDeal(
+    {
+      dealname: input.dealName,
+      amount: dollarsFromCents(input.amountCents),
+      pipeline: 'default',
+      dealstage: 'closedwon',
+      dealtype: dealType,
+      revenue_segment: input.revenueSegment,
+      plan_name: input.planName,
+      stripe_subscription_id: input.stripeSubscriptionId,
+      subscription_status: 'active',
+      prior_subscription_amount_cents: String(input.priorAmountCents),
+      ...(dealDateProperty(input.renewalDateIso) ? { renewal_date: dealDateProperty(input.renewalDateIso)! } : {}),
+    },
+    contactId,
+  );
+}
+
+export type ChurnDealInput = {
+  email: string;
+  dealName: string;
+  lastAmountCents: number;
+  planName: string;
+  revenueSegment: RevenueSegment;
+  stripeSubscriptionId: string;
+};
+
+// Cancellation gets its own deal (dealstage closedlost -- distinct from the
+// New Business / Renewal deals, which stay closedwon as the historically
+// accurate record that those sales happened) rather than mutating an
+// existing one, so churned-MRR reporting has a real object to sum.
+export async function createChurnDeal(input: ChurnDealInput): Promise<string | null> {
+  if (!hubspotToken()) return null;
+  await ensureHubspotDealProperties();
+
+  const contactId = await upsertContact(input.email);
+  if (!contactId) return null;
+
+  return createDeal(
+    {
+      dealname: input.dealName,
+      amount: dollarsFromCents(input.lastAmountCents),
+      pipeline: 'default',
+      dealstage: 'closedlost',
+      dealtype: 'Churn' satisfies DealTypeValue,
+      revenue_segment: input.revenueSegment,
+      plan_name: input.planName,
+      stripe_subscription_id: input.stripeSubscriptionId,
+      subscription_status: 'canceled',
+    },
+    contactId,
+  );
 }
 
 // Upserts the funeral-home Company by name and records its current location

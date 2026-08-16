@@ -24,7 +24,7 @@ export async function createPartnerRequest(_previous: PartnerCommandState, formD
   const neededByRaw = String(formData.get('neededBy') ?? '').trim();
 
   if (!uuid.test(workflowId) || !uuid.test(partnerOrganizationId) || !uuid.test(requestId)
-    || !['florist', 'catering', 'transport', 'memorial_products', 'other'].includes(category)
+    || !['florist', 'caterer', 'restaurant', 'cemetery', 'transport', 'printer_stationery', 'memorial_products', 'other'].includes(category)
     || title.length < 1 || title.length > 200 || details.length < 1 || details.length > 2000) {
     return { status: 'validation', message: 'Review the vendor request fields. Nothing was sent.' };
   }
