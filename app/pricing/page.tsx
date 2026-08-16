@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { TopShell } from '@/components/core';
+import { startCheckout } from './actions';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 const groups = [
@@ -45,8 +46,18 @@ export default function PricingPage() {
                 <h3 className={styles.planTitle}>{group.label}</h3>
                 <p className={styles.planDesc}>{group.desc}</p>
                 <div className={styles.priceRow}><span>Monthly</span><strong>{group.monthly}<em>/mo</em></strong></div>
+                <form action={startCheckout}>
+                  <input type="hidden" name="plan" value={group.key} />
+                  <input type="hidden" name="period" value="monthly" />
+                  <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Subscribe monthly</button>
+                </form>
                 <div className={styles.priceRow}><span>Annual</span><strong>{group.annual}<em>/yr</em></strong></div>
-                <Link className={`${styles.buttonSecondary} ${styles.fullWidth}`} href={`/contact?category=pricing&plan=${group.key}`}>Talk to us about this plan</Link>
+                <form action={startCheckout}>
+                  <input type="hidden" name="plan" value={group.key} />
+                  <input type="hidden" name="period" value="annual" />
+                  <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Subscribe annually</button>
+                </form>
+                <Link className={styles.note} href={`/contact?category=pricing&plan=${group.key}`} style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>or talk to us first</Link>
               </div>
             ))}
           </div>
