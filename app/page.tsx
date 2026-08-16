@@ -5,14 +5,14 @@ import styles from '@/components/marketing/MarketingPage.module.css';
 const paths = [
   { label: 'Someone just passed', href: '/start', title: 'Get help right now', body: 'Start the urgent record: who to call, who to notify, and the first things that need a decision tonight.' },
   { label: 'Planning ahead', href: '/start', title: 'Set things up before they’re needed', body: 'Record wishes, name the people you trust, and store documents so your family isn’t starting from zero.' },
-  { label: 'Funeral home', href: '/contact?category=funeral-home', title: 'Run your cases through Passage', body: 'Give your team one shared view of every family, every task owner, and every handoff — with proof attached.' },
-  { label: 'Care provider or vendor', href: '/contact?category=partner', title: 'Coordinate without the back-and-forth', body: 'Hospice teams, florists, cemeteries, and celebrants get exactly the request they need — nothing more.' },
+  { label: 'Funeral home', href: '/organization/start', title: 'Run your cases through Passage', body: 'Give your team one shared view of every family, every task owner, and every handoff, with proof attached.' },
+  { label: 'Care provider or vendor', href: '/contact?category=partner', title: 'Coordinate without the back-and-forth', body: 'Hospice teams, florists, cemeteries, and celebrants get exactly the request they need. Nothing more.' },
 ];
 
 const whatItDoes: [string, string][] = [
-  ['One shared record', 'The family, the funeral home, and anyone invited to help see the same up-to-date picture — not four separate phone trees.'],
+  ['One shared record', 'The family, the funeral home, and anyone invited to help see the same up-to-date picture, not four separate phone trees.'],
   ['Real ownership', 'Every task has one person responsible for it and a visible status, so nothing quietly falls through.'],
-  ['Proof, not promises', 'Passage keeps a record of what was actually done, by whom, and when — so "I thought someone else had it" stops happening.'],
+  ['Proof, not promises', 'Passage keeps a record of what was actually done, by whom, and when, so "I thought someone else had it" stops happening.'],
   ['The right people, matched', 'Need a funeral home, florist, or cemetery who does this every day? Passage can help you find and loop them in.'],
 ];
 
@@ -26,7 +26,7 @@ export default function HomePage() {
           <p className={styles.eyebrow}>Passage</p>
           <h1>When someone dies, someone has to hold it together. Let Passage carry the details.</h1>
           <p className={styles.lede}>
-            Passage is a shared record for families, funeral homes, and everyone helping in between. It keeps track of what needs to happen, who owns it, and what&apos;s already been handled — so you can lean on the people around you instead of repeating yourself to each one.
+            Passage is a shared record for families, funeral homes, and everyone helping in between. It keeps track of what needs to happen, who owns it, and what&apos;s already been handled, so you can lean on the people around you instead of repeating yourself to each one.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 22 }}>
             <Link className={styles.button} href="/start">Get started</Link>

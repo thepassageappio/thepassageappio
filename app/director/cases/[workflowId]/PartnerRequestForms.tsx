@@ -23,7 +23,7 @@ export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganiz
       <input name="requestId" type="hidden" value={requestId} />
       <fieldset disabled={pending}>
         <legend>Send a request to a vendor.</legend>
-        <label>Vendor<select name="partnerOrganizationId" required>{partnerOrganizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name} — {organization.categoryLabel}</option>)}</select></label>
+        <label>Vendor<select name="partnerOrganizationId" required>{partnerOrganizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name} · {organization.categoryLabel}</option>)}</select></label>
         <label>Category <span>Must match the chosen vendor's specialty above</span><select name="category" required><option value="florist">Florist</option><option value="catering">Catering</option><option value="transport">Transport</option><option value="memorial_products">Memorial products</option><option value="other">Other</option></select></label>
         <label>Title<input maxLength={200} name="title" required /></label>
         <label>Details<textarea maxLength={2000} name="details" required /></label>

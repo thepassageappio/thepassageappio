@@ -227,7 +227,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
             )}
             <fieldset disabled={pending} style={{ border: 'none', padding: 0, margin: 0 }}>
               <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Save and request a callback from Passage'}</button>
-              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately — no callback</button>
+              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately, no callback</button>
             </fieldset>
           </form>
         )}

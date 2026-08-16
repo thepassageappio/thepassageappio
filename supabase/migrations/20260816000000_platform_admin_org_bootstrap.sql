@@ -22,7 +22,7 @@ alter table public.platform_admins enable row level security;
 -- No policies: this table is only ever read via SECURITY DEFINER functions.
 
 insert into public.platform_admins (user_id)
-values ('372e556c-25f7-4031-92ea-e55d6cc84244')
+values ('04a39efc-306d-41e3-b7cd-41bfdb352517')
 on conflict (user_id) do nothing;
 
 create or replace function passage_private.admin_bootstrap_organization(

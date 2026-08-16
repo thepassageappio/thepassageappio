@@ -8,7 +8,7 @@ type TopShellProps = {
 };
 
 const marketingNav = [
-  { href: '/contact?category=funeral-home', label: 'Funeral homes' },
+  { href: '/organization/start', label: 'Funeral homes' },
   { href: '/story', label: 'Our story' },
   { href: '/mission', label: 'Mission' },
   { href: '/pricing', label: 'Pricing' },

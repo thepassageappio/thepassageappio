@@ -22,7 +22,7 @@ export default function StoryPage() {
             Passage&apos;s founder helped plan his grandmother&apos;s funeral with her while the family was also navigating Medicaid and the practical realities that come with care. The people helping were kind. The system around everyone was not built for continuity.
           </p>
           <p className={styles.lede} style={{ marginTop: 10 }}>
-            This was not a villain story. The care was real. The burden still moved back to the family: remember this, call that person, find this document, tell everyone what changed. Passage came from that gap — the family record didn&apos;t travel cleanly, so someone always had to carry it by hand.
+            This was not a villain story. The care was real. The burden still moved back to the family: remember this, call that person, find this document, tell everyone what changed. Passage came from that gap: the family record didn&apos;t travel cleanly, so someone always had to carry it by hand.
           </p>
         </section>
 

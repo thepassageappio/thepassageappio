@@ -51,7 +51,7 @@ export function ContactForm() {
   if (state.status === 'sent') {
     return (
       <div className={styles.card} style={{ maxWidth: 520 }}>
-        <p className={styles.note}>Thanks — your message was sent to Passage. We&apos;ll follow up at {email}.</p>
+        <p className={styles.note}>Thanks. Your message was sent to Passage. We&apos;ll follow up at {email}.</p>
       </div>
     );
   }

@@ -18,7 +18,7 @@ export default function DemoWalkthroughPage() {
             <h1 id="gateway-title">See how a handoff moves<br />through Passage.</h1>
             <div className="gateway__promise">
               <span className="promise-line" aria-hidden="true" />
-              <p>These four cards are the same example case — Sofia Rivera&apos;s family at Northstar Funeral Home — seen from each person&apos;s side. Elena Torres, the case director, appears twice on purpose: once owning the case, once demonstrating what she&apos;d see receiving a separate handoff.</p>
+              <p>These four cards are the same example case, Sofia Rivera&apos;s family at Northstar Funeral Home, seen from each person&apos;s side. Elena Torres, the case director, appears twice on purpose: once owning the case, once demonstrating what she&apos;d see receiving a separate handoff.</p>
             </div>
           </div>
           <div className="gateway__case" aria-label="Example case">

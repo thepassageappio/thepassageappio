@@ -33,11 +33,11 @@ export default async function PartnerRequestPage({ params }: { params: Promise<{
       <div className={styles.layout}>
         <section aria-labelledby="now-heading" className={styles.panel}>
           <p className={styles.eyebrow}>Now</p>
-          <h2 id="now-heading">{request.status === 'verified' ? 'Verified — request complete.' : request.status === 'declined' ? 'You declined this request.' : request.status === 'proof_submitted' ? 'Waiting for director review.' : request.status === 'sent' ? 'Respond to this request.' : 'Complete the work, then submit delivery proof.'}</h2>
+          <h2 id="now-heading">{request.status === 'verified' ? 'Verified. Request complete.' : request.status === 'declined' ? 'You declined this request.' : request.status === 'proof_submitted' ? 'Waiting for director review.' : request.status === 'sent' ? 'Respond to this request.' : 'Complete the work, then submit delivery proof.'}</h2>
           {request.status === 'sent' && <RespondToRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
           {request.status === 'in_progress' && <SubmitDeliveryProofForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
           {request.status === 'proof_submitted' && <div className={styles.receipt} role="status"><h3>Delivery proof submitted.</h3><p>{request.proof_summary}</p>{request.proof_reference && <p>Supporting reference: {request.proof_reference}</p>}<small>Submitted {formatPartnerTime(request.proof_submitted_at)} · waiting for director review</small></div>}
-          {request.status === 'verified' && <div className={styles.receipt} role="status"><h3>Verified — request complete.</h3><p>{request.proof_summary}</p><small>Verified {formatPartnerTime(request.verified_at)}</small></div>}
+          {request.status === 'verified' && <div className={styles.receipt} role="status"><h3>Verified. Request complete.</h3><p>{request.proof_summary}</p><small>Verified {formatPartnerTime(request.verified_at)}</small></div>}
           {request.status === 'declined' && <div className={styles.receipt} role="status"><h3>Declined</h3><p>{request.decline_reason}</p><small>Declined {formatPartnerTime(request.responded_at)}</small></div>}
         </section>
         <aside aria-labelledby="facts-heading" className={styles.panel}>

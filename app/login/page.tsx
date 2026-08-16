@@ -29,6 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 id="login-title">Welcome to the work your team shares.</h1>
         <p className={styles.lede}>Sign in to see only the organization, locations, and work your role permits.</p>
         {(error || signedOut) && <p className={error ? styles.alert : styles.notice} role={error ? 'alert' : 'status'}>{error ?? 'You are signed out. No workspace data is visible.'}</p>}
+        {query.error === 'membership-required' && <p className={styles.notice} role="status">New funeral home? <Link href="/organization/start">Set up your organization</Link>.</p>}
         {!configuration.available || !configuration.supabaseUrl || !configuration.supabasePublishableKey ? (
           <div className={styles.unavailable} role="status">
             <strong>Secure sign-in is not available here.</strong>

@@ -18,7 +18,7 @@ const guides: Guide[] = [
   {
     type: 'First 24 Hours Guide',
     title: 'Know exactly what to do tonight',
-    fullTitle: 'First 24 Hours Guide — Know Exactly What to Do Tonight',
+    fullTitle: 'First 24 Hours Guide: Know Exactly What to Do Tonight',
     subtitle: 'A calm, step-by-step order of operations for the first hours after a death.',
     audience: 'For the first hours after a death',
     sections: [
@@ -31,7 +31,7 @@ const guides: Guide[] = [
   {
     type: 'Family Notification Playbook',
     title: 'Tell the right people without writing from scratch',
-    fullTitle: 'Family Notification Playbook — Tell the Right People Without Writing from Scratch',
+    fullTitle: 'Family Notification Playbook: Tell the Right People Without Writing from Scratch',
     subtitle: 'Simple language and order for notifying close family and helpers.',
     audience: 'For close family and helpers',
     sections: [
@@ -44,7 +44,7 @@ const guides: Guide[] = [
   {
     type: 'Executor Checklist',
     title: 'Protect the estate without guessing',
-    fullTitle: 'Executor Checklist — Protect the Estate Without Guessing',
+    fullTitle: 'Executor Checklist: Protect the Estate Without Guessing',
     subtitle: 'Practical first financial, legal, and document steps for executors and responsible relatives.',
     audience: 'For executors and responsible relatives',
     sections: [
@@ -57,7 +57,7 @@ const guides: Guide[] = [
   {
     type: 'Funeral Home Meeting Prep',
     title: 'Walk in with the facts they need',
-    fullTitle: 'Funeral Home Meeting Prep — Walk In With the Facts They Need',
+    fullTitle: 'Funeral Home Meeting Prep: Walk In With the Facts They Need',
     subtitle: 'Be prepared for your arrangement meeting so you can focus on honoring your loved one instead of scrambling for information.',
     audience: 'For arrangement meetings',
     sections: [
