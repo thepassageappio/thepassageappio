@@ -9,7 +9,7 @@ import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreview
 import { createPassageServerClient } from '@/lib/supabase/server';
 import { MessageThread } from '@/components/messaging/MessageThread';
 import { FamilyInvitationForm } from './FamilyInvitationForm';
-import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
+import { ApprovePartnerQuoteForm, CreatePartnerRequestForm, RejectPartnerQuoteForm, ReleaseVendorPayoutForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
 import styles from '../../../proof-loop.module.css';
 
@@ -76,8 +76,18 @@ export default async function DirectorCasePage({ params, searchParams }: { param
               <h3>{request.title}</h3>
               <p>{humanPartnerCategory(request.category)} · {humanPartnerRequestStatus(request.status)}{request.quote_amount_cents !== null ? ` · ${formatPartnerAmount(request.quote_amount_cents)}` : ''}</p>
               {request.proof_summary && <p>Delivery proof: {request.proof_summary}</p>}
+              {request.status === 'verified' && request.vendor_payout_cents !== null && (
+                <p>Vendor paid {formatPartnerAmount(request.vendor_payout_cents)}{request.platform_fee_cents !== null ? ` · platform fee ${formatPartnerAmount(request.platform_fee_cents)}` : ''}</p>
+              )}
               <small>Sent {formatPartnerTime(request.sent_at)}</small>
+              {request.status === 'quoted' && (
+                <>
+                  <ApprovePartnerQuoteForm expectedVersion={request.version} partnerRequestId={request.id} workflowId={workflow.id} />
+                  <RejectPartnerQuoteForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} workflowId={workflow.id} />
+                </>
+              )}
               {request.status === 'proof_submitted' && <VerifyPartnerRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} workflowId={workflow.id} />}
+              {request.status === 'verified' && !request.payout_released_at && <ReleaseVendorPayoutForm partnerRequestId={request.id} requestId={randomUUID()} workflowId={workflow.id} />}
             </li>
           ))}
         </ol>

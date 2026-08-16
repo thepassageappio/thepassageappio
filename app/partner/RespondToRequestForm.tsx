@@ -18,7 +18,7 @@ export function RespondToRequestForm({ partnerRequestId, requestId, version }: {
       <input name="decision" type="hidden" value={decision} />
       <p><strong>Respond to this request.</strong><span>Passage checks that this request still matches what you see before saving.</span></p>
       <div role="radiogroup" aria-label="Decision">
-        <label><input checked={decision === 'accept'} disabled={pending} name="decisionChoice" onChange={() => setDecision('accept')} type="radio" /> Accept with a quote</label>
+        <label><input checked={decision === 'accept'} disabled={pending} name="decisionChoice" onChange={() => setDecision('accept')} type="radio" /> Send a quote</label>
         <label><input checked={decision === 'decline'} disabled={pending} name="decisionChoice" onChange={() => setDecision('decline')} type="radio" /> Decline</label>
       </div>
       {decision === 'accept' ? (
@@ -29,7 +29,7 @@ export function RespondToRequestForm({ partnerRequestId, requestId, version }: {
       ) : (
         <label>Reason for declining<textarea disabled={pending} maxLength={500} name="note" required /></label>
       )}
-      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Saving…' : decision === 'accept' ? 'Accept and send quote' : 'Decline request'}</button>
+      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Saving…' : decision === 'accept' ? 'Send quote' : 'Decline request'}</button>
       {state.message && <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}><strong>{state.status === 'saved' ? 'Response saved' : 'Nothing changed'}</strong><p>{state.message}</p></div>}
     </form>
   );

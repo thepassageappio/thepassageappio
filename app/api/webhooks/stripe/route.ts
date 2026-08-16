@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
 import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, type RevenueSegment } from '@/lib/hubspot';
-import { getStripeClient, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
+import { getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
@@ -61,7 +61,10 @@ export async function POST(request: Request) {
 // subscription is handled by handleInvoicePaid instead; these never fire
 // again for the same subscription/session.
 async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, session: Stripe.Checkout.Session) {
-  if (session.mode === 'payment') return handleOneTimeCheckoutCompleted(service, session);
+  if (session.mode === 'payment') {
+    if (session.metadata?.kind === 'partner_request_payment') return handlePartnerRequestPaymentCompleted(service, session);
+    return handleOneTimeCheckoutCompleted(service, session);
+  }
   if (session.mode !== 'subscription' || !session.subscription || !session.customer) return;
 
   const isB2b = session.metadata?.segment === 'b2b_funeral_home';
@@ -192,6 +195,62 @@ async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: S
     stripeSubscriptionId: session.id,
     stripeCustomerId: customerId ?? '',
     acquisitionChannel: acquisition.channel,
+  });
+}
+
+// Director approved a vendor's quote and paid it -- moves the request from
+// 'quoted' straight to 'in_progress' (funds captured, held by the platform
+// until verification) with no manual step by anyone at Passage. Writes
+// directly rather than through an RPC since there is no authenticated user
+// in this context, matching every other handler in this file. The
+// .eq('status', 'quoted') guard is a second line of defense on top of the
+// top-level stripe_webhook_events dedup, in case this event is ever
+// re-delivered after the row has already moved on.
+async function handlePartnerRequestPaymentCompleted(service: ServiceClient, session: Stripe.Checkout.Session) {
+  const partnerRequestId = session.metadata?.partner_request_id;
+  if (!partnerRequestId) return;
+
+  const { data: existingRow } = await service
+    .from('partner_requests')
+    .select('id, status, version, organization_id, partner_organization_id')
+    .eq('id', partnerRequestId)
+    .maybeSingle();
+  if (!existingRow) return;
+  const row = existingRow as { id: string; status: string; version: number; organization_id: string; partner_organization_id: string };
+  if (row.status !== 'quoted') return;
+
+  const amountCents = session.amount_total ?? 0;
+  const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? null);
+  const platformFeeCents = Math.round((amountCents * VENDOR_PLATFORM_FEE_PERCENT) / 100);
+  const vendorPayoutCents = amountCents - platformFeeCents;
+  const nowIso = new Date().toISOString();
+
+  const { error: updateError } = await service
+    .from('partner_requests')
+    .update({
+      status: 'in_progress',
+      version: row.version + 1,
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: paymentIntentId,
+      platform_fee_cents: platformFeeCents,
+      vendor_payout_cents: vendorPayoutCents,
+      payment_captured_at: nowIso,
+      started_at: nowIso,
+      updated_at: nowIso,
+    })
+    .eq('id', row.id)
+    .eq('status', 'quoted');
+  if (updateError) return;
+
+  await service.from('partner_request_events').insert({
+    partner_request_id: row.id,
+    organization_id: row.organization_id,
+    partner_organization_id: row.partner_organization_id,
+    name: 'partner_request.payment_captured',
+    previous_state: 'quoted',
+    next_state: 'in_progress',
+    idempotency_key: `partner_request_payment_captured:${session.id}`,
+    metadata: { stripe_checkout_session_id: session.id, amount_cents: amountCents, platform_fee_cents: platformFeeCents, vendor_payout_cents: vendorPayoutCents },
   });
 }
 

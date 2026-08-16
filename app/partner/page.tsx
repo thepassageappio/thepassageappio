@@ -13,7 +13,7 @@ export default async function PartnerPage() {
   const result = await loadHostedPartnerData();
   if (!result.ok) return <Unavailable message={result.message} />;
   const { viewer, requests } = result.data;
-  const open = requests.filter((request) => request.status === 'sent' || request.status === 'in_progress' || request.status === 'proof_submitted');
+  const open = requests.filter((request) => ['sent', 'quoted', 'in_progress', 'proof_submitted'].includes(request.status));
   const closed = requests.filter((request) => request.status === 'declined' || request.status === 'verified');
 
   return (
@@ -41,6 +41,7 @@ export default async function PartnerPage() {
                 </dl>
               </div>
               {request.status === 'sent' && <RespondToRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
+              {request.status === 'quoted' && <div className={styles.startForm}><p>Quote sent. Work begins once the funeral home approves and payment is captured.</p></div>}
               {request.status === 'in_progress' && <SubmitDeliveryProofForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
               {request.status === 'proof_submitted' && <div className={styles.startForm}><p>Delivery proof is waiting for the funeral home director to review.</p></div>}
               <div className={styles.startForm}><Link className={styles.primaryLink} href={`/partner/requests/${request.id}`}>Open full history</Link></div>

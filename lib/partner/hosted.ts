@@ -13,15 +13,19 @@ export type HostedPartnerRequest = {
   title: string;
   details: string;
   needed_by: string | null;
-  status: 'sent' | 'in_progress' | 'declined' | 'proof_submitted' | 'verified';
+  status: 'sent' | 'quoted' | 'in_progress' | 'declined' | 'proof_submitted' | 'verified';
   version: number;
   quote_amount_cents: number | null;
   response_note: string | null;
   decline_reason: string | null;
   proof_summary: string | null;
   proof_reference: string | null;
+  platform_fee_cents: number | null;
+  vendor_payout_cents: number | null;
+  payout_released_at: string | null;
   sent_at: string;
   responded_at: string | null;
+  quoted_at: string | null;
   started_at: string | null;
   proof_submitted_at: string | null;
   verified_at: string | null;
@@ -46,7 +50,7 @@ export type HostedPartnerResult =
   | { ok: true; data: HostedPartnerData }
   | { ok: false; message: string };
 
-const PARTNER_REQUEST_COLUMNS = 'id, organization_id, workflow_id, partner_organization_id, category, title, details, needed_by, status, version, quote_amount_cents, response_note, decline_reason, proof_summary, proof_reference, sent_at, responded_at, started_at, proof_submitted_at, verified_at';
+const PARTNER_REQUEST_COLUMNS = 'id, organization_id, workflow_id, partner_organization_id, category, title, details, needed_by, status, version, quote_amount_cents, response_note, decline_reason, proof_summary, proof_reference, platform_fee_cents, vendor_payout_cents, payout_released_at, sent_at, responded_at, quoted_at, started_at, proof_submitted_at, verified_at';
 
 // Vendor-side loader, scoped by RLS to this partner organization's own
 // requests only (see partner_requests_authorized_select). Deliberately does
@@ -110,8 +114,9 @@ const categoryLabels: Record<string, string> = VENDOR_CATEGORY_LABELS;
 
 const statusLabels: Record<string, string> = {
   sent: 'Waiting for vendor response',
-  in_progress: 'Accepted — in progress',
-  declined: 'Declined by vendor',
+  quoted: 'Quoted — waiting for approval',
+  in_progress: 'Approved & paid — in progress',
+  declined: 'Declined',
   proof_submitted: 'Delivery proof waiting for review',
   verified: 'Verified — complete',
 };

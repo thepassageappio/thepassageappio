@@ -66,7 +66,7 @@ export async function respondToPartnerRequest(_previous: PartnerCommandState, fo
   revalidatePath('/director');
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This response was already saved. The original decision is shown below.' : decision === 'accept' ? 'Quote accepted and saved. The funeral home can see your response.' : 'Request declined and saved.',
+    message: receipt.replayed ? 'This response was already saved. The original decision is shown below.' : decision === 'accept' ? 'Quote sent. Work begins once the funeral home approves and payment is captured.' : 'Request declined and saved.',
     receipt: { occurredAt: new Date().toISOString(), replayed: receipt.replayed },
   };
 }

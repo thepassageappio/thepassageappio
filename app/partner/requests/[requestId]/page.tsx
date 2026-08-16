@@ -23,6 +23,7 @@ export default async function PartnerRequestPage({ params }: { params: Promise<{
       <Link className={styles.backLink} href="/partner">← Requests</Link>
       <ol aria-label="Request position" className={styles.orientation}>
         <li aria-current={request.status === 'sent' ? 'step' : undefined} data-active={request.status === 'sent' ? 'true' : undefined}>Respond</li>
+        <li aria-current={request.status === 'quoted' ? 'step' : undefined} data-active={request.status === 'quoted' ? 'true' : undefined}>Approval</li>
         <li aria-current={request.status === 'in_progress' ? 'step' : undefined} data-active={request.status === 'in_progress' ? 'true' : undefined}>Deliver</li>
         <li aria-current={['proof_submitted', 'verified'].includes(request.status) ? 'step' : undefined} data-active={['proof_submitted', 'verified'].includes(request.status) ? 'true' : undefined}>Verified</li>
       </ol>
@@ -33,11 +34,21 @@ export default async function PartnerRequestPage({ params }: { params: Promise<{
       <div className={styles.layout}>
         <section aria-labelledby="now-heading" className={styles.panel}>
           <p className={styles.eyebrow}>Now</p>
-          <h2 id="now-heading">{request.status === 'verified' ? 'Verified. Request complete.' : request.status === 'declined' ? 'You declined this request.' : request.status === 'proof_submitted' ? 'Waiting for director review.' : request.status === 'sent' ? 'Respond to this request.' : 'Complete the work, then submit delivery proof.'}</h2>
+          <h2 id="now-heading">{request.status === 'verified' ? 'Verified. Request complete.' : request.status === 'declined' ? 'This request is declined.' : request.status === 'proof_submitted' ? 'Waiting for director review.' : request.status === 'quoted' ? 'Quote sent. Waiting for approval.' : request.status === 'sent' ? 'Respond to this request.' : 'Complete the work, then submit delivery proof.'}</h2>
           {request.status === 'sent' && <RespondToRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
+          {request.status === 'quoted' && <div className={styles.receipt} role="status"><h3>Quote sent: {formatPartnerAmount(request.quote_amount_cents)}</h3><p>Work begins once the funeral home approves and payment is captured. You&apos;ll see this move to &quot;in progress&quot; automatically.</p><small>Sent {formatPartnerTime(request.quoted_at)}</small></div>}
           {request.status === 'in_progress' && <SubmitDeliveryProofForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} />}
           {request.status === 'proof_submitted' && <div className={styles.receipt} role="status"><h3>Delivery proof submitted.</h3><p>{request.proof_summary}</p>{request.proof_reference && <p>Supporting reference: {request.proof_reference}</p>}<small>Submitted {formatPartnerTime(request.proof_submitted_at)} · waiting for director review</small></div>}
-          {request.status === 'verified' && <div className={styles.receipt} role="status"><h3>Verified. Request complete.</h3><p>{request.proof_summary}</p><small>Verified {formatPartnerTime(request.verified_at)}</small></div>}
+          {request.status === 'verified' && (
+            <div className={styles.receipt} role="status">
+              <h3>Verified. Request complete.</h3>
+              <p>{request.proof_summary}</p>
+              {request.vendor_payout_cents !== null && (
+                <p>{request.payout_released_at ? `You were paid ${formatPartnerAmount(request.vendor_payout_cents)}` : `${formatPartnerAmount(request.vendor_payout_cents)} is being released to you`}{request.platform_fee_cents !== null ? ` (platform fee ${formatPartnerAmount(request.platform_fee_cents)} deducted).` : '.'}</p>
+              )}
+              <small>Verified {formatPartnerTime(request.verified_at)}</small>
+            </div>
+          )}
           {request.status === 'declined' && <div className={styles.receipt} role="status"><h3>Declined</h3><p>{request.decline_reason}</p><small>Declined {formatPartnerTime(request.responded_at)}</small></div>}
         </section>
         <aside aria-labelledby="facts-heading" className={styles.panel}>
@@ -66,10 +77,13 @@ export default async function PartnerRequestPage({ params }: { params: Promise<{
 function eventLabel(name: string) {
   const labels: Record<string, string> = {
     'partner_request.sent': 'Request sent',
-    'partner_request.accepted': 'Accepted with quote',
+    'partner_request.quoted': 'Quote sent',
+    'partner_request.quote_declined': 'Quote declined by director',
+    'partner_request.payment_captured': 'Payment captured — approved',
     'partner_request.declined': 'Declined',
     'partner_request.proof_submitted': 'Delivery proof submitted',
     'partner_request.verified': 'Verified by director',
+    'partner_request.payout_released': 'Payment released to you',
   };
   return labels[name] ?? name;
 }

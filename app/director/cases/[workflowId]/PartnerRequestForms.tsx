@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { createPartnerRequest, verifyPartnerRequest } from './partner-actions';
+import { approvePartnerQuote, createPartnerRequest, rejectPartnerQuote, releaseVendorPayout, verifyPartnerRequest } from './partner-actions';
 import type { PartnerCommandState } from '@/app/partner/actions';
 import styles from '../../../proof-loop.module.css';
 
@@ -35,6 +35,52 @@ export function CreatePartnerRequestForm({ workflowId, requestId, partnerOrganiz
   );
 }
 
+export function ApprovePartnerQuoteForm({ workflowId, partnerRequestId, expectedVersion }: { workflowId: string; partnerRequestId: string; expectedVersion: number }) {
+  const [state, action, pending] = useActionState(approvePartnerQuote, initialState);
+  return (
+    <form action={action} aria-busy={pending} className={styles.form}>
+      <input name="workflowId" type="hidden" value={workflowId} />
+      <input name="partnerRequestId" type="hidden" value={partnerRequestId} />
+      <input name="expectedVersion" type="hidden" value={expectedVersion} />
+      <p className={styles.boundary}>Approving sends you to Stripe to pay the vendor&apos;s quote. Passage holds the funds until you verify delivery, then releases payment to the vendor automatically minus the platform fee.</p>
+      <button disabled={pending} type="submit">{pending ? 'Starting payment…' : 'Approve & pay quote'}</button>
+      <Result state={state} />
+    </form>
+  );
+}
+
+export function RejectPartnerQuoteForm({ workflowId, partnerRequestId, requestId, version }: { workflowId: string; partnerRequestId: string; requestId: string; version: number }) {
+  const [state, action, pending] = useActionState(rejectPartnerQuote, initialState);
+  return (
+    <form action={action} aria-busy={pending} className={styles.form}>
+      <input name="workflowId" type="hidden" value={workflowId} />
+      <input name="partnerRequestId" type="hidden" value={partnerRequestId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <input name="expectedVersion" type="hidden" value={version} />
+      <fieldset disabled={pending}>
+        <legend>Decline this quote.</legend>
+        <label>Reason<textarea maxLength={500} name="reason" required /></label>
+        <button type="submit">{pending ? 'Saving…' : 'Decline quote'}</button>
+      </fieldset>
+      <Result state={state} />
+    </form>
+  );
+}
+
+export function ReleaseVendorPayoutForm({ workflowId, partnerRequestId, requestId }: { workflowId: string; partnerRequestId: string; requestId: string }) {
+  const [state, action, pending] = useActionState(releaseVendorPayout, initialState);
+  return (
+    <form action={action} aria-busy={pending} className={styles.form}>
+      <input name="workflowId" type="hidden" value={workflowId} />
+      <input name="partnerRequestId" type="hidden" value={partnerRequestId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <p className={styles.boundary}>Verified, but the vendor payment did not release automatically. Retry it here.</p>
+      <button disabled={pending} type="submit">{pending ? 'Releasing…' : 'Release vendor payment'}</button>
+      <Result state={state} />
+    </form>
+  );
+}
+
 export function VerifyPartnerRequestForm({ workflowId, partnerRequestId, requestId, version }: { workflowId: string; partnerRequestId: string; requestId: string; version: number }) {
   const [state, action, pending] = useActionState(verifyPartnerRequest, initialState);
   return (
@@ -43,7 +89,7 @@ export function VerifyPartnerRequestForm({ workflowId, partnerRequestId, request
       <input name="partnerRequestId" type="hidden" value={partnerRequestId} />
       <input name="requestId" type="hidden" value={requestId} />
       <input name="expectedVersion" type="hidden" value={version} />
-      <p className={styles.boundary}>Verifying marks this vendor request complete. The submitted delivery proof remains in history.</p>
+      <p className={styles.boundary}>Verifying marks this vendor request complete and automatically releases payment to the vendor, minus the platform fee. The submitted delivery proof remains in history.</p>
       <button disabled={pending} type="submit">{pending ? 'Verifying…' : 'Verify vendor delivery'}</button>
       <Result state={state} />
     </form>
