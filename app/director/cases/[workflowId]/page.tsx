@@ -5,6 +5,7 @@ import { displayMember, formatOperationalTime, loadHostedOperations } from '@/li
 import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadPartnerContextForWorkflow } from '@/lib/partner/hosted';
 import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
+import { FamilyInvitationForm } from './FamilyInvitationForm';
 import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
 import styles from '../../../proof-loop.module.css';
@@ -78,6 +79,11 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         </ol>
       )}
       <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
+    </section>
+
+    <section className={styles.panel} aria-labelledby="family-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Family access</p><h2 id="family-heading">Invite a family member to this case.</h2>
+      <FamilyInvitationForm requestId={randomUUID()} workflowId={workflow.id} />
     </section>
   </AppFrame>;
 }
