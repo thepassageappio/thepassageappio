@@ -84,6 +84,7 @@ export async function createCaseFromUrgentIntake(_previous: UrgentDirectorComman
     if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'You do not have director authority for this organization and location. Nothing changed.' };
     if (result.error.code === '40001') return { status: 'conflict', message: 'This request changed before the case was created. Reload the page.' };
     if (result.error.code === '55000') return { status: 'conflict', message: 'This request is not ready for a case yet. Reload the page.' };
+    if (result.error.code === '55001') return { status: 'denied', message: 'Your 90-day trial has ended and you already have an active case. Upgrade to open another.' };
     return { status: 'unavailable', message: 'Passage could not create the case. Nothing changed.' };
   }
   const receipt = firstRpcRow<CaseReceipt>(result.data);

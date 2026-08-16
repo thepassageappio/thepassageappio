@@ -2,7 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import { HUBSPOT_LIFECYCLE_STAGE, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
+import { createSelfServeSignupTask, createTrialDeal, HUBSPOT_LIFECYCLE_STAGE, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type OrganizationCreationState = {
@@ -54,10 +54,17 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   // Non-blocking: HubSpot tracking must never stand between a funeral home
   // and its own new organization existing. Every piece of onboarding data
   // collected here should land in HubSpot, not just the Supabase row --
-  // including the owner as a marketable Contact for future newsletters,
-  // not just a Company record nobody can email.
-  await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
-  if (user.email) await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null);
+  // the owner as a marketable Contact, an open "Pilot Active" deal tracking
+  // the 90-day trial (matches supabase/migrations/20260816120000's gate,
+  // which starts the same clock from organizations.created_at), and a task
+  // assigned to the founder so a self-serve signup is never silent.
+  const company = await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
+  const contactId = user.email
+    ? await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null)
+    : null;
+  const trialEndsAtIso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+  if (user.email) await createTrialDeal({ email: user.email, organizationName, trialEndsAtIso }).catch(() => null);
+  await createSelfServeSignupTask({ organizationName, contactId, companyId: company?.companyId ?? null }).catch(() => null);
 
   return { status: 'created' };
 }

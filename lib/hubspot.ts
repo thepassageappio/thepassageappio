@@ -366,6 +366,34 @@ export const HUBSPOT_VENDOR_CATEGORY: Record<string, string> = {
   other: 'Other',
 };
 
+// Self-serve funeral-home signup starts a 90-day trial -- creates a real
+// open deal in the "Pilot Active" stage (confirmed live against the
+// account's own pipeline, which already has this exact stage) so it shows
+// up in the founder's normal sales pipeline view, not just as a Contact
+// lifecycle-stage change nobody's watching. Reuses the existing renewal_date
+// deal property to carry the trial-end date -- avoids provisioning a new
+// custom property for one field.
+export async function createTrialDeal(input: { email: string; organizationName: string; trialEndsAtIso: string }): Promise<string | null> {
+  if (!hubspotToken()) return null;
+  await ensureHubspotDealProperties();
+
+  const contactId = await upsertContact(input.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee);
+  if (!contactId) return null;
+
+  return createDeal(
+    {
+      dealname: `${input.organizationName} — 90-day trial`,
+      pipeline: 'default',
+      dealstage: 'contractsent', // "Pilot Active"
+      dealtype: 'New Business' satisfies DealTypeValue,
+      revenue_segment: 'B2B Funeral Home' satisfies RevenueSegment,
+      plan_name: 'Self-serve trial',
+      ...(dealDateProperty(input.trialEndsAtIso) ? { renewal_date: dealDateProperty(input.trialEndsAtIso)! } : {}),
+    },
+    contactId,
+  );
+}
+
 // Upserts the funeral-home Company by name and records its current location
 // count in the already-provisioned (but previously never-written)
 // number_of_locations field. `name` has no uniqueness constraint in HubSpot
@@ -411,4 +439,46 @@ export async function upsertOrganizationCompany(input: {
   const createBody = await createResult.json();
   const companyId: string | undefined = createBody?.id;
   return companyId ? { companyId } : null;
+}
+
+// The founder's own HubSpot owner id (confirmed live via search_owners, not
+// guessed) -- every self-serve-signup follow-up task is assigned directly
+// to him.
+const PASSAGE_FOUNDER_HUBSPOT_OWNER_ID = '89283387';
+
+// Creates a real HubSpot Task assigned to the founder the moment a self-serve
+// funeral home signs up -- the actual "mechanism to reach out" for a signup
+// path that otherwise happens with zero visibility to anyone at Passage.
+// Uses the v4 "default association" endpoint rather than an explicit
+// associationTypeId, since that avoids guessing HubSpot's internal numeric
+// association-type ids for task<->contact/company (unlike the well-known
+// deal<->contact id already used in createDeal).
+export async function createSelfServeSignupTask(input: { organizationName: string; contactId: string | null; companyId: string | null }): Promise<void> {
+  if (!hubspotToken()) return;
+  const dueTimestamp = String(Date.now());
+  const createResult = await hubspotFetch('/crm/v3/objects/tasks', {
+    method: 'POST',
+    body: JSON.stringify({
+      properties: {
+        hs_task_subject: `Follow up: ${input.organizationName} started a self-serve trial`,
+        hs_task_body: `${input.organizationName} just created their own Passage workspace via self-serve signup. 90-day trial started today -- reach out to help them get set up and gauge fit for a paid plan.`,
+        hs_task_type: 'CALL',
+        hs_task_priority: 'HIGH',
+        hs_task_status: 'NOT_STARTED',
+        hs_timestamp: dueTimestamp,
+        hubspot_owner_id: PASSAGE_FOUNDER_HUBSPOT_OWNER_ID,
+      },
+    }),
+  }).catch(() => null);
+  if (!createResult?.ok) return;
+  const createBody = await createResult.json();
+  const taskId: string | undefined = createBody?.id;
+  if (!taskId) return;
+
+  if (input.contactId) {
+    await hubspotFetch(`/crm/v4/objects/tasks/${taskId}/associations/default/contacts/${input.contactId}`, { method: 'PUT' }).catch(() => null);
+  }
+  if (input.companyId) {
+    await hubspotFetch(`/crm/v4/objects/tasks/${taskId}/associations/default/companies/${input.companyId}`, { method: 'PUT' }).catch(() => null);
+  }
 }
