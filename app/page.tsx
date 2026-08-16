@@ -29,12 +29,12 @@ export default function HomePage() {
             Passage is a shared record for families, funeral homes, and everyone helping in between. It keeps track of what needs to happen, who owns it, and what&apos;s already been handled, so you can lean on the people around you instead of repeating yourself to each one.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 22 }}>
-            <Link className={styles.button} href="/start">Get started</Link>
+            <Link className={styles.button} href="/#what-you-need">Get started</Link>
             <Link className={styles.buttonSecondary} href="/demo">See how it works</Link>
           </div>
         </section>
 
-        <section className={styles.section}>
+        <section className={styles.section} id="what-you-need">
           <div className={styles.sectionHeading}>
             <h2>What do you need right now?</h2>
             <p>Passage works differently depending on your situation. Pick the one that matches yours.</p>
