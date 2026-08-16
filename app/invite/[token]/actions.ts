@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { firstRpcRow, type InvitationAcceptance, validInvitationToken } from '@/lib/auth/invitations';
 import { loginPath } from '@/lib/auth/redirects';
 import { verifiedUser } from '@/lib/auth/session';
+import { HUBSPOT_LIFECYCLE_STAGE, upsertContact } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 function failureCode(message: string) {
@@ -21,7 +22,8 @@ export async function acceptInvitation(token: string) {
 
   const client = await createPassageServerClient();
   if (!client) redirect(`${invitePath}?error=environment`);
-  if (!await verifiedUser(client)) redirect(loginPath(invitePath));
+  const user = await verifiedUser(client);
+  if (!user) redirect(loginPath(invitePath));
 
   const accepted = await client.rpc('accept_organization_invitation', { raw_token: token });
   if (accepted.error) redirect(`${invitePath}?error=${failureCode(accepted.error.message)}`);
@@ -40,6 +42,12 @@ export async function acceptInvitation(token: string) {
     && second.organization_id === first.organization_id
     && second.member_role === first.member_role;
   if (!sameAuthority) redirect(`${invitePath}?error=verification`);
+
+  // Non-blocking: a user joining a funeral-home org (staff or director) is
+  // exactly the "users added to funeral homes" case that should land in
+  // HubSpot as a Contact at this stage -- do it once acceptance is durably
+  // confirmed, not before.
+  if (user.email) await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null);
 
   redirect(`${invitePath}?receipt=accepted`);
 }

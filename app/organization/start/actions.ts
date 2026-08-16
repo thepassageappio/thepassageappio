@@ -2,7 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import { upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
+import { HUBSPOT_LIFECYCLE_STAGE, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type OrganizationCreationState = {
@@ -57,7 +57,7 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   // including the owner as a marketable Contact for future newsletters,
   // not just a Company record nobody can email.
   await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
-  if (user.email) await upsertContact(user.email).catch(() => null);
+  if (user.email) await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null);
 
   return { status: 'created' };
 }

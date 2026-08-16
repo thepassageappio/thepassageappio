@@ -155,12 +155,27 @@ function dealDateProperty(isoOrNull: string | null): string | undefined {
   return isoOrNull.slice(0, 10);
 }
 
+// The founder built a custom Lifecycle Stage taxonomy in HubSpot specific
+// to Passage's actual personas (confirmed live against the account, not
+// guessed) -- every Contact this app creates or updates should carry the
+// right one of these rather than being left on HubSpot's generic default.
+export const HUBSPOT_LIFECYCLE_STAGE = {
+  funeralHomeDirectorOrEmployee: '4155093739',
+  vendorOwnerOrEmployee: '4155093740',
+  participant: '4155093741',
+  customer: 'customer',
+  churnedSubscriber: '4155821769',
+} as const;
+
 // Exported (was internal to the deal-creation flow) so any onboarding path
 // -- not just a paying subscriber -- can get the person into HubSpot as a
 // real, marketable Contact the moment they sign up. Idempotent by email via
 // HubSpot's own upsert (idProperty: 'email'), so calling this again for the
-// same person just updates the existing record.
-export async function upsertContact(email: string, firstName?: string, lastName?: string, lifetimeValueCents?: number): Promise<string | null> {
+// same person just updates the existing record. lifecycleStage is only ever
+// written forward when passed -- omit it to update other fields (name, LTV)
+// without touching a stage that may have since progressed past this call's
+// context.
+export async function upsertContact(email: string, firstName?: string, lastName?: string, lifetimeValueCents?: number, lifecycleStage?: string): Promise<string | null> {
   const [firstname, ...rest] = (firstName ? `${firstName} ${lastName ?? ''}` : email).trim().split(/\s+/).filter(Boolean);
   const lastname = lastName ?? rest.join(' ');
   const result = await hubspotFetch('/crm/v3/objects/contacts/batch/upsert', {
@@ -174,6 +189,7 @@ export async function upsertContact(email: string, firstName?: string, lastName?
           ...(firstname ? { firstname } : {}),
           ...(lastname ? { lastname } : {}),
           ...(lifetimeValueCents !== undefined ? { lifetime_value_cents: String(lifetimeValueCents) } : {}),
+          ...(lifecycleStage ? { lifecyclestage: lifecycleStage } : {}),
         },
       }],
     }),
@@ -205,6 +221,12 @@ export type NewBusinessDealInput = {
   stripeSubscriptionId: string;
   stripeCustomerId: string;
   acquisitionChannel: AcquisitionChannel;
+  // Which HUBSPOT_LIFECYCLE_STAGE this new payer becomes -- distinct from
+  // revenueSegment (which is a deal-level reporting label): a paying D2C
+  // subscriber is a 'customer', but a B2B checkout is the funeral home's
+  // owner using the product day to day, so it carries the same stage as
+  // every other funeral-home person rather than the generic 'customer'.
+  contactLifecycleStage: string;
 };
 
 // The one-time anchor deal for a subscription, created at first payment and
@@ -217,7 +239,7 @@ export async function createNewBusinessDeal(input: NewBusinessDealInput): Promis
   if (!hubspotToken()) return null;
   await ensureHubspotDealProperties();
 
-  const contactId = await upsertContact(input.email, input.firstName, input.lastName, input.amountCents);
+  const contactId = await upsertContact(input.email, input.firstName, input.lastName, input.amountCents, input.contactLifecycleStage);
   if (!contactId) return null;
 
   const dealId = await createDeal(
@@ -263,7 +285,8 @@ export async function createRenewalDeal(input: RenewalDealInput): Promise<string
   if (!hubspotToken()) return null;
   await ensureHubspotDealProperties();
 
-  const contactId = await upsertContact(input.email, undefined, undefined, input.cumulativeLifetimeValueCents);
+  // A renewal only ever fires for someone already paying -- always 'customer'.
+  const contactId = await upsertContact(input.email, undefined, undefined, input.cumulativeLifetimeValueCents, HUBSPOT_LIFECYCLE_STAGE.customer);
   if (!contactId) return null;
 
   const dealType: DealTypeValue = input.amountCents === input.priorAmountCents
@@ -307,7 +330,7 @@ export async function createChurnDeal(input: ChurnDealInput): Promise<string | n
   if (!hubspotToken()) return null;
   await ensureHubspotDealProperties();
 
-  const contactId = await upsertContact(input.email);
+  const contactId = await upsertContact(input.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.churnedSubscriber);
   if (!contactId) return null;
 
   return createDeal(

@@ -2,7 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
-import { HUBSPOT_VENDOR_CATEGORY, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
+import { HUBSPOT_LIFECYCLE_STAGE, HUBSPOT_VENDOR_CATEGORY, upsertContact, upsertOrganizationCompany } from '@/lib/hubspot';
 import { VENDOR_CATEGORIES, type VendorCategory } from '@/lib/partner/categories';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
@@ -61,7 +61,7 @@ export async function createVendorOrganization(_previous: VendorSignupState, for
     phone: contactPhone || undefined,
   }).catch(() => null);
   const marketingEmail = contactEmail || user.email;
-  if (marketingEmail) await upsertContact(marketingEmail).catch(() => null);
+  if (marketingEmail) await upsertContact(marketingEmail, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.vendorOwnerOrEmployee).catch(() => null);
 
   return { status: 'created' };
 }

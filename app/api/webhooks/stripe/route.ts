@@ -1,7 +1,7 @@
 import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
-import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
+import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, HUBSPOT_LIFECYCLE_STAGE, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
 import { getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
@@ -164,6 +164,9 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
     stripeSubscriptionId: subscriptionId,
     stripeCustomerId: customerId,
     acquisitionChannel: acquisition.channel,
+    // B2B: this person now runs a real funeral-home org day to day, same
+    // stage as every other funeral-home person. D2C: a paying subscriber.
+    contactLifecycleStage: isB2b ? HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee : HUBSPOT_LIFECYCLE_STAGE.customer,
   });
   if (dealResult) {
     await service.from('subscriptions').update({ hubspot_deal_id: dealResult.dealId, hubspot_contact_id: dealResult.contactId }).eq('stripe_subscription_id', subscriptionId);
@@ -317,6 +320,7 @@ async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: S
     stripeSubscriptionId: session.id,
     stripeCustomerId: customerId ?? '',
     acquisitionChannel: acquisition.channel,
+    contactLifecycleStage: HUBSPOT_LIFECYCLE_STAGE.customer,
   });
 }
 
