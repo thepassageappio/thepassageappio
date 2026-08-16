@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
 import { createPassageServerClient } from '@/lib/supabase/server';
-import { PREVIEW_RECEIVING_ORGANIZATION, type SituationCategory } from '@/lib/urgent/situations';
+import { type SituationCategory } from '@/lib/urgent/situations';
 
 export type UrgentCommandState = {
   status: 'idle' | 'saved' | 'validation' | 'denied' | 'unavailable' | 'conflict';
@@ -19,7 +19,6 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 export async function submitUrgentIntake(_previous: UrgentCommandState, formData: FormData): Promise<UrgentCommandState> {
   const situationCategory = String(formData.get('situationCategory') ?? '');
-  const receivingOrganizationId = String(formData.get('receivingOrganizationId') ?? '');
   const personName = String(formData.get('personName') ?? '').trim();
   const personLocation = String(formData.get('personLocation') ?? '').trim();
   const personTiming = String(formData.get('personTiming') ?? '').trim();
@@ -30,9 +29,6 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   const wantsCallback = String(formData.get('wantsCallback') ?? '') === 'true';
   const requestId = String(formData.get('requestId') ?? '');
 
-  if (receivingOrganizationId !== PREVIEW_RECEIVING_ORGANIZATION.id) {
-    return { status: 'validation', message: 'We could not confirm where to send this. Nothing was saved. Reload and try again.' };
-  }
   if (!SITUATIONS.includes(situationCategory as SituationCategory)
     || personName.length < 1 || personName.length > 200
     || personLocation.length < 1 || personLocation.length > 300
@@ -48,7 +44,6 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   if (!user) return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };
 
   const result = await client.rpc('submit_urgent_intake_idempotent', {
-    p_receiving_organization_id: receivingOrganizationId,
     p_situation_category: situationCategory,
     p_person_name: personName,
     p_person_location: personLocation,

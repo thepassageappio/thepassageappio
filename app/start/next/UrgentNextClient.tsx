@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useRef, useState, type FormEvent } from 'react';
 import { getPassageBrowserClient } from '@/lib/supabase/browser';
-import { humanSituationCategory, PREVIEW_RECEIVING_ORGANIZATION, situationGuidance, type SituationCategory } from '@/lib/urgent/situations';
+import { humanSituationCategory, situationGuidance, type SituationCategory } from '@/lib/urgent/situations';
 import { submitUrgentIntake, type UrgentCommandState } from '../actions';
 import { useStartWizard } from '../StartWizardContext';
 import { StartWordmark } from '../StartWordmark';
@@ -207,7 +207,6 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
 
         {phase === 'ready' && state.status !== 'saved' && (
           <form action={formAction} aria-busy={pending} noValidate>
-            <input name="receivingOrganizationId" type="hidden" value={PREVIEW_RECEIVING_ORGANIZATION.id} />
             <input name="situationCategory" type="hidden" value={draft.situationCategory} />
             <input name="personName" type="hidden" value={draft.personName} />
             <input name="personLocation" type="hidden" value={draft.personLocation} />
