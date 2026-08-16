@@ -83,7 +83,7 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   revalidatePath('/director/urgent');
   return {
     status: 'saved',
-    message: wantsCallback ? 'Sent to Northstar. A director will reach out shortly.' : 'Saved privately. Northstar cannot see this.',
+    message: wantsCallback ? 'Sent to Passage. A team member will reach out shortly.' : 'Saved privately.',
     receipt: { occurredAt: String(savedEvent.data.occurred_at), replayed: receipt.replayed, wantsCallback },
   };
 }

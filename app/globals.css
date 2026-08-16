@@ -97,6 +97,8 @@ button, input, select, textarea { font: inherit; }
 .top-shell__nav a:hover, .top-shell__nav a:focus-visible { color: var(--cobalt); }
 .top-shell__navSignIn { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--hairline-strong); color: var(--ink) !important; }
 .top-shell__navSignIn:hover, .top-shell__navSignIn:focus-visible { border-color: var(--cobalt); background: var(--lilac); }
+.top-shell__navPrimary { padding: 7px 16px; border-radius: 999px; border: 1px solid var(--cobalt); background: var(--cobalt); color: white !important; font-weight: 700; }
+.top-shell__navPrimary:hover, .top-shell__navPrimary:focus-visible { opacity: .92; }
 
 .gateway { overflow: hidden; }
 .gateway__intro {

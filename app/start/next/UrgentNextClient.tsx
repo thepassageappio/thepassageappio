@@ -138,8 +138,8 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
 
         <section className={styles.receivingHome} aria-labelledby="receiving-home-heading">
           <span>If you request a callback</span>
-          <strong id="receiving-home-heading">{PREVIEW_RECEIVING_ORGANIZATION.name}</strong>
-          <p>Only an active owner or director at Northstar can open the request. Saving privately keeps it hidden from Northstar.</p>
+          <strong id="receiving-home-heading">The Passage team</strong>
+          <p>A real person on the Passage team will reach out using the contact details you give below. Saving privately keeps this to just you.</p>
         </section>
 
         {phase === 'checking' && <p className={styles.lede}>One moment…</p>}
@@ -157,17 +157,17 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
             <h2>Already saved.</h2>
             <p>
               {existing.status === 'claimed' || existing.status === 'case_created'
-                ? 'An authorized director at Northstar Funeral Home is helping with this request.'
+                ? 'Someone from the Passage team is helping with this request.'
                 : existing.wants_callback
-                  ? `Northstar Funeral Home has this request. An authorized director will contact ${existing.coordinator_name} using the details provided.`
-                  : 'Saved privately. Northstar Funeral Home cannot see it.'}
+                  ? `Passage has this request. A team member will contact ${existing.coordinator_name} using the details provided.`
+                  : 'Saved privately. Nobody else can see it.'}
             </p>
             <dl className={styles.receiptFacts}>
               <div><dt>Situation</dt><dd>{humanSituationCategory(draft.situationCategory)}</dd></div>
               {existing.wants_callback
-                ? <div><dt>Sent to</dt><dd>{PREVIEW_RECEIVING_ORGANIZATION.name}</dd></div>
+                ? <div><dt>Sent to</dt><dd>Passage team</dd></div>
                 : <div><dt>Visibility</dt><dd>Only you</dd></div>}
-              {existing.wants_callback && <div><dt>Visibility</dt><dd>You and an active Northstar owner or director</dd></div>}
+              {existing.wants_callback && <div><dt>Visibility</dt><dd>You and the Passage team</dd></div>}
               <div><dt>Contact</dt><dd>{existing.coordinator_phone || existing.coordinator_email}</dd></div>
               <div>
                 <dt>Saved</dt>
@@ -202,7 +202,6 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
               </div>
               <button className={styles.primaryButton} disabled={authBusy} type="submit">{authBusy ? 'Please wait…' : authMode === 'create' ? 'Create account and continue' : 'Sign in and continue'}</button>
             </form>
-            <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 10 }}>This is a preview workspace using test data. No real messages are sent.</p>
           </div>
         )}
 
@@ -227,8 +226,8 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
               </div>
             )}
             <fieldset disabled={pending} style={{ border: 'none', padding: 0, margin: 0 }}>
-              <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Request a callback from Northstar Funeral Home'}</button>
-              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately — don&apos;t share with Northstar</button>
+              <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Save and request a callback from Passage'}</button>
+              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately — no callback</button>
             </fieldset>
           </form>
         )}
@@ -239,15 +238,15 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
             <h2>Saved.</h2>
             <p>
               {state.receipt?.wantsCallback
-                ? `Northstar Funeral Home has this request. An authorized director will contact ${draft.coordinatorName || 'your contact'} using the details provided.`
-                : 'Saved privately. Northstar Funeral Home cannot see it. Come back anytime if you decide to request a callback.'}
+                ? `Passage has this request. A team member will contact ${draft.coordinatorName || 'your contact'} using the details provided.`
+                : 'Saved privately. Come back anytime if you decide to request a callback.'}
             </p>
             {state.receipt && (
               <dl className={styles.receiptFacts}>
                 {state.receipt.wantsCallback
-                  ? <div><dt>Sent to</dt><dd>{PREVIEW_RECEIVING_ORGANIZATION.name}</dd></div>
+                  ? <div><dt>Sent to</dt><dd>Passage team</dd></div>
                   : <div><dt>Visibility</dt><dd>Only you</dd></div>}
-                {state.receipt.wantsCallback && <div><dt>Visibility</dt><dd>You and an active Northstar owner or director</dd></div>}
+                {state.receipt.wantsCallback && <div><dt>Visibility</dt><dd>You and the Passage team</dd></div>}
                 <div><dt>Contact</dt><dd>{draft.coordinatorPhone || draft.coordinatorEmail}</dd></div>
                 <div><dt>Saved</dt><dd><time dateTime={state.receipt.occurredAt}>{formatSavedTime(state.receipt.occurredAt)}</time></dd></div>
               </dl>

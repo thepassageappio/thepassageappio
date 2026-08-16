@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className={styles.shell} id="main-content">
       <header className={styles.brandBar}>
         <Link href="/" aria-label="Passage home">PASSAGE</Link>
-        <span>{publicRuntimeLabel(configuration.runtime)}</span>
+        {publicRuntimeLabel(configuration.runtime) && <span>{publicRuntimeLabel(configuration.runtime)}</span>}
       </header>
       <section className={styles.panel} aria-labelledby="login-title">
         <p className={styles.eyebrow}>FUNERAL-HOME WORKSPACE</p>
