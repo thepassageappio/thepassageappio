@@ -44,6 +44,17 @@ Every connected system checked directly (not from memory) before continuing to b
 
 - Not fully enumerated this pass — env vars beyond the ones this session directly touched (Stripe/Supabase secrets, Supabase URLs, runtime flags) were not pulled as a complete list. Flagging as the one remaining gap in this audit rather than blocking on flaky browser tooling; can be completed on request.
 
+## 2026-08-16 — all four audit decisions executed
+
+Founder resolved all four open items same-night. Shipped:
+
+1. **Security fix.** RLS enabled (no policies) on all 29 `stripe` schema tables plus explicit `REVOKE` of `anon`/`authenticated` grants on the schema. Verified via advisors: critical finding cleared, no new warnings introduced.
+2. **Real Stripe catalog wired into `/pricing`.** `lib/stripe.ts` rebuilt around the actual 17-product catalog (hardcoded price ids, not secrets, with an env-var override preserved for the three original D2C plans in case those were already correctly configured). New: a Single-Estate one-time purchase button, a paid Urgent one-time option (kept explicitly distinct from the free `/start` triage flow, which is untouched), and a full "For funeral homes" B2B section (Pilot $99/mo, Local $249.99/mo, Multiple Locations $349.99/mo) with real self-serve checkout. Webhook (`app/api/webhooks/stripe/route.ts`) and HubSpot deal creation now branch correctly across D2C/B2B/one-time. **Flagged, not silently resolved:** "Funeral Home - MULTIPLE LOCATIONS" had two different active prices ($399.99 and $349.99, created ~9 minutes apart) — used the newer $349.99 as canonical; confirm or correct. Two generic-named prices ("Annual Subscription- Planning Tool", "One Time Lifetime Charge- Planning Tool") duplicating the "Single Estate" equivalents' amounts were treated as superseded legacy and excluded — confirm if wrong. **Explicitly not built tonight:** the Estate Add-On purchase (priced, ready in `lib/stripe.ts`, but needs an account/billing settings page for an *existing* subscriber that doesn't exist anywhere in the app yet — a real, separate feature, not rushed in at this hour) and participant-discount-at-checkout logic (mentioned in `/pricing`'s own copy, never implemented).
+3. **HubSpot's 16 leads confirmed intentional** — founder-added, no action needed.
+4. **PR #74 (workflow messaging) resurrected and shipped**, adapted from its original lab-only `continuity_participants` design to this session's real `estate_access`/`case_family_invitations` model. Family `/case/[id]/messages` page live, director Case Room now has a Messages panel. Same append-only, least-privilege-projection design as the original PR.
+
+All four verified via `pnpm build` (clean) and Supabase advisors (zero new security findings across all three migrations applied this pass).
+
 ## Canonical product decision — owner-approved 2026-07-18
 
 Passage Zero is the sole target architecture and redesign implementation. Threshold/main is frozen to separately governed production P0/P1 maintenance. No new legacy dashboard, estate, Pages Router IA, schema, or redesign work may begin. PR #24 may merge only through the route/data/auth/RLS/event/evidence and rollback gates in `docs/product/passage-zero-cutover-plan.md`.

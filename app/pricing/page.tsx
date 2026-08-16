@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import { TopShell } from '@/components/core';
-import { startCheckout } from './actions';
+import { startB2bCheckout, startCheckout, startOneTimeEstateCheckout, startUrgentOneTimeCheckout } from './actions';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 const groups = [
   { key: 'individual', label: 'Individual', seats: '1 estate', desc: 'For one person or one loved one.', monthly: '$9.99', annual: '$79.99' },
   { key: 'couple', label: 'Couple', seats: '2 estates', desc: 'For partners, spouses, or two parents.', monthly: '$14.99', annual: '$119.99' },
   { key: 'family', label: 'Family', seats: '5 estates', desc: 'For families coordinating care across several loved ones.', monthly: '$24.99', annual: '$199.99' },
+];
+
+const b2bGroups = [
+  { key: 'funeral_home_pilot', label: 'Pilot', locations: '1 location', desc: 'Try Passage at one location before committing to the full rate.', monthly: '$99' },
+  { key: 'funeral_home_local', label: 'Local', locations: '1 location', desc: 'For a single-location funeral home ready to run on Passage.', monthly: '$249.99' },
+  { key: 'funeral_home_multi_location', label: 'Multiple Locations', locations: '2+ locations', desc: 'For a funeral home group operating across several locations.', monthly: '$349.99' },
 ];
 
 const readiness = [
@@ -64,6 +70,15 @@ export default function PricingPage() {
 
           <div className={styles.card} style={{ marginTop: 20 }}>
             <p className={styles.note}>
+              Prefer to pay once? A Single Estate record is also available as a one-time purchase, no subscription required.
+            </p>
+            <form action={startOneTimeEstateCheckout}>
+              <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Buy Single Estate — $299.99 one-time</button>
+            </form>
+          </div>
+
+          <div className={styles.card} style={{ marginTop: 20 }}>
+            <p className={styles.note}>
               Participants invited to a family&apos;s Passage record receive a reduced participant rate (25% off monthly plans, 20% off annual plans). Add-on estates become available after an active paid subscription. Passage directs 10% of proceeds to grief and family-support work; each paid urgent family record also funds a remembrance tree dedication.
             </p>
           </div>
@@ -75,6 +90,35 @@ export default function PricingPage() {
                 <p style={{ margin: 0, fontSize: 13 }}>{body}</p>
               </div>
             ))}
+          </div>
+
+          <div className={styles.sectionHeading} style={{ marginTop: 32 }}>
+            <h2>For funeral homes</h2>
+            <p>Bring your team, locations, and cases onto Passage. Self-serve setup, cancel anytime.</p>
+          </div>
+          <div className={`${styles.grid} ${styles.grid3}`}>
+            {b2bGroups.map((group) => (
+              <div className={`${styles.card} ${styles.planCard}`} key={group.key}>
+                <p className={styles.badge}>{group.locations}</p>
+                <h3 className={styles.planTitle}>{group.label}</h3>
+                <p className={styles.planDesc}>{group.desc}</p>
+                <div className={styles.priceRow}><span>Monthly</span><strong>{group.monthly}<em>/mo</em></strong></div>
+                <form action={startB2bCheckout}>
+                  <input type="hidden" name="plan" value={group.key} />
+                  <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Subscribe</button>
+                </form>
+                <Link className={styles.note} href={`/contact?category=funeral-home&plan=${group.key}`} style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>or talk to us first</Link>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.card} style={{ marginTop: 20 }}>
+            <p className={styles.note}>
+              Need dedicated urgent support without a recurring plan? A one-time Urgent record is also available. This is separate from <Link href="/start">free immediate help</Link>, which is always available.
+            </p>
+            <form action={startUrgentOneTimeCheckout}>
+              <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Buy Urgent record — $79.99 one-time</button>
+            </form>
           </div>
         </section>
 

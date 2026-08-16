@@ -1,8 +1,8 @@
 import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
-import { legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
-import { createChurnDeal, createNewBusinessDeal, createRenewalDeal } from '@/lib/hubspot';
-import { getStripeClient, type BillingPeriod, type PricingPlanKey } from '@/lib/stripe';
+import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
+import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, type RevenueSegment } from '@/lib/hubspot';
+import { getStripeClient, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
@@ -55,15 +55,18 @@ export async function POST(request: Request) {
   return new Response('ok', { status: 200 });
 }
 
-// First payment only -- creates the one-time "New Business" anchor deal.
-// Every later charge is handled by handleInvoicePaid instead; this function
-// never fires again for the same subscription.
+// Dispatches by checkout mode/segment. First payment only -- creates the
+// one-time "New Business" anchor deal (subscription paths) or a standalone
+// Marketplace-adjacent one-time deal (payment mode). Every later charge on a
+// subscription is handled by handleInvoicePaid instead; these never fire
+// again for the same subscription/session.
 async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, session: Stripe.Checkout.Session) {
+  if (session.mode === 'payment') return handleOneTimeCheckoutCompleted(service, session);
   if (session.mode !== 'subscription' || !session.subscription || !session.customer) return;
-  const plan = session.metadata?.plan as PricingPlanKey | undefined;
-  const period = session.metadata?.period as BillingPeriod | undefined;
+
+  const isB2b = session.metadata?.segment === 'b2b_funeral_home';
   const email = session.customer_details?.email ?? session.customer_email ?? undefined;
-  if (!plan || !period || !email) return;
+  if (!email) return;
 
   const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
   const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
@@ -77,6 +80,24 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   const currentPeriodEnd = primaryItem?.current_period_end ? new Date(primaryItem.current_period_end * 1000).toISOString() : null;
   const currentPeriodStart = primaryItem?.current_period_start ? new Date(primaryItem.current_period_start * 1000).toISOString() : null;
 
+  let legacyPlan: string;
+  let planName: string;
+  let revenueSegment: RevenueSegment;
+  if (isB2b) {
+    const plan = session.metadata?.plan as B2bPlanKey | undefined;
+    if (!plan) return;
+    legacyPlan = legacyB2bPlanValue(plan);
+    planName = b2bPlanDisplayName(plan);
+    revenueSegment = 'B2B Funeral Home';
+  } else {
+    const plan = session.metadata?.plan as D2cPlanKey | undefined;
+    const period = session.metadata?.period as BillingPeriod | undefined;
+    if (!plan || !period) return;
+    legacyPlan = legacySubscriptionPlanValue(plan, period);
+    planName = planDisplayName(plan, period);
+    revenueSegment = 'D2C Planning';
+  }
+
   const { data: existingUser } = await service.from('users').select('id').eq('email', email).maybeSingle();
   const userId = (existingUser as { id: string } | null)?.id ?? null;
   const acquisition = userId ? await resolveAcquisitionChannel(service, userId) : { channel: 'organic_direct' as const, referringOrganizationName: null };
@@ -87,10 +108,10 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
       stripe_customer_id: customerId,
       stripe_subscription_id: subscriptionId,
       stripe_checkout_session_id: session.id,
-      plan: legacySubscriptionPlanValue(plan, period),
+      plan: legacyPlan,
       status: legacySubscriptionStatus(subscription.status),
       amount_cents: amountCents,
-      interval: period === 'monthly' ? 'month' : 'year',
+      interval: primaryItem?.price.recurring?.interval === 'year' ? 'year' : 'month',
       current_period_start: currentPeriodStart,
       current_period_end: currentPeriodEnd,
       renewal_date: currentPeriodEnd,
@@ -110,10 +131,10 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
 
   const dealResult = await createNewBusinessDeal({
     email,
-    dealName: `${email} — ${planDisplayName(plan, period)}`,
+    dealName: `${email} — ${planName}`,
     amountCents,
-    planName: planDisplayName(plan, period),
-    revenueSegment: 'D2C Planning',
+    planName,
+    revenueSegment,
     renewalDateIso: currentPeriodEnd,
     stripeSubscriptionId: subscriptionId,
     stripeCustomerId: customerId,
@@ -122,6 +143,56 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   if (dealResult) {
     await service.from('subscriptions').update({ hubspot_deal_id: dealResult.dealId, hubspot_contact_id: dealResult.contactId }).eq('stripe_subscription_id', subscriptionId);
   }
+}
+
+// One-time purchases (single-estate lifetime, urgent one-time) -- no
+// recurring subscription id exists, so this is a standalone record
+// (interval='once', already a valid legacy status/interval value) rather
+// than an upsert keyed on stripe_subscription_id. Idempotency is handled at
+// the event level (stripe_webhook_events), so a plain insert is safe here.
+async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: Stripe.Checkout.Session) {
+  const kind = session.metadata?.plan === 'urgent_one_time' ? 'urgent' : 'single_estate';
+  const email = session.customer_details?.email ?? session.customer_email ?? undefined;
+  const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
+  const amountCents = session.amount_total ?? 0;
+  if (!email) return;
+
+  const { data: existingUser } = await service.from('users').select('id').eq('email', email).maybeSingle();
+  const userId = (existingUser as { id: string } | null)?.id ?? null;
+  const acquisition = userId ? await resolveAcquisitionChannel(service, userId) : { channel: 'organic_direct' as const, referringOrganizationName: null };
+
+  await service.from('subscriptions').insert({
+    user_id: userId,
+    stripe_customer_id: customerId ?? null,
+    stripe_checkout_session_id: session.id,
+    plan: legacyOneTimePlanValue(kind),
+    status: 'active',
+    amount_cents: amountCents,
+    interval: 'once',
+    started_at: new Date().toISOString(),
+    last_payment_date: new Date().toISOString(),
+    last_payment_amount: amountCents,
+    payment_count: 1,
+    lifetime_value_cents: amountCents,
+    metadata: userId ? {} : { pending_account_email: email },
+  });
+
+  if (userId && acquisition.referringOrganizationName) {
+    await service.from('users').update({ referral_source: `funeral_home_referral:${acquisition.referringOrganizationName}` }).eq('id', userId);
+  }
+
+  const planName = kind === 'urgent' ? 'Urgent · One-time' : 'Single Estate · One-time';
+  await createNewBusinessDeal({
+    email,
+    dealName: `${email} — ${planName}`,
+    amountCents,
+    planName,
+    revenueSegment: kind === 'urgent' ? 'D2C Urgent' : 'D2C Planning',
+    renewalDateIso: null,
+    stripeSubscriptionId: session.id,
+    stripeCustomerId: customerId ?? '',
+    acquisitionChannel: acquisition.channel,
+  });
 }
 
 // The actual renewal trigger. Fires once per billing cycle when Stripe
