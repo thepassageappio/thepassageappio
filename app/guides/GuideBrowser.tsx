@@ -1,7 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { unlockGuide, type GuideUnlockState } from './actions';
 import styles from '@/components/marketing/MarketingPage.module.css';
+
+const UNLOCK_STORAGE_KEY = 'passage_guides_unlocked_email';
+const initialUnlockState: GuideUnlockState = { status: 'idle' };
 
 type GuideSection = [string, string[]];
 
@@ -71,7 +75,22 @@ const guides: Guide[] = [
 
 export function GuideBrowser() {
   const [activeTitle, setActiveTitle] = useState(guides[0].title);
+  const [unlocked, setUnlocked] = useState(false);
+  const [checkedStorage, setCheckedStorage] = useState(false);
+  const [state, formAction, pending] = useActionState(unlockGuide, initialUnlockState);
   const selected = guides.find((g) => g.title === activeTitle) ?? guides[0];
+
+  useEffect(() => {
+    if (window.localStorage.getItem(UNLOCK_STORAGE_KEY)) setUnlocked(true);
+    setCheckedStorage(true);
+  }, []);
+
+  useEffect(() => {
+    if (state.status === 'unlocked') {
+      window.localStorage.setItem(UNLOCK_STORAGE_KEY, 'true');
+      setUnlocked(true);
+    }
+  }, [state.status]);
 
   return (
     <div className={styles.guideLayout}>
@@ -99,17 +118,35 @@ export function GuideBrowser() {
           <h2>{selected.fullTitle}</h2>
           <p className={styles.note}>{selected.subtitle}</p>
         </div>
-        {selected.sections.map(([title, items]) => (
-          <section className={styles.guideSection} key={title}>
-            <h3>{title}</h3>
-            {items.map((item, index) => (
-              <div className={styles.guideItem} key={index}>
-                <span className={styles.guideItemMark}>{index + 1}</span>
-                <span>{item}</span>
-              </div>
-            ))}
-          </section>
-        ))}
+        {!checkedStorage ? null : unlocked ? (
+          selected.sections.map(([title, items]) => (
+            <section className={styles.guideSection} key={title}>
+              <h3>{title}</h3>
+              {items.map((item, index) => (
+                <div className={styles.guideItem} key={index}>
+                  <span className={styles.guideItemMark}>{index + 1}</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </section>
+          ))
+        ) : (
+          <form action={formAction} className={styles.guideSection}>
+            <input name="guideTitle" type="hidden" value={selected.fullTitle} />
+            <h3>Enter your email to read this guide</h3>
+            <p className={styles.note} style={{ marginBottom: 12 }}>Free, no account needed. We&apos;ll use this to follow up with anything else that might help.</p>
+            <label className={styles.fieldLabel}>
+              Name
+              <input className={styles.input} name="name" placeholder="Your name" type="text" />
+            </label>
+            <label className={styles.fieldLabel}>
+              Email
+              <input className={styles.input} name="email" placeholder="you@example.com" required type="email" />
+            </label>
+            <button className={`${styles.button} ${styles.fullWidth}`} disabled={pending} style={{ marginTop: 12 }} type="submit">{pending ? 'Unlocking…' : 'Unlock this guide'}</button>
+            {state.status === 'validation' && state.message && <p className={styles.note} style={{ color: 'var(--danger)', marginTop: 8 }}>{state.message}</p>}
+          </form>
+        )}
       </article>
     </div>
   );
