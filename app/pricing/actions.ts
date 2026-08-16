@@ -118,6 +118,16 @@ export async function startB2bCheckout(formData: FormData): Promise<void> {
     cancel_url: `${origin()}/pricing?checkout=cancelled`,
     metadata: { plan, period: 'monthly', segment: 'b2b_funeral_home' },
     allow_promotion_codes: true,
+    // Captured here (not guessed from the cardholder's personal name) so the
+    // webhook can auto-provision a real Passage workspace under the correct
+    // name the instant payment clears -- see handleCheckoutCompleted's B2B
+    // branch in app/api/webhooks/stripe/route.ts.
+    custom_fields: [{
+      key: 'organization_name',
+      label: { type: 'custom', custom: 'Funeral home name' },
+      type: 'text',
+      text: { minimum_length: 1, maximum_length: 200 },
+    }],
   });
 
   if (!session.url) redirect('/pricing?checkout=unavailable');

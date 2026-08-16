@@ -132,6 +132,26 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
     await service.from('users').update({ referral_source: `funeral_home_referral:${acquisition.referringOrganizationName}` }).eq('id', userId);
   }
 
+  // B2B only: the funeral home gets a real Passage workspace the instant
+  // payment clears -- no manual admin step, matching the "no bottleneck"
+  // priority applied to vendor payouts. Best-effort: a failure here must
+  // never block the payment record or the HubSpot deal below.
+  if (isB2b) {
+    try {
+      await provisionB2bOrganizationIfNeeded(service, {
+        email,
+        userId,
+        organizationName: session.custom_fields?.find((field) => field.key === 'organization_name')?.text?.value ?? null,
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        stripePriceId: primaryItem?.price.id ?? '',
+        legacyPlan,
+      });
+    } catch (error) {
+      console.error('b2b auto-provision failed', error);
+    }
+  }
+
   const dealResult = await createNewBusinessDeal({
     email,
     dealName: `${email} — ${planName}`,
@@ -146,6 +166,94 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   if (dealResult) {
     await service.from('subscriptions').update({ hubspot_deal_id: dealResult.dealId, hubspot_contact_id: dealResult.contactId }).eq('stripe_subscription_id', subscriptionId);
   }
+}
+
+// Auto-provisions a real organization + first location + owner membership
+// for a B2B checkout, so a funeral home never has to take a separate manual
+// step (self-serve signup or admin bootstrap) to actually use what they just
+// paid for. Two paths: a brand-new email gets a Supabase-invited account
+// (Supabase's own built-in invite email, sent via its configured SMTP, is
+// the "magic link" -- no custom email-sending code needed) landing them
+// straight in their new org at /director; an email that already has an
+// account but no active org membership gets the org created directly, ready
+// the next time they sign in normally. An email that already manages an
+// active org is left untouched -- never create a duplicate workspace.
+async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: {
+  email: string;
+  userId: string | null;
+  organizationName: string | null;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  stripePriceId: string;
+  legacyPlan: string;
+}): Promise<void> {
+  const { email, organizationName, stripeCustomerId, stripeSubscriptionId, stripePriceId, legacyPlan } = params;
+  let ownerUserId = params.userId;
+
+  if (ownerUserId) {
+    const { data: existingMembership } = await service
+      .from('organization_members')
+      .select('id')
+      .eq('user_id', ownerUserId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle();
+    if (existingMembership) return;
+  }
+
+  const orgName = organizationName?.trim() || `${email.split('@')[0]}'s funeral home`;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
+
+  if (!ownerUserId) {
+    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/director` });
+    if (inviteError || !invited?.user) {
+      console.error('b2b auto-provision: invite failed, organization not created', inviteError);
+      return;
+    }
+    ownerUserId = invited.user.id;
+  }
+
+  const nowIso = new Date().toISOString();
+  const { data: newOrg, error: orgError } = await service
+    .from('organizations')
+    .insert({
+      name: orgName,
+      created_by: ownerUserId,
+      stripe_customer_id: stripeCustomerId,
+      stripe_subscription_id: stripeSubscriptionId,
+      stripe_price_id: stripePriceId,
+      partner_plan: legacyPlan,
+    })
+    .select('id')
+    .single();
+  if (orgError || !newOrg) {
+    console.error('b2b auto-provision: organization insert failed', orgError);
+    return;
+  }
+
+  const { data: newLocation, error: locationError } = await service
+    .from('organization_locations')
+    .insert({ organization_id: newOrg.id, name: `${orgName} — Main location` })
+    .select('id')
+    .single();
+  if (locationError || !newLocation) {
+    console.error('b2b auto-provision: location insert failed', locationError);
+    return;
+  }
+
+  const { data: newMember, error: memberError } = await service
+    .from('organization_members')
+    .insert({ organization_id: newOrg.id, user_id: ownerUserId, email, role: 'owner', status: 'active', accepted_at: nowIso })
+    .select('id')
+    .single();
+  if (memberError || !newMember) {
+    console.error('b2b auto-provision: member insert failed', memberError);
+    return;
+  }
+
+  await service
+    .from('organization_member_locations')
+    .insert({ organization_member_id: newMember.id, organization_location_id: newLocation.id, granted_by_user_id: ownerUserId });
 }
 
 // One-time purchases (single-estate lifetime, urgent one-time) -- no
