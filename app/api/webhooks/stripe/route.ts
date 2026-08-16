@@ -278,7 +278,12 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
   const row = existingRow as { id: string; amount_cents: number };
 
   const primaryItem = subscription.items.data[0];
-  const newAmountCents = primaryItem?.price.unit_amount ?? row.amount_cents;
+  // Sum every line item, not just the first -- a subscription with an
+  // Estate Add-On has two items, and the total (not just the base plan's
+  // price) is the correct current amount.
+  const newAmountCents = subscription.items.data.length > 0
+    ? subscription.items.data.reduce((total, item) => total + (item.price.unit_amount ?? 0) * (item.quantity ?? 1), 0)
+    : row.amount_cents;
   const currentPeriodEnd = primaryItem?.current_period_end ? new Date(primaryItem.current_period_end * 1000).toISOString() : null;
 
   await service

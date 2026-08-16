@@ -67,3 +67,11 @@ export const B2B_MONTHLY_PRICE_IDS: Record<B2bPlanKey, string> = {
 };
 
 export const VENDOR_PLATFORM_FEE_PERCENT = 12;
+
+// Real, already-existing Stripe coupons backing /pricing's own long-standing
+// promise ("Participants invited to a family's Passage record receive a
+// reduced participant rate") -- never applied anywhere until now.
+export const PARTICIPANT_DISCOUNT_COUPON_ID: Record<BillingPeriod, string> = {
+  monthly: 'EyOpeqSp', // "25% off first month - Passage.IO"
+  annual: 'uOrmHoKy', // "20% OFF FIRST YERR- PASSAGE.IO"
+};

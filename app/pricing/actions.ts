@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import {
   B2B_MONTHLY_PRICE_IDS,
   getStripeClient,
+  PARTICIPANT_DISCOUNT_COUPON_ID,
   priceIdForD2cPlan,
   SINGLE_ESTATE_ONE_TIME_PRICE_ID,
   URGENT_ONE_TIME_PRICE_ID,
@@ -11,6 +12,7 @@ import {
   type BillingPeriod,
   type D2cPlanKey,
 } from '@/lib/stripe';
+import { createPassageServerClient } from '@/lib/supabase/server';
 
 const validD2cPlans = new Set<D2cPlanKey>(['individual', 'couple', 'family']);
 const validPeriods = new Set<BillingPeriod>(['monthly', 'annual']);
@@ -18,6 +20,19 @@ const validB2bPlans = new Set<B2bPlanKey>(['funeral_home_local', 'funeral_home_p
 
 function origin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
+}
+
+// Signed-in visitors who were invited onto a case as a family participant
+// get the real, already-existing participant coupon auto-applied -- silent
+// eligibility check, no code to type in. Signed-out visitors (the common
+// case for a first subscription) just get the standard promo-code field,
+// since there's no account yet to check eligibility against.
+async function participantDiscountCoupon(period: BillingPeriod): Promise<string | null> {
+  const client = await createPassageServerClient();
+  if (!client) return null;
+  const result = await client.rpc('is_eligible_for_participant_discount');
+  if (result.error || result.data !== true) return null;
+  return PARTICIPANT_DISCOUNT_COUPON_ID[period];
 }
 
 export async function startCheckout(formData: FormData): Promise<void> {
@@ -33,13 +48,18 @@ export async function startCheckout(formData: FormData): Promise<void> {
     redirect('/pricing?checkout=unavailable');
   }
 
+  const coupon = await participantDiscountCoupon(period as BillingPeriod);
+
   const session = await stripe!.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${origin()}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin()}/pricing?checkout=cancelled`,
     metadata: { plan, period },
-    allow_promotion_codes: true,
+    // discounts and allow_promotion_codes are mutually exclusive on a
+    // Checkout Session -- an auto-applied participant coupon takes priority
+    // over letting the visitor type in an unrelated marketing code.
+    ...(coupon ? { discounts: [{ coupon }] } : { allow_promotion_codes: true }),
   });
 
   if (!session.url) redirect('/pricing?checkout=unavailable');
