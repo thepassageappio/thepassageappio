@@ -2,6 +2,7 @@
 
 import { verifiedUser } from '@/lib/auth/session';
 import { firstRpcRow } from '@/lib/auth/invitations';
+import { upsertOrganizationCompany } from '@/lib/hubspot';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type OrganizationCreationState = {
@@ -43,6 +44,10 @@ export async function createOrganization(_previous: OrganizationCreationState, f
 
   const receipt = firstRpcRow<RpcReceipt>(result.data);
   if (!receipt?.organization_id) return failure('unavailable', 'Passage did not confirm the new organization. Nothing is shown as created.');
+
+  // Non-blocking: HubSpot tracking must never stand between a funeral home
+  // and its own new organization existing.
+  await upsertOrganizationCompany({ name: organizationName, locationCount: 1 }).catch(() => null);
 
   return { status: 'created' };
 }
