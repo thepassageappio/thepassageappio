@@ -8,6 +8,8 @@ type TopShellProps = {
 };
 
 const marketingNav = [
+  { href: '/contact?category=funeral-home', label: 'Funeral homes' },
+  { href: '/story', label: 'Our story' },
   { href: '/mission', label: 'Mission' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/guides', label: 'Guides' },
@@ -27,6 +29,7 @@ export function TopShell({ children, context = 'Connected care', mode = 'workspa
         <nav className="top-shell__nav" aria-label="Passage">
           {marketingNav.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
           <Link className="top-shell__navSignIn" href="/login">Sign in</Link>
+          <Link className="top-shell__navPrimary" href="/start">Get started</Link>
         </nav>
       </header>
       {children}

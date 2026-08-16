@@ -55,7 +55,7 @@ export default async function InvitationPage({ params, searchParams }: { params:
 
   return (
     <main className={styles.shell} id="main-content">
-      <header className={styles.brandBar}><Link href="/">PASSAGE</Link><span>{publicRuntimeLabel(configuration.runtime)}</span></header>
+      <header className={styles.brandBar}><Link href="/">PASSAGE</Link>{publicRuntimeLabel(configuration.runtime) && <span>{publicRuntimeLabel(configuration.runtime)}</span>}</header>
       <section className={styles.panel} aria-labelledby="invite-title">
         <p className={styles.eyebrow}>FUNERAL-HOME INVITATION</p>
         <h1 id="invite-title">Review what you’re joining.</h1>

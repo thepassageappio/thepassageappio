@@ -38,7 +38,7 @@ function AccessSurface({ title, message, runtime }: { title: string; message: st
   return (
     <main className={styles.shell} id="main-content">
       <section aria-labelledby="access-title" className={styles.denied}>
-        <p className={styles.eyebrow}>{runtime}</p>
+        {runtime && <p className={styles.eyebrow}>{runtime}</p>}
         <h1 id="access-title">{title}</h1>
         <p>{message}</p>
         <div className={styles.recovery}>

@@ -93,6 +93,6 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
 export function publicRuntimeLabel(runtime: PassageRuntime | null) {
   if (runtime === 'demo') return 'Synthetic demo · no external messages';
   if (runtime === 'preview') return 'Isolated preview · no external messages';
-  if (runtime === 'production') return 'Production';
+  if (runtime === 'production') return '';
   return 'Environment unavailable';
 }

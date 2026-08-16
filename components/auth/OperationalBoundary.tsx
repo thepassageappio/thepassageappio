@@ -80,7 +80,7 @@ function AccessSurface({ title, message, runtime, recoveryHref, recoveryLabel }:
   return (
     <main className={styles.shell} id="main-content">
       <section className={styles.denied} aria-labelledby="access-title">
-        <p className={styles.eyebrow}>{runtime}</p><h1 id="access-title">{title}</h1><p>{message}</p>
+        {runtime && <p className={styles.eyebrow}>{runtime}</p>}<h1 id="access-title">{title}</h1><p>{message}</p>
         <div className={styles.recovery}>
           {/* Plain <a> tags, not next/link Link: these are auth escape hatches and must not depend on
               client-side RSC navigation succeeding (see QA sweep PR #50, bug 1). */}

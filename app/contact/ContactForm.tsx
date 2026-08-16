@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { submitContactInquiry, type ContactCommandState } from './actions';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 const categories = [
@@ -16,12 +17,7 @@ const categories = [
   'Other',
 ];
 
-// Same address the legacy contact-form handler (pages/api/supportInquiry.js)
-// used as its ultimate fallback recipient when no CONTACT_TO_EMAIL/SUPPORT_EMAIL
-// env var was set. No app/api route exists yet to receive submissions server-side,
-// so this form hands off to the visitor's own email client instead of pretending
-// to deliver silently.
-const SUPPORT_EMAIL = 'steventurrisi@gmail.com';
+const initialState: ContactCommandState = { status: 'idle' };
 
 function categoryFromParam(raw: string | null): string {
   const value = (raw || '').toLowerCase();
@@ -45,38 +41,45 @@ export function ContactForm() {
   const [email, setEmail] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [message, setMessage] = useState(initialMessage);
-  const [sent, setSent] = useState(false);
+  const [state, formAction, pending] = useActionState(submitContactInquiry, initialState);
+  const alertRef = useRef<HTMLParagraphElement>(null);
 
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    const subject = `Passage inquiry: ${category}`;
-    const body = [`Name: ${name || 'Not provided'}`, `Email: ${email}`, '', message].join('\n');
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+  useEffect(() => {
+    if (state.status !== 'idle') alertRef.current?.focus();
+  }, [state.status]);
+
+  if (state.status === 'sent') {
+    return (
+      <div className={styles.card} style={{ maxWidth: 520 }}>
+        <p className={styles.note}>Thanks — your message was sent to Passage. We&apos;ll follow up at {email}.</p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={submit} className={styles.card} style={{ maxWidth: 520 }}>
+    <form action={formAction} className={styles.card} style={{ maxWidth: 520 }} aria-busy={pending}>
       <label className={styles.fieldLabel}>
         Name
-        <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+        <input className={styles.input} name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
       </label>
       <label className={styles.fieldLabel}>
         Email
-        <input required type="email" className={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        <input required type="email" className={styles.input} name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
       </label>
       <label className={styles.fieldLabel}>
         Category
-        <select className={styles.input} value={category} onChange={(e) => setCategory(e.target.value)}>
+        <select className={styles.input} name="category" value={category} onChange={(e) => setCategory(e.target.value)}>
           {categories.map((c) => <option key={c}>{c}</option>)}
         </select>
       </label>
       <label className={styles.fieldLabel}>
         How can we help?
-        <textarea required rows={4} className={styles.input} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Share enough detail for us to understand the issue or request." />
+        <textarea required rows={4} className={styles.input} name="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Share enough detail for us to understand the issue or request." />
       </label>
-      <button type="submit" className={`${styles.button} ${styles.fullWidth}`}>Open in email</button>
-      {sent && <p className={styles.note} style={{ marginTop: 12 }}>Opening your email client with this message pre-filled — send it from there.</p>}
+      <button type="submit" disabled={pending} className={`${styles.button} ${styles.fullWidth}`}>{pending ? 'Sending…' : 'Send to Passage'}</button>
+      {state.status !== 'idle' && state.message && (
+        <p className={styles.note} style={{ marginTop: 12 }} ref={alertRef} role="alert" tabIndex={-1}>{state.message}</p>
+      )}
     </form>
   );
 }
