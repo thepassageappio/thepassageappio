@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { assignTask, revokeInvitation, revokeMember, type DirectorCommandState } from './actions';
+import { assignTask, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
 type Candidate = { id: string; name: string };
@@ -54,8 +54,25 @@ export function RevokeMemberForm({ memberId, memberName, requestId, activeAssign
       <input name="memberId" type="hidden" value={memberId} />
       <input name="requestId" type="hidden" value={requestId} />
       <label>Reason for ending {memberName}’s access<input disabled={pending || blocked} maxLength={240} name="reason" required /></label>
-      <button aria-busy={pending} disabled={pending || blocked} type="submit">{blocked ? `Reassign ${activeAssignmentCount} ${activeAssignmentCount === 1 ? 'commitment' : 'commitments'} first` : pending ? 'Ending access…' : 'End team access'}</button>
+      <button aria-busy={pending || blocked} disabled={pending || blocked} type="submit">{blocked ? `Reassign ${activeAssignmentCount} ${activeAssignmentCount === 1 ? 'commitment' : 'commitments'} first` : pending ? 'Ending access…' : 'End team access'}</button>
       <p className={styles.formBoundary}>{blocked ? 'Passage will not orphan active work.' : 'Activity history remains; current location grants end together.'}</p>
+      <Receipt state={state} />
+    </form>
+  );
+}
+
+export function StaffCaseCreationGrantForm({ memberId, locationId, memberName, locationName, granted, requestId }: { memberId: string; locationId: string; memberName: string; locationName: string; granted: boolean; requestId: string }) {
+  const [state, action, pending] = useActionState(setStaffCaseCreationGrant, initialDirectorCommandState);
+  return (
+    <form action={action} aria-busy={pending} className={styles.compactForm}>
+      <input name="memberId" type="hidden" value={memberId} />
+      <input name="locationId" type="hidden" value={locationId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <input name="granted" type="hidden" value={(!granted).toString()} />
+      {granted
+        ? <label>Reason for removing case-creation rights<input disabled={pending} maxLength={240} name="reason" placeholder={`Why ${memberName} should no longer create cases at ${locationName}`} required /></label>
+        : <p className={styles.formBoundary}>{memberName} cannot create cases at {locationName} yet.</p>}
+      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Saving…' : granted ? 'Remove case-creation rights' : 'Allow creating cases here'}</button>
       <Receipt state={state} />
     </form>
   );
