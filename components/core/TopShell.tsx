@@ -14,6 +14,7 @@ const marketingNav = [
   { href: '/mission', label: 'Mission' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/guides', label: 'Guides' },
+  { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },
 ];
 

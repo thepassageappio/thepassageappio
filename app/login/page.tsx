@@ -15,7 +15,7 @@ type LoginAudience = 'funeralHome' | 'vendor' | 'general';
 
 function audienceForPath(next: string): LoginAudience {
   if (next.startsWith('/partner')) return 'vendor';
-  if (next.startsWith('/director') || next.startsWith('/staff')) return 'funeralHome';
+  if (next.startsWith('/director') || next.startsWith('/staff') || next.startsWith('/organization')) return 'funeralHome';
   return 'general';
 }
 

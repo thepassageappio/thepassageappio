@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Montserrat } from 'next/font/google';
+import Script from 'next/script';
 import type { ReactNode } from 'react';
 import { PassageZeroProvider } from '@/components/PassageZeroProvider';
 import './globals.css';
+
+// Site-wide HubSpot tracking pixel (portal 246159600) -- separate from the
+// server-side lib/hubspot.ts API sync (contacts, deals, lifecycle stage).
+// This is the client-side analytics/visitor-tracking script; afterInteractive
+// keeps it off the critical render path.
+const HUBSPOT_PORTAL_ID = '246159600';
 
 const display = Cormorant_Garamond({
   subsets: ['latin'],
@@ -30,7 +37,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`} data-scroll-behavior="smooth">
-      <body><PassageZeroProvider>{children}</PassageZeroProvider></body>
+      <body>
+        <PassageZeroProvider>{children}</PassageZeroProvider>
+        <Script id="hs-script-loader" src={`https://js.hs-scripts.com/${HUBSPOT_PORTAL_ID}.js`} strategy="afterInteractive" />
+      </body>
     </html>
   );
 }
