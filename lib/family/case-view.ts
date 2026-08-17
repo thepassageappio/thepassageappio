@@ -49,6 +49,12 @@ type WorkflowRow = { id: string; case_reference: string | null; family_name: str
 type TaskRow = { id: string; workflow_id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null; updated_at: string | null };
 type EventRow = { id: string; name: string; occurred_at: string };
 
+// Row shape of public.get_family_visible_partner_requests(p_workflow_id) --
+// deliberately bounded, excludes every financial/internal column
+// (quote_amount_cents, response_note, decline_reason, stripe_*,
+// platform_fee_cents, vendor_payout_cents) by design of that RPC.
+type PartnerRequestRow = { id: string; category: string; title: string | null; status: string; needed_by: string | null; created_at: string; updated_at: string };
+
 // Row shape of public.get_family_case_update_for_workflow(p_workflow_id) --
 // the workflow-id-scoped sibling of public.list_participant_family_updates()
 // added in the participant_case_update_for_workflow migration. Only ever
@@ -84,6 +90,43 @@ const RECENT_UPDATE_LIMIT = 3;
 function familyOwnerLabel(waitingParty: string | null): string {
   const trimmed = waitingParty?.trim();
   return trimmed ? trimmed : 'Your care team';
+}
+
+// Category strings on partner_requests are free-form-ish operator vocabulary
+// ('florist', 'funeral_coach', ...) -- title-cased for family display, never
+// shown raw. Falls back to a generic label rather than an empty string.
+function partnerRequestOwnerLabel(category: string): string {
+  const cleaned = category.replace(/_/g, ' ').trim();
+  if (!cleaned) return 'Your vendor';
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+// Keyed on the real partner_requests.status enum (see partner_requests_status_check),
+// which is a different vocabulary than tasks.status -- kept as its own function
+// rather than forced through familyTaskSummary so 'declined' and 'quoted' get
+// wording that actually matches what happened, not the nearest task-status guess.
+function partnerRequestSummary(status: string): string {
+  if (status === 'sent') return 'Waiting for the vendor to respond.';
+  if (status === 'quoted') return 'The vendor sent a quote for your care team to review.';
+  if (status === 'in_progress') return 'The vendor is working on this now.';
+  if (status === 'declined') return 'The vendor could not take this on — your care team is finding another option.';
+  if (status === 'proof_submitted') return 'The vendor says this is done, and it is being double-checked.';
+  if (status === 'verified') return 'This is complete.';
+  return 'Passage will show the next update here as soon as there is one.';
+}
+
+// Normalizes the 6-value partner_requests status vocabulary onto the 5-value
+// tasks.status vocabulary so a single badge/label component (humanTaskStatus,
+// proof-loop.module.css [data-state]) can render either kind without knowing
+// which one it's looking at. This is for badge styling only -- the actual
+// wording shown to the family always comes from partnerRequestSummary above,
+// not from this normalized value.
+function normalizePartnerStatus(status: string): FamilyTaskStatus {
+  if (status === 'sent') return 'assigned';
+  if (status === 'declined') return 'blocked';
+  if (status === 'verified') return 'completed';
+  if (status === 'proof_submitted') return 'proof_submitted';
+  return 'in_progress';
 }
 
 function familyTaskSummary(status: string): string {
@@ -230,19 +273,34 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
       }
     : null;
 
-  const eventsResult = await client
-    .from('workflow_events')
-    .select('id, name, occurred_at')
-    .eq('workflow_id', workflowId)
-    .order('occurred_at', { ascending: false })
-    .limit(RECENT_UPDATE_LIMIT);
+  const [eventsResult, partnerRequests] = await Promise.all([
+    client
+      .from('workflow_events')
+      .select('id, name, occurred_at')
+      .eq('workflow_id', workflowId)
+      .order('occurred_at', { ascending: false })
+      .limit(RECENT_UPDATE_LIMIT),
+    loadFamilyVisiblePartnerRequests(client, workflowId),
+  ]);
   if (eventsResult.error) return { ok: false, reason: 'unavailable' };
   const events = (eventsResult.data ?? []) as EventRow[];
-  const recentUpdates: FamilyCaseUpdate[] = events.map((event) => ({
+  const eventUpdates: FamilyCaseUpdate[] = events.map((event) => ({
     id: event.id,
     summary: summarizeEventForFamily(event.name),
     occurredAt: event.occurred_at,
   }));
+  // Vendor coordination has no workflow_events audit entry today (partner_request_events
+  // is a separate, operator-facing log) -- surfaced here directly from the bounded
+  // projection instead so "waiting on the florist" shows up without waiting on new
+  // audit-event plumbing.
+  const partnerUpdates: FamilyCaseUpdate[] = partnerRequests.map((request) => ({
+    id: request.id,
+    summary: `${partnerRequestOwnerLabel(request.category)}: ${partnerRequestSummary(request.status)}`,
+    occurredAt: request.updated_at,
+  }));
+  const recentUpdates = [...eventUpdates, ...partnerUpdates]
+    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+    .slice(0, RECENT_UPDATE_LIMIT);
 
   return {
     ok: true,
@@ -281,8 +339,14 @@ async function loadFamilyCaseViewAsParticipant(
   return { ok: true, data: buildParticipantCaseView(workflowId, row) };
 }
 
-export type FamilyTaskListItem = {
+// Unifies internal tasks and vendor (partner_request) work into one shape so
+// the family can see "we're waiting on the florist" alongside their own case
+// tasks instead of vendor coordination being invisible. kind distinguishes
+// the two only for rendering (icon/section) -- status, ownerLabel, and
+// statusSummary are already normalized to the same vocabulary either way.
+export type FamilyCommitmentItem = {
   id: string;
+  kind: 'task' | 'vendor_request';
   title: string | null;
   status: FamilyTaskStatus;
   ownerLabel: string;
@@ -290,10 +354,56 @@ export type FamilyTaskListItem = {
   dueAt: string | null;
 };
 
+function toTaskCommitment(task: { id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null }): FamilyCommitmentItem {
+  return {
+    id: task.id,
+    kind: 'task',
+    title: task.title,
+    status: task.status as FamilyTaskStatus,
+    ownerLabel: familyOwnerLabel(task.waiting_party),
+    statusSummary: familyTaskSummary(task.status),
+    dueAt: task.due_at,
+  };
+}
+
+function toPartnerRequestCommitment(request: PartnerRequestRow): FamilyCommitmentItem {
+  const ownerLabel = partnerRequestOwnerLabel(request.category);
+  return {
+    id: request.id,
+    kind: 'vendor_request',
+    title: request.title ?? ownerLabel,
+    status: normalizePartnerStatus(request.status),
+    ownerLabel,
+    statusSummary: partnerRequestSummary(request.status),
+    dueAt: request.needed_by,
+  };
+}
+
+// Fails closed to an empty list (never throws) -- a vendor-coordination
+// lookup failing should degrade to "tasks only", not break the whole page.
+async function loadFamilyVisiblePartnerRequests(
+  client: Awaited<ReturnType<typeof createPassageServerClient>>,
+  workflowId: string,
+): Promise<PartnerRequestRow[]> {
+  if (!client) return [];
+  const result = await client.rpc('get_family_visible_partner_requests', { p_workflow_id: workflowId });
+  if (result.error) return [];
+  return (result.data ?? []) as PartnerRequestRow[];
+}
+
+function sortCommitments(items: FamilyCommitmentItem[]): FamilyCommitmentItem[] {
+  return [...items].sort((a, b) => {
+    if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
+    if (a.dueAt) return -1;
+    if (b.dueAt) return 1;
+    return 0;
+  });
+}
+
 export type FamilyTaskListView = {
   personName: string | null;
   familyName: string | null;
-  tasks: FamilyTaskListItem[];
+  items: FamilyCommitmentItem[];
 };
 
 export type FamilyTaskListResult =
@@ -329,28 +439,27 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
     return { ok: false, reason: rows.length > 0 ? 'participant-not-supported' : 'not-authorized' };
   }
 
-  const tasksResult = await client
-    .from('tasks')
-    .select('id, title, status, waiting_party, due_at')
-    .eq('workflow_id', workflowId)
-    .order('due_at', { ascending: true });
+  const [tasksResult, partnerRequests] = await Promise.all([
+    client
+      .from('tasks')
+      .select('id, title, status, waiting_party, due_at')
+      .eq('workflow_id', workflowId)
+      .order('due_at', { ascending: true }),
+    loadFamilyVisiblePartnerRequests(client, workflowId),
+  ]);
   if (tasksResult.error) return { ok: false, reason: 'unavailable' };
 
-  const tasks: FamilyTaskListItem[] = (tasksResult.data ?? []).map((task: { id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null }) => ({
-    id: task.id,
-    title: task.title,
-    status: task.status as FamilyTaskStatus,
-    ownerLabel: familyOwnerLabel(task.waiting_party),
-    statusSummary: familyTaskSummary(task.status),
-    dueAt: task.due_at,
-  }));
+  const items = sortCommitments([
+    ...(tasksResult.data ?? []).map(toTaskCommitment),
+    ...partnerRequests.map(toPartnerRequestCommitment),
+  ]);
 
   return {
     ok: true,
     data: {
       personName: workflowResult.data.person_name,
       familyName: workflowResult.data.family_name,
-      tasks,
+      items,
     },
   };
 }

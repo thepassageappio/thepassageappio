@@ -24,9 +24,9 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
     if (result.reason === 'signed-out') redirect(loginPath(`/case/${id}/tasks`));
     return <Closed reason={result.reason} />;
   }
-  const { personName, tasks } = result.data;
-  const openTasks = tasks.filter((task) => task.status !== 'completed');
-  const completedTasks = tasks.filter((task) => task.status === 'completed');
+  const { personName, items } = result.data;
+  const openItems = items.filter((item) => item.status !== 'completed');
+  const completedItems = items.filter((item) => item.status === 'completed');
 
   return (
     <main id="main-content">
@@ -47,25 +47,28 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
       <section className={styles.panel} aria-labelledby="open-tasks-heading">
         <p className={styles.eyebrow}>Open</p>
         <h2 id="open-tasks-heading">What&apos;s still happening.</h2>
-        {openTasks.length === 0 ? <p>Nothing open right now.</p> : (
+        {openItems.length === 0 ? <p>Nothing open right now.</p> : (
           <ol className={styles.history}>
-            {openTasks.map((task) => (
-              <li key={task.id}>
-                <p><strong>{humanizePreviewLabel(task.title ?? '', 'Case step')}</strong> <span className={styles.status} data-state={task.status}>{humanTaskStatus(task.status)}</span></p>
-                <p>{task.statusSummary} {task.ownerLabel} is on this.</p>
+            {openItems.map((item) => (
+              <li key={item.id}>
+                <p>
+                  {item.kind === 'vendor_request' && <span aria-hidden="true">🤝 </span>}
+                  <strong>{humanizePreviewLabel(item.title ?? '', 'Case step')}</strong> <span className={styles.status} data-state={item.status}>{humanTaskStatus(item.status)}</span>
+                </p>
+                <p>{item.statusSummary} {item.ownerLabel} is on this.</p>
               </li>
             ))}
           </ol>
         )}
       </section>
 
-      {completedTasks.length > 0 && (
+      {completedItems.length > 0 && (
         <section className={styles.panel} aria-labelledby="done-tasks-heading" style={{ marginTop: 18 }}>
           <p className={styles.eyebrow}>Complete</p>
           <h2 id="done-tasks-heading">What&apos;s already been handled.</h2>
           <ol className={styles.history}>
-            {completedTasks.map((task) => (
-              <li key={task.id}><p>{humanizePreviewLabel(task.title ?? '', 'Case step')} — complete.</p></li>
+            {completedItems.map((item) => (
+              <li key={item.id}><p>{humanizePreviewLabel(item.title ?? '', 'Case step')} — complete.</p></li>
             ))}
           </ol>
         </section>
