@@ -352,9 +352,15 @@ export type FamilyCommitmentItem = {
   ownerLabel: string;
   statusSummary: string;
   dueAt: string | null;
+  /** Row version for optimistic concurrency, and a signal the client can
+   *  complete/reopen this item itself via set_family_task_completion_idempotent.
+   *  Only ever set for kind='task' on a self-serve (no-organization) case --
+   *  vendor_request items and org-backed tasks are never family-completable,
+   *  so this stays null there rather than misleadingly offering a control. */
+  version: number | null;
 };
 
-function toTaskCommitment(task: { id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null }): FamilyCommitmentItem {
+function toTaskCommitment(task: { id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null; version: number }, canComplete: boolean): FamilyCommitmentItem {
   return {
     id: task.id,
     kind: 'task',
@@ -363,6 +369,7 @@ function toTaskCommitment(task: { id: string; title: string | null; status: stri
     ownerLabel: familyOwnerLabel(task.waiting_party),
     statusSummary: familyTaskSummary(task.status),
     dueAt: task.due_at,
+    version: canComplete ? task.version : null,
   };
 }
 
@@ -376,6 +383,7 @@ function toPartnerRequestCommitment(request: PartnerRequestRow): FamilyCommitmen
     ownerLabel,
     statusSummary: partnerRequestSummary(request.status),
     dueAt: request.needed_by,
+    version: null,
   };
 }
 
@@ -404,6 +412,10 @@ export type FamilyTaskListView = {
   personName: string | null;
   familyName: string | null;
   items: FamilyCommitmentItem[];
+  /** True only for a pure self-serve (D2C) case: workflow.organization_id is
+   *  null. Drives whether the Tasks page offers a completion control at all --
+   *  a funeral-home-backed case stays read-only for family, unchanged. */
+  isSelfServe: boolean;
 };
 
 export type FamilyTaskListResult =
@@ -427,7 +439,7 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
 
   const workflowResult = await client
     .from('workflows')
-    .select('id, person_name, family_name')
+    .select('id, person_name, family_name, organization_id')
     .eq('id', workflowId)
     .maybeSingle();
   if (workflowResult.error) return { ok: false, reason: 'unavailable' };
@@ -438,11 +450,12 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
     const rows = (participantResult.data ?? []) as ParticipantCaseUpdateRow[];
     return { ok: false, reason: rows.length > 0 ? 'participant-not-supported' : 'not-authorized' };
   }
+  const isSelfServe = workflowResult.data.organization_id === null;
 
   const [tasksResult, partnerRequests] = await Promise.all([
     client
       .from('tasks')
-      .select('id, title, status, waiting_party, due_at')
+      .select('id, title, status, waiting_party, due_at, version')
       .eq('workflow_id', workflowId)
       .order('due_at', { ascending: true }),
     loadFamilyVisiblePartnerRequests(client, workflowId),
@@ -450,7 +463,7 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
   if (tasksResult.error) return { ok: false, reason: 'unavailable' };
 
   const items = sortCommitments([
-    ...(tasksResult.data ?? []).map(toTaskCommitment),
+    ...(tasksResult.data ?? []).map((task) => toTaskCommitment(task, isSelfServe)),
     ...partnerRequests.map(toPartnerRequestCommitment),
   ]);
 
@@ -460,6 +473,7 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
       personName: workflowResult.data.person_name,
       familyName: workflowResult.data.family_name,
       items,
+      isSelfServe,
     },
   };
 }

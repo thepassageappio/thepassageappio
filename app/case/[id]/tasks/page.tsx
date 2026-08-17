@@ -1,8 +1,11 @@
+import { randomUUID } from 'node:crypto';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { loadFamilyTaskList, type FamilyTaskListResult } from '@/lib/family/case-view';
 import { loginPath } from '@/lib/auth/redirects';
+import { setFamilyTaskCompletion } from '@/lib/family/task-actions';
 import { humanTaskStatus, humanizePreviewLabel } from '@/lib/presentation/plain-language';
+import { TaskCompletionToggle } from '@/components/family/TaskCompletionToggle';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -56,6 +59,16 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
                   <strong>{humanizePreviewLabel(item.title ?? '', 'Case step')}</strong> <span className={styles.status} data-state={item.status}>{humanTaskStatus(item.status)}</span>
                 </p>
                 <p>{item.statusSummary} {item.ownerLabel} is on this.</p>
+                {item.version !== null && (
+                  <TaskCompletionToggle
+                    action={setFamilyTaskCompletion}
+                    completed={false}
+                    requestId={randomUUID()}
+                    taskId={item.id}
+                    version={item.version}
+                    workflowId={id}
+                  />
+                )}
               </li>
             ))}
           </ol>
@@ -68,7 +81,19 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
           <h2 id="done-tasks-heading">What&apos;s already been handled.</h2>
           <ol className={styles.history}>
             {completedItems.map((item) => (
-              <li key={item.id}><p>{humanizePreviewLabel(item.title ?? '', 'Case step')} — complete.</p></li>
+              <li key={item.id}>
+                <p>{humanizePreviewLabel(item.title ?? '', 'Case step')} — complete.</p>
+                {item.version !== null && (
+                  <TaskCompletionToggle
+                    action={setFamilyTaskCompletion}
+                    completed={true}
+                    requestId={randomUUID()}
+                    taskId={item.id}
+                    version={item.version}
+                    workflowId={id}
+                  />
+                )}
+              </li>
             ))}
           </ol>
         </section>
