@@ -280,3 +280,77 @@ async function loadFamilyCaseViewAsParticipant(
   if (!row) return { ok: false, reason: 'not-authorized' };
   return { ok: true, data: buildParticipantCaseView(workflowId, row) };
 }
+
+export type FamilyTaskListItem = {
+  id: string;
+  title: string | null;
+  status: FamilyTaskStatus;
+  ownerLabel: string;
+  statusSummary: string;
+  dueAt: string | null;
+};
+
+export type FamilyTaskListView = {
+  personName: string | null;
+  familyName: string | null;
+  tasks: FamilyTaskListItem[];
+};
+
+export type FamilyTaskListResult =
+  | { ok: true; data: FamilyTaskListView }
+  // 'participant-not-supported' is distinct from 'not-authorized': the caller
+  // is a real, verified participant (get_family_case_update_for_workflow
+  // returns a row for them) -- the full task list projection just isn't
+  // built for the bounded participant tier yet, unlike the owner tier below.
+  // Collapsing this into 'not-authorized' would incorrectly tell a legitimate
+  // invited family member they have no rights on their own case.
+  | { ok: false; reason: 'signed-out' | 'not-found' | 'not-authorized' | 'unavailable' | 'participant-not-supported' };
+
+export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTaskListResult> {
+  if (!UUID_PATTERN.test(workflowId)) return { ok: false, reason: 'not-found' };
+
+  const client = await createPassageServerClient();
+  if (!client) return { ok: false, reason: 'unavailable' };
+
+  const user = await verifiedUser(client);
+  if (!user) return { ok: false, reason: 'signed-out' };
+
+  const workflowResult = await client
+    .from('workflows')
+    .select('id, person_name, family_name')
+    .eq('id', workflowId)
+    .maybeSingle();
+  if (workflowResult.error) return { ok: false, reason: 'unavailable' };
+
+  if (!workflowResult.data) {
+    const participantResult = await client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId });
+    if (participantResult.error) return { ok: false, reason: 'unavailable' };
+    const rows = (participantResult.data ?? []) as ParticipantCaseUpdateRow[];
+    return { ok: false, reason: rows.length > 0 ? 'participant-not-supported' : 'not-authorized' };
+  }
+
+  const tasksResult = await client
+    .from('tasks')
+    .select('id, title, status, waiting_party, due_at')
+    .eq('workflow_id', workflowId)
+    .order('due_at', { ascending: true });
+  if (tasksResult.error) return { ok: false, reason: 'unavailable' };
+
+  const tasks: FamilyTaskListItem[] = (tasksResult.data ?? []).map((task: { id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null }) => ({
+    id: task.id,
+    title: task.title,
+    status: task.status as FamilyTaskStatus,
+    ownerLabel: familyOwnerLabel(task.waiting_party),
+    statusSummary: familyTaskSummary(task.status),
+    dueAt: task.due_at,
+  }));
+
+  return {
+    ok: true,
+    data: {
+      personName: workflowResult.data.person_name,
+      familyName: workflowResult.data.family_name,
+      tasks,
+    },
+  };
+}
