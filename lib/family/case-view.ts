@@ -181,6 +181,7 @@ const FAMILY_EVENT_SUMMARIES: Record<string, string> = {
   'task.proof_submitted': 'A step was completed and is being reviewed.',
   'task.proof_verified': 'A completed step was confirmed.',
   'task.proof_replacement_requested': 'The team is redoing part of a step to make sure it’s right.',
+  'communication.sent': 'An email update was sent about your case.',
 };
 
 function summarizeEventForFamily(name: string): string {

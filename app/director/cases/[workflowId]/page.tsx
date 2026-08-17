@@ -11,6 +11,7 @@ import { MessageThread } from '@/components/messaging/MessageThread';
 import { FamilyInvitationForm } from './FamilyInvitationForm';
 import { ApprovePartnerQuoteForm, CreatePartnerRequestForm, RejectPartnerQuoteForm, ReleaseVendorPayoutForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
+import { PrepareCommunicationForm, SendCommunicationButton } from './CommunicationForms';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -46,6 +47,14 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const client = await createPassageServerClient();
   const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
   const messagesResult = client ? await loadWorkflowMessages(client, workflow.id) : { ok: false as const, message: 'Passage could not open this case right now.' };
+  // Communications (Phase L.3): draft-and-send email loop for the whole
+  // case, not just this task -- see lib/communications/actions.ts. Kept as
+  // a plain RPC call here rather than its own hosted.ts loader since it's
+  // a single bounded read, matching the messages panel's own shape.
+  type CommunicationRow = { id: string; task_id: string | null; subject: string; body: string; recipients: { email: string; name?: string }[]; status: string; prepared_at: string; sent_at: string | null; failure_reason: string | null };
+  const communications: CommunicationRow[] = client
+    ? ((await client.rpc('get_workflow_communications', { p_workflow_id: workflow.id })).data ?? [])
+    : [];
   // Fix (PR #57 finding): show each vendor's own specialty next to its name in
   // the picker, so a director has an on-screen cue before choosing a category
   // that must match it (enforced authoritatively by the RPC as of this fix).
@@ -109,6 +118,26 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         requestId={randomUUID()}
         workflowId={workflow.id}
       />
+    </section>
+
+    <section className={styles.panel} aria-labelledby="communications-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Communications</p><h2 id="communications-heading">Email family, vendors, or attendees about this case.</h2>
+      {communications.length === 0 ? <p>No drafts prepared yet.</p> : (
+        <ol className={styles.history}>
+          {communications.map((communication) => (
+            <li key={communication.id}>
+              <h3>{communication.subject}</h3>
+              <p>{communication.body}</p>
+              <small>To: {communication.recipients.map((r) => r.name ? `${r.name} <${r.email}>` : r.email).join(', ')}</small>
+              <small>
+                {communication.status === 'sent' && communication.sent_at ? `Sent ${formatOperationalTime(communication.sent_at)}` : communication.status === 'failed' ? `Failed to send${communication.failure_reason ? `: ${communication.failure_reason}` : ''}` : `Prepared ${formatOperationalTime(communication.prepared_at)}, not yet sent`}
+              </small>
+              {communication.status !== 'sent' && <SendCommunicationButton communicationId={communication.id} requestId={randomUUID()} workflowId={workflow.id} />}
+            </li>
+          ))}
+        </ol>
+      )}
+      <PrepareCommunicationForm requestId={randomUUID()} tasks={workflowTasks.map((task) => ({ id: task.id, title: task.title }))} workflowId={workflow.id} />
     </section>
   </AppFrame>;
 }
