@@ -50,6 +50,7 @@ export type HostedMemberGrant = {
   organization_member_id: string;
   organization_location_id: string;
   revoked_at: string | null;
+  can_create_cases: boolean;
 };
 
 export type HostedEvent = {
@@ -145,7 +146,7 @@ export async function loadHostedOperations(options: {
     client.from('workflows').select('id, organization_id, organization_location_id, accountable_organization_member_id, case_reference, family_name, person_name, phase, status').eq('organization_id', viewerResult.viewer.organizationId).order('case_reference'),
     client.from('tasks').select('id, workflow_id, organization_id, assigned_organization_member_id, title, status, waiting_party, due_at, audience, automation_level, prepared_output, human_action, proof_destination, next_state, version').eq('organization_id', viewerResult.viewer.organizationId).order('due_at'),
     client.from('organization_members').select('id, organization_id, user_id, email, role, status, display_name, title, revoked_at').eq('organization_id', viewerResult.viewer.organizationId).order('display_name'),
-    client.from('organization_member_locations').select('organization_member_id, organization_location_id, revoked_at'),
+    client.from('organization_member_locations').select('organization_member_id, organization_location_id, revoked_at, can_create_cases'),
     options.events
       ? client.from('workflow_events').select('id, workflow_id, task_id, invitation_id, actor_organization_member_id, name, previous_state, next_state, occurred_at, organization_location_id, metadata').eq('organization_id', viewerResult.viewer.organizationId).order('occurred_at', { ascending: false }).limit(100)
       : Promise.resolve({ data: [], error: null }),

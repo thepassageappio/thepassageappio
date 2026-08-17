@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { humanizePreviewIdentity, humanizePreviewLabel, humanMemberStatus } from '@/lib/presentation/plain-language';
-import { RevokeInvitationForm, RevokeMemberForm } from '../CommandForms';
+import { RevokeInvitationForm, RevokeMemberForm, StaffCaseCreationGrantForm } from '../CommandForms';
 import styles from '../../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -34,9 +34,35 @@ export default async function TeamPage() {
       <section className={styles.workList} aria-labelledby="members-title">
         <div className={styles.sectionHeading}><div><p>TEAM ACCESS</p><h2 id="members-title">People with access by location.</h2></div><span>{staffMembers.filter((member) => member.status === 'active').length} active</span></div>
         {staffMembers.map((member) => {
-          const memberLocations = grants.filter((grant) => grant.organization_member_id === member.id).map((grant) => locationById.get(grant.organization_location_id) ?? 'Authorized location');
+          const memberGrants = grants.filter((grant) => grant.organization_member_id === member.id && grant.revoked_at === null);
+          const memberLocations = memberGrants.map((grant) => locationById.get(grant.organization_location_id) ?? 'Authorized location');
           const activeAssignments = tasks.filter((task) => task.assigned_organization_member_id === member.id && ['assigned', 'in_progress', 'blocked'].includes(task.status)).length;
-          return <article className={styles.teamCard} key={member.id}><div><p>{humanMemberStatus(member.status)}</p><h3>{displayMember(member)}</h3><dl className={styles.facts}><div><dt>Role</dt><dd>Staff</dd></div><div><dt>Locations</dt><dd>{memberLocations.join(' · ') || 'No active location'}</dd></div><div><dt>Account</dt><dd>{member.user_id ? `${displayMember(member)} · sign-in linked` : 'No sign-in account linked'}</dd></div><div><dt>Active commitments</dt><dd>{activeAssignments}</dd></div></dl></div>{member.status === 'active' && <RevokeMemberForm activeAssignmentCount={activeAssignments} memberId={member.id} memberName={displayMember(member)} requestId={randomUUID()} />}</article>;
+          return (
+            <article className={styles.teamCard} key={member.id}>
+              <div>
+                <p>{humanMemberStatus(member.status)}</p>
+                <h3>{displayMember(member)}</h3>
+                <dl className={styles.facts}>
+                  <div><dt>Role</dt><dd>Staff</dd></div>
+                  <div><dt>Locations</dt><dd>{memberLocations.join(' · ') || 'No active location'}</dd></div>
+                  <div><dt>Account</dt><dd>{member.user_id ? `${displayMember(member)} · sign-in linked` : 'No sign-in account linked'}</dd></div>
+                  <div><dt>Active commitments</dt><dd>{activeAssignments}</dd></div>
+                </dl>
+              </div>
+              {member.status === 'active' && memberGrants.map((grant) => (
+                <StaffCaseCreationGrantForm
+                  granted={grant.can_create_cases}
+                  key={`${grant.organization_member_id}:${grant.organization_location_id}`}
+                  locationId={grant.organization_location_id}
+                  locationName={locationById.get(grant.organization_location_id) ?? 'this location'}
+                  memberId={member.id}
+                  memberName={displayMember(member)}
+                  requestId={randomUUID()}
+                />
+              ))}
+              {member.status === 'active' && <RevokeMemberForm activeAssignmentCount={activeAssignments} memberId={member.id} memberName={displayMember(member)} requestId={randomUUID()} />}
+            </article>
+          );
         })}
       </section>
     </AppFrame>

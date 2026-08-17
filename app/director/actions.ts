@@ -16,6 +16,7 @@ export type DirectorCommandState = {
 
 type CommandReceipt = { event_id: string; occurred_at: string; replayed: boolean };
 type InvitationReceipt = { invitation_id: string; revoked_at: string; invitation_state: string; replayed: boolean };
+type CaseCreationGrantReceipt = { organization_member_id: string; organization_location_id: string; can_create_cases: boolean; replayed: boolean };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -131,5 +132,38 @@ export async function reviewTaskProof(_previous: DirectorCommandState, formData:
     status: 'saved',
     message: receipt.replayed ? 'Already recorded. The original review receipt was returned.' : decision === 'verified' ? 'Proof verified. The task is complete.' : 'Replacement requested. The task returned to the current owner.',
     receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed },
+  };
+}
+
+export async function setStaffCaseCreationGrant(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
+  const memberId = String(formData.get('memberId') ?? '');
+  const locationId = String(formData.get('locationId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const granted = String(formData.get('granted') ?? '') === 'true';
+  const reason = String(formData.get('reason') ?? '').trim();
+  if (!uuid.test(memberId) || !uuid.test(locationId) || !uuid.test(requestId) || (!granted && !reason)) {
+    return failure('validation', 'Choose a staff member and location, and explain any removal of case-creation rights. Nothing changed.');
+  }
+  const authority = await directorClient();
+  if (!authority) return failure('denied', 'You need director access to make this change. Nothing changed.');
+  const result = await authority.client.rpc('set_staff_case_creation_grant_idempotent', {
+    p_organization_member_id: memberId,
+    p_organization_location_id: locationId,
+    p_granted: granted,
+    p_request_id: requestId,
+    p_revocation_reason: granted ? null : reason,
+  });
+  if (result.error) return rpcFailure(result.error, 'case-creation grant');
+  const receipt = firstRpcRow<CaseCreationGrantReceipt>(result.data);
+  if (!receipt) return failure('unavailable', 'Passage did not return a complete grant receipt. Reload before retrying.');
+  revalidatePath('/director/team');
+  revalidatePath('/director/activity');
+  return {
+    status: 'saved',
+    message: receipt.replayed
+      ? 'Already recorded. This grant was already set to that state.'
+      : receipt.can_create_cases
+        ? 'This staff member can now create cases at this location.'
+        : 'Case-creation rights were removed.',
   };
 }
