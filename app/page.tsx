@@ -4,7 +4,7 @@ import styles from '@/components/marketing/MarketingPage.module.css';
 
 const paths = [
   { label: 'Someone just passed', href: '/start', title: 'Get help right now', body: 'Start the urgent record: who to call, who to notify, and the first things that need a decision tonight.' },
-  { label: 'Planning ahead', href: '/contact?category=planning', title: 'Set things up before they’re needed', body: 'Record wishes, name the people you trust, and store documents so your family isn’t starting from zero.' },
+  { label: 'Planning ahead', href: '/pricing', title: 'Set things up before they’re needed', body: 'Record wishes, name the people you trust, and store documents so your family isn’t starting from zero.' },
   { label: 'Funeral home', href: '/organization/start', title: 'Run your cases through Passage', body: 'Give your team one shared view of every family, every task owner, and every handoff, with proof attached.' },
   { label: 'Care provider or vendor', href: '/partner/start', title: 'Coordinate without the back-and-forth', body: 'Hospice teams, florists, cemeteries, and celebrants get exactly the request they need. Nothing more.' },
 ];

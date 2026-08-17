@@ -18,7 +18,7 @@ export default function StartPage() {
           Someone needs help now
         </Link>
         <p className={styles.lede} style={{ marginTop: 24, marginBottom: 0, fontSize: 13.5 }}>
-          Planning ahead for the future, not an urgent situation? <Link href="/contact?category=planning" style={{ color: 'var(--ink)', fontWeight: 650 }}>Talk to Passage about planning ahead</Link>.
+          Planning ahead for the future, not an urgent situation? <Link href="/pricing" style={{ color: 'var(--ink)', fontWeight: 650 }}>See planning options</Link>.
         </p>
       </main>
     </div>
