@@ -789,3 +789,27 @@ Founder confirmed two of the three open Phase J decisions directly: (1) generali
 - New generalized `resource_grants` table (grantor, grantee -- user or organization, resource type/id, scope, granted_by/at, expires_at, revoked_by/at/reason) as the SOC2-shaped successor to `estate_access`
 - Staff case-creation capability via a location-scoped grant on the new mechanism
 - Centralized `passage_private.authorize()` function is being added as the canonical implementation; migrating the ~18 existing call sites off their duplicated inline checks is being tracked as a **separate, deliberately isolated follow-up pass** rather than bundled into this same migration -- rewriting every production authority check in one sweep alongside new schema is exactly the kind of broad, hard-to-regression-test change this document's own north-star principles (server-derived authority, RLS denial proof, no consequential change without evidence) argue against doing in one motion. The new function ships and is available; the 18-site migration is next, tested independently.
+
+## Phase J, shipped (2026-08-16)
+
+Applied `phase_j_role_constraint_grant_audit_staff_case_creation` to production (`qsveqfchwylsbncsfgxe`), scoped to the funeral-home side only per the assisted-living decision above:
+
+- `organization_members.role` CHECK constraint (`owner`/`director`/`staff`) -- matches what's actually used; no existing rows violated it.
+- Audit-trail parity on `organization_member_locations`: `revoked_by_user_id`, `revocation_reason`, plus a new `can_create_cases` capability flag.
+- `estate_access` generalized toward a real grant record: `granted_by_user_id`, `expires_at`, `revoked_by_user_id`, `revocation_reason` added (additive; existing rows unaffected).
+- `passage_private.can_create_case_at_location()`: new centralized check -- owner/director (existing authority) OR a staff member with an explicit `can_create_cases` grant at that location. The ~18 other existing authority functions are untouched; migrating them to a shared `authorize()` pattern remains a deliberately separate, later pass (see reasoning above).
+- `create_case_from_urgent_intake_idempotent` (the only case-creation path in production) now calls the new check instead of the old owner/director-only `can_manage_location` gate -- **this is the actual fix for the bug that started Phase J.**
+- `passage_private.set_staff_case_creation_grant_idempotent()`: new director-only, idempotent grant/revoke RPC, with its own append-only audit event (`workflow_events`, `event_type='other'`, matching the existing invitation-event pattern).
+
+**Verified with real adversarial proof**, not just applied-and-assumed -- zero-footprint transactional test against production with synthetic org/location/owner/staff fixtures (rolled back via a forced exception, same technique used earlier tonight):
+1. Garbage role value correctly rejected by the new CHECK constraint.
+2. A staff member with no grant is correctly denied (`42501`) when attempting case creation.
+3. Director grants the capability; staff member can then create a case; the resulting request/case pair replays idempotently.
+4. Exactly one workflow row exists after the create + replay.
+5. Director revokes the capability (with a required reason); staff is correctly denied again on a fresh intake request.
+
+**One real bug caught by this testing, not by review, and fixed before it shipped**: the first version of both new revocation-shape CHECK constraints used `length(btrim(revocation_reason)) > 0` as the sole guard. Standard SQL CHECK semantics treat a NULL expression result as satisfying the constraint (only explicit FALSE violates it) -- so `length(btrim(null))` evaluates to NULL, and a revoked row with a null reason was silently accepted instead of rejected. Fixed by adding an explicit `revocation_reason is not null` guard to both constraints, re-verified with the same adversarial test (incomplete revocation now correctly rejected; a complete, valid revocation still correctly accepted). Flagging for awareness: the pre-existing `organization_members_revocation_shape_check` constraint (not touched this session, already in production before tonight) has the same latent structure and may have the same gap -- not fixed here since altering an already-relied-upon production constraint's behavior deserves its own explicit review, not a drive-by fix inside an unrelated migration.
+
+Verified via Supabase advisors both before and after: zero new security findings (every listed item is pre-existing and unrelated -- legacy empty tables, three long-standing `SECURITY DEFINER` functions, and leaked-password-protection being off).
+
+**Deliberately not built in this pass**: any UI for the director to grant/revoke staff case-creation rights (the RPC exists and is tested; `app/director/team/page.tsx` needs a control wired to it), and the ~18-site authority-function consolidation. Both are real next steps, not forgotten.
