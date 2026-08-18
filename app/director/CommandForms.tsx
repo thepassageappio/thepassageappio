@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { assignTask, createLocation, grantStaffLocation, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
+import { assignTask, createCase, createLocation, grantStaffLocation, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
 type Candidate = { id: string; name: string };
@@ -24,6 +24,7 @@ function Receipt({ state }: { state: DirectorCommandState }) {
       <strong>{state.status === 'saved' ? 'Saved by Passage' : 'Nothing changed'}</strong>
       <p>{state.message}</p>
       {state.receipt && <small>Saved {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'long' }).format(new Date(state.receipt.occurredAt))} · visible to authorized organization staff · recorded in team activity</small>}
+      {state.workflowId && <p><Link className={styles.primaryLink} href={`/director/cases/${state.workflowId}`}>Open the case →</Link></p>}
     </div>
   );
 }
@@ -66,6 +67,28 @@ export function RevokeMemberForm({ memberId, memberName, requestId, activeAssign
       <label>Reason for ending {memberName}’s access<input disabled={pending || blocked} maxLength={240} name="reason" required /></label>
       <button aria-busy={pending || blocked} disabled={pending || blocked} type="submit">{blocked ? `Reassign ${activeAssignmentCount} ${activeAssignmentCount === 1 ? 'commitment' : 'commitments'} first` : pending ? 'Ending access…' : 'End team access'}</button>
       <p className={styles.formBoundary}>{blocked ? 'Passage will not orphan active work.' : 'Activity history remains; current location grants end together.'}</p>
+      <Receipt state={state} />
+    </form>
+  );
+}
+
+export function CreateCaseForm({ organizationId, locations, requestId }: { organizationId: string; locations: Candidate[]; requestId: string }) {
+  const [state, action, pending] = useActionState(createCase, initialDirectorCommandState);
+  if (locations.length === 0) return <p className={styles.formBoundary}>No authorized location is available to open a case under yet.</p>;
+  return (
+    <form action={action} aria-busy={pending} className={styles.commandForm} key={requestId}>
+      <input name="organizationId" type="hidden" value={organizationId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <fieldset disabled={pending}>
+        <legend>Create a case.</legend>
+        {locations.length > 1 && <label>Location<select name="locationId" required>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>}
+        {locations.length === 1 && <input name="locationId" type="hidden" value={locations[0].id} />}
+        <label>Case reference<input maxLength={60} name="caseReference" placeholder="e.g. a file or reference number" required /></label>
+        <label>Family name<input maxLength={200} name="familyName" required /></label>
+        <label>Person’s name<input maxLength={200} name="personName" required /></label>
+        <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Creating…' : 'Create case'}</button>
+      </fieldset>
+      <p className={styles.formBoundary}>Passage seeds the standard 15-item intake checklist automatically.</p>
       <Receipt state={state} />
     </form>
   );

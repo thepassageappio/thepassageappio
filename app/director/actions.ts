@@ -12,6 +12,7 @@ export type DirectorCommandState = {
     occurredAt: string;
     replayed: boolean;
   };
+  workflowId?: string;
 };
 
 type CommandReceipt = { event_id: string; occurred_at: string; replayed: boolean };
@@ -28,6 +29,21 @@ function failure(status: DirectorCommandState['status'], message: string): Direc
 async function directorClient() {
   const viewer = await resolveOperationalViewer();
   if (!viewer.ok || !['owner', 'director'].includes(viewer.viewer.role)) return null;
+  const client = await createPassageServerClient();
+  return client ? { client, viewer: viewer.viewer } : null;
+}
+
+// Case creation is director/owner OR staff with an explicit can_create_cases
+// grant (set via StaffCaseCreationGrantForm on /director/team) -- unlike
+// every other action in this file, staff is not blocked here at the
+// frontend layer, because passage_private.can_create_case_at_location
+// already enforces the real per-location grant. Rejecting staff here too
+// would just duplicate that check less precisely (this layer has no way to
+// know which locations a given staff member has the grant at without
+// querying it, so the RPC is the correct single source of truth).
+async function caseCreationClient() {
+  const viewer = await resolveOperationalViewer();
+  if (!viewer.ok) return null;
   const client = await createPassageServerClient();
   return client ? { client, viewer: viewer.viewer } : null;
 }
@@ -171,6 +187,54 @@ export async function createLocation(_previous: DirectorCommandState, formData: 
   return {
     status: 'saved',
     message: receipt.replayed ? 'This location was already created.' : 'Location added.',
+  };
+}
+
+type CaseCreationReceipt = { workflow_id: string; replayed: boolean };
+
+// The general-purpose "director or authorized staff opens a new case"
+// path -- found missing during the persona-completeness pass. Previously
+// the only way an org-owned workflow could be created was claiming an
+// urgent-intake request; a funeral home taking a case any other way (a
+// phone call, a walk-in, a pre-need arrangement) had no way to start one
+// at all. Uses caseCreationClient(), not directorClient() -- staff with a
+// can_create_cases grant may call this too, enforced by the RPC itself.
+export async function createCase(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
+  const organizationId = String(formData.get('organizationId') ?? '');
+  const locationId = String(formData.get('locationId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const caseReference = String(formData.get('caseReference') ?? '').trim();
+  const familyName = String(formData.get('familyName') ?? '').trim();
+  const personName = String(formData.get('personName') ?? '').trim();
+  if (!uuid.test(organizationId) || !uuid.test(locationId) || !uuid.test(requestId)
+    || !caseReference || caseReference.length > 60 || !familyName || familyName.length > 200
+    || !personName || personName.length > 200) {
+    return failure('validation', 'Enter a case reference, family name, and person’s name. Nothing was created.');
+  }
+  const authority = await caseCreationClient();
+  if (!authority) return failure('denied', 'Sign in with an authorized account to create a case. Nothing changed.');
+  const result = await authority.client.rpc('create_case_manual_idempotent', {
+    p_organization_id: organizationId,
+    p_organization_location_id: locationId,
+    p_case_reference: caseReference,
+    p_family_name: familyName,
+    p_person_name: personName,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    if (result.error.code === '42501' || result.error.code === '28000') return failure('denied', 'You do not have case-creation authority at this location. Nothing changed.');
+    if (result.error.code === '55001') return failure('upgrade-required', result.error.message?.trim() || 'Your plan does not include another active case. Upgrade to continue.');
+    if (result.error.code === '22023') return failure('validation', 'Review the case details. Nothing was created.');
+    return failure('unavailable', 'Passage could not create this case right now. Nothing was created.');
+  }
+  const receipt = firstRpcRow<CaseCreationReceipt>(result.data);
+  if (!receipt?.workflow_id) return failure('unavailable', 'Passage did not confirm the new case. Reload before trying again.');
+  revalidatePath('/director');
+  revalidatePath('/director/activity');
+  return {
+    status: 'saved',
+    message: receipt.replayed ? 'This case was already created.' : 'Case created with the standard checklist.',
+    workflowId: receipt.workflow_id,
   };
 }
 

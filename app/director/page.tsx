@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { TrialBanner } from '@/components/operations/TrialBanner';
-import { AssignTaskForm } from './CommandForms';
+import { AssignTaskForm, CreateCaseForm } from './CommandForms';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { humanAudience, humanAutomationLevel, humanizePreviewIdentity, humanizePreviewLabel, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
@@ -39,6 +39,15 @@ export default async function DirectorPage() {
 
       <section className={styles.scopeBand} aria-label="Verified workspace scope">
         <strong>{humanizePreviewLabel(viewer.organizationName)}</strong><span>{viewer.locations.map((location) => humanizePreviewLabel(location.name)).join(' · ')}</span><small>You are signed in as {humanizePreviewIdentity(viewer.displayName, viewer.role)}. Changing this view does not change anyone’s access.</small>
+      </section>
+
+      <section className={styles.workList} aria-labelledby="new-case-title" style={{ marginBottom: 18 }}>
+        <div className={styles.sectionHeading}><div><p>NEW CASE</p><h2 id="new-case-title">Taking a case by phone, walk-in, or referral?</h2></div></div>
+        <CreateCaseForm
+          locations={viewer.locations.map((location) => ({ id: location.id, name: humanizePreviewLabel(location.name) }))}
+          organizationId={viewer.organizationId}
+          requestId={randomUUID()}
+        />
       </section>
 
       {tasks.length === 0 ? (
