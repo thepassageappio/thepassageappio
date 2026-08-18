@@ -33,6 +33,22 @@
 
 .skipLink:focus { top: 16px; }
 
+.demoBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 6px clamp(20px, 4vw, 64px);
+  background: var(--warm);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 780;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .familyHeader {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
