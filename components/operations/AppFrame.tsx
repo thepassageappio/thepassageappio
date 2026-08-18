@@ -4,7 +4,7 @@ import { MobileNavDisclosure } from '@/components/core/MobileNavDisclosure';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner';
+  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner' | 'payouts';
   children: ReactNode;
   identity: string;
   isPlatformAdmin?: boolean;
@@ -15,7 +15,7 @@ type AppFrameProps = {
 export function AppFrame({ active, children, identity, isPlatformAdmin = false, mode = 'demo', role }: AppFrameProps) {
   const initials = identity.split(' ').map((word) => word[0]).join('').slice(0, 2);
   const staffView = active === 'staff';
-  const partnerView = active === 'partner';
+  const partnerView = active === 'partner' || active === 'payouts';
 
   // Built once and rendered twice (inline desktop nav + mobile panel) so the
   // role/mode visibility rules -- e.g. staff only ever sees "My work" -- can't
@@ -28,7 +28,8 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
       {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
       {staffView && <Link aria-current="page" href="/staff">My work</Link>}
-      {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
+      {partnerView && <Link aria-current={active === 'partner' ? 'page' : undefined} href="/partner">Requests</Link>}
+      {partnerView && <Link aria-current={active === 'payouts' ? 'page' : undefined} href="/partner/payouts">Payouts</Link>}
       {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
       {isPlatformAdmin && <Link href="/demo">Walkthrough</Link>}
     </>

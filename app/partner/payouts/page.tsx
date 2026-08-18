@@ -24,7 +24,7 @@ export default async function VendorPayoutsPage({ searchParams }: { searchParams
   const ready = status.payoutsEnabled;
 
   return (
-    <AppFrame active="partner" identity={organizationName} mode="verified" role={`Vendor · ${organizationName}`}>
+    <AppFrame active="payouts" identity={organizationName} mode="verified" role={`Vendor · ${organizationName}`}>
       <header className={styles.pageHeading}>
         <div><p>VENDOR / PAYOUTS</p><h1>Get set up to receive requests and get paid.</h1><span>Passage collects payment from the funeral home when a director approves your quote, and releases it to you once your delivery is verified.</span></div>
       </header>
