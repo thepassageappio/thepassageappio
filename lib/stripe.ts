@@ -56,6 +56,11 @@ export const ESTATE_ADD_ON_PRICE_ID: Record<BillingPeriod, string> = {
   annual: 'price_1TRt9lRteXSJR0llCFh45Gpu',
 };
 
+// How many estates each D2C plan includes before an Estate Add-On is needed --
+// drives subscriptions.included_estate_slots at checkout. Matches the plan
+// copy on /pricing exactly ("Couple -- 2 estates", "Family -- 5 estates").
+export const D2C_PLAN_ESTATE_SLOTS: Record<D2cPlanKey, number> = { individual: 1, couple: 2, family: 5 };
+
 export const SINGLE_ESTATE_ONE_TIME_PRICE_ID = 'price_1TRt56RteXSJR0llFVfwybKI';
 export const URGENT_ONE_TIME_PRICE_ID = 'price_1TR9CIRteXSJR0llphn8CwKg';
 

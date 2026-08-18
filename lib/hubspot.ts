@@ -108,6 +108,19 @@ const DEAL_PROPERTIES: PropertyDefinition[] = [
 
 const CONTACT_PROPERTIES: PropertyDefinition[] = [
   { name: 'lifetime_value_cents', label: 'Lifetime Value (cents)', type: 'number', fieldType: 'number' },
+  // D2C estate usage, mirrored from Supabase (subscriptions.included_estate_slots
+  // + additional_estate_slots, and live workflow/participant counts) so a
+  // Couple/Family subscriber's actual usage is reportable in HubSpot without
+  // a Supabase query -- e.g. segment Contacts where estates_created <
+  // estate_slots_included (unused capacity, upsell/engagement target) or
+  // family_participants_added = 0 (never invited anyone, activation risk).
+  // Contact, not Deal, carries these: Deals are immutable point-in-time
+  // ledger entries (never updated after creation) so they can't hold a
+  // running counter -- Contact is the durable "current state" record,
+  // same reason lifetime_value_cents lives here and not on a Deal.
+  { name: 'estate_slots_included', label: 'Estate Slots Included', type: 'number', fieldType: 'number' },
+  { name: 'estates_created', label: 'Estates Created', type: 'number', fieldType: 'number' },
+  { name: 'family_participants_added', label: 'Family Participants Added', type: 'number', fieldType: 'number' },
 ];
 
 let propertiesEnsured = false;
@@ -197,6 +210,30 @@ export async function upsertContact(email: string, firstName?: string, lastName?
   if (!result?.ok) return null;
   const body = await result.json();
   return body?.results?.[0]?.id ?? null;
+}
+
+// Best-effort mirror of D2C estate usage onto the owner's Contact -- see
+// CONTACT_PROPERTIES above for why these are Contact fields, not Deal
+// fields. Called from the Stripe webhook (slot count changes) and from the
+// estate-creation/family-invitation-accept server actions (usage changes).
+// Any field left undefined is left untouched on the existing Contact record
+// rather than being reset to blank/zero.
+export async function syncD2cEstateUsage(email: string, fields: { estateSlotsIncluded?: number; estatesCreated?: number; familyParticipantsAdded?: number }): Promise<void> {
+  await hubspotFetch('/crm/v3/objects/contacts/batch/upsert', {
+    method: 'POST',
+    body: JSON.stringify({
+      inputs: [{
+        idProperty: 'email',
+        id: email,
+        properties: {
+          email,
+          ...(fields.estateSlotsIncluded !== undefined ? { estate_slots_included: String(fields.estateSlotsIncluded) } : {}),
+          ...(fields.estatesCreated !== undefined ? { estates_created: String(fields.estatesCreated) } : {}),
+          ...(fields.familyParticipantsAdded !== undefined ? { family_participants_added: String(fields.familyParticipantsAdded) } : {}),
+        },
+      }],
+    }),
+  }).catch(() => null);
 }
 
 async function createDeal(properties: Record<string, string>, contactId: string): Promise<string | null> {

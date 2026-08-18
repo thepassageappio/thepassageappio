@@ -1,8 +1,8 @@
 import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
-import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, HUBSPOT_LIFECYCLE_STAGE, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
-import { getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
+import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, HUBSPOT_LIFECYCLE_STAGE, syncD2cEstateUsage, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
+import { D2C_PLAN_ESTATE_SLOTS, ESTATE_ADD_ON_PRICE_ID, getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
@@ -86,6 +86,7 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   let legacyPlan: string;
   let planName: string;
   let revenueSegment: RevenueSegment;
+  let includedEstateSlots = 1;
   if (isB2b) {
     const plan = session.metadata?.plan as B2bPlanKey | undefined;
     if (!plan) return;
@@ -99,6 +100,7 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
     legacyPlan = legacySubscriptionPlanValue(plan, period);
     planName = planDisplayName(plan, period);
     revenueSegment = 'D2C Planning';
+    includedEstateSlots = D2C_PLAN_ESTATE_SLOTS[plan];
   }
 
   const { data: existingUser } = await service.from('users').select('id').eq('email', email).maybeSingle();
@@ -124,6 +126,7 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
       payment_count: 1,
       lifetime_value_cents: amountCents,
       metadata: userId ? {} : { pending_account_email: email },
+      ...(isB2b ? {} : { included_estate_slots: includedEstateSlots }),
     },
     { onConflict: 'stripe_subscription_id' },
   );
@@ -158,6 +161,11 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
     } catch (error) {
       console.error('d2c auto-provision failed', error);
     }
+    // CRM-visibility mirror only -- Supabase (subscriptions.included_estate_slots,
+    // checked by create_additional_estate_idempotent) remains the sole
+    // enforcement source, same relationship as Company.number_of_locations
+    // to organizations.included_location_slots.
+    await syncD2cEstateUsage(email, { estateSlotsIncluded: includedEstateSlots, estatesCreated: 1 }).catch(() => null);
   }
 
   const dealResult = await createNewBusinessDeal({
@@ -517,11 +525,11 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
   const subscriptionId = subscription.id;
   const { data: existingRow } = await service
     .from('subscriptions')
-    .select('id, amount_cents')
+    .select('id, user_id, amount_cents, included_estate_slots, additional_estate_slots')
     .eq('stripe_subscription_id', subscriptionId)
     .maybeSingle();
   if (!existingRow) return;
-  const row = existingRow as { id: string; amount_cents: number };
+  const row = existingRow as { id: string; user_id: string | null; amount_cents: number; included_estate_slots: number; additional_estate_slots: number };
 
   const primaryItem = subscription.items.data[0];
   // Sum every line item, not just the first -- a subscription with an
@@ -532,6 +540,16 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
     : row.amount_cents;
   const currentPeriodEnd = primaryItem?.current_period_end ? new Date(primaryItem.current_period_end * 1000).toISOString() : null;
 
+  // Estate Add-On is a second line item on the same subscription (added by
+  // addEstateSeat) -- its quantity is the source of truth for how many
+  // additional estate slots this subscriber has purchased beyond their base
+  // plan. Recomputed from Stripe's own state on every update, not
+  // incremented, so a downgrade/removal is reflected correctly too.
+  const addOnItem = subscription.items.data.find(
+    (item) => item.price.id === ESTATE_ADD_ON_PRICE_ID.monthly || item.price.id === ESTATE_ADD_ON_PRICE_ID.annual,
+  );
+  const additionalEstateSlots = addOnItem?.quantity ?? 0;
+
   await service
     .from('subscriptions')
     .update({
@@ -539,9 +557,16 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
       amount_cents: newAmountCents,
       current_period_end: currentPeriodEnd,
       renewal_date: currentPeriodEnd,
+      additional_estate_slots: additionalEstateSlots,
       updated_at: new Date().toISOString(),
     })
     .eq('id', row.id);
+
+  if (row.user_id && additionalEstateSlots !== row.additional_estate_slots) {
+    const { data: userRow } = await service.from('users').select('email').eq('id', row.user_id).maybeSingle();
+    const email = (userRow as { email: string } | null)?.email;
+    if (email) await syncD2cEstateUsage(email, { estateSlotsIncluded: row.included_estate_slots + additionalEstateSlots }).catch(() => null);
+  }
 }
 
 async function handleSubscriptionDeleted(service: ServiceClient, subscription: Stripe.Subscription) {
