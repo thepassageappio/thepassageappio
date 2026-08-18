@@ -4,7 +4,106 @@ Status: canonical internal roadmap for the greenfield Passage Zero rebuild.
 
 Owner audience: Passage System Admin, Product, UX, Engineering, QA, and Deploy roles. This document is not a public or persona-facing roadmap and its percentages, sprint language, founder goals, and readiness evidence must never appear on family, funeral-home, staff, participant, or vendor surfaces.
 
-Last updated: 2026-08-16 (America/Los_Angeles)
+Last updated: 2026-08-18 (America/Los_Angeles)
+
+---
+
+## ENGINEERING ROADMAP — read this section first
+
+Everything below this section is the append-only history that produced it. This section is the current answer to "what are we building, what does done mean, and where are we against it" — kept current going forward; do not let it go stale again the way the narrative log below it did between 2026-07-26 and 2026-08-17.
+
+**Legend:** ✅ done & evidenced &nbsp;·&nbsp; 🔶 partial, named gap remains &nbsp;·&nbsp; ⬜ not started &nbsp;·&nbsp; 🔒 blocked on a founder decision, not an engineering task
+
+### End goal
+
+> Passage is the person-centered continuity and proof layer for the transitions before, during, and after a death — one continuity record, one task/event/proof vocabulary, purpose-bound handoffs, human-reviewed prepared work, and visible proof and recovery.
+
+Full statement: `docs/product/passage-product-direction-session.md`. Not re-litigated here — this roadmap exists to execute it, not redefine it.
+
+### Definition of success (two layers — both already owner-approved, restated together for the first time)
+
+1. **Pilot-operational bar** (the go/no-go gate — see "North star and readiness definition" below): an allowlisted funeral home and family can complete a real, durable handoff across independently authenticated people with least-privilege access, visible ownership, task-bound communication, structured proof, failure recovery, and support evidence.
+2. **North-star behavioral measures** (what "working" looks like once live, measured in pilot use — not estimated): time to first correctly-owned case; time from family handoff to named acceptance; family wait-time without a visible owner; % of commitments with owner/audience/proof-destination set; % of proofs verified or in named recovery; follow-ups avoided because a receipt was already visible; director/staff time saved; can the family state what happens next without help. Full list: `docs/product/passage-product-direction-session.md`, section 7.
+
+Revenue priority behind these gates does not change: **funeral-home operating SaaS is the current, sole revenue engine.** Family continuity is the retention layer that follows it. Everything else (vendor network at scale, consumer network, digital continuity locker) is explicitly not funded yet. Full ranking: `docs/product/v5-direct-acquisition-and-digital-continuity-strategy.md`.
+
+### Milestone ladder — the phases, in order, not renamed or reordered from what was already set
+
+| Phase | Proves | Status |
+| --- | --- | --- |
+| **M3** — Operating primitives | Funeral-home core loop: task assignment, proof review, structured communication, recovery | 🔶 In progress — see below |
+| **M4** — Family continuity | Real family identity, purpose grants, Transfer Pass handoff, family-safe proof | 🔶 In progress — see below |
+| **M5** — Bounded partner network | One honest adapter/partner simulation, receipts, exceptions | 🔶 Ahead of schedule (vendor MVP exists) but not formally entered |
+| **M6** — Production gate | Live providers, migrations, security/privacy/legal review, rollout | ⬜ Not started — correctly gated behind M3/M4 |
+
+A phase advances only when every criterion below it is checked, per this document's own standing rule: a score or phase status moves only after real evidence, not because more code shipped.
+
+---
+
+### M3 — Operating primitives
+
+**Success criteria** (the 9-point exit gate every milestone must prove, `operational-readiness-roadmap.md` "Every operational milestone must prove" below):
+
+| # | Criterion | Status |
+| --- | --- | --- |
+| 1 | 2+ independently authenticated users, separate sessions | ✅ Proven live twice (Cycle 8 director/staff proof loop) |
+| 2 | RLS denial matrix (wrong org/location/role/assignment) | 🔶 Proven at SQL level (`cycle-8-rls-audit-2026-07-26.md`); **browser-level denial matrix for `/director/cases/[id]` and `/staff/work/[id]` specifically not done** |
+| 3 | Idempotent commands, reload/reconnect truth | ✅ Proven for the core loop; not re-verified against Phase K/L's newer routes specifically |
+| 4 | Server-derived actor + timestamp on every event | ✅ Architectural invariant — every RPC in the codebase follows the `SECURITY DEFINER` pattern; holds by construction, not by spot-check |
+| 5 | Named recovery owner for every failure | 🔶 True for the core spine; **HubSpot side-effect failures are still silent everywhere they exist** (found in tonight's CRM audit, not yet fixed) |
+| 6 | TS/build/QA + desktop/390/360 evidence | 🔶 Full `pnpm install && next build` verified clean tonight (all 44 routes, tonight's new routes included); **responsive/1440/390/360 pass not run on `/case` (new multi-estate list) or `/director/team` (new location-grant form)** |
+| 7 | Timestamped screenshots + redacted DB/log evidence | ⬜ Not gathered for anything shipped since 2026-08-16 |
+| 8 | `[deploy][qa-approved]` release-train discipline | ✅ Followed for every commit this session |
+| 9 | Frontend/backend contract-ledger parity | 🔶 Passes (18/18) as of tonight's fix, but **only covers Cycle 7/8 — Phase K, Phase L.1-L.4, the UX-audit fix pass, D2C multi-estate, and staff multi-location grants have zero contract entries** |
+
+**What actually closes M3, in order** (unchanged from the standalone plan written earlier tonight — `docs/product/m3-closure-execution-plan-2026-08-17.md` has full detail):
+1. Browser-level denial matrix + reload + responsive pass for `/director/cases/[id]` and `/staff/work/[id]` — the single most-repeated open item in this entire document.
+2. Expand the contract ledger past Cycle 7/8.
+3. Fix the HubSpot silent-failure recovery-owner gap (criterion 5).
+4. Migration backfill (see "Known blockers," below — this is real but needs proper tooling, not a rushed reconstruction).
+5. Formal PM re-score of the "Verified baseline" table once 1-3 land.
+
+### M4 — Family continuity
+
+| Requirement | Status |
+| --- | --- |
+| Real family identity + recovery | ✅ `continuity_spaces`/`continuity_participants` + `case_family_invitations` |
+| Durable purpose grants | ✅ `estate_access` (owner + read-only participant), `case_family_invitations` idempotent create/accept/revoke |
+| Participant boundaries (read-only, not staff access) | ✅ Enforced at the RPC layer, adversarially tested |
+| Complete Transfer Pass handoff | ⬜ Still the disconnected `/family` + `/family/pass` sandbox — clearly labeled as a preview (tonight's fix), but not wired to `case_family_invitations` or any real backend |
+| Family-safe proof return | ✅ Unified commitment view (Phase L.1) |
+| Data controls | 🔶 Partial — D2C multi-estate slot/participant tracking now real; no export/deletion flow yet |
+| **D2C multi-estate provisioning** (not an original M4 line item — added tonight because it was sold on `/pricing` and never built) | ✅ Built, adversarially tested, deployed tonight |
+
+**What closes M4:** wire the Transfer Pass flow to the real `case_family_invitations` backend (the sandbox already demonstrates the intended UX — this is a connection job, not a redesign); confirm with the founder that the multi-estate access model built tonight (separate estates per plan, not co-ownership) matches intent before more customers hit it.
+
+### M5 — Bounded partner network
+
+Not formally entered as a milestone, but the vendor/partner MVP already exceeds what M5 requires: real RLS, idempotent RPCs, Stripe Connect payouts, adversarially tested against cross-tenant reads/writes and malformed state transitions (`passage-zero-vendor-persona-adversarial-qa-2026-07-26.md`). Last formal score: 90% guided / 28% operational. Staff multi-location assignment (shipped tonight) is adjacent funeral-home-side work, not M5 itself.
+
+**What closes M5 formally:** a PM decision to actually enter this milestone and score it against the same 9-point gate M3 uses — it currently has no scored row in "Verified baseline" at all, a gap flagged since `persona-functional-gap-audit-2026-07-25.md` and still true.
+
+### M6 — Production gate
+
+⬜ Not started. Correctly gated behind M3 and M4 passing their own exit criteria — nothing in this session changes that sequencing.
+
+---
+
+### Current phase and immediate next action
+
+**We are in M3, closing it.** The next concrete engineering action is item 1 above: the browser-level denial/reload/responsive evidence pass for the two Cycle 8 routes. Everything else on the M3 list is sequenced behind it only because it's the most-repeated named gap in this document, not because the others don't matter.
+
+### Known blockers requiring a decision, not more code
+
+| Item | Who decides |
+| --- | --- |
+| `stripe` schema RLS exposure (anon-key-readable since before 2026-08-16, not yet remediated) | Founder |
+| HubSpot's stalled funeral-home leads (16 Companies at stage `lead`, unworked) | Founder |
+| GitHub PR #74 (shipped messaging feature, never merged) disposition | Founder |
+| D2C multi-estate access model (separate estates vs. co-ownership) — built tonight from pricing copy alone | Founder confirmation needed |
+| Migration backfill scope and method (25 files missing from git, including the full baseline schema) — needs the Supabase CLI's real `db dump`/`db diff` run locally; hand-reconstructing historical DDL from current-state introspection would produce false history, not a faithful backfill | Needs proper tooling access, not a founder product decision — flagged here so it isn't mistaken for "not prioritized" |
+
+---
 
 ## FULL SYSTEM AUDIT — 2026-08-16, ordered by founder ("no gaps, no misses")
 
