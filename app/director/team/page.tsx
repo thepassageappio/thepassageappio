@@ -4,7 +4,7 @@ import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { humanizePreviewIdentity, humanizePreviewLabel, humanMemberStatus } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
-import { CreateLocationForm, RevokeInvitationForm, RevokeMemberForm, StaffCaseCreationGrantForm } from '../CommandForms';
+import { CreateLocationForm, GrantStaffLocationForm, RevokeInvitationForm, RevokeMemberForm, StaffCaseCreationGrantForm } from '../CommandForms';
 import styles from '../../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -78,6 +78,16 @@ export default async function TeamPage() {
                   requestId={randomUUID()}
                 />
               ))}
+              {member.status === 'active' && (
+                <GrantStaffLocationForm
+                  availableLocations={orgLocations
+                    .filter((location) => !memberGrants.some((grant) => grant.organization_location_id === location.id))
+                    .map((location) => ({ id: location.id, name: humanizePreviewLabel(location.name) }))}
+                  memberId={member.id}
+                  memberName={displayMember(member)}
+                  requestId={randomUUID()}
+                />
+              )}
               {member.status === 'active' && <RevokeMemberForm activeAssignmentCount={activeAssignments} memberId={member.id} memberName={displayMember(member)} requestId={randomUUID()} />}
             </article>
           );

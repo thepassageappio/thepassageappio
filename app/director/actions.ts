@@ -174,6 +174,36 @@ export async function createLocation(_previous: DirectorCommandState, formData: 
   };
 }
 
+export async function grantStaffLocation(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
+  const memberId = String(formData.get('memberId') ?? '');
+  const locationId = String(formData.get('locationId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const canCreateCases = String(formData.get('canCreateCases') ?? '') === 'true';
+  if (!uuid.test(memberId) || !uuid.test(locationId) || !uuid.test(requestId)) {
+    return failure('validation', 'Choose a staff member and location. Nothing changed.');
+  }
+  const authority = await directorClient();
+  if (!authority) return failure('denied', 'You need director access to make this change. Nothing changed.');
+  const result = await authority.client.rpc('grant_staff_location_idempotent', {
+    p_organization_member_id: memberId,
+    p_organization_location_id: locationId,
+    p_can_create_cases: canCreateCases,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    if (result.error.code === '23505') return failure('conflict', 'This staff member already has this location. Nothing changed.');
+    return rpcFailure(result.error, 'location grant');
+  }
+  const receipt = firstRpcRow<CaseCreationGrantReceipt>(result.data);
+  if (!receipt) return failure('unavailable', 'Passage did not return a complete grant receipt. Reload before retrying.');
+  revalidatePath('/director/team');
+  revalidatePath('/director/activity');
+  return {
+    status: 'saved',
+    message: receipt.replayed ? 'Already recorded. This staff member already has this location.' : 'Location added for this staff member.',
+  };
+}
+
 export async function setStaffCaseCreationGrant(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
   const memberId = String(formData.get('memberId') ?? '');
   const locationId = String(formData.get('locationId') ?? '');

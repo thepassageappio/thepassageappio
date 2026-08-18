@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { assignTask, createLocation, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
+import { assignTask, createLocation, grantStaffLocation, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
 type Candidate = { id: string; name: string };
@@ -86,6 +86,21 @@ export function CreateLocationForm({ organizationId, requestId }: { organization
         <label>ZIP <span>Optional</span><input maxLength={20} name="zip" /></label>
         <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Adding location…' : 'Add location'}</button>
       </fieldset>
+      <Receipt state={state} />
+    </form>
+  );
+}
+
+export function GrantStaffLocationForm({ memberId, memberName, availableLocations, requestId }: { memberId: string; memberName: string; availableLocations: Candidate[]; requestId: string }) {
+  const [state, action, pending] = useActionState(grantStaffLocation, initialDirectorCommandState);
+  if (availableLocations.length === 0) return null;
+  return (
+    <form action={action} aria-busy={pending} className={styles.compactForm} key={requestId}>
+      <input name="memberId" type="hidden" value={memberId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <input name="canCreateCases" type="hidden" value="false" />
+      <label>Add a location for {memberName}<select disabled={pending} name="locationId" required>{availableLocations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
+      <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Adding…' : 'Add location'}</button>
       <Receipt state={state} />
     </form>
   );
