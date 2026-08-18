@@ -38,6 +38,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <script dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} type="application/ld+json" />
         <div className={styles.articleLayout}>
           <div className={styles.articleHead}>
+            <Link className={styles.readMore} href="/blog">← Back to Blog</Link>
             <p className={styles.articleMeta}>{post.category} · {post.date}</p>
             <h1 className={styles.articleTitle}>{post.title}</h1>
             <p className={styles.articleExcerpt}>{post.excerpt}</p>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { createFamilyInvitation, type FamilyInvitationState } from './family-actions';
 import styles from '../../../proof-loop.module.css';
 
@@ -27,7 +28,12 @@ export function FamilyInvitationForm({ workflowId, requestId }: { workflowId: st
           <div><dt>Purpose</dt><dd>{receipt.purpose}</dd></div>
           <div><dt>Expires</dt><dd>{new Date(receipt.expiresAt).toLocaleString()}</dd></div>
         </dl>
-        {receipt.invitePath && <p className={styles.boundary}>Secure link: <code>{receipt.invitePath}</code> — do not include it in screenshots or committed evidence.</p>}
+        {receipt.invitePath && (
+          <div className={styles.recoveryActions}>
+            <Link href={receipt.invitePath} prefetch={false}>Open secure invitation →</Link>
+          </div>
+        )}
+        {receipt.invitePath && <p className={styles.boundary}>The secure link contains a sensitive invitation credential. Do not include it in screenshots, logs, or committed evidence.</p>}
       </div>
     );
   }
