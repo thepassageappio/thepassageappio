@@ -44,6 +44,7 @@ export default async function DirectorPage() {
       <section className={styles.workList} aria-labelledby="new-case-title" style={{ marginBottom: 18 }}>
         <div className={styles.sectionHeading}><div><p>NEW CASE</p><h2 id="new-case-title">Taking a case by phone, walk-in, or referral?</h2></div></div>
         <CreateCaseForm
+          inviteRequestId={randomUUID()}
           locations={viewer.locations.map((location) => ({ id: location.id, name: humanizePreviewLabel(location.name) }))}
           organizationId={viewer.organizationId}
           requestId={randomUUID()}

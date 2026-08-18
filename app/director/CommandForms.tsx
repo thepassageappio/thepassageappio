@@ -72,13 +72,14 @@ export function RevokeMemberForm({ memberId, memberName, requestId, activeAssign
   );
 }
 
-export function CreateCaseForm({ organizationId, locations, requestId }: { organizationId: string; locations: Candidate[]; requestId: string }) {
+export function CreateCaseForm({ organizationId, locations, requestId, inviteRequestId }: { organizationId: string; locations: Candidate[]; requestId: string; inviteRequestId: string }) {
   const [state, action, pending] = useActionState(createCase, initialDirectorCommandState);
   if (locations.length === 0) return <p className={styles.formBoundary}>No authorized location is available to open a case under yet.</p>;
   return (
     <form action={action} aria-busy={pending} className={styles.commandForm} key={requestId}>
       <input name="organizationId" type="hidden" value={organizationId} />
       <input name="requestId" type="hidden" value={requestId} />
+      <input name="inviteRequestId" type="hidden" value={inviteRequestId} />
       <fieldset disabled={pending}>
         <legend>Create a case.</legend>
         {locations.length > 1 && <label>Location<select name="locationId" required>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>}
@@ -86,9 +87,12 @@ export function CreateCaseForm({ organizationId, locations, requestId }: { organ
         <label>Case reference<input maxLength={60} name="caseReference" placeholder="e.g. a file or reference number" required /></label>
         <label>Family name<input maxLength={200} name="familyName" required /></label>
         <label>Person’s name<input maxLength={200} name="personName" required /></label>
+        <label>Family contact’s name <span>Optional, but invites them automatically</span><input maxLength={120} name="familyContactName" placeholder="Who should Passage invite" /></label>
+        <label>Family contact’s email <span>Optional</span><input maxLength={254} name="familyContactEmail" placeholder="their-email@example.com" type="email" /></label>
+        <label>Their relationship <span>Optional</span><input defaultValue="Family contact" maxLength={80} name="familyContactRelationship" /></label>
         <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Creating…' : 'Create case'}</button>
       </fieldset>
-      <p className={styles.formBoundary}>Passage seeds the standard 15-item intake checklist automatically.</p>
+      <p className={styles.formBoundary}>Passage seeds the standard 15-item intake checklist automatically. If you enter a family contact, Passage emails them a secure invitation the moment the case is created — no separate step.</p>
       <Receipt state={state} />
     </form>
   );

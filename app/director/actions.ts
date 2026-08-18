@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { resolveOperationalViewer } from '@/lib/auth/authorization';
 import { firstRpcRow } from '@/lib/auth/invitations';
+import { sendTaskCommunicationEmail } from '@/lib/email';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type DirectorCommandState = {
@@ -199,6 +200,8 @@ type CaseCreationReceipt = { workflow_id: string; replayed: boolean };
 // phone call, a walk-in, a pre-need arrangement) had no way to start one
 // at all. Uses caseCreationClient(), not directorClient() -- staff with a
 // can_create_cases grant may call this too, enforced by the RPC itself.
+type FamilyInvitationReceipt = { invitation_id: string; raw_token: string | null; token_hint: string; invitation_expires_at: string; invitation_created_at: string; invitation_state: string; replayed: boolean };
+
 export async function createCase(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
   const organizationId = String(formData.get('organizationId') ?? '');
   const locationId = String(formData.get('locationId') ?? '');
@@ -206,10 +209,17 @@ export async function createCase(_previous: DirectorCommandState, formData: Form
   const caseReference = String(formData.get('caseReference') ?? '').trim();
   const familyName = String(formData.get('familyName') ?? '').trim();
   const personName = String(formData.get('personName') ?? '').trim();
+  const contactEmail = String(formData.get('familyContactEmail') ?? '').trim().toLowerCase();
+  const contactName = String(formData.get('familyContactName') ?? '').trim();
+  const contactRelationship = String(formData.get('familyContactRelationship') ?? '').trim();
+  const inviteRequestId = String(formData.get('inviteRequestId') ?? '');
   if (!uuid.test(organizationId) || !uuid.test(locationId) || !uuid.test(requestId)
     || !caseReference || caseReference.length > 60 || !familyName || familyName.length > 200
     || !personName || personName.length > 200) {
     return failure('validation', 'Enter a case reference, family name, and person’s name. Nothing was created.');
+  }
+  if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+    return failure('validation', 'Enter a valid family contact email, or leave it blank. Nothing was created.');
   }
   const authority = await caseCreationClient();
   if (!authority) return failure('denied', 'Sign in with an authorized account to create a case. Nothing changed.');
@@ -231,9 +241,49 @@ export async function createCase(_previous: DirectorCommandState, formData: Form
   if (!receipt?.workflow_id) return failure('unavailable', 'Passage did not confirm the new case. Reload before trying again.');
   revalidatePath('/director');
   revalidatePath('/director/activity');
+
+  let message = receipt.replayed ? 'This case was already created.' : 'Case created with the standard checklist.';
+
+  // Automatic, not a manual afterthought: if a primary family contact was
+  // given at intake, invite and actually email them the secure link in the
+  // same step, instead of requiring a second manual trip to the Case
+  // Room's separate invitation form. Reuses the exact same
+  // create_case_family_invitation_idempotent RPC that form already calls
+  // (no duplicated invitation-creation logic) and the same Resend sender
+  // already proven for task communications -- this is real delivery, not
+  // another "copy this link yourself" dead end. A failure here never rolls
+  // back the case itself; it's reported honestly, not silently dropped.
+  if (contactEmail && contactName && uuid.test(inviteRequestId)) {
+    const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+    const inviteResult = await authority.client.rpc('create_case_family_invitation_idempotent', {
+      p_workflow_id: receipt.workflow_id,
+      p_invited_email: contactEmail,
+      p_display_name: contactName,
+      p_relationship: contactRelationship || 'Family contact',
+      p_purpose: 'Stay updated on this case',
+      p_expires_at: expiresAt,
+      p_request_id: inviteRequestId,
+    });
+    if (inviteResult.error || !firstRpcRow<FamilyInvitationReceipt>(inviteResult.data)?.raw_token) {
+      message += ` We could not create a family invitation for ${contactEmail} — send one from the case page.`;
+    } else {
+      const inviteReceipt = firstRpcRow<FamilyInvitationReceipt>(inviteResult.data)!;
+      const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
+      const inviteLink = `${origin}/family-invite/${inviteReceipt.raw_token}`;
+      const emailResult = await sendTaskCommunicationEmail({
+        to: [contactEmail],
+        subject: `You've been invited to follow ${personName}'s case on Passage`,
+        text: `Hi ${contactName},\n\n${authority.viewer.organizationName} has opened a Passage case for ${personName} and invited you to follow it.\n\nOpen your secure invitation: ${inviteLink}\n\nThis link is unique to you and expires in 30 days. No account or password is needed to accept it.\n\n— Passage`,
+      });
+      message += emailResult.ok
+        ? ` An invitation email was sent to ${contactEmail}.`
+        : ` The invitation was created, but the email could not be sent (${emailResult.reason}) — share the secure link from the case page instead.`;
+    }
+  }
+
   return {
     status: 'saved',
-    message: receipt.replayed ? 'This case was already created.' : 'Case created with the standard checklist.',
+    message,
     workflowId: receipt.workflow_id,
   };
 }

@@ -40,6 +40,7 @@ const eventLabels: Record<string, string> = {
   'case_family_invitation.accepted': 'Family invitation accepted',
   'case_family_invitation.revoked': 'Family invitation canceled',
   'communication.sent': 'Email update sent to family',
+  'case.created': 'Case created',
 };
 
 const stateLabels: Record<string, string> = {
@@ -80,6 +81,8 @@ function activitySentence(event: { name: string; metadata: Record<string, unknow
   const locationName = metadataText(event.metadata, 'name') ?? 'a location';
   const emailSubject = metadataText(event.metadata, 'subject');
   const recipientCount = event.metadata && typeof event.metadata.recipient_count === 'number' ? event.metadata.recipient_count : null;
+  const caseReference = metadataText(event.metadata, 'case_reference');
+  const caseFamilyName = metadataText(event.metadata, 'family_name');
   if (event.name === 'organization_invitation.created') return `${actor} created a staff invitation.`;
   if (event.name === 'organization_invitation.accepted') return `${actor} accepted a staff invitation.`;
   if (event.name === 'organization_invitation.revoked') return `${actor} canceled a staff invitation.`;
@@ -98,6 +101,7 @@ function activitySentence(event: { name: string; metadata: Record<string, unknow
   if (event.name === 'case_family_invitation.accepted') return `A family member accepted an invitation to a case.`;
   if (event.name === 'case_family_invitation.revoked') return `${actor} canceled a family invitation.`;
   if (event.name === 'communication.sent') return `${actor} sent an email update${emailSubject ? ` ("${emailSubject}")` : ''}${recipientCount !== null ? ` to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'}` : ''}.`;
+  if (event.name === 'case.created') return `${actor} created a case${caseReference ? ` (${caseReference})` : ''}${caseFamilyName ? ` for the ${caseFamilyName} family` : ''}.`;
   return `${actor} updated team activity.`;
 }
 
