@@ -3,16 +3,34 @@ import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
 import { humanizePreviewIdentity, humanizePreviewLabel, humanMemberStatus } from '@/lib/presentation/plain-language';
-import { RevokeInvitationForm, RevokeMemberForm, StaffCaseCreationGrantForm } from '../CommandForms';
+import { createPassageServerClient } from '@/lib/supabase/server';
+import { CreateLocationForm, RevokeInvitationForm, RevokeMemberForm, StaffCaseCreationGrantForm } from '../CommandForms';
 import styles from '../../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+type OrgLocationRow = { id: string; name: string; city: string | null; state: string | null; status: string };
+
 export default async function TeamPage() {
   const result = await loadHostedOperations({ invitations: true });
   if (!result.ok) return <main className={styles.closed}><p>TEAM ACCESS</p><h1>We couldn’t verify Team.</h1><span>{result.message} Nothing changed.</span><Link href="/director/team">Retry Team</Link></main>;
   const { viewer, members, grants, tasks, invitations, invitationLocations } = result.data;
+
+  // Locations are queried directly (not from loadHostedOperations' viewer,
+  // which only lists locations *this* director already has a grant on) so
+  // every location the organization owns is shown here, not just the ones
+  // the current director happens to be able to manage yet.
+  const client = await createPassageServerClient();
+  const [locationsResult, orgResult] = client
+    ? await Promise.all([
+        client.from('organization_locations').select('id, name, city, state, status').eq('organization_id', viewer.organizationId).order('name'),
+        client.from('organizations').select('included_location_slots').eq('id', viewer.organizationId).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
+  const orgLocations = (locationsResult.data ?? []) as OrgLocationRow[];
+  const includedLocationSlots = (orgResult.data as { included_location_slots: number } | null)?.included_location_slots ?? 1;
+
   const locationById = new Map(viewer.locations.map((location) => [location.id, humanizePreviewLabel(location.name)]));
   const staffMembers = members.filter((member) => member.role === 'staff');
   const now = Date.now();
@@ -64,6 +82,22 @@ export default async function TeamPage() {
             </article>
           );
         })}
+      </section>
+
+      <section className={styles.workList} aria-labelledby="locations-title">
+        <div className={styles.sectionHeading}><div><p>LOCATIONS</p><h2 id="locations-title">Where your team operates.</h2></div><span>{orgLocations.length} of {includedLocationSlots} included</span></div>
+        {orgLocations.map((location) => (
+          <article className={styles.teamCard} key={location.id}>
+            <div>
+              <p>{location.status === 'active' ? 'ACTIVE' : location.status.toUpperCase()}</p>
+              <h3>{humanizePreviewLabel(location.name)}</h3>
+              <dl className={styles.facts}>
+                <div><dt>City / State</dt><dd>{[location.city, location.state].filter(Boolean).join(', ') || 'Not set'}</dd></div>
+              </dl>
+            </div>
+          </article>
+        ))}
+        <CreateLocationForm organizationId={viewer.organizationId} requestId={randomUUID()} />
       </section>
     </AppFrame>
   );

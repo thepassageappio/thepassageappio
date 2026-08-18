@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState } from 'react';
-import { assignTask, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
+import Link from 'next/link';
+import { assignTask, createLocation, revokeInvitation, revokeMember, setStaffCaseCreationGrant, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
 type Candidate = { id: string; name: string };
@@ -9,6 +10,15 @@ const initialDirectorCommandState: DirectorCommandState = { status: 'idle' };
 
 function Receipt({ state }: { state: DirectorCommandState }) {
   if (!state.message) return null;
+  if (state.status === 'upgrade-required') {
+    return (
+      <div className={styles.commandError} role="alert">
+        <strong>Upgrade required</strong>
+        <p>{state.message}</p>
+        <Link className={styles.primaryLink} href="/pricing">Upgrade now</Link>
+      </div>
+    );
+  }
   return (
     <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}>
       <strong>{state.status === 'saved' ? 'Saved by Passage' : 'Nothing changed'}</strong>
@@ -56,6 +66,26 @@ export function RevokeMemberForm({ memberId, memberName, requestId, activeAssign
       <label>Reason for ending {memberName}’s access<input disabled={pending || blocked} maxLength={240} name="reason" required /></label>
       <button aria-busy={pending || blocked} disabled={pending || blocked} type="submit">{blocked ? `Reassign ${activeAssignmentCount} ${activeAssignmentCount === 1 ? 'commitment' : 'commitments'} first` : pending ? 'Ending access…' : 'End team access'}</button>
       <p className={styles.formBoundary}>{blocked ? 'Passage will not orphan active work.' : 'Activity history remains; current location grants end together.'}</p>
+      <Receipt state={state} />
+    </form>
+  );
+}
+
+export function CreateLocationForm({ organizationId, requestId }: { organizationId: string; requestId: string }) {
+  const [state, action, pending] = useActionState(createLocation, initialDirectorCommandState);
+  return (
+    <form action={action} aria-busy={pending} className={styles.commandForm} key={requestId}>
+      <input name="organizationId" type="hidden" value={organizationId} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <fieldset disabled={pending}>
+        <legend>Add a location.</legend>
+        <label>Location name<input maxLength={200} name="name" required /></label>
+        <label>Address <span>Optional</span><input maxLength={200} name="address" /></label>
+        <label>City <span>Optional</span><input maxLength={100} name="city" /></label>
+        <label>State <span>Optional</span><input maxLength={56} name="state" /></label>
+        <label>ZIP <span>Optional</span><input maxLength={20} name="zip" /></label>
+        <button aria-busy={pending} disabled={pending} type="submit">{pending ? 'Adding location…' : 'Add location'}</button>
+      </fieldset>
       <Receipt state={state} />
     </form>
   );

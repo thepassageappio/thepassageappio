@@ -6,7 +6,7 @@ import { firstRpcRow } from '@/lib/auth/invitations';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type DirectorCommandState = {
-  status: 'idle' | 'validation' | 'denied' | 'conflict' | 'unavailable' | 'saved';
+  status: 'idle' | 'validation' | 'denied' | 'conflict' | 'unavailable' | 'saved' | 'upgrade-required';
   message?: string;
   receipt?: {
     occurredAt: string;
@@ -17,6 +17,7 @@ export type DirectorCommandState = {
 type CommandReceipt = { event_id: string; occurred_at: string; replayed: boolean };
 type InvitationReceipt = { invitation_id: string; revoked_at: string; invitation_state: string; replayed: boolean };
 type CaseCreationGrantReceipt = { organization_member_id: string; organization_location_id: string; can_create_cases: boolean; replayed: boolean };
+type LocationReceipt = { location_id: string; location_count: number; included_location_slots: number; is_additional: boolean; replayed: boolean };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -31,10 +32,15 @@ async function directorClient() {
   return client ? { client, viewer: viewer.viewer } : null;
 }
 
-function rpcFailure(error: { code?: string } | null, noun: string): DirectorCommandState {
+// `noun` names the thing that changed, e.g. "assignment" / "proof review" --
+// the 40001 branch previously hardcoded "Ownership changed..." regardless
+// of noun, a copy bug that leaked assignment-specific wording into e.g. a
+// proof-review conflict (found during the 2026-08-17 full UX audit).
+function rpcFailure(error: { code?: string; message?: string } | null, noun: string): DirectorCommandState {
   if (error?.code === '42501' || error?.code === '28000') return failure('denied', `You do not have access to change this ${noun}. Nothing changed. Ask an organization owner for help.`);
-  if (error?.code === '40001') return failure('conflict', 'Ownership changed before your action was saved. No change was made. Reload current work.');
+  if (error?.code === '40001') return failure('conflict', `This ${noun} changed before your action was saved. No change was made. Reload current work.`);
   if (error?.code === '55000') return failure('conflict', noun === 'team access' ? 'Reassign active commitments before ending access. Nothing changed.' : `The ${noun} changed before this action was saved. Reload and review it again.`);
+  if (error?.code === '55001') return failure('upgrade-required', error.message?.trim() || `Your plan does not include another ${noun}. Upgrade to continue.`);
   if (error?.code === '22023') return failure('validation', `Review the ${noun} details. They are incomplete or no longer match the current record.`);
   return failure('unavailable', `We could not save this ${noun}. Nothing changed. Try again.`);
 }
@@ -132,6 +138,39 @@ export async function reviewTaskProof(_previous: DirectorCommandState, formData:
     status: 'saved',
     message: receipt.replayed ? 'Already recorded. The original review receipt was returned.' : decision === 'verified' ? 'Proof verified. The task is complete.' : 'Replacement requested. The task returned to the current owner.',
     receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed },
+  };
+}
+
+export async function createLocation(_previous: DirectorCommandState, formData: FormData): Promise<DirectorCommandState> {
+  const organizationId = String(formData.get('organizationId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const name = String(formData.get('name') ?? '').trim();
+  const address = String(formData.get('address') ?? '').trim();
+  const city = String(formData.get('city') ?? '').trim();
+  const state = String(formData.get('state') ?? '').trim();
+  const zip = String(formData.get('zip') ?? '').trim();
+  if (!uuid.test(organizationId) || !uuid.test(requestId) || !name) {
+    return failure('validation', 'Enter a location name. Nothing was created.');
+  }
+  const authority = await directorClient();
+  if (!authority) return failure('denied', 'You need director access to make this change. Nothing changed.');
+  const result = await authority.client.rpc('create_organization_location_idempotent', {
+    p_organization_id: organizationId,
+    p_name: name,
+    p_address: address || null,
+    p_city: city || null,
+    p_state: state || null,
+    p_zip: zip || null,
+    p_request_id: requestId,
+  });
+  if (result.error) return rpcFailure(result.error, 'location');
+  const receipt = firstRpcRow<LocationReceipt>(result.data);
+  if (!receipt?.location_id) return failure('unavailable', 'Passage did not return a complete location receipt. Reload before retrying.');
+  revalidatePath('/director/team');
+  revalidatePath('/director/activity');
+  return {
+    status: 'saved',
+    message: receipt.replayed ? 'This location was already created.' : 'Location added.',
   };
 }
 
