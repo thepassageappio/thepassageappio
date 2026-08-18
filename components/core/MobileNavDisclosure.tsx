@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 // Deliberately unstyled logic only -- open/closed state plus a hamburger
 // button and a panel wrapper. Each caller (marketing TopShell, operations
@@ -47,10 +48,21 @@ export function MobileNavDisclosure({
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </button>
-      {open && (
+      {open && createPortal(
+        // Portaled to document.body rather than rendered inline where the
+        // button lives -- every caller's header uses backdrop-filter for its
+        // own frosted-glass look, and per spec, backdrop-filter (like
+        // transform/filter/perspective/contain) creates a new containing
+        // block for position:fixed descendants. A fixed, inset:0 panel
+        // nested inside a backdrop-filtered header resolves against the
+        // header's own ~56px box, not the viewport -- it was rendering as a
+        // tiny sliver of the intended full-screen overlay, not just missing
+        // a scrollbar. Portaling out of the header sidesteps this for good,
+        // regardless of what filter/transform any future header design adds.
         <div className={panelClassName} onClick={() => setOpen(false)} role="dialog" aria-label={label}>
           {children}
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
