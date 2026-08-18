@@ -8,6 +8,12 @@ export const metadata = { title: 'Billing' };
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const BILLING_ERROR_MESSAGES: Record<string, string> = {
+  unavailable: 'Billing is temporarily unavailable. Nothing changed. Try again in a moment.',
+  denied: 'You need to be signed in to make that change. Nothing changed.',
+  'no-subscription': 'That needs an active subscription with billing set up first. Nothing changed.',
+};
+
 const PLAN_LABELS: Record<string, string> = {
   single_monthly: 'Individual · Monthly', single_annual: 'Individual · Annual', single_lifetime: 'Single Estate · One-time',
   couple_monthly: 'Couple · Monthly', couple_annual: 'Couple · Annual',
@@ -64,7 +70,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           <h1>Your subscription.</h1>
         </section>
 
-        {error && <div className={styles.card}><p className={styles.note}>Passage couldn&apos;t complete that. Nothing changed. Try again.</p></div>}
+        {error && <div className={styles.checkoutAlert} role="alert">{BILLING_ERROR_MESSAGES[error] ?? BILLING_ERROR_MESSAGES.unavailable}</div>}
         {added === 'estate' && <div className={styles.card}><p className={styles.note}>Estate added to your subscription. It will appear on your next invoice.</p></div>}
 
         <section className={styles.section}>

@@ -66,6 +66,9 @@
 }
 .badgeDanger { color: var(--danger); }
 
+.checkoutAlert { margin: 0 0 20px; padding: 14px 16px; border-left: 3px solid var(--danger); background: var(--danger-soft); color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+.checkoutAlert strong { display: block; margin-bottom: 2px; color: var(--ink); }
+
 .urgentCard { border-color: color-mix(in srgb, var(--danger) 45%, var(--hairline)); margin-bottom: 24px; }
 
 .button {

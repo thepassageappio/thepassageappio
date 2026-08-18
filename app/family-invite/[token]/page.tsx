@@ -27,8 +27,9 @@ const failureMessages: Record<string, string> = {
   retry: 'Passage could not verify the invitation right now. Nothing is shown as accepted. Please retry.',
 };
 
-export default async function FamilyInvitationPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function FamilyInvitationPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ error?: string }> }) {
   const { token } = await params;
+  const { error: acceptError } = await searchParams;
   const configuration = getRuntimeConfiguration();
   const invitePath = `/family-invite/${encodeURIComponent(token)}`;
   const client = validInvitationToken(token) ? await createPassageServerClient() : null;
@@ -46,6 +47,14 @@ export default async function FamilyInvitationPage({ params }: { params: Promise
           ? failureMessages.invalid
           : null;
 
+  // acceptError comes from a prior failed acceptFamilyInvitation attempt
+  // (actions.ts redirects here with ?error=...) -- it doesn't replace
+  // stateError, which reflects the invitation's own current validity: the
+  // invitation can still be perfectly acceptable even though the last
+  // attempt to accept it failed (e.g. a transient RPC error), so the retry
+  // form below must stay visible alongside this notice, not be hidden by it.
+  const acceptErrorMessage = acceptError ? (failureMessages[acceptError] ?? failureMessages.retry) : null;
+
   return (
     <main className={styles.shell} id="main-content">
       <header className={styles.brandBar}><Link href="/">PASSAGE</Link>{publicRuntimeLabel(configuration.runtime) && <span>{publicRuntimeLabel(configuration.runtime)}</span>}</header>
@@ -55,6 +64,8 @@ export default async function FamilyInvitationPage({ params }: { params: Promise
         <p className={styles.lede}>This grants read-only visibility into one case's status, tasks, and updates. It never grants staff access.</p>
 
         {stateError && <div className={styles.unavailable} role="alert"><strong>We could not complete this invitation.</strong><p>{stateError}</p><Link className={styles.textLink} href={invitePath}>Retry invitation check</Link></div>}
+
+        {!stateError && acceptErrorMessage && invitation?.invitation_state === 'available' && <div className={styles.unavailable} role="alert"><strong>That didn’t go through.</strong><p>{acceptErrorMessage}</p></div>}
 
         {invitation && !stateError && (
           <>

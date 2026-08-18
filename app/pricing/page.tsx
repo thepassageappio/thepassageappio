@@ -23,7 +23,15 @@ const readiness = [
 
 export const metadata = { title: 'Pricing' };
 
-export default function PricingPage() {
+const checkoutFailureMessages: Record<string, string> = {
+  invalid: 'That plan selection was invalid. Nothing was charged — pick a plan below and try again.',
+  unavailable: 'Checkout is temporarily unavailable. Nothing was charged. Please try again in a moment.',
+  cancelled: 'Checkout was cancelled. Nothing was charged.',
+};
+
+export default async function PricingPage({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
+  const { checkout } = await searchParams;
+  const checkoutMessage = checkout ? (checkoutFailureMessages[checkout] ?? checkoutFailureMessages.unavailable) : null;
   return (
     <TopShell mode="gateway" context="Pricing">
       <main id="main-content" className={styles.page}>
@@ -31,6 +39,7 @@ export default function PricingPage() {
           <p className={styles.eyebrow}>Pricing</p>
           <h1>Choose the plan that protects your family.</h1>
           <p className={styles.lede}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
+          {checkoutMessage && <div className={styles.checkoutAlert} role="alert"><strong>{checkout === 'cancelled' ? 'Checkout cancelled' : 'Checkout didn’t go through'}</strong>{checkoutMessage}</div>}
         </section>
 
         <section className={styles.section}>
