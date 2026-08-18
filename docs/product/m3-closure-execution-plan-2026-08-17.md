@@ -33,6 +33,15 @@ Every migration since Phase J (2026-08-16 onward — 9 migrations, including eve
 **4. Formal re-score, once 1-3 land.**
 At that point the funeral-home and D2C operational numbers should genuinely move — not because more got built, but because the case-detail and urgent-intake corrections above alone already justify it, and 1-2 close the specific named gaps blocking the rest.
 
+## Update, later the same night: multi-estate and multi-location shipped
+
+Two items that were "not done" earlier in this doc are now built, adversarially tested (zero-footprint, rolled back), and deployed:
+
+- **D2C multi-estate provisioning** (`supabase/migrations/20260818040000_production_d2c_multi_estate.sql`, `20260818040100_...`, `app/case/actions.ts`, `app/case/page.tsx`, `app/case/EstateActions.tsx`, `app/api/webhooks/stripe/route.ts`). Closes the confirmed sold-but-not-built gap above: `subscriptions.included_estate_slots`/`additional_estate_slots` (mirroring the B2B `included_location_slots` pattern), a gated idempotent `create_additional_estate_idempotent` RPC, and `/case` now lists all of a subscriber's estates with real "add another" and "invite someone to view" actions — the latter also fixed a separate, real gap found while building this: the D2C family-invitation RPC already authorized a case owner, but the only frontend action calling it gated on funeral-home org roles, so a plain D2C owner could never actually invite a spouse. Three new HubSpot Contact properties (`estate_slots_included`, `estates_created`, `family_participants_added`) make usage reportable without a Supabase query.
+- **Staff multi-location grants** (`supabase/migrations/20260818050000_grant_staff_new_location_idempotent.sql`, `app/director/actions.ts`, `app/director/CommandForms.tsx`, `app/director/team/page.tsx`). Closes UX-audit finding #15: a director can now add an existing staff member to a new location, not just toggle a location they already have.
+
+Both migrations were committed to git alongside being applied — not a repeat of the backfill gap named in item 3 above, for these two at least.
+
 ## What M4 (family continuity) already has, concretely
 
 Per the existing dependency chain (`operational-readiness-roadmap.md:115`), M4 needs "real family identity/recovery, durable purpose grants, participant boundaries, complete Transfer Pass handoff, family-safe proof return, and data controls." Current state, evidence-based:
