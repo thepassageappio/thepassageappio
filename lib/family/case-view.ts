@@ -417,17 +417,17 @@ export type FamilyTaskListView = {
    *  null. Drives whether the Tasks page offers a completion control at all --
    *  a funeral-home-backed case stays read-only for family, unchanged. */
   isSelfServe: boolean;
+  /** True only for an accepted executor/POA participant (estate_access.role
+   *  = 'authorized_participant'). Drives whether the Tasks page offers
+   *  create-task and invite-participant entry points. */
+  isElevatedParticipant: boolean;
 };
+
+type ParticipantTaskRow = { task_id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null; version: number | null };
 
 export type FamilyTaskListResult =
   | { ok: true; data: FamilyTaskListView }
-  // 'participant-not-supported' is distinct from 'not-authorized': the caller
-  // is a real, verified participant (get_family_case_update_for_workflow
-  // returns a row for them) -- the full task list projection just isn't
-  // built for the bounded participant tier yet, unlike the owner tier below.
-  // Collapsing this into 'not-authorized' would incorrectly tell a legitimate
-  // invited family member they have no rights on their own case.
-  | { ok: false; reason: 'signed-out' | 'not-found' | 'not-authorized' | 'unavailable' | 'participant-not-supported' };
+  | { ok: false; reason: 'signed-out' | 'not-found' | 'not-authorized' | 'unavailable' };
 
 export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTaskListResult> {
   if (!UUID_PATTERN.test(workflowId)) return { ok: false, reason: 'not-found' };
@@ -448,8 +448,32 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
   if (!workflowResult.data) {
     const participantResult = await client.rpc('get_family_case_update_for_workflow', { p_workflow_id: workflowId });
     if (participantResult.error) return { ok: false, reason: 'unavailable' };
-    const rows = (participantResult.data ?? []) as ParticipantCaseUpdateRow[];
-    return { ok: false, reason: rows.length > 0 ? 'participant-not-supported' : 'not-authorized' };
+    const identityRows = (participantResult.data ?? []) as ParticipantCaseUpdateRow[];
+    if (identityRows.length === 0) return { ok: false, reason: 'not-authorized' };
+
+    const [taskListResult, partnerRequests] = await Promise.all([
+      client.rpc('list_family_tasks_for_participant', { p_workflow_id: workflowId }),
+      loadFamilyVisiblePartnerRequests(client, workflowId),
+    ]);
+    if (taskListResult.error) return { ok: false, reason: 'unavailable' };
+    const participantTasks = (taskListResult.data ?? []) as ParticipantTaskRow[];
+    const isElevatedParticipant = participantTasks.some((task) => task.version !== null);
+
+    const items = sortCommitments([
+      ...participantTasks.map((task) => toTaskCommitment({ id: task.task_id, title: task.title, status: task.status, waiting_party: task.waiting_party, due_at: task.due_at, version: task.version ?? 0 }, task.version !== null)),
+      ...partnerRequests.map(toPartnerRequestCommitment),
+    ]);
+
+    return {
+      ok: true,
+      data: {
+        personName: identityRows[0].person_name,
+        familyName: identityRows[0].family_name,
+        items,
+        isSelfServe: false,
+        isElevatedParticipant,
+      },
+    };
   }
   const isSelfServe = workflowResult.data.organization_id === null;
 
@@ -475,6 +499,7 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
       familyName: workflowResult.data.family_name,
       items,
       isSelfServe,
+      isElevatedParticipant: false,
     },
   };
 }

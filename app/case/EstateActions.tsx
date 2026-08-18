@@ -58,9 +58,17 @@ export function InviteToEstateForm({ workflowId, requestId, personLabel }: { wor
       <input id={`invite-name-${workflowId}`} maxLength={120} name="displayName" placeholder="Full name" required type="text" />
       <label htmlFor={`invite-relationship-${workflowId}`}>Their relationship <span>Optional</span></label>
       <input defaultValue="Family member" id={`invite-relationship-${workflowId}`} maxLength={80} name="relationship" type="text" />
+      <label htmlFor={`invite-role-${workflowId}`}>Their role</label>
+      <select defaultValue="family_member" id={`invite-role-${workflowId}`} name="participantRole">
+        <option value="family_member">Family member (view-only)</option>
+        <option value="executor">Executor / estate administrator (can create tasks, invite others)</option>
+        <option value="poa_medical_proxy">POA / medical proxy (can create tasks, invite others)</option>
+        <option value="clergy_officiant">Clergy / officiant (view-only)</option>
+        <option value="cemetery_crematory_contact">Cemetery / crematory contact (view-only)</option>
+      </select>
       <button className={styles.primary} disabled={pending} type="submit">{pending ? 'Inviting…' : 'Invite to view'}</button>
       {(state.status === 'validation' || state.status === 'denied' || state.status === 'conflict' || state.status === 'unavailable') && state.message && <p className={styles.alert} role="alert">{state.message}</p>}
-      <p>They&apos;ll see status, tasks, and updates for this estate. They won&apos;t need to create a duplicate account or re-enter anything already on file — one click on their invite link and they&apos;re in.</p>
+      <p>They&apos;ll see status, tasks, and updates for this estate. They won&apos;t need to create a duplicate account or re-enter anything already on file — one click on their invite link and they&apos;re in. Executor and POA/medical proxy can also add tasks and invite others.</p>
     </form>
   );
 }

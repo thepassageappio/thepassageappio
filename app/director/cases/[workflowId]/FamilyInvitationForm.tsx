@@ -47,12 +47,19 @@ export function FamilyInvitationForm({ workflowId, requestId }: { workflowId: st
         <label>Their email<input autoComplete="off" name="invitedEmail" placeholder="family@example.com" required type="email" /></label>
         <label>Their name<input maxLength={120} name="displayName" required /></label>
         <label>Relationship to the case<input defaultValue="Family member" maxLength={80} name="relationship" required /></label>
+        <label>Role<select defaultValue="family_member" name="participantRole">
+          <option value="family_member">Family member (view-only)</option>
+          <option value="executor">Executor / estate administrator (can create tasks, invite others)</option>
+          <option value="poa_medical_proxy">POA / medical proxy (can create tasks, invite others)</option>
+          <option value="clergy_officiant">Clergy / officiant (view-only)</option>
+          <option value="cemetery_crematory_contact">Cemetery / crematory contact (view-only)</option>
+        </select></label>
         <label>Purpose<input defaultValue="Stay updated on this case" maxLength={240} name="purpose" required /></label>
         <label>Expires<input defaultValue={defaultFamilyInvitationExpiry()} name="expiresAt" required type="datetime-local" /></label>
         <button type="submit">{pending ? 'Creating…' : 'Create family invitation'}</button>
       </fieldset>
       {state.message && <p className={styles.error} role="alert">{state.message}</p>}
-      <p className={styles.boundary}>This grants read-only visibility into this case's status, tasks, and updates. It does not grant staff access.</p>
+      <p className={styles.boundary}>Family member, clergy/officiant, and cemetery/crematory roles are read-only visibility into this case's status, tasks, and updates. Executor and POA/medical proxy can also create tasks and invite other participants on this case. No role grants staff access.</p>
     </form>
   );
 }

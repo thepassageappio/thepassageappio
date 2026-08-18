@@ -6,7 +6,9 @@ import { loginPath } from '@/lib/auth/redirects';
 import { setFamilyTaskCompletion } from '@/lib/family/task-actions';
 import { humanTaskStatus, humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { TaskCompletionToggle } from '@/components/family/TaskCompletionToggle';
+import { CreateFamilyTaskForm } from '@/components/family/CreateFamilyTaskForm';
 import { CaseNav } from '@/components/family/CaseNav';
+import { InviteToEstateForm } from '../../EstateActions';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -19,9 +21,10 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
     if (result.reason === 'signed-out') redirect(loginPath(`/case/${id}/tasks`));
     return <Closed reason={result.reason} />;
   }
-  const { personName, items } = result.data;
+  const { personName, items, isSelfServe, isElevatedParticipant } = result.data;
   const openItems = items.filter((item) => item.status !== 'completed');
   const completedItems = items.filter((item) => item.status === 'completed');
+  const canCreateTasks = isSelfServe || isElevatedParticipant;
 
   return (
     <main id="main-content">
@@ -32,6 +35,22 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
           <h1>{humanizePreviewLabel(personName ?? '', 'Your family record')}</h1>
         </div>
       </header>
+
+      {canCreateTasks && (
+        <section className={styles.panel} aria-labelledby="add-step-heading">
+          <p className={styles.eyebrow}>Add a step</p>
+          <h2 id="add-step-heading">Something else that needs doing?</h2>
+          <CreateFamilyTaskForm requestId={randomUUID()} workflowId={id} />
+        </section>
+      )}
+
+      {isElevatedParticipant && (
+        <section className={styles.panel} aria-labelledby="invite-heading" style={{ marginTop: 18 }}>
+          <p className={styles.eyebrow}>Executor / POA authority</p>
+          <h2 id="invite-heading">Invite someone else to this case.</h2>
+          <InviteToEstateForm personLabel={humanizePreviewLabel(personName ?? '', 'this case')} requestId={randomUUID()} workflowId={id} />
+        </section>
+      )}
 
       <section className={styles.panel} aria-labelledby="open-tasks-heading">
         <p className={styles.eyebrow}>Open</p>
@@ -88,14 +107,12 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
   );
 }
 
-function Closed({ reason }: { reason: 'not-found' | 'not-authorized' | 'unavailable' | 'participant-not-supported' }) {
+function Closed({ reason }: { reason: 'not-found' | 'not-authorized' | 'unavailable' }) {
   const message = reason === 'not-authorized'
     ? 'This case is not available to your account.'
     : reason === 'not-found'
       ? 'This case could not be found.'
-      : reason === 'participant-not-supported'
-        ? 'The full task list isn’t available for invited access yet. Check Today for what’s currently happening.'
-        : 'Passage could not open this case right now.';
+      : 'Passage could not open this case right now.';
   return (
     <main className={styles.closed} id="main-content">
       <h1>{message}</h1>

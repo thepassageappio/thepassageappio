@@ -52,6 +52,7 @@ export type InviteToEstateState = {
 };
 
 type InviteReceipt = { invitation_id: string; raw_token: string | null; invitation_expires_at: string; replayed: boolean };
+const PARTICIPANT_ROLES = ['family_member', 'executor', 'poa_medical_proxy', 'clergy_officiant', 'cemetery_crematory_contact'];
 
 // D2C counterpart to app/director/cases/[workflowId]/family-actions.ts'
 // createFamilyInvitation, which gates on resolveOperationalViewer (a
@@ -66,11 +67,13 @@ export async function inviteToEstate(_previous: InviteToEstateState, formData: F
   const invitedEmail = String(formData.get('invitedEmail') ?? '').trim().toLowerCase();
   const displayName = String(formData.get('displayName') ?? '').trim();
   const relationship = String(formData.get('relationship') ?? '').trim() || 'Family member';
+  const participantRole = String(formData.get('participantRole') ?? 'family_member');
   const purpose = 'Stay updated on this estate';
   const expiresAt = new Date(Date.now() + 30 * 86400000);
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitedEmail)) return { status: 'validation', message: 'Enter their email address. Nothing was created.' };
   if (!displayName) return { status: 'validation', message: 'Enter their name. Nothing was created.' };
+  if (!PARTICIPANT_ROLES.includes(participantRole)) return { status: 'validation', message: 'Choose a valid participant role. Nothing was created.' };
 
   const client = await createPassageServerClient();
   if (!client) return { status: 'unavailable', message: 'We could not open this estate right now. Nothing changed. Try again.' };
@@ -85,6 +88,7 @@ export async function inviteToEstate(_previous: InviteToEstateState, formData: F
     p_purpose: purpose,
     p_expires_at: expiresAt.toISOString(),
     p_request_id: requestId,
+    p_participant_role: participantRole,
   });
   if (result.error) {
     if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'You do not have authority to invite someone to this estate. Nothing changed.' };

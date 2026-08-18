@@ -13,10 +13,21 @@ type FamilyInvitationInspection = {
   family_name: string | null;
   person_name: string | null;
   relationship: string;
+  participant_role: string;
   invitation_purpose: string;
   invitation_expires_at: string;
   invitation_state: 'available' | 'accepted' | 'revoked' | 'expired';
 };
+
+const PARTICIPANT_ROLE_LABELS: Record<string, string> = {
+  family_member: 'Family member',
+  executor: 'Executor / estate administrator',
+  poa_medical_proxy: 'POA / medical proxy',
+  clergy_officiant: 'Clergy / officiant',
+  cemetery_crematory_contact: 'Cemetery / crematory contact',
+};
+
+const ELEVATED_ROLES = new Set(['executor', 'poa_medical_proxy']);
 
 const failureMessages: Record<string, string> = {
   invalid: 'This invitation link is incomplete or invalid.',
@@ -61,7 +72,7 @@ export default async function FamilyInvitationPage({ params, searchParams }: { p
       <section className={styles.panel} aria-labelledby="invite-title">
         <p className={styles.eyebrow}>FAMILY CASE INVITATION</p>
         <h1 id="invite-title">Review what you’re joining.</h1>
-        <p className={styles.lede}>This grants read-only visibility into one case's status, tasks, and updates. It never grants staff access.</p>
+        <p className={styles.lede}>{invitation && ELEVATED_ROLES.has(invitation.participant_role) ? "This grants visibility into one case's status, tasks, and updates, plus authority to create tasks and invite other participants on this case. It never grants staff access." : "This grants read-only visibility into one case's status, tasks, and updates. It never grants staff access."}</p>
 
         {stateError && <div className={styles.unavailable} role="alert"><strong>We could not complete this invitation.</strong><p>{stateError}</p><Link className={styles.textLink} href={invitePath}>Retry invitation check</Link></div>}
 
@@ -73,6 +84,7 @@ export default async function FamilyInvitationPage({ params, searchParams }: { p
               <div><dt>Invited by</dt><dd>{invitation.inviter_display_name}</dd></div>
               <div><dt>Case</dt><dd>{invitation.person_name ?? invitation.family_name ?? 'A family case'}</dd></div>
               <div><dt>Your relationship</dt><dd>{invitation.relationship}</dd></div>
+              <div><dt>Your role</dt><dd>{PARTICIPANT_ROLE_LABELS[invitation.participant_role] ?? invitation.participant_role}</dd></div>
               <div><dt>Purpose</dt><dd>{invitation.invitation_purpose}</dd></div>
               <div><dt>Expires</dt><dd><time dateTime={invitation.invitation_expires_at}>{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(invitation.invitation_expires_at))}</time></dd></div>
             </dl>

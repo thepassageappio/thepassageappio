@@ -58,3 +58,49 @@ export async function setFamilyTaskCompletion(_previous: TaskCompletionCommandSt
     receipt: { taskStatus: receipt.task_status, taskVersion: receipt.task_version, replayed: receipt.replayed },
   };
 }
+
+// Family/D2C task creation. passage_private.create_family_task_idempotent
+// authorizes the case owner or an accepted executor/POA participant
+// (estate_access.role = 'authorized_participant') on a case with no
+// organization involved -- same D2C-only boundary as completion above.
+export type TaskCreationCommandState = {
+  status: 'idle' | 'validation' | 'denied' | 'unavailable' | 'saved';
+  message?: string;
+};
+
+type TaskCreationReceipt = { task_id: string; status: string; version: number; event_id: string; occurred_at: string; replayed: boolean };
+const CATEGORIES = ['legal', 'service', 'notifications', 'property', 'personal', 'medical', 'memorial', 'logistics', 'digital', 'financial', 'government', 'other'];
+
+export async function createFamilyTask(_previous: TaskCreationCommandState, formData: FormData): Promise<TaskCreationCommandState> {
+  const workflowId = String(formData.get('workflowId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const title = String(formData.get('title') ?? '').trim();
+  const category = String(formData.get('category') ?? '');
+
+  if (!uuid.test(workflowId) || !uuid.test(requestId)) return { status: 'validation', message: 'This form expired before submission. Reload and try again.' };
+  if (!title) return { status: 'validation', message: 'Enter what needs to be done. Nothing was created.' };
+  if (!CATEGORIES.includes(category)) return { status: 'validation', message: 'Choose a category. Nothing was created.' };
+
+  const client = await createPassageServerClient();
+  if (!client) return { status: 'unavailable', message: 'We could not open this case right now. Nothing changed. Try again.' };
+  const user = await verifiedUser(client);
+  if (!user) return { status: 'denied', message: 'Sign in to add a step.' };
+
+  const result = await client.rpc('create_family_task_idempotent', {
+    p_workflow_id: workflowId,
+    p_title: title,
+    p_category: category,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'Adding a step here requires case-owner or executor/POA authority. Nothing changed.' };
+    if (result.error.code === '22023') return { status: 'validation', message: 'Review the title and category. Nothing was created.' };
+    return { status: 'unavailable', message: 'Passage could not add this step. Nothing changed. Try again.' };
+  }
+  const receipt = firstRpcRow<TaskCreationReceipt>(result.data);
+  if (!receipt?.task_id) return { status: 'unavailable', message: 'We could not confirm this step was created. Reload before trying again.' };
+
+  revalidatePath(`/case/${workflowId}/tasks`);
+  revalidatePath(`/case/${workflowId}/today`);
+  return { status: 'saved', message: receipt.replayed ? 'This step was already added.' : 'Step added.' };
+}
