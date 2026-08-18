@@ -144,7 +144,7 @@ export function GuideBrowser() {
               <input className={styles.input} name="email" placeholder="you@example.com" required type="email" />
             </label>
             <button className={`${styles.button} ${styles.fullWidth}`} disabled={pending} style={{ marginTop: 12 }} type="submit">{pending ? 'Unlocking…' : 'Unlock this guide'}</button>
-            {state.status === 'validation' && state.message && <p className={styles.note} style={{ color: 'var(--danger)', marginTop: 8 }}>{state.message}</p>}
+            {(state.status === 'validation' || state.status === 'unavailable') && state.message && <p className={styles.note} style={{ color: 'var(--danger)', marginTop: 8 }}>{state.message}</p>}
           </form>
         )}
       </article>

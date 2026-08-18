@@ -13,12 +13,13 @@ export async function unlockGuide(_previous: GuideUnlockState, formData: FormDat
     return { status: 'validation', message: 'Enter a valid email to unlock this guide.' };
   }
 
-  await recordContactInquiry({
+  const result = await recordContactInquiry({
     email,
     name,
     category: 'Guide lead',
     message: `Unlocked guide: ${guideTitle || 'Unknown guide'}`,
   });
+  if (!result) return { status: 'unavailable', message: 'We could not save your details right now. Try again in a moment.' };
 
   return { status: 'unlocked' };
 }

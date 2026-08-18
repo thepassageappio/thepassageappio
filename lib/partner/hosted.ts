@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { resolvePartnerViewer, type PartnerViewer } from '@/lib/auth/partner-authorization';
-import { VENDOR_CATEGORY_LABELS } from '@/lib/partner/categories';
+import { VENDOR_CATEGORY_LABELS, type VendorCategory } from '@/lib/partner/categories';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type HostedPartnerRequest = {
@@ -9,7 +9,7 @@ export type HostedPartnerRequest = {
   organization_id: string;
   workflow_id: string;
   partner_organization_id: string;
-  category: 'florist' | 'catering' | 'transport' | 'memorial_products' | 'other';
+  category: VendorCategory;
   title: string;
   details: string;
   needed_by: string | null;
