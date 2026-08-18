@@ -38,7 +38,18 @@ At that point the funeral-home and D2C operational numbers should genuinely move
 Per the existing dependency chain (`operational-readiness-roadmap.md:115`), M4 needs "real family identity/recovery, durable purpose grants, participant boundaries, complete Transfer Pass handoff, family-safe proof return, and data controls." Current state, evidence-based:
 
 - **Done:** real family identity via `continuity_spaces`/`continuity_participants` + `case_family_invitations`; family-safe proof return via the unified commitment view (Phase L.1); family-initiated communication (Phase L.3); family self-serve task completion (Phase L.2).
-- **Not done:** the Transfer Pass handoff itself is still the disconnected `/family` + `/family/pass` sandbox (now clearly labeled as a preview, per tonight's fix, but not wired to any real backend) — connecting it to `case_family_invitations` is the real remaining M4 work, not a new idea, just not started. Also not done: the founder's own still-open question from tonight — how a family manages multiple people (children, spouses) on one estate. That has to be scoped before M4 can be called feature-complete, not after.
+- **Not done:** the Transfer Pass handoff itself is still the disconnected `/family` + `/family/pass` sandbox (now clearly labeled as a preview, per tonight's fix, but not wired to any real backend) — connecting it to `case_family_invitations` is the real remaining M4 work, not a new idea, just not started.
+
+### Confirmed, code-level: D2C multi-estate provisioning does not exist
+
+Traced end to end tonight (`app/api/webhooks/stripe/route.ts:294-329`, `app/case/page.tsx`, `app/case/start/actions.ts`, `supabase/migrations/20260816070000_production_case_family_invitation.sql`). This is no longer an open question — it's a confirmed gap with an exact location:
+
+- **Auth:** magic link via Supabase Auth (`inviteUserByEmail`), no passwords, for both the D2C owner and any invited participant.
+- **Ownership:** exactly one `workflows` row per subscriber, created by `provisionD2cFamilyRecordIfNeeded` on checkout, owned by `workflows.user_id`. There is no concept of co-ownership anywhere in the schema.
+- **How a second person gets access:** the owner sends a `case_family_invitations` invite; acceptance writes `estate_access(role='participant', status='active')`. A participant is **read-only** — visibility into status/tasks/updates, no management rights, no editing. There is no "spouse" or "co-owner" role.
+- **The actual bug:** `provisionD2cFamilyRecordIfNeeded` (`route.ts:317-318`) creates one workflow regardless of which plan was purchased. `/pricing` sells Individual (1 estate), Couple (2 estates), and Family (5 estates) — **the code has no path that ever creates a second, third, fourth, or fifth estate for a Couple/Family subscriber.** The Estate Add-On Stripe price exists and is billable, but the account-settings page that would let an existing subscriber actually use it to create another estate does not exist (named as a gap in the 2026-08-16 audit, now confirmed as the same root cause).
+
+**This is sold-but-not-built, not a design question.** Scoping still needed on the *access model* (should a spouse on a "Couple" plan be a second owner of the same estate, or the owner of their own separate estate with cross-visibility? are children ever account holders themselves, or always represented by a parent/owner?) — but the missing multi-estate creation flow itself is a concrete build item, not a conversation, and belongs in M4 ahead of the Transfer Pass wiring above.
 
 ## What happens after M3 closes
 
