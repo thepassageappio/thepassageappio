@@ -20,10 +20,18 @@ Everything below this section is the append-only history that produced it. This 
 
 Full statement: `docs/product/passage-product-direction-session.md`. Not re-litigated here — this roadmap exists to execute it, not redefine it.
 
-### Definition of success (two layers — both already owner-approved, restated together for the first time)
+### Definition of success
+
+**The operative near-term bar, founder's own words, 2026-08-18:** "End to end personas can handle and do everything in platform with no hand holding, platform fully functions, and we have the ability to demo funeral homes fully. That's success." This is the working target for the current push — simpler and more directly actionable than the longer-horizon criteria below, and it's what "current phase and immediate next action" (further down) is now scoped against.
+
+Concretely, this means for **each** persona (D2C/family, funeral-home director, funeral-home staff, vendor): every action that persona needs is reachable, works without a director/engineer walking them through it, and fails with a clear, recoverable message when it fails — not a dead end, not a silent no-op. A genuine persona-by-persona "click through everything, zero hand-holding" pass is the concrete way to test this bar, distinct from (and faster than) the full pilot-operational evidence gate below.
+
+The longer-horizon, already owner-approved definition remains the gate for an actual paying pilot, two layers:
 
 1. **Pilot-operational bar** (the go/no-go gate — see "North star and readiness definition" below): an allowlisted funeral home and family can complete a real, durable handoff across independently authenticated people with least-privilege access, visible ownership, task-bound communication, structured proof, failure recovery, and support evidence.
 2. **North-star behavioral measures** (what "working" looks like once live, measured in pilot use — not estimated): time to first correctly-owned case; time from family handoff to named acceptance; family wait-time without a visible owner; % of commitments with owner/audience/proof-destination set; % of proofs verified or in named recovery; follow-ups avoided because a receipt was already visible; director/staff time saved; can the family state what happens next without help. Full list: `docs/product/passage-product-direction-session.md`, section 7.
+
+The founder's bar above is the honest floor beneath both — a platform that isn't demoable end-to-end with zero hand-holding cannot be pilot-operational either. Close the top bar first.
 
 Revenue priority behind these gates does not change: **funeral-home operating SaaS is the current, sole revenue engine.** Family continuity is the retention layer that follows it. Everything else (vendor network at scale, consumer network, digital continuity locker) is explicitly not funded yet. Full ranking: `docs/product/v5-direct-acquisition-and-digital-continuity-strategy.md`.
 
@@ -91,7 +99,16 @@ Not formally entered as a milestone, but the vendor/partner MVP already exceeds 
 
 ### Current phase and immediate next action
 
-**We are in M3, closing it.** The next concrete engineering action is item 1 above: the browser-level denial/reload/responsive evidence pass for the two Cycle 8 routes. Everything else on the M3 list is sequenced behind it only because it's the most-repeated named gap in this document, not because the others don't matter.
+**We are in M3, closing it against the founder's near-term bar above: every persona does everything end-to-end with no hand-holding, platform fully functions, funeral homes are fully demoable.**
+
+The concrete next engineering action is a genuine **persona-by-persona completeness pass** — walk each persona's entire journey start to finish and fix every dead end, silent failure, or missing action found, the same method used for tonight's UX audit but run to completion this time rather than stopping at a ranked list:
+
+1. **Funeral-home director/owner** — org setup, location creation (✅ built), staff invite + location grants (✅ built), case intake, task assignment, proof review, vendor requests, billing/upgrade, activity/audit.
+2. **Funeral-home staff** — accept invitation, see assigned work, submit proof, nothing outside their scope.
+3. **D2C/family** — sign up, land on their estate(s) (✅ multi-estate built tonight), complete tasks, message, invite a family member, billing.
+4. **Vendor/partner** — sign up, receive requests, quote, deliver, get paid, check payout status (✅ nav fixed tonight).
+
+Everything already marked ✅ above is a completed pass through part of this; what's left is finishing it for the parts not yet walked, plus the specific named items already on the M3 list (browser denial matrix, contract-ledger coverage, HubSpot recovery-owner gap) as the harder evidence layer underneath the founder's bar.
 
 ### Known blockers requiring a decision, not more code
 
