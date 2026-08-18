@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { claimUrgentIntake, createCaseFromUrgentIntake } from './actions';
 import type { UrgentDirectorCommandState } from './actions';
 import styles from '../../proof-loop.module.css';
@@ -9,6 +10,9 @@ const initialState: UrgentDirectorCommandState = { status: 'idle' };
 
 function Result({ state }: { state: UrgentDirectorCommandState }) {
   if (!state.message) return null;
+  if (state.status === 'upgrade-required') {
+    return <div className={styles.error} role="alert"><h3>Upgrade required</h3><p>{state.message}</p><Link href="/pricing">Upgrade now</Link></div>;
+  }
   return <div className={state.status === 'saved' ? styles.receipt : styles.error} role={state.status === 'saved' ? 'status' : 'alert'}><h3>{state.status === 'saved' ? 'Saved.' : 'Nothing changed.'}</h3><p>{state.message}</p></div>;
 }
 

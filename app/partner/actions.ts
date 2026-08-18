@@ -6,7 +6,7 @@ import { firstRpcRow } from '@/lib/auth/invitations';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type PartnerCommandState = {
-  status: 'idle' | 'validation' | 'denied' | 'conflict' | 'unavailable' | 'saved';
+  status: 'idle' | 'validation' | 'denied' | 'conflict' | 'unavailable' | 'saved' | 'upgrade-required';
   message?: string;
   receipt?: { occurredAt: string; replayed: boolean };
 };

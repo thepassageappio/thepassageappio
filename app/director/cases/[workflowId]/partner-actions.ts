@@ -99,7 +99,7 @@ export async function createPartnerRequest(_previous: PartnerCommandState, formD
     if (result.error.code === 'PS001') return { status: 'validation', message: "This vendor doesn't handle that category of request. Choose a matching vendor or category." };
     if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'You do not have director authority for this case. Nothing changed.' };
     if (result.error.code === '22023') return { status: 'validation', message: 'This request conflicts with an earlier command. Reload the case.' };
-    if (result.error.code === '55001') return { status: 'denied', message: 'Your 90-day trial has ended. Upgrade to send vendor requests.' };
+    if (result.error.code === '55001') return { status: 'upgrade-required', message: result.error.message?.trim() || 'Your 90-day trial has ended. Upgrade to send vendor requests.' };
     return { status: 'unavailable', message: 'Passage could not send this vendor request. Nothing changed.' };
   }
   const receipt = firstRpcRow<CreateReceipt>(result.data);
