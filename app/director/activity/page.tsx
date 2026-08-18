@@ -12,6 +12,15 @@ function metadataText(metadata: Record<string, unknown> | null, key: string) {
   return typeof value === 'string' ? value : null;
 }
 
+// Kept in sync by hand against every passage_private.*_idempotent function
+// that writes to workflow_events -- checked directly against the live
+// database (several of these RPCs' own migration files were applied
+// straight to Supabase and never committed to git, so pg_get_functiondef
+// was the only reliable source, not grep). An unmapped event still shows
+// (via the two ?? fallbacks below), just as a generic line instead of a
+// real description -- this list existing at all, and needing to be found
+// by direct DB introspection rather than being obviously in one place, is
+// itself the kind of gap a persona-interaction pass is meant to catch.
 const eventLabels: Record<string, string> = {
   'organization_invitation.created': 'Staff invitation created',
   'organization_invitation.accepted': 'Staff invitation accepted',
@@ -23,6 +32,14 @@ const eventLabels: Record<string, string> = {
   'task.proof_submitted': 'Proof submitted for review',
   'task.proof_verified': 'Proof verified',
   'task.proof_replacement_requested': 'Replacement requested',
+  'staff_case_creation.granted': 'Case-creation rights granted',
+  'staff_case_creation.revoked': 'Case-creation rights removed',
+  'staff_location.granted': 'Location added for staff member',
+  'organization_location.created': 'Location added',
+  'case_family_invitation.created': 'Family invitation created',
+  'case_family_invitation.accepted': 'Family invitation accepted',
+  'case_family_invitation.revoked': 'Family invitation canceled',
+  'communication.sent': 'Email update sent to family',
 };
 
 const stateLabels: Record<string, string> = {
@@ -55,9 +72,14 @@ function humanBeforeAfter(value: string | null, eventName: string, memberById: M
   return humanState(value);
 }
 
-function activitySentence(event: { name: string; metadata: Record<string, unknown> | null }, actor: string) {
+function activitySentence(event: { name: string; metadata: Record<string, unknown> | null }, actor: string, memberById: Map<string, Parameters<typeof displayMember>[0]>) {
   const task = metadataText(event.metadata, 'task_title') ?? 'this task';
   const member = metadataText(event.metadata, 'revoked_member_name') ?? 'a team member';
+  const targetMemberId = metadataText(event.metadata, 'target_organization_member_id');
+  const targetMemberName = targetMemberId ? displayMember(memberById.get(targetMemberId)) : 'a staff member';
+  const locationName = metadataText(event.metadata, 'name') ?? 'a location';
+  const emailSubject = metadataText(event.metadata, 'subject');
+  const recipientCount = event.metadata && typeof event.metadata.recipient_count === 'number' ? event.metadata.recipient_count : null;
   if (event.name === 'organization_invitation.created') return `${actor} created a staff invitation.`;
   if (event.name === 'organization_invitation.accepted') return `${actor} accepted a staff invitation.`;
   if (event.name === 'organization_invitation.revoked') return `${actor} canceled a staff invitation.`;
@@ -68,6 +90,14 @@ function activitySentence(event: { name: string; metadata: Record<string, unknow
   if (event.name === 'task.proof_submitted') return `${actor} submitted proof for ${task}.`;
   if (event.name === 'task.proof_verified') return `${actor} verified proof for ${task}.`;
   if (event.name === 'task.proof_replacement_requested') return `${actor} requested replacement proof for ${task}.`;
+  if (event.name === 'staff_case_creation.granted') return `${actor} let ${targetMemberName} create cases at this location.`;
+  if (event.name === 'staff_case_creation.revoked') return `${actor} removed ${targetMemberName}’s case-creation rights.`;
+  if (event.name === 'staff_location.granted') return `${actor} added ${targetMemberName} to a location.`;
+  if (event.name === 'organization_location.created') return `${actor} added ${locationName}.`;
+  if (event.name === 'case_family_invitation.created') return `${actor} invited a family member to a case.`;
+  if (event.name === 'case_family_invitation.accepted') return `A family member accepted an invitation to a case.`;
+  if (event.name === 'case_family_invitation.revoked') return `${actor} canceled a family invitation.`;
+  if (event.name === 'communication.sent') return `${actor} sent an email update${emailSubject ? ` ("${emailSubject}")` : ''}${recipientCount !== null ? ` to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'}` : ''}.`;
   return `${actor} updated team activity.`;
 }
 
@@ -80,7 +110,7 @@ export default async function ActivityPage() {
   return (
     <AppFrame active="activity" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`Director · ${humanizePreviewLabel(viewer.organizationName)}`}>
       <header className={styles.pageHeading}><div><p>DIRECTOR / ACTIVITY</p><h1>Recent team activity.</h1><span>See what changed, who changed it, and when.</span></div></header>
-      {events.length === 0 ? <section className={styles.emptyState} role="status"><p>TEAM ACTIVITY</p><h2>No team activity yet.</h2><span>Invitations, assignments, started work, and access changes will appear here after they are saved.</span></section> : <ol className={styles.activityList}>{events.map((event) => { const actor = memberById.get(event.actor_organization_member_id ?? ''); const actorName = humanizePreviewIdentity(displayMember(actor), actor?.role); const reason = humanizeSavedReason(metadataText(event.metadata, 'reason'), 'The preview check was completed.'); return <li key={event.id}><div className={styles.eventMark} aria-hidden="true" /><article><div><p>{eventLabels[event.name] ?? 'Team activity updated'}</p><time dateTime={event.occurred_at}>{formatOperationalTime(event.occurred_at)}</time></div><h2>{activitySentence(event, actorName)}</h2><dl className={styles.facts}><div><dt>Changed by</dt><dd>{actorName} · {actor?.role ?? 'team member'}</dd></div><div><dt>Location</dt><dd>{locationById.get(event.organization_location_id ?? '') ?? 'All locations'}</dd></div><div><dt>Before</dt><dd>{humanBeforeAfter(event.previous_state, event.name, memberById)}</dd></div><div><dt>After</dt><dd>{humanBeforeAfter(event.next_state, event.name, memberById)}</dd></div>{reason && <div><dt>Reason</dt><dd>{reason}</dd></div>}<div><dt>Visible to</dt><dd>Authorized organization team</dd></div></dl></article></li>; })}</ol>}
+      {events.length === 0 ? <section className={styles.emptyState} role="status"><p>TEAM ACTIVITY</p><h2>No team activity yet.</h2><span>Invitations, assignments, started work, and access changes will appear here after they are saved.</span></section> : <ol className={styles.activityList}>{events.map((event) => { const actor = memberById.get(event.actor_organization_member_id ?? ''); const actorName = humanizePreviewIdentity(displayMember(actor), actor?.role); const reason = humanizeSavedReason(metadataText(event.metadata, 'reason'), 'The preview check was completed.'); return <li key={event.id}><div className={styles.eventMark} aria-hidden="true" /><article><div><p>{eventLabels[event.name] ?? 'Team activity updated'}</p><time dateTime={event.occurred_at}>{formatOperationalTime(event.occurred_at)}</time></div><h2>{activitySentence(event, actorName, memberById)}</h2><dl className={styles.facts}><div><dt>Changed by</dt><dd>{actorName} · {actor?.role ?? 'team member'}</dd></div><div><dt>Location</dt><dd>{locationById.get(event.organization_location_id ?? '') ?? 'All locations'}</dd></div><div><dt>Before</dt><dd>{humanBeforeAfter(event.previous_state, event.name, memberById)}</dd></div><div><dt>After</dt><dd>{humanBeforeAfter(event.next_state, event.name, memberById)}</dd></div>{reason && <div><dt>Reason</dt><dd>{reason}</dd></div>}<div><dt>Visible to</dt><dd>Authorized organization team</dd></div></dl></article></li>; })}</ol>}
     </AppFrame>
   );
 }
