@@ -58,15 +58,14 @@ Family/D2C access to all of this is never direct table access with full columns 
 ## Interaction 7: Staff onboarding → team visibility
 
 - Director invites staff → staff accepts → appears in director's `/director/team` staff list, with location grants determining which cases they can be assigned.
-- **Confirmed working correctly for a single location.** Multi-location grant (shipped last night) lets a director add an existing staff member to a second location — but nothing was checked here for whether a staff member with grants at 2 locations sees a correctly merged task list across both, vs. two separate lists. **Not verified — flagged, not confirmed either way.**
+- **Verified, resolved after this doc's first pass:** `resolveOperationalViewer` (`lib/auth/authorization.ts:29-33`) already computes `viewer.locations` as an array of every active, non-revoked location grant — this predates last night, it's general infrastructure, not something built alongside multi-location grants. `loadHostedOperations`'s task query filters by organization, not by location, and `/staff` further filters to `assigned_organization_member_id = <their own id>` — never location-partitioned at all. A staff member with 2 location grants was already going to see one correctly merged task list, and the UI (`viewer.locations.map(...).join(' · ')`) already rendered multiple locations before last night's work existed. Last night's grant RPC only added the missing *write* side (a director adding a new grant); the *read* side never needed fixing.
 
 ## What this map found that the page-by-page audit didn't
 
 1. **Staff has zero vendor-request visibility**, by design or by gap — not clear which, and not previously stated anywhere. Worth a founder call: should staff see vendor coordination on cases they're assigned to, or is director-only intentional?
 2. **Participants can message, not just view** — a real capability the earlier "read-only" framing undersold.
-3. **The multi-location staff task-list merge (single list vs. two) is unverified**, and it's new work from last night — the single highest-risk unverified claim in this document.
-4. **Family-visible vendor-status timing has no audit-event backing**, unlike task status — a real, plausible source of a confusing "recent updates" feed under rapid status changes, not yet tested.
+3. **Family-visible vendor-status timing has no audit-event backing**, unlike task status — a real, plausible source of a confusing "recent updates" feed under rapid status changes, not yet tested.
 
 ## Next: what "build ASAP" means against these findings
 
-Item 3 (multi-location task-list merge) is the only one that's actually new-code risk from last night and should be verified first — a quick, real check, not a redesign. Items 1 and 2 are product-clarity questions, not bugs — worth a fast founder confirmation rather than a unilateral fix. Item 4 needs an actual test (create a vendor request, flip its status twice fast, check what the family sees) before deciding whether it's real.
+Items 1 and 2 are product-clarity questions, not bugs — worth a fast founder confirmation rather than a unilateral fix. Item 3 needs an actual test (create a vendor request, flip its status twice fast, check what the family sees) before deciding whether it's real. The one item that was genuine new-code risk from last night (multi-location staff task-list merge) has already been checked, immediately after this doc's first pass — verified correct, not a gap.
