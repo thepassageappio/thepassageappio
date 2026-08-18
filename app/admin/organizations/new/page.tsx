@@ -43,7 +43,11 @@ export default async function AdminNewOrganizationPage() {
         <section className={styles.panel}>
           <p className={styles.eyebrow}>PLATFORM ADMIN</p>
           <h1>Your account isn&apos;t a platform admin.</h1>
-          <p className={styles.lede}>This tool onboards new funeral homes sales-side. It&apos;s restricted to platform admins.</p>
+          <p className={styles.lede}>This tool onboards new funeral homes sales-side. It&apos;s restricted to platform admins. If you meant to set up your own funeral home, use self-serve signup instead.</p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <Link className={styles.primary} href="/organization/start" style={{ display: 'inline-flex' }}>Set up your funeral home</Link>
+            <Link className={styles.textLink} href="/">Return home</Link>
+          </div>
         </section>
       </main>
     );
