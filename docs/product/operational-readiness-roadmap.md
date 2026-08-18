@@ -75,7 +75,7 @@ A phase advances only when every criterion below it is checked, per this documen
 
 | Requirement | Status |
 | --- | --- |
-| Real family identity + recovery | ✅ `continuity_spaces`/`continuity_participants` + `case_family_invitations` |
+| Real family identity + recovery | ✅ `estate_access` + `case_family_invitations` (corrected 2026-08-18 — `continuity_spaces`/`continuity_participants` never existed in production; this row previously cited them incorrectly) |
 | Durable purpose grants | ✅ `estate_access` (owner + read-only participant), `case_family_invitations` idempotent create/accept/revoke |
 | Participant boundaries (read-only, not staff access) | ✅ Enforced at the RPC layer, adversarially tested |
 | Complete Transfer Pass handoff | ⬜ Still the disconnected `/family` + `/family/pass` sandbox — clearly labeled as a preview (tonight's fix), but not wired to `case_family_invitations` or any real backend |
@@ -122,9 +122,24 @@ Everything already marked ✅ above is a completed pass through part of this; wh
 | --- | --- |
 | `stripe` schema RLS exposure (anon-key-readable since before 2026-08-16, not yet remediated) | Founder |
 | HubSpot's stalled funeral-home leads (16 Companies at stage `lead`, unworked) | Founder |
-| GitHub PR #74 (shipped messaging feature, never merged) disposition | Founder |
+| GitHub PR #74 (shipped messaging feature, never merged) disposition — **and now also PR #77**, which already diagnosed and fixed the exact same participant-lockout bug closed tonight (see critical-fix entry below), months ago, and it never merged either. Two independent fixes for the same bug now exist (one on an unmerged branch, one shipped tonight as a fresh migration). Needs reconciling — check what PR #77's version actually did differently before assuming tonight's migration fully supersedes it | Founder |
 | D2C multi-estate access model (separate estates vs. co-ownership) — built tonight from pricing copy alone | Founder confirmation needed |
 | Migration backfill scope and method (25 files missing from git, including the full baseline schema) — needs the Supabase CLI's real `db dump`/`db diff` run locally; hand-reconstructing historical DDL from current-state introspection would produce false history, not a faithful backfill | Needs proper tooling access, not a founder product decision — flagged here so it isn't mistaken for "not prioritized" |
+| Vendor orgs support exactly one login (`/partner/start` creates one owner, no invite-a-second-employee flow exists — confirmed, no `partner_invitation`-shaped RPC anywhere in `supabase/migrations`) while funeral-home orgs have a full staff-invitation system. Queued as the next build (task #14), not blocked on a decision — flagged here only so it's visible next to the other org-completeness gaps | N/A — proceeding |
+
+### CRITICAL — three RPC call sites were silently broken in production, now fixed (2026-08-18)
+
+Found via a systematic cross-reference of every `client.rpc()` call site in the app against what actually exists in the live database (not a spot-check — triggered by finding one gap and deciding to check all of them). PostgREST only resolves `client.rpc()` calls against the `public` schema; a function that only exists in `passage_private` 404s silently, which the calling code was catching and treating as "no data" or "unauthorized."
+
+1. **`get_family_visible_partner_requests`** (`lib/family/case-view.ts`) — families have never actually seen vendor-request status merged into their timeline, despite Phase L.1 being recorded as shipped and verified.
+2. **`set_staff_case_creation_grant_idempotent`** (`app/director/actions.ts`) — toggling a staff member's case-creation rights on `/director/team` has never actually worked.
+3. **`get_family_case_update_for_workflow`** (`lib/family/case-view.ts`) — the worst of the three: didn't exist under this name in *any* schema. The original migration depended on `continuity_spaces`/`continuity_participants`, a lab-only system deliberately never ported to production. **Net effect: an invited family participant (spouse, etc.) who accepted an invitation has been completely locked out of `/case/[id]/today` and `/case/[id]/tasks` since that flow shipped.** Rebuilt against the live `estate_access`/`case_family_invitations` tables, same output shape, no frontend changes needed.
+
+Fixed in `supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql`, applied to production, verified with a zero-footprint adversarial SQL test (real participant gets a real row; unrelated user gets zero rows; director's grant-toggle works via the new public wrapper), committed and pushed (`986e02f`). **See the blocker table above — PR #77 already fixed the participant-lockout half of this once before and never merged; needs reconciling before this is called fully closed.**
+
+### Structured participant roles — already scoped in docs, not yet built
+
+`docs/product/persona-action-architecture.md` (persona table, lines 173-184) already lists **Executor/estate administrator**, **Celebrant/venue/clergy**, **Cemetery/crematory**, and **Vendor** as distinct personas, each with a defined entry point, scope, actions, and proof type — this was correctly scoped, not a miss in the docs. The gap is that the actual build (`case_family_invitations`) only carries a flat `relationship` free-text field with no structured role or differentiated authority. An executor implies estate-workspace authority; POA/medical proxy imply a form of legal standing; clergy/officiant don't need either. None of that distinction exists at the data layer today — every accepted invitee gets the same generic "Family updates" participant scope regardless of stated relationship. **Not yet started.** Needs a founder call on which roles get distinct authority (vs. just a display label) before building the enum.
 
 ---
 
