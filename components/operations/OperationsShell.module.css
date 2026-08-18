@@ -49,9 +49,11 @@
   display: none;
   position: fixed; inset: 0; z-index: 90;
   flex-direction: column; gap: 2px;
-  padding: 72px 20px 24px;
+  padding: 72px 20px calc(24px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--canvas) 97%, transparent);
   backdrop-filter: blur(10px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .navPanel a { padding: 14px 6px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 650; }
 .navPanel a[aria-current="page"] { color: var(--signal); }

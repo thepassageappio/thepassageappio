@@ -110,9 +110,11 @@ button, input, select, textarea { font: inherit; }
   display: none;
   position: fixed; inset: 0; z-index: 90;
   flex-direction: column; gap: 4px;
-  padding: calc(62px + 16px) 20px 24px;
+  padding: calc(62px + 16px) 20px calc(24px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--surface) 97%, transparent);
   backdrop-filter: blur(10px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .top-shell__navPanel a { padding: 14px 6px; border-bottom: 1px solid var(--hairline); font-size: 16px; font-weight: 650; }
 .top-shell__navPanel .top-shell__navSignIn, .top-shell__navPanel .top-shell__navPrimary { margin-top: 10px; padding: 14px 18px; border-bottom: none; text-align: center; }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 // Deliberately unstyled logic only -- open/closed state plus a hamburger
 // button and a panel wrapper. Each caller (marketing TopShell, operations
@@ -20,6 +20,20 @@ export function MobileNavDisclosure({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+
+  // Without this, the page behind the fixed-position panel stays
+  // scrollable -- on a phone that lets a touch-scroll gesture move the
+  // background content underneath the blurred overlay, which reads as the
+  // panel glitching/jumping rather than a stable open menu.
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   return (
     <>
       <button
