@@ -9,6 +9,30 @@ export const dynamic = 'force-dynamic';
 
 type ServiceClient = NonNullable<ReturnType<typeof createPassageServiceClient>>;
 
+// M3 exit criterion 5 ("a named recovery owner for every failure") had a
+// real, silent gap: every HubSpot Deal-creation call in this file is
+// non-blocking by design (a missed CRM sync must never block a real
+// payment), but a failure produced zero trace anywhere -- a paying
+// customer could become invisible to sales/success with nobody finding
+// out. public.crm_sync_events already existed in the schema for exactly
+// this (source/event_type/status/error columns) but had zero code
+// references anywhere in the app. This writes to it on failure only --
+// success is already recorded via subscriptions.hubspot_deal_id.
+async function logCrmDealFailure(service: ServiceClient, params: { eventType: string; email: string; stripeSubscriptionId?: string | null }): Promise<void> {
+  try {
+    await service.from('crm_sync_events').insert({
+      source: 'stripe_webhook',
+      event_type: params.eventType,
+      source_id: params.stripeSubscriptionId ?? null,
+      email: params.email,
+      status: 'failed',
+      error: 'HubSpot Deal creation returned no result -- see server logs around this timestamp for the underlying fetch failure.',
+    });
+  } catch {
+    // Best-effort logging must never throw into the webhook handler itself.
+  }
+}
+
 export async function POST(request: Request) {
   const stripe = getStripeClient();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
@@ -184,6 +208,8 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   });
   if (dealResult) {
     await service.from('subscriptions').update({ hubspot_deal_id: dealResult.dealId, hubspot_contact_id: dealResult.contactId }).eq('stripe_subscription_id', subscriptionId);
+  } else {
+    await logCrmDealFailure(service, { eventType: 'new_business_deal_creation_failed', email, stripeSubscriptionId: subscriptionId });
   }
 }
 
@@ -379,7 +405,7 @@ async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: S
   }
 
   const planName = kind === 'urgent' ? 'Urgent · One-time' : 'Single Estate · One-time';
-  await createNewBusinessDeal({
+  const dealResult = await createNewBusinessDeal({
     email,
     dealName: `${email} — ${planName}`,
     amountCents,
@@ -391,6 +417,7 @@ async function handleOneTimeCheckoutCompleted(service: ServiceClient, session: S
     acquisitionChannel: acquisition.channel,
     contactLifecycleStage: HUBSPOT_LIFECYCLE_STAGE.customer,
   });
+  if (!dealResult) await logCrmDealFailure(service, { eventType: 'one_time_deal_creation_failed', email, stripeSubscriptionId: session.id });
 }
 
 // Director approved a vendor's quote and paid it -- moves the request from
@@ -513,6 +540,8 @@ async function handleInvoicePaid(service: ServiceClient, invoice: Stripe.Invoice
   });
   if (dealId) {
     await service.from('subscriptions').update({ hubspot_deal_id: dealId }).eq('id', row.id);
+  } else {
+    await logCrmDealFailure(service, { eventType: 'renewal_deal_creation_failed', email, stripeSubscriptionId: subscriptionId });
   }
 }
 
@@ -589,7 +618,7 @@ async function handleSubscriptionDeleted(service: ServiceClient, subscription: S
   const email = (userRow as { email: string } | null)?.email;
   if (!email) return;
 
-  await createChurnDeal({
+  const dealId = await createChurnDeal({
     email,
     dealName: `${email} — churned (${new Date().toISOString().slice(0, 10)})`,
     lastAmountCents: row.amount_cents,
@@ -597,6 +626,7 @@ async function handleSubscriptionDeleted(service: ServiceClient, subscription: S
     revenueSegment: 'D2C Planning',
     stripeSubscriptionId: subscriptionId,
   });
+  if (!dealId) await logCrmDealFailure(service, { eventType: 'churn_deal_creation_failed', email, stripeSubscriptionId: subscriptionId });
 }
 
 // Vendor Connect account status changed -- syncs charges/payouts/details

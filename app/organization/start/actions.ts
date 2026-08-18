@@ -62,6 +62,11 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   const contactId = user.email
     ? await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null)
     : null;
+  // Not wired to crm_sync_events on failure like the Stripe-webhook Deal
+  // sites are: this runs on the user-context client, and crm_sync_events
+  // has RLS enabled with zero policies -- an authenticated-role insert
+  // would be silently blocked, not a real fix. Logging this one requires
+  // either a SECURITY DEFINER RPC or a real RLS policy, neither done here.
   const trialEndsAtIso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
   if (user.email) await createTrialDeal({ email: user.email, organizationName, trialEndsAtIso }).catch(() => null);
   await createSelfServeSignupTask({ organizationName, contactId, companyId: company?.companyId ?? null }).catch(() => null);
