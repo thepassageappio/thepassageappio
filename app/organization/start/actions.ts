@@ -62,13 +62,28 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   const contactId = user.email
     ? await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null)
     : null;
-  // Not wired to crm_sync_events on failure like the Stripe-webhook Deal
-  // sites are: this runs on the user-context client, and crm_sync_events
-  // has RLS enabled with zero policies -- an authenticated-role insert
-  // would be silently blocked, not a real fix. Logging this one requires
-  // either a SECURITY DEFINER RPC or a real RLS policy, neither done here.
+  // M3 exit criterion 5 ("a named recovery owner for every failure"): this
+  // was the one site left uncovered when crm_sync_events was wired into the
+  // Stripe webhook -- it runs on the user-context client (a Server Action,
+  // not a trusted service-role context), so failures here are logged via
+  // passage_private.log_crm_sync_failure (a SECURITY DEFINER RPC) rather
+  // than a direct table write, which RLS would silently block.
   const trialEndsAtIso = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
-  if (user.email) await createTrialDeal({ email: user.email, organizationName, trialEndsAtIso }).catch(() => null);
+  if (user.email) {
+    const dealId = await createTrialDeal({ email: user.email, organizationName, trialEndsAtIso }).catch(() => null);
+    if (!dealId) {
+      try {
+        await client.rpc('log_crm_sync_failure', {
+          source: 'organization_start',
+          event_type: 'trial_deal_creation',
+          email: user.email,
+          error: 'createTrialDeal returned no deal id -- see server logs around this timestamp for the underlying HubSpot failure.',
+        });
+      } catch {
+        // Best-effort logging must never block or fail the signup itself.
+      }
+    }
+  }
   await createSelfServeSignupTask({ organizationName, contactId, companyId: company?.companyId ?? null }).catch(() => null);
 
   return { status: 'created' };
