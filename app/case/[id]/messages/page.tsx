@@ -7,10 +7,14 @@ import { postWorkflowMessage } from '@/lib/messaging/actions';
 import { humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { MessageThread } from '@/components/messaging/MessageThread';
 import { CaseNav } from '@/components/family/CaseNav';
+import { PrepareFamilyCommunicationForm, SendFamilyCommunicationButton } from '@/components/family/CommunicationForms';
+import { createPassageServerClient } from '@/lib/supabase/server';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+type CommunicationRow = { id: string; subject: string; body: string; recipients: { email: string; name?: string }[]; status: string; prepared_at: string; sent_at: string | null; failure_reason: string | null };
 
 export default async function FamilyCaseMessagesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,6 +24,13 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
     return <Closed reason={result.reason} />;
   }
   const { personName, familyName, messages } = result.data;
+
+  // Fails closed to an empty list -- a family owner who can't reach the
+  // communications RPC (e.g. an invited participant, out of scope for this
+  // surface) still gets the rest of the page rather than an error.
+  const client = await createPassageServerClient();
+  const communicationsResult = client ? await client.rpc('get_workflow_communications', { p_workflow_id: id }) : null;
+  const communications = (communicationsResult?.data ?? []) as CommunicationRow[];
 
   return (
     <main id="main-content">
@@ -35,6 +46,28 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
         <p className={styles.eyebrow}>Messages</p>
         <h2 id="messages-heading">Talk with your care team.</h2>
         <MessageThread messages={messages} postAction={postWorkflowMessage} requestId={randomUUID()} workflowId={id} />
+      </section>
+
+      <section className={styles.panel} aria-labelledby="email-heading" style={{ marginTop: 18 }}>
+        <p className={styles.eyebrow}>Email updates</p>
+        <h2 id="email-heading">Email relatives, friends, or your care team about your case.</h2>
+        <p>These are real emails Passage sends on your behalf, once you review and click Send. Nothing sends automatically.</p>
+        {communications.length > 0 && (
+          <ol className={styles.history}>
+            {communications.map((communication) => (
+              <li key={communication.id}>
+                <p><strong>{communication.subject}</strong></p>
+                <p>{communication.body}</p>
+                <p>To: {communication.recipients.map((r) => r.name ? `${r.name} <${r.email}>` : r.email).join(', ')}</p>
+                <p>
+                  {communication.status === 'sent' && communication.sent_at ? 'Sent.' : communication.status === 'failed' ? `Failed to send${communication.failure_reason ? `: ${communication.failure_reason}` : ''}` : 'Prepared, not yet sent.'}
+                </p>
+                {communication.status !== 'sent' && <SendFamilyCommunicationButton communicationId={communication.id} requestId={randomUUID()} workflowId={id} />}
+              </li>
+            ))}
+          </ol>
+        )}
+        <PrepareFamilyCommunicationForm requestId={randomUUID()} workflowId={id} />
       </section>
     </main>
   );
