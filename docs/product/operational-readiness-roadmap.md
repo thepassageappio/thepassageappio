@@ -58,7 +58,7 @@ A phase advances only when every criterion below it is checked, per this documen
 | 2 | RLS denial matrix (wrong org/location/role/assignment) | 🔶 Proven at SQL level (`cycle-8-rls-audit-2026-07-26.md`); **browser-level denial matrix for `/director/cases/[id]` and `/staff/work/[id]` specifically not done** |
 | 3 | Idempotent commands, reload/reconnect truth | ✅ Proven for the core loop; not re-verified against Phase K/L's newer routes specifically |
 | 4 | Server-derived actor + timestamp on every event | ✅ Architectural invariant — every RPC in the codebase follows the `SECURITY DEFINER` pattern; holds by construction, not by spot-check |
-| 5 | Named recovery owner for every failure | 🔶 True for the core spine; **HubSpot side-effect failures are still silent everywhere they exist** (found in tonight's CRM audit, not yet fixed) |
+| 5 | Named recovery owner for every failure | 🔶 `crm_sync_events` (built, previously unwired) now logs every HubSpot Deal-creation failure across all 4 Stripe-webhook sites; **one site knowingly still uncovered** — `organization/start`'s trial-deal creation runs on the user-context client, which RLS blocks from writing to `crm_sync_events` (zero policies exist on it) |
 | 6 | TS/build/QA + desktop/390/360 evidence | 🔶 Full `pnpm install && next build` verified clean tonight (all 44 routes, tonight's new routes included); **responsive/1440/390/360 pass not run on `/case` (new multi-estate list) or `/director/team` (new location-grant form)** |
 | 7 | Timestamped screenshots + redacted DB/log evidence | ⬜ Not gathered for anything shipped since 2026-08-16 |
 | 8 | `[deploy][qa-approved]` release-train discipline | ✅ Followed for every commit this session |
