@@ -100,6 +100,23 @@ button, input, select, textarea { font: inherit; }
 .top-shell__navPrimary { padding: 7px 16px; border-radius: 999px; border: 1px solid var(--cobalt); background: var(--cobalt); color: white !important; font-weight: 700; }
 .top-shell__navPrimary:hover, .top-shell__navPrimary:focus-visible { opacity: .92; }
 
+/* Hamburger toggle + mobile panel -- hidden on desktop, where the full
+   .top-shell__nav already renders inline. Below the 840px breakpoint this
+   swaps in for .top-shell__nav rather than hiding items off the end of it. */
+.top-shell__navToggle { display: none; justify-self: end; width: 40px; height: 40px; padding: 0; border: 1px solid var(--hairline-strong); border-radius: 9px; background: var(--surface); align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
+.top-shell__navToggle span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--ink); }
+.top-shell__navToggle:hover, .top-shell__navToggle:focus-visible { border-color: var(--cobalt); }
+.top-shell__navPanel {
+  display: none;
+  position: fixed; inset: 0; z-index: 90;
+  flex-direction: column; gap: 4px;
+  padding: calc(62px + 16px) 20px 24px;
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
+  backdrop-filter: blur(10px);
+}
+.top-shell__navPanel a { padding: 14px 6px; border-bottom: 1px solid var(--hairline); font-size: 16px; font-weight: 650; }
+.top-shell__navPanel .top-shell__navSignIn, .top-shell__navPanel .top-shell__navPrimary { margin-top: 10px; padding: 14px 18px; border-bottom: none; text-align: center; }
+
 .gateway { overflow: hidden; }
 .gateway__intro {
   position: relative;
@@ -221,8 +238,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 840px) {
   .top-shell__bar { grid-template-columns: 1fr auto; }
   .top-shell__context { display: none; }
-  .top-shell__nav { gap: 14px; font-size: 12px; max-width: 62vw; }
-  .top-shell__nav a:not(.top-shell__navSignIn):nth-child(n+3) { display: none; }
+  .top-shell__nav { display: none; }
+  .top-shell__navToggle { display: inline-flex; }
+  .top-shell__navPanel { display: flex; }
   .gateway__intro { min-height: 580px; display: block; padding-top: 26px; }
   .gateway__heading { padding-top: 72px; }
   .gateway__heading h1 { font-size: clamp(52px, 14vw, 82px); }

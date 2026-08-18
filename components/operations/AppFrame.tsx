@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { MobileNavDisclosure } from '@/components/core/MobileNavDisclosure';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
@@ -16,6 +17,23 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
   const staffView = active === 'staff';
   const partnerView = active === 'partner';
 
+  // Built once and rendered twice (inline desktop nav + mobile panel) so the
+  // role/mode visibility rules -- e.g. staff only ever sees "My work" -- can't
+  // drift between the two surfaces.
+  const navLinks = (
+    <>
+      {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
+      {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
+      {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
+      {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
+      {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
+      {staffView && <Link aria-current="page" href="/staff">My work</Link>}
+      {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
+      {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
+      {isPlatformAdmin && <Link href="/demo">Walkthrough</Link>}
+    </>
+  );
+
   return (
     <div className={styles.frame}>
       <a className={styles.skip} href="#workspace">Skip to workspace</a>
@@ -24,17 +42,13 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
           <span className={styles.brandGlyph} aria-hidden="true"><i /><i /><i /></span>
           <span>PASSAGE</span>
         </Link>
-        <nav className={styles.nav} aria-label="Operations">
-          {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
-          {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
-          {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
-          {staffView && <Link aria-current="page" href="/staff">My work</Link>}
-          {partnerView && <Link aria-current="page" href="/partner">Requests</Link>}
-          {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
-          {isPlatformAdmin && <Link href="/demo">Walkthrough</Link>}
-        </nav>
+        <nav className={styles.nav} aria-label="Operations">{navLinks}</nav>
+        <MobileNavDisclosure buttonClassName={styles.navToggle} label="Operations menu" panelClassName={styles.navPanel}>
+          {navLinks}
+          <form action="/auth/signout" className={styles.navPanelSignOut} method="post">
+            <button type="submit">Sign out</button>
+          </form>
+        </MobileNavDisclosure>
         <div className={styles.identity}>
           <span><strong>{identity}</strong><small>{role}</small></span>
           <b aria-hidden="true">{initials}</b>

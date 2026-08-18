@@ -37,13 +37,34 @@
 .main { width: min(1540px, 100%); margin: 0 auto; padding: 32px clamp(20px, 3.4vw, 54px) 64px; }
 .frame :is(h1, h2, h3) { font-family: var(--font-display); font-weight: 600; }
 .frame :is(button, a, input, select):focus-visible { outline: 3px solid var(--signal-soft); outline-offset: 2px; }
+
+/* Hamburger toggle + full-screen panel -- hidden on desktop, where .nav
+   already renders every link inline. Below 720px this swaps in for .nav
+   instead of squeezing every link into an equal-width tab (the previous
+   mobile treatment, which got cramped past 4-5 links). */
+.navToggle { display: none; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: transparent; align-items: center; justify-content: center; flex-direction: column; gap: 4px; justify-self: start; }
+.navToggle span { display: block; width: 16px; height: 2px; border-radius: 2px; background: var(--ink); }
+.navToggle:hover, .navToggle:focus-visible { border-color: var(--signal); }
+.navPanel {
+  display: none;
+  position: fixed; inset: 0; z-index: 90;
+  flex-direction: column; gap: 2px;
+  padding: 72px 20px 24px;
+  background: color-mix(in srgb, var(--canvas) 97%, transparent);
+  backdrop-filter: blur(10px);
+}
+.navPanel a { padding: 14px 6px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 650; }
+.navPanel a[aria-current="page"] { color: var(--signal); }
+.navPanelSignOut { margin-top: 12px; }
+.navPanelSignOut button { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 650; }
+
 @media (max-width: 720px) {
   .header { height: 56px; grid-template-columns: 56px minmax(0, 1fr) auto; }
   .brand { width: 56px; gap: 0; padding: 0 18px; border-right: 1px solid var(--line); font-size: 0; }
   .brandGlyph { flex: 0 0 20px; }
-  .nav { position: static; min-width: 0; width: 100%; justify-content: center; }
-  .nav a { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 5px; border-bottom: 3px solid transparent; font-size: 12px; }
-  .nav a[aria-current="page"] { border-bottom-color: var(--signal); }
+  .nav { display: none; }
+  .navToggle { display: inline-flex; }
+  .navPanel { display: flex; }
   .identity { border-left: 0; gap: 8px; padding: 0 10px; }
   .identity > span { display: none; }
   .signOut button { padding: 0 8px; font-size: 10px; min-height: 28px; }

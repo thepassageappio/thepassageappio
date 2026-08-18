@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { MobileNavDisclosure } from './MobileNavDisclosure';
 
 type TopShellProps = {
   children: ReactNode;
@@ -33,6 +34,11 @@ export function TopShell({ children, context = 'Connected care', mode = 'workspa
           <Link className="top-shell__navSignIn" href="/login">Sign in</Link>
           <Link className="top-shell__navPrimary" href="/#what-you-need">Get started</Link>
         </nav>
+        <MobileNavDisclosure buttonClassName="top-shell__navToggle" label="Menu" panelClassName="top-shell__navPanel">
+          {marketingNav.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
+          <Link className="top-shell__navSignIn" href="/login">Sign in</Link>
+          <Link className="top-shell__navPrimary" href="/#what-you-need">Get started</Link>
+        </MobileNavDisclosure>
       </header>
       {children}
     </div>

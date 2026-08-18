@@ -6,19 +6,11 @@ import { loginPath } from '@/lib/auth/redirects';
 import { setFamilyTaskCompletion } from '@/lib/family/task-actions';
 import { humanTaskStatus, humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { TaskCompletionToggle } from '@/components/family/TaskCompletionToggle';
+import { CaseNav } from '@/components/family/CaseNav';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-const FAMILY_NAV = [
-  { segment: 'today', label: 'Today', available: true },
-  { segment: 'decisions', label: 'Decisions', available: false },
-  { segment: 'tasks', label: 'Tasks', available: true },
-  { segment: 'messages', label: 'Messages', available: true },
-  { segment: 'service', label: 'Service', available: false },
-  { segment: 'costs', label: 'Costs', available: false },
-] as const;
 
 export default async function FamilyCaseTasksPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -33,13 +25,7 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
 
   return (
     <main id="main-content">
-      <nav aria-label="Your case" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20 }}>
-        {FAMILY_NAV.map((item) => (
-          item.available
-            ? <Link key={item.segment} aria-current={item.segment === 'tasks' ? 'page' : undefined} href={`/case/${id}/${item.segment}`} style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13 }}>{item.label}</Link>
-            : <span key={item.segment} aria-disabled="true" style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13, color: 'var(--muted)' }} title="Not available yet">{item.label}</span>
-        ))}
-      </nav>
+      <CaseNav active="tasks" caseId={id} />
       <header className={styles.hero}>
         <div>
           <p>Every step on this case</p>

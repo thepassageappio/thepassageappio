@@ -6,19 +6,11 @@ import { loginPath } from '@/lib/auth/redirects';
 import { postWorkflowMessage } from '@/lib/messaging/actions';
 import { humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { MessageThread } from '@/components/messaging/MessageThread';
+import { CaseNav } from '@/components/family/CaseNav';
 import styles from '../../../proof-loop.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-const FAMILY_NAV = [
-  { segment: 'today', label: 'Today', available: true },
-  { segment: 'decisions', label: 'Decisions', available: false },
-  { segment: 'tasks', label: 'Tasks', available: true },
-  { segment: 'messages', label: 'Messages', available: true },
-  { segment: 'service', label: 'Service', available: false },
-  { segment: 'costs', label: 'Costs', available: false },
-] as const;
 
 export default async function FamilyCaseMessagesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,13 +23,7 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
 
   return (
     <main id="main-content">
-      <nav aria-label="Your case" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20 }}>
-        {FAMILY_NAV.map((item) => (
-          item.available
-            ? <Link key={item.segment} aria-current={item.segment === 'messages' ? 'page' : undefined} href={`/case/${id}/${item.segment}`} style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13 }}>{item.label}</Link>
-            : <span key={item.segment} aria-disabled="true" style={{ padding: '8px 12px', fontWeight: 780, fontSize: 13, color: 'var(--muted)' }} title="Not available yet">{item.label}</span>
-        ))}
-      </nav>
+      <CaseNav active="messages" caseId={id} />
       <header className={styles.hero}>
         <div>
           <p>Messages</p>
