@@ -110,6 +110,8 @@ The concrete next engineering action is a genuine **persona-by-persona completen
 
 Everything already marked ✅ above is a completed pass through part of this; what's left is finishing it for the parts not yet walked, plus the specific named items already on the M3 list (browser denial matrix, contract-ledger coverage, HubSpot recovery-owner gap) as the harder evidence layer underneath the founder's bar.
 
+**Per-persona page completeness is not the same as cross-persona correctness.** Founder asked directly whether it's clear how each persona's touchpoints interact with each other, not just whether each persona's own pages work. They didn't — `docs/product/persona-interaction-map-2026-08-18.md` traces the actual data flow (director assigns → staff/family see it; staff submits proof → family sees it in real time with honest "being double-checked" framing before director review, not after; vendor coordination merges into the same family feed as tasks; participants can message, not just view). Three real findings from that trace, still open: **staff has zero vendor-request visibility** (unclear if by design — needs a founder call, not a unilateral fix); **family-visible vendor-status timing has no audit-event backing** the way task status does (untested risk under rapid status changes); and the multi-location staff task-list merge was checked immediately after and confirmed already correct, not a gap.
+
 ### Known blockers requiring a decision, not more code
 
 | Item | Who decides |
