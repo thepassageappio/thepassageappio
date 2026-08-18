@@ -169,19 +169,47 @@ export async function loadHostedOperations(options: {
     ?? proofResult.error ?? proofReviewResult.error;
   if (error) return { ok: false, message: 'Passage could not verify durable workload. No operational data is shown.' };
 
+  const tasks = (taskResult.data ?? []) as HostedTask[];
+  const events = (eventResult.data ?? []) as HostedEvent[];
+  const proofs = (proofResult.data ?? []) as HostedTaskProof[];
+  const proofReviews = (proofReviewResult.data ?? []) as HostedTaskProofReview[];
+  let members = (memberResult.data ?? []) as HostedMember[];
+
+  // A staff viewer's own RLS on organization_members only ever returns their
+  // own row (org_members_select_own); director/owner names referenced
+  // elsewhere (task owner, proof reviewer, event actor) are otherwise
+  // unresolvable and silently render as "Unassigned". Backfill just the
+  // specific member ids actually referenced in this response, via a bounded
+  // RPC rather than widening RLS to a browsable member list.
+  const knownMemberIds = new Set(members.map((member) => member.id));
+  const referencedMemberIds = new Set<string>();
+  for (const task of tasks) if (task.assigned_organization_member_id) referencedMemberIds.add(task.assigned_organization_member_id);
+  for (const event of events) if (event.actor_organization_member_id) referencedMemberIds.add(event.actor_organization_member_id);
+  for (const proof of proofs) if (proof.submitted_by_organization_member_id) referencedMemberIds.add(proof.submitted_by_organization_member_id);
+  for (const review of proofReviews) if (review.reviewed_by_organization_member_id) referencedMemberIds.add(review.reviewed_by_organization_member_id);
+  const missingMemberIds = [...referencedMemberIds].filter((id) => !knownMemberIds.has(id));
+
+  if (missingMemberIds.length > 0) {
+    const resolvedResult = await client.rpc('get_organization_member_display_names', {
+      p_organization_id: viewerResult.viewer.organizationId,
+      p_member_ids: missingMemberIds,
+    });
+    if (!resolvedResult.error && resolvedResult.data) members = [...members, ...(resolvedResult.data as HostedMember[])];
+  }
+
   return {
     ok: true,
     data: {
       viewer: viewerResult.viewer,
       workflows: (workflowResult.data ?? []) as HostedWorkflow[],
-      tasks: (taskResult.data ?? []) as HostedTask[],
-      members: (memberResult.data ?? []) as HostedMember[],
+      tasks,
+      members,
       grants: (grantResult.data ?? []) as HostedMemberGrant[],
-      events: (eventResult.data ?? []) as HostedEvent[],
+      events,
       invitations: (invitationResult.data ?? []) as HostedInvitation[],
       invitationLocations: (invitationLocationResult.data ?? []) as HostedInvitationLocation[],
-      proofs: (proofResult.data ?? []) as HostedTaskProof[],
-      proofReviews: (proofReviewResult.data ?? []) as HostedTaskProofReview[],
+      proofs,
+      proofReviews,
     },
   };
 }
