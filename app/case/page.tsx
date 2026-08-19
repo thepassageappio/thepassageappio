@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { verifiedUser } from '@/lib/auth/session';
 import { loginPath } from '@/lib/auth/redirects';
 import { createPassageServerClient } from '@/lib/supabase/server';
-import { CreateEstateForm, InviteToEstateForm } from './EstateActions';
+import { CreateEstateForm, InviteAcrossHouseholdForm } from './EstateActions';
 import styles from '../login/Auth.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -61,9 +61,6 @@ export default async function CaseIndexPage() {
               <strong style={{ display: 'block', marginBottom: 4 }}>{workflow.person_name || 'Untitled estate'}</strong>
               <span style={{ display: 'block', marginBottom: 12, fontSize: 13, opacity: 0.75 }}>{workflow.phase || workflow.status}</span>
               <Link className={styles.textLink} href={`/case/${workflow.id}/today`}>Open →</Link>
-              <div style={{ marginTop: 14 }}>
-                <InviteToEstateForm personLabel={workflow.person_name || 'this estate'} requestId={randomUUID()} workflowId={workflow.id} />
-              </div>
             </li>
           ))}
         </ul>
@@ -73,6 +70,10 @@ export default async function CaseIndexPage() {
         ) : (
           <p className={styles.notice} role="status">You&apos;re using all {slots} estate{slots === 1 ? '' : 's'} on your plan. <Link className={styles.textLink} href="/pricing">Upgrade</Link> to add another.</p>
         )}
+
+        <div style={{ marginTop: 28 }}>
+          <InviteAcrossHouseholdForm estates={workflows.map((workflow) => ({ workflowId: workflow.id, personLabel: workflow.person_name || 'this estate', requestId: randomUUID() }))} />
+        </div>
       </section>
     </main>
   );

@@ -49,7 +49,7 @@ export default async function StaffPage() {
                     <div><dt>Next state</dt><dd>{humanNextStep(task.status)}</dd></div>
                   </dl>
                 </div>
-                {task.status === 'assigned' ? <StartTaskForm requestId={randomUUID()} taskId={task.id} version={task.version} /> : <div className={styles.startForm}><p>{task.status === 'completed' ? 'Verified proof and the complete history are ready.' : task.status === 'proof_submitted' ? 'Proof is waiting for an authorized director.' : task.status === 'blocked' ? 'Ask your director for help before continuing.' : 'Work is in progress. Save proof when the outcome is ready.'}</p><Link className={styles.primaryLink} href={`/staff/work/${task.id}`}>{task.status === 'in_progress' ? 'Open proof step' : 'Open task history'}</Link></div>}
+                {task.status === 'assigned' ? <StartTaskForm requestId={randomUUID()} taskId={task.id} version={task.version} /> : <div className={styles.startForm}><p>{task.status === 'completed' ? 'Verified proof and the complete history are ready.' : task.status === 'proof_submitted' ? 'Proof is waiting for an authorized director.' : task.status === 'blocked' ? 'Blocked. Open the task to clear it once resolved.' : 'Work is in progress. Save proof when the outcome is ready.'}</p><Link className={styles.primaryLink} href={`/staff/work/${task.id}`}>{task.status === 'in_progress' ? 'Open proof step' : 'Open task history'}</Link></div>}
               </article>
             );
           })}

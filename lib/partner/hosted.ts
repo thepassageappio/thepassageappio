@@ -110,6 +110,17 @@ export async function loadPartnerContextForWorkflow(client: PassageServerClient,
   };
 }
 
+// Staff-side helper (founder decision 2026-08-19): read-only vendor status
+// for a case a staff member is actually assigned work on. Deliberately
+// narrower than loadPartnerContextForWorkflow -- staff never needs the
+// eligible-vendor-organizations picker, only the existing requests, and RLS
+// (passage_private.can_view_partner_request, widened by the same-dated
+// migration) is what actually scopes this to cases they're assigned to.
+export async function loadPartnerRequestsForWorkflow(client: PassageServerClient, workflowId: string) {
+  const result = await client.from('partner_requests').select(PARTNER_REQUEST_COLUMNS).eq('workflow_id', workflowId).order('sent_at', { ascending: false });
+  return { requests: (result.data ?? []) as HostedPartnerRequest[], error: result.error };
+}
+
 const categoryLabels: Record<string, string> = VENDOR_CATEGORY_LABELS;
 
 const statusLabels: Record<string, string> = {

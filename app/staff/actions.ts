@@ -41,6 +41,51 @@ export async function startTask(_previous: StaffCommandState, formData: FormData
   return { status: 'saved', message: receipt.replayed ? 'This work was already started. The original saved time is shown below.' : 'Work started and was saved in team activity.', receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed } };
 }
 
+export async function setTaskBlocked(_previous: StaffCommandState, formData: FormData): Promise<StaffCommandState> {
+  const taskId = String(formData.get('taskId') ?? '');
+  const requestId = String(formData.get('requestId') ?? '');
+  const expectedVersion = Number(formData.get('expectedVersion'));
+  const blocked = String(formData.get('blocked') ?? '') === 'true';
+  const reason = String(formData.get('reason') ?? '').trim();
+  if (!uuid.test(taskId) || !uuid.test(requestId) || !Number.isInteger(expectedVersion) || expectedVersion < 1) {
+    return { status: 'validation', message: 'This work changed before the action was ready. Reload the task.' };
+  }
+  if (blocked && (!reason || reason.length > 500)) {
+    return { status: 'validation', message: 'Enter a short reason for the blocker (1-500 characters). Nothing changed.' };
+  }
+  const viewer = await resolveOperationalViewer();
+  if (!viewer.ok || viewer.viewer.role !== 'staff') return { status: 'denied', message: 'This task is not available to your account. Ask a director to confirm your assignment.' };
+  const client = await createPassageServerClient();
+  if (!client) return { status: 'unavailable', message: 'We could not open this task right now. Nothing changed. Try again.' };
+  const result = await client.rpc('set_task_blocked_idempotent', {
+    p_task_id: taskId,
+    p_blocked: blocked,
+    p_reason: blocked ? reason : null,
+    p_expected_version: expectedVersion,
+    p_request_id: requestId,
+  });
+  if (result.error) {
+    if (result.error.code === '42501' || result.error.code === '28000') return { status: 'denied', message: 'This work is not available to your account. Nothing changed.' };
+    if (result.error.code === '40001') return { status: 'conflict', message: 'This work changed before your action was saved. No change was made. Reload the task.' };
+    if (result.error.code === '55000') return { status: 'conflict', message: blocked ? 'Only work in progress can be reported as blocked. Reload the task.' : 'This work is not currently reported as blocked. Reload the task.' };
+    if (result.error.code === '22023') return { status: 'validation', message: 'Enter a reason for the blocker. Nothing changed.' };
+    return { status: 'unavailable', message: blocked ? 'Passage could not report this blocker. Nothing is shown as changed.' : 'Passage could not clear this blocker. Nothing is shown as changed.' };
+  }
+  const receipt = firstRpcRow<StartReceipt>(result.data);
+  if (!receipt?.event_id || !receipt.occurred_at) return { status: 'unavailable', message: 'We could not confirm the change. Reload the task before trying again.' };
+  revalidatePath('/staff');
+  revalidatePath(`/staff/work/${taskId}`);
+  revalidatePath('/director');
+  revalidatePath('/director/activity');
+  return {
+    status: 'saved',
+    message: receipt.replayed
+      ? 'This change was already saved. The original saved time is shown below.'
+      : blocked ? 'Blocker reported and saved in team activity.' : 'Blocker cleared and work resumed.',
+    receipt: { occurredAt: receipt.occurred_at, replayed: receipt.replayed },
+  };
+}
+
 export async function submitTaskProof(_previous: StaffCommandState, formData: FormData): Promise<StaffCommandState> {
   const taskId = String(formData.get('taskId') ?? '');
   const requestId = String(formData.get('requestId') ?? '');
