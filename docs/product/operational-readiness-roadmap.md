@@ -35,22 +35,35 @@ The founder's bar above is the honest floor beneath both — a platform that isn
 
 Revenue priority behind these gates does not change: **funeral-home operating SaaS is the current, sole revenue engine.** Family continuity is the retention layer that follows it. Everything else (vendor network at scale, consumer network, digital continuity locker) is explicitly not funded yet. Full ranking: `docs/product/v5-direct-acquisition-and-digital-continuity-strategy.md`.
 
+### The gate ladder — exactly what closes each success criterion, in order
+
+Four gates, each a precondition for the next. Nothing skips ahead.
+
+| Gate | What it requires | Status |
+| --- | --- | --- |
+| **A — Founder's near-term bar** ("demo-ready, zero hand-holding") | Every persona's every needed action reachable, working, or failing with a clear recoverable message | 🔶 Functionally met by the 2026-08-18 persona-by-persona pass (all 4 personas walked and fixed) — held open only by open item 1 below (D2C/B2B login unverified) |
+| **B — M3 formal milestone exit** (the harder evidence layer *underneath* Gate A, not a separate track) | The 9-point exit gate in the "M3 — Operating primitives" section below, fully proven, not just believed | 🔶 6 of 9 criteria ✅, 3 partial — closed by open items 8 and 9 |
+| **C — Pilot-operational bar** (go/no-go for an actual paying pilot) | Gate B passed, M4's Transfer Pass wired to real data, and every open product-behavior question resolved (an undecided behavior can't be pilot-tested) | ⬜ Requires Gate B closed first, plus founder decisions on open items 2-4 |
+| **D — North-star behavioral measures** | Only measurable in real pilot use, not by engineering work | ⬜ Requires Gate C passed and live usage data — not achievable by any amount of further building alone |
+
 ### Open items, in priority order — the single list to work from
 
-Everything below is duplicated in more narrative form further down (M3 criteria table, persona pass writeups, blockers table) — this is the consolidated, ranked version. Update this list, not just the narrative sections, whenever an item closes or a new one is found.
+Everything below is duplicated in more narrative form further down (M3 criteria table, persona pass writeups, blockers table) — this is the consolidated, ranked version, now mapped to the gate each item actually closes. Update this list, not just the narrative sections, whenever an item closes or a new one is found.
 
-| # | Item | Type | Why this rank |
-| --- | --- | --- | --- |
-| 1 | Verify the D2C/B2B welcome-email login fix (`app/auth/finish`) against a real delivered invite email and click | Verification | Every paying customer's and every auto-provisioned funeral-home owner's first login goes through this path. Fixed by reasoning through the code, never confirmed live — highest-consequence unconfirmed item in the codebase right now. |
-| 2 | 🔒 `blocked` task-status model — who can block, what "help needed" captures, who resolves it | Founder decision | Fully wired into staff UI/copy with zero backend writer; a new authority-bearing capability, not a quick fix. |
-| 3 | 🔒 D2C multi-estate access model confirmation (separate estates vs. co-ownership) | Founder decision | Built from `/pricing` copy alone, live in production, never explicitly confirmed against intent. Customer-facing correctness risk if wrong. |
-| 4 | 🔒 Staff vendor-request visibility — by design or a gap? | Founder decision | Flagged twice via the interaction map, never actioned. |
-| 5 | 🔒 Vendor `persona-action-architecture.md` scope mismatch (order detail/messages/proof pages, negotiation, pre-account request link documented but not built) | Founder decision | Likely correctly deferred per the roadmap's own M5-not-entered framing — needs a call on trimming the doc vs. scoping the gap as real work, so the doc stops overstating what's shipped. |
-| 6 | HubSpot's 16 stalled funeral-home leads, unworked | Founder action | Sales-adjacent, not engineering — sitting idle. |
-| 7 | 🔒 GitHub PR #74 disposition (shipped messaging feature, never merged) | Founder decision | Lower urgency — feature just sits unmerged, no active harm. |
-| 8 | Browser-level denial matrix + reload + responsive pass, `/director/cases/[id]` and `/staff/work/[id]` | Engineering (M3 evidence) | The single most-repeated open item in this document's own history — real SQL-level denial is proven, browser-level is not. |
-| 9 | Contract-ledger expansion past Cycle 7/8 (Phase K, L.1-L.4, UX-audit fixes, D2C multi-estate, staff multi-location grants all have zero entries) | Engineering (M3 evidence) | Evidence-gathering, not a known functional gap. |
-| 10 | Migration backfill (25 files never committed to git, including the full baseline schema) | Tooling, not a decision | Needs the Supabase CLI's real `db dump`/`db diff` run locally — hand-reconstructing from current-state introspection would be false history. Flagged so it isn't mistaken for deprioritized. |
+| # | Item | Type | Closes | Why this rank |
+| --- | --- | --- | --- | --- |
+| 1 | Verify the D2C/B2B welcome-email login fix (`app/auth/finish`) against a real delivered invite email and click | Verification | **Gate A** | The only thing standing between "functionally met" and "confidently closed" for the founder's near-term bar. Every paying customer's and every auto-provisioned funeral-home owner's first login goes through this path; fixed by reasoning through the code, never confirmed live. |
+| 2 | 🔒 `blocked` task-status model — who can block, what "help needed" captures, who resolves it | Founder decision | **Gate C** (not Gate A — the state is currently unreachable, so no real user hits this dead end today; still needed before a pilot could rely on staff having a real "I'm stuck" path) | Fully wired into staff UI/copy with zero backend writer; a new authority-bearing capability, not a quick fix. |
+| 3 | 🔒 D2C multi-estate access model confirmation (separate estates vs. co-ownership) | Founder decision | **Gate C** (already shipped and working — this is a correctness-at-scale risk, not a live functional gap) | Built from `/pricing` copy alone, live in production, never explicitly confirmed against intent. |
+| 4 | 🔒 Staff vendor-request visibility — by design or a gap? | Founder decision | **Gate A or C, depending on the answer** — if it's a real gap in a needed staff action, it's Gate A; if intentionally scoped out, it's neither | Flagged twice via the interaction map, never actioned. |
+| 5 | 🔒 Vendor `persona-action-architecture.md` scope mismatch (order detail/messages/proof pages, negotiation, pre-account request link documented but not built) | Founder decision | **Does not gate anything** — doc-accuracy only | Likely correctly deferred per the roadmap's own M5-not-entered framing; needs a call on trimming the doc vs. scoping the gap as real work so the doc stops overstating what's shipped. |
+| 6 | HubSpot's 16 stalled funeral-home leads, unworked | Founder action | **Does not gate anything** — sales, not engineering | Sitting idle, unrelated to any success criterion above. |
+| 7 | 🔒 GitHub PR #74 disposition (shipped messaging feature, never merged) | Founder decision | **Does not gate anything** | Feature just sits unmerged, no active harm. |
+| 8 | Browser-level denial matrix + reload + responsive pass, `/director/cases/[id]` and `/staff/work/[id]` | Engineering (M3 evidence) | **Gate B** | The single most-repeated open item in this document's own history — real SQL-level denial is proven, browser-level is not. |
+| 9 | Contract-ledger expansion past Cycle 7/8 (Phase K, L.1-L.4, UX-audit fixes, D2C multi-estate, staff multi-location grants all have zero entries) | Engineering (M3 evidence) | **Gate B** | Evidence-gathering, not a known functional gap. |
+| 10 | Migration backfill (25 files never committed to git, including the full baseline schema) | Tooling, not a decision | **Gate D's own prerequisite, M6** (production gate explicitly requires "migrations" — furthest-out gate, not urgent now) | Needs the Supabase CLI's real `db dump`/`db diff` run locally — hand-reconstructing from current-state introspection would be false history. Flagged so it isn't mistaken for deprioritized. |
+
+**Reading this table**: items 5, 6, 7 are real and worth the founder's attention, but they do not sit on the path from here to any of the four gates above — don't let them compete for priority against items 1-4 and 8-9, which do. Item 1 is the single highest-leverage item on the whole list: it's the only thing between Gate A being "functionally met" and "confidently closed."
 
 ### Milestone ladder — the phases, in order, not renamed or reordered from what was already set
 
