@@ -102,7 +102,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         </section>
 
         <footer className={styles.footer}>
-          <p>Questions about billing? <Link href="/contact">Contact Passage</Link>.</p>
+          <p><Link href="/case">← Back to your estates</Link> · Questions about billing? <Link href="/contact">Contact Passage</Link>.</p>
+          <form action="/auth/signout" method="post" style={{ marginTop: 8 }}>
+            <button style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }} type="submit">Sign out</button>
+          </form>
         </footer>
       </main>
     </TopShell>

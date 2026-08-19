@@ -255,7 +255,15 @@ async function provisionB2bOrganizationIfNeeded(service: ServiceClient, params: 
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
 
   if (!ownerUserId) {
-    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/director` });
+    // redirectTo must land on a client-rendered page, not a server component
+    // that redirects on its own auth check: an admin-initiated invite has no
+    // PKCE verifier to pair with, so GoTrue delivers the session as a
+    // #access_token=... hash fragment rather than a ?code= param -- a hash
+    // fragment never reaches the server, so /director's own server-side auth
+    // check would fire and bounce the user before any client JS could read
+    // it. app/auth/finish gives the browser client a moment to consume the
+    // hash and persist the session to cookies before continuing on.
+    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/auth/finish?next=${encodeURIComponent('/director')}` });
     if (inviteError || !invited?.user) {
       console.error('b2b auto-provision: invite failed, organization not created', inviteError);
       return;
@@ -335,7 +343,10 @@ async function provisionD2cFamilyRecordIfNeeded(service: ServiceClient, params: 
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.thepassageapp.io';
 
   if (!ownerUserId) {
-    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(params.email, { redirectTo: `${origin}/case` });
+    // See the matching comment on provisionB2bOrganizationIfNeeded's own
+    // inviteUserByEmail call above -- same hash-fragment-vs-PKCE issue,
+    // same app/auth/finish fix.
+    const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(params.email, { redirectTo: `${origin}/auth/finish?next=${encodeURIComponent('/case')}` });
     if (inviteError || !invited?.user) {
       console.error('d2c auto-provision: invite failed, family record not created', inviteError);
       return;

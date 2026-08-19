@@ -41,7 +41,15 @@ export default async function CaseIndexPage() {
 
   return (
     <main className={styles.shell} id="main-content">
-      <header className={styles.brandBar}><Link href="/">PASSAGE</Link></header>
+      <header className={styles.brandBar}>
+        <Link href="/">PASSAGE</Link>
+        <nav aria-label="Account" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Link href="/account/billing">Account</Link>
+          <form action="/auth/signout" method="post">
+            <button style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }} type="submit">Sign out</button>
+          </form>
+        </nav>
+      </header>
       <section className={styles.panel} aria-labelledby="estates-title">
         <p className={styles.eyebrow}>YOUR ESTATES</p>
         <h1 id="estates-title">Your plan includes {slots} estate{slots === 1 ? '' : 's'}.</h1>
