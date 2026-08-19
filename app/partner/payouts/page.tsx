@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
+import { loginPath } from '@/lib/auth/redirects';
+import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { loadPayoutStatus, startPayoutOnboarding, syncPayoutStatusOnReturn } from './actions';
 import styles from '../../operations-beta.module.css';
 
@@ -9,6 +11,19 @@ export const revalidate = 0;
 export default async function VendorPayoutsPage({ searchParams }: { searchParams: Promise<{ onboarding?: string; error?: string }> }) {
   const { onboarding, error } = await searchParams;
   if (onboarding === 'return') await syncPayoutStatusOnReturn();
+
+  // Checked first so a signed-out or non-member visitor gets a real
+  // corrective link instead of "Return to requests" looping back to a page
+  // that fails the exact same way -- found via the vendor persona pass.
+  const viewerResult = await resolvePartnerViewer();
+  if (!viewerResult.ok) {
+    if (viewerResult.reason === 'signed-out') {
+      return <main className={styles.closed} id="main-content"><p>VENDOR / PAYOUTS</p><h1>Sign in to see your payout status.</h1><span>No changes were made.</span><Link href={loginPath('/partner/payouts')}>Sign in</Link></main>;
+    }
+    if (viewerResult.reason === 'membership-required') {
+      return <main className={styles.closed} id="main-content"><p>VENDOR / PAYOUTS</p><h1>This account doesn&apos;t belong to a vendor organization yet.</h1><span>No changes were made.</span><Link href="/partner/start">Set up your vendor account</Link></main>;
+    }
+  }
 
   const result = await loadPayoutStatus();
   if (!result.ok) {

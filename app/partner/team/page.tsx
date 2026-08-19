@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
+import { loginPath } from '@/lib/auth/redirects';
 import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { formatPartnerTime } from '@/lib/partner/hosted';
 import { humanMemberStatus } from '@/lib/presentation/plain-language';
@@ -16,7 +17,16 @@ type InvitationRow = { invitation_id: string; invited_email: string; purpose: st
 export default async function PartnerTeamPage() {
   const viewerResult = await resolvePartnerViewer();
   if (!viewerResult.ok) {
-    return <main className={styles.closed} id="main-content"><p>VENDOR / TEAM</p><h1>We couldn’t verify your vendor access.</h1><span>Nothing changed. Sign in and try again.</span><Link href="/partner/team">Retry team</Link></main>;
+    // Branched by reason so a signed-out or non-member visitor gets a real
+    // corrective link instead of "Retry team" looping back to a page that
+    // fails the exact same way -- found via the vendor persona pass.
+    if (viewerResult.reason === 'signed-out') {
+      return <main className={styles.closed} id="main-content"><p>VENDOR / TEAM</p><h1>Sign in to manage your team.</h1><span>Nothing changed.</span><Link href={loginPath('/partner/team')}>Sign in</Link></main>;
+    }
+    if (viewerResult.reason === 'membership-required') {
+      return <main className={styles.closed} id="main-content"><p>VENDOR / TEAM</p><h1>This account doesn’t belong to a vendor organization yet.</h1><span>Nothing changed.</span><Link href="/partner/start">Set up your vendor account</Link></main>;
+    }
+    return <main className={styles.closed} id="main-content"><p>VENDOR / TEAM</p><h1>We couldn’t verify your vendor access.</h1><span>Nothing changed. Try again.</span><Link href="/partner/team">Retry team</Link></main>;
   }
   const { viewer } = viewerResult;
 

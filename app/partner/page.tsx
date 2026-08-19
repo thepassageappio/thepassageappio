@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
+import { loginPath } from '@/lib/auth/redirects';
+import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadHostedPartnerData } from '@/lib/partner/hosted';
 import { RespondToRequestForm } from './RespondToRequestForm';
 import { SubmitDeliveryProofForm } from './requests/[requestId]/SubmitDeliveryProofForm';
@@ -10,8 +12,16 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function PartnerPage() {
+  // Checked first, separately from loadHostedPartnerData, so a signed-out or
+  // non-member visitor gets a real corrective link instead of a self-
+  // referential "reload" loop that fails identically forever -- found via
+  // the vendor persona completeness pass. Mirrors app/partner/start/page.tsx's
+  // already-correct reason-branching.
+  const viewerResult = await resolvePartnerViewer();
+  if (!viewerResult.ok) return <Unavailable reason={viewerResult.reason} />;
+
   const result = await loadHostedPartnerData();
-  if (!result.ok) return <Unavailable message={result.message} />;
+  if (!result.ok) return <Unavailable reason="authority-unavailable" />;
   const { viewer, requests } = result.data;
   const open = requests.filter((request) => ['sent', 'quoted', 'in_progress', 'proof_submitted'].includes(request.status));
   const closed = requests.filter((request) => request.status === 'declined' || request.status === 'verified');
@@ -66,6 +76,12 @@ export default async function PartnerPage() {
   );
 }
 
-function Unavailable({ message: _message }: { message: string }) {
+function Unavailable({ reason }: { reason: 'environment-unavailable' | 'signed-out' | 'membership-required' | 'authority-unavailable' }) {
+  if (reason === 'signed-out') {
+    return <main className={styles.closed} id="main-content"><p>REQUESTS</p><h1>Sign in to see your requests.</h1><span>No changes were made.</span><Link href={loginPath('/partner')}>Sign in</Link></main>;
+  }
+  if (reason === 'membership-required') {
+    return <main className={styles.closed} id="main-content"><p>REQUESTS</p><h1>This account doesn’t belong to a vendor organization yet.</h1><span>No changes were made.</span><Link href="/partner/start">Set up your vendor account</Link></main>;
+  }
   return <main className={styles.closed} id="main-content"><p>REQUESTS</p><h1>We couldn’t load your requests.</h1><span>No changes were made. Try again.</span><Link href="/partner">Reload requests</Link></main>;
 }
