@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
-  "version": 4,
-  "last_updated": "2026-07-27",
+  "version": 5,
+  "last_updated": "2026-08-19",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -42,8 +42,14 @@
         "app/director/invitations/new/actions.ts"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "one row per invitation; unique token_digest; terminal-state check prevents accepted+revoked simultaneously" },
-        { "table": "organization_invitation_locations", "cardinality": "one row per (invitation, location); composite primary key" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "one row per invitation; unique token_digest; terminal-state check prevents accepted+revoked simultaneously"
+        },
+        {
+          "table": "organization_invitation_locations",
+          "cardinality": "one row per (invitation, location); composite primary key"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_manage_invitation(id) -> passage_private.can_manage_organization (active membership, role in owner/director) AND passage_private.can_manage_location for every location on the invitation (active grant to an owner/director member)",
       "append_only_event": {
@@ -90,7 +96,10 @@
         "lib/auth/invitations.ts"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "one row per invitation, looked up by sha256 token_digest" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "one row per invitation, looked up by sha256 token_digest"
+        }
       ],
       "rls_authority_predicate": "public.inspect_organization_invitation is SECURITY INVOKER over a SECURITY DEFINER passage_private core, granted to anon+authenticated; the private schema itself is not exposed by the Data API. The token digest match is the sole scoping predicate (a session/role is not required pre-sign-in by design).",
       "append_only_event": {
@@ -139,9 +148,18 @@
         "app/invite/[token]/actions.ts"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "one row created or updated per accepted invitation; unique (organization_id, user_id) where status='active'" },
-        { "table": "organization_member_locations", "cardinality": "one row per (member, granted location); composite primary key with revoked_at upsert on replay" },
-        { "table": "organization_invitations", "cardinality": "accepted_at/accepted_by_user_id/accepted_organization_member_id set exactly once per invitation" }
+        {
+          "table": "organization_members",
+          "cardinality": "one row created or updated per accepted invitation; unique (organization_id, user_id) where status='active'"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "one row per (member, granted location); composite primary key with revoked_at upsert on replay"
+        },
+        {
+          "table": "organization_invitations",
+          "cardinality": "accepted_at/accepted_by_user_id/accepted_organization_member_id set exactly once per invitation"
+        }
       ],
       "rls_authority_predicate": "SECURITY DEFINER RPC requires auth.uid() IS NOT NULL and a verified (email_confirmed_at) email matching invitation.invited_email; the subsequent organization_member_locations select is scoped by passage_private.can_view_member_location.",
       "append_only_event": {
@@ -194,9 +212,18 @@
         "app/staff/layout.tsx"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "exactly one active row expected per (organization,user); more than one triggers membership-selection-required fail-closed" },
-        { "table": "organization_member_locations", "cardinality": "zero or more active (revoked_at is null) grants per member" },
-        { "table": "organization_locations", "cardinality": "read-only join to confirm status='active'" }
+        {
+          "table": "organization_members",
+          "cardinality": "exactly one active row expected per (organization,user); more than one triggers membership-selection-required fail-closed"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "zero or more active (revoked_at is null) grants per member"
+        },
+        {
+          "table": "organization_locations",
+          "cardinality": "read-only join to confirm status='active'"
+        }
       ],
       "rls_authority_predicate": "organization_member_locations select is scoped by passage_private.can_view_member_location(organization_member_id, organization_location_id): either the row's own member (auth.uid()) or a manager with location authority.",
       "append_only_event": {
@@ -244,7 +271,10 @@
         "app/director/layout.tsx"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "role column (owner|director|staff) read once per request to drive the denial decision" }
+        {
+          "table": "organization_members",
+          "cardinality": "role column (owner|director|staff) read once per request to drive the denial decision"
+        }
       ],
       "rls_authority_predicate": "canOpenOperationalPath resolves the authenticated membership server-side before rendering; durable /director reads then pass through organization/location RLS on workflows, tasks, team membership, invitations, and workflow events.",
       "append_only_event": {
@@ -288,8 +318,14 @@
         "app/staff/page.tsx"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per durable task" },
-        { "table": "workflow_events", "cardinality": "one assignment/reassignment/start event per validated command idempotency key" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assigned_organization_member_id and version per durable task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one assignment/reassignment/start event per validated command idempotency key"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_task/workflow permits active staff only when the exact task is assigned to their active membership and the workflow location grant is active; manager projections use managed organization/location authority",
       "append_only_event": {
@@ -335,8 +371,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assignee and monotonically increasing version per task" },
-        { "table": "workflow_events", "cardinality": "one task.reassigned row per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assignee and monotonically increasing version per task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.reassigned row per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "RPC requires active owner/director authority on the workflow organization and location and locks an active staff assignee with an active grant on that same location",
       "append_only_event": {
@@ -380,7 +422,10 @@
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
       ],
       "durable_tables": [
-        { "table": "organization_invitations", "cardinality": "already implemented (Cycle 7A) -- revoked_at/revoked_by_user_id/revocation_reason columns with a shape check constraint" }
+        {
+          "table": "organization_invitations",
+          "cardinality": "already implemented (Cycle 7A) -- revoked_at/revoked_by_user_id/revocation_reason columns with a shape check constraint"
+        }
       ],
       "rls_authority_predicate": "already implemented: passage_private.can_manage_invitation(id) gate inside the RPC; no direct table UPDATE grant exists for authenticated (writes only via the SECURITY DEFINER function)",
       "append_only_event": {
@@ -426,7 +471,10 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "workflow_events", "cardinality": "one append-only row per accepted idempotent invitation/assignment/start/revocation command" }
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only row per accepted idempotent invitation/assignment/start/revocation command"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_workflow_event requires active organization management and every location carried by the event metadata to be managed; partial-location access cannot read a multi-location revocation event",
       "append_only_event": {
@@ -470,8 +518,14 @@
         "app/director/page.tsx"
       ],
       "durable_tables": [
-        { "table": "workflows", "cardinality": "one durable workflow per case at one organization/location" },
-        { "table": "tasks", "cardinality": "durable commitments reference the same workflow, organization, and assigned member used by staff" }
+        {
+          "table": "workflows",
+          "cardinality": "one durable workflow per case at one organization/location"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "durable commitments reference the same workflow, organization, and assigned member used by staff"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_workflow/task requires active owner/director membership plus an active grant on the workflow location; any location filtering is presentation only",
       "append_only_event": {
@@ -515,8 +569,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per task" },
-        { "table": "workflow_events", "cardinality": "one task.assigned event per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current assigned_organization_member_id and version per task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.assigned event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Active owner/director may assign only a managed-location task to an active staff member with an active grant on that exact location",
       "append_only_event": {
@@ -562,8 +622,14 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "tasks", "cardinality": "one current durable status and version per assigned task" },
-        { "table": "workflow_events", "cardinality": "one task.started event per organization/request UUID" }
+        {
+          "table": "tasks",
+          "cardinality": "one current durable status and version per assigned task"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.started event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Caller must be the task's current active assigned staff member with an active grant on the workflow location; task and member rows are locked before mutation",
       "append_only_event": {
@@ -609,9 +675,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "organization_members", "cardinality": "one revoked_at/revoked_by/reason terminal state for the member" },
-        { "table": "organization_member_locations", "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction" },
-        { "table": "workflow_events", "cardinality": "one organization_member.revoked event per organization/request UUID" }
+        {
+          "table": "organization_members",
+          "cardinality": "one revoked_at/revoked_by/reason terminal state for the member"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one organization_member.revoked event per organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "Active owner/director must manage the organization and every currently granted location; only staff may be revoked and any active task assignment blocks the command",
       "append_only_event": {
@@ -657,9 +732,18 @@
         "app/staff/work/[taskId]/page.tsx"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one root proof per task and at most one replacement successor per prior proof" },
-        { "table": "task_proof_reviews", "cardinality": "at most one append-only director decision per proof" },
-        { "table": "tasks", "cardinality": "one current assignment, status, and version controls staff visibility" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one root proof per task and at most one replacement successor per prior proof"
+        },
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "at most one append-only director decision per proof"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one current assignment, status, and version controls staff visibility"
+        }
       ],
       "rls_authority_predicate": "passage_private.can_view_task(task_id) requires the caller to remain the current active assigned staff member with an active grant on the workflow location; unavailable, former, revoked, wrong-location, and cross-organization identities receive no rows",
       "append_only_event": {
@@ -742,9 +826,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one immutable proof per successful unique organization/request UUID with one root and no branching successors" },
-        { "table": "tasks", "cardinality": "one atomic proof_submitted status and incremented version per successful submission" },
-        { "table": "workflow_events", "cardinality": "one task.proof_submitted event per successful unique organization/request UUID" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one immutable proof per successful unique organization/request UUID with one root and no branching successors"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one atomic proof_submitted status and incremented version per successful submission"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.proof_submitted event per successful unique organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "The command locks the task and requires auth.uid() to map to its current active assigned staff member with an active exact-location grant; direct table mutation is revoked and privileged inserts are scope-checked",
       "append_only_event": {
@@ -843,9 +936,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proof_reviews", "cardinality": "one immutable review per proof and one review per successful unique organization/request UUID" },
-        { "table": "tasks", "cardinality": "one atomic completed or in_progress state and incremented version per successful decision" },
-        { "table": "workflow_events", "cardinality": "one task.proof_verified or task.proof_replacement_requested event per successful unique organization/request UUID" }
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "one immutable review per proof and one review per successful unique organization/request UUID"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "one atomic completed or in_progress state and incremented version per successful decision"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one task.proof_verified or task.proof_replacement_requested event per successful unique organization/request UUID"
+        }
       ],
       "rls_authority_predicate": "The command locks the task and requires active owner/director authority over the proof's exact workflow location; only the latest unreviewed proof in proof_submitted state can be reviewed",
       "append_only_event": {
@@ -924,7 +1026,10 @@
       "cycle": "8",
       "capability": "Staff and directors share one immutable, task-bound submission and review history without cross-persona leakage",
       "status": "implemented",
-      "persona": ["staff", "director"],
+      "persona": [
+        "staff",
+        "director"
+      ],
       "frontend": {
         "user_visible": true,
         "route": "/staff/work/[taskId] and /director/cases/[workflowId]",
@@ -947,9 +1052,18 @@
         "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "task_proofs", "cardinality": "one non-branching immutable proof chain per task" },
-        { "table": "task_proof_reviews", "cardinality": "one immutable decision attached to each reviewed proof" },
-        { "table": "workflow_events", "cardinality": "one immutable operational receipt for every successful submit or review command" }
+        {
+          "table": "task_proofs",
+          "cardinality": "one non-branching immutable proof chain per task"
+        },
+        {
+          "table": "task_proof_reviews",
+          "cardinality": "one immutable decision attached to each reviewed proof"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one immutable operational receipt for every successful submit or review command"
+        }
       ],
       "rls_authority_predicate": "Both proof tables use passage_private.can_view_task(task_id); direct authenticated writes are revoked; scope-integrity and append-only triggers protect privileged paths; proof-pending reassignment is rejected",
       "append_only_event": {
@@ -1113,6 +1227,831 @@
             "rollback;"
           ]
         }
+      ]
+    },
+    {
+      "id": "phasej.director.staff_case_creation_grant",
+      "cycle": "Phase J",
+      "capability": "Director/owner grants or revokes a staff member's case-creation rights at a specific location",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/team",
+        "component": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "files": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "note": "StaffCaseCreationGrantForm on /director/team toggles can_create_cases for a staff member at one location; a revoke requires a typed reason."
+      },
+      "action_status": "not_granted <-> granted, idempotent toggle; a revoke requires a non-empty reason, a grant does not",
+      "server_command": "public.set_staff_case_creation_grant_idempotent(p_organization_member_id uuid, p_organization_location_id uuid, p_granted boolean, p_request_id uuid, p_revocation_reason text) -> passage_private.set_staff_case_creation_grant_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260817000443_phase_j_role_constraint_grant_audit_staff_case_creation.sql",
+        "supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql",
+        "app/director/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "organization_member_locations",
+          "cardinality": "one row per (member, location); can_create_cases flag toggled in place, never a new row"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only staff_case_creation.granted/staff_case_creation.revoked event per successful toggle, workflow_id null (organization-level event)"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_manage_location(organization_id, location_id) -- director/owner authority over the target location, re-checked inside the SECURITY DEFINER RPC (not by table RLS, which is bypassed by SECURITY DEFINER)",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "staff_case_creation.granted / staff_case_creation.revoked",
+        "idempotency_key": "staff_case_creation_grant:<organization_member_id>:<organization_location_id>:<request id>"
+      },
+      "failure_recovery_states": [
+        "not authenticated -> 28000, denied",
+        "target member is not role='staff' -> 42501, only staff can hold this grant",
+        "actor lacks director/owner authority at the location -> 42501, denied",
+        "target member has no active grant at that location, or it was revoked -> 42501, denied",
+        "revoke attempted with an empty/whitespace-only reason -> 22023, rejected before any write",
+        "same request id replayed -> original outcome returned, no duplicate event or state flip",
+        "CRITICAL, found and fixed same session: this migration created only the passage_private (private-schema) function -- PostgREST/client.rpc() only resolves against the public schema, so every call from /director/team 404'd silently and the toggle never actually worked in production from the day it shipped until supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql added the missing public.* wrapper"
+      ],
+      "persona_projection": "Only an active owner/director of the target organization can see or use this control; staff never see it. The granted/revoked state is only reflected back to the same organization's director-facing roster, never to family or vendor personas.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817000443_phase_j_role_constraint_grant_audit_staff_case_creation.sql",
+        "supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql"
+      ]
+    },
+    {
+      "id": "phasej.system.role_and_revocation_data_integrity",
+      "cycle": "Phase J",
+      "capability": "Database-level integrity constraints for organization member roles and every revocation-shaped column across organization_members, organization_member_locations, and estate_access",
+      "status": "backend_only",
+      "persona": "director",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "note": "Pure data-integrity constraints -- there is no dedicated UI, and none is meaningful. Every director-facing surface that performs a revocation (revokeMember, revokeInvitation, set_staff_case_creation_grant_idempotent) is already covered by its own contract entry and simply inherits this protection at the database layer."
+      },
+      "action_status": "n/a -- enforced synchronously on every INSERT/UPDATE, not a user-invoked action",
+      "server_command": "CHECK constraints only, no RPC: organization_members_role_check, organization_member_locations_revocation_shape_check, estate_access_revocation_shape_check",
+      "backend_files": [
+        "supabase/migrations/20260817000443_phase_j_role_constraint_grant_audit_staff_case_creation.sql",
+        "supabase/migrations/20260817000843_phase_j_fix_revocation_shape_null_propagation.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "organization_members",
+          "cardinality": "role constrained to owner/director/staff on every row"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "revoked_at/revoked_by_user_id/revocation_reason must all be set together or all null, on every row"
+        },
+        {
+          "table": "estate_access",
+          "cardinality": "revoked_by_user_id/revocation_reason must be set exactly when status='revoked', on every row"
+        }
+      ],
+      "rls_authority_predicate": "N/A -- these are table-level CHECK constraints, not row-level-security policies; they are enforced by Postgres at every INSERT/UPDATE regardless of RLS or which role is writing, including SECURITY DEFINER RPCs.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Constraint enforcement produces no event of its own -- a violation simply fails the write with a Postgres error (23514 check_violation) inside whatever RPC attempted it."
+      },
+      "failure_recovery_states": [
+        "role outside owner/director/staff -> insert/update rejected (23514)",
+        "organization_member_locations row revoked but missing revoked_by_user_id or a non-empty revocation_reason -> rejected (23514)",
+        "estate_access row with status='revoked' but missing revoked_by_user_id or revocation_reason -> rejected (23514)",
+        "CRITICAL, found and fixed same session: the original organization_member_locations_revocation_shape_check used a bare `revocation_reason <> ''` comparison, which evaluates to NULL (not FALSE) when revocation_reason is NULL -- and a NULL CHECK result is treated as satisfied, not violated -- so a revocation with no reason silently passed the constraint for a few minutes in production until 20260817000843 corrected it to require revocation_reason IS NOT NULL explicitly"
+      ],
+      "persona_projection": "Not applicable -- this is a database-layer invariant with no persona-specific view.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817000443_phase_j_role_constraint_grant_audit_staff_case_creation.sql",
+        "supabase/migrations/20260817000843_phase_j_fix_revocation_shape_null_propagation.sql"
+      ]
+    },
+    {
+      "id": "phasek.director.create_task",
+      "cycle": "Phase K",
+      "capability": "Director creates an ad-hoc task on an existing case, outside the default seeded checklist",
+      "status": "backend_only",
+      "persona": "director",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "note": "No director-facing 'add a task' form currently calls this RPC. /director/cases/[workflowId] only exposes AssignTaskForm (app/director/CommandForms.tsx), which reassigns an EXISTING task's owner -- it does not create new ones. create_task_idempotent is real, idempotent, and adversarially safe, but unreachable from the UI today; searched app/ and lib/ exhaustively for a call site and found none."
+      },
+      "action_status": "not_created -> assigned, idempotent create",
+      "server_command": "public.create_task_idempotent(p_workflow_id uuid, p_title text, p_category text, p_request_id uuid) -> passage_private.create_task_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260817010133_task_orchestration_spine_default_checklist_and_manual_creation.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "tasks",
+          "cardinality": "one new row per successful create, version=1"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only task.created event per successful create, keyed by request id"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_manage_location(organization_id, organization_location_id) -- director/owner authority over the case's location",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.created",
+        "idempotency_key": "task_create:<request id>"
+      },
+      "failure_recovery_states": [
+        "not authenticated -> 28000, denied",
+        "empty/over-length title, or category outside the fixed 12-value vocabulary -> 22023, rejected",
+        "case not org-backed, or actor lacks director authority at its location -> 42501, denied",
+        "same request id replayed -> original task id/version/event returned, no duplicate row"
+      ],
+      "persona_projection": "Not currently exposed to any persona -- see frontend note. When wired, would follow the same organization-scoped visibility every other task-mutation RPC in this codebase uses.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817010133_task_orchestration_spine_default_checklist_and_manual_creation.sql"
+      ]
+    },
+    {
+      "id": "phasek.director.default_checklist_seed",
+      "cycle": "Phase K",
+      "capability": "New funeral-home case is automatically seeded with the researched 15-item default checklist (arrangement conference, death certificate, burial-transit permit, obituary, vendor coordination, etc.)",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/cases/[workflowId]",
+        "component": [
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "files": [
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "note": "Not a form of its own -- the seeded tasks appear directly in the case's task list on /director/cases/[workflowId] the moment either case-creation path (urgent-intake claim or manual intake) completes. The 15 items are hard-coded server-side, not editable at seed time."
+      },
+      "action_status": "0 tasks -> 15 tasks, run once per case at creation time, no user input",
+      "server_command": "passage_private.seed_default_case_tasks(p_workflow_id uuid, p_organization_id uuid, p_organization_location_id uuid), called from create_case_from_urgent_intake_idempotent and create_case_manual_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260817010515_task_orchestration_researched_funeral_home_checklist.sql",
+        "supabase/migrations/20260818060000_manual_case_intake.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "tasks",
+          "cardinality": "exactly 15 new rows per case, version=1 each, staggered due_at offsets from 0 hours to 14 days"
+        }
+      ],
+      "rls_authority_predicate": "Inherits the calling command's authority (passage_private.can_create_case_at_location) -- this function itself has no independent caller-facing authority check, it is only ever invoked internally by an already-authorized case-creation command.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "The seeding itself emits no event; the case.created / urgent_intake.case_created event from the calling command is the durable record that a case (and therefore its checklist) was created."
+      },
+      "failure_recovery_states": [
+        "called twice for the same workflow_id (not expected in normal operation) -> would insert a second set of 15 rows, since this function has no idempotency guard of its own -- protected in practice only because both call sites are themselves idempotent and only ever call it once per successfully-created case",
+        "case creation fails before this call -> zero tasks seeded, no partial checklist"
+      ],
+      "persona_projection": "Director/staff see all 15 items immediately on the case page; family sees only the subset surfaced by the family-facing task/timeline views (see phasel1.family.unified_commitments_timeline).",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817010515_task_orchestration_researched_funeral_home_checklist.sql"
+      ]
+    },
+    {
+      "id": "phasel1.family.unified_commitments_timeline",
+      "cycle": "Phase L.1",
+      "capability": "A family/D2C case owner sees vendor (partner_request) coordination status merged into the same timeline and task list as their own internal case tasks, instead of vendor work being invisible",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/today",
+        "component": [
+          "app/case/[id]/today/page.tsx",
+          "app/case/[id]/tasks/page.tsx",
+          "lib/family/case-view.ts"
+        ],
+        "files": [
+          "app/case/[id]/today/page.tsx",
+          "app/case/[id]/tasks/page.tsx",
+          "lib/family/case-view.ts"
+        ],
+        "note": "loadFamilyCaseView and loadFamilyTaskList (lib/family/case-view.ts) call get_family_visible_partner_requests and merge the result with tasks into one FamilyCommitmentItem[]/recentUpdates list, rendered on both /case/[id]/today and /case/[id]/tasks."
+      },
+      "action_status": "read-only projection, recomputed on every page load",
+      "server_command": "public.get_family_visible_partner_requests(p_workflow_id uuid) -> passage_private.get_family_visible_partner_requests",
+      "backend_files": [
+        "supabase/migrations/20260817011705_phase_l1_unify_family_visible_commitments_vendor_requests.sql",
+        "supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql",
+        "lib/family/case-view.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "partner_requests",
+          "cardinality": "read-only; every request row on the case, bounded projection excluding financial/internal columns"
+        }
+      ],
+      "rls_authority_predicate": "SECURITY DEFINER function; scopes to the case owner (workflows.user_id = auth.uid()), the coordinator email on the workflow, or an active (non-revoked) estate_access grant for the caller -- bypasses partner_requests' organization-staff-only RLS policy by design.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Read-only projection; vendor status changes are recorded on partner_request_events (an operator-facing log), not workflow_events, and this RPC does not write anything."
+      },
+      "failure_recovery_states": [
+        "CRITICAL, found and fixed same session: this migration created only the passage_private (private-schema) function; PostgREST only resolves public-schema RPCs, so client.rpc('get_family_visible_partner_requests', ...) 404'd silently and families never actually saw vendor status despite this being recorded as shipped -- fixed by 20260818070000_fix_missing_family_participant_rpcs.sql adding the missing public.* wrapper",
+        "RPC error/unavailable -> loadFamilyVisiblePartnerRequests fails closed to an empty list, never throws -- vendor coordination silently drops out of the timeline rather than breaking the whole page",
+        "unrelated user or wrong workflow id -> zero rows, no partner_request data leaked"
+      ],
+      "persona_projection": "Only the case owner, matching coordinator email, or an active estate_access grantee sees vendor requests for that case; org staff/director see the full operator-facing partner_requests row elsewhere, never through this function.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817011705_phase_l1_unify_family_visible_commitments_vendor_requests.sql",
+        "supabase/migrations/20260818070000_fix_missing_family_participant_rpcs.sql"
+      ]
+    },
+    {
+      "id": "phasel2.family.task_completion",
+      "cycle": "Phase L.2",
+      "capability": "A D2C/self-serve case owner (or an elevated executor/POA participant) marks their own planning task complete or reopens it, directly, without staff involvement",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/[id]/tasks",
+        "component": [
+          "app/case/[id]/tasks/page.tsx",
+          "lib/family/task-actions.ts"
+        ],
+        "files": [
+          "app/case/[id]/tasks/page.tsx",
+          "lib/family/task-actions.ts"
+        ],
+        "note": "setFamilyTaskCompletion (lib/family/task-actions.ts) is the Server Action bound to the completion control rendered per-task on /case/[id]/tasks whenever FamilyCommitmentItem.version is non-null (self-serve case, or an elevated participant's own task)."
+      },
+      "action_status": "assigned/in_progress <-> completed, optimistic-version-checked, idempotent",
+      "server_command": "public.set_family_task_completion_idempotent(p_task_id uuid, p_completed boolean, p_expected_version integer, p_request_id uuid) -> passage_private.set_family_task_completion_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260817014212_phase_l2_family_self_serve_task_completion.sql",
+        "supabase/migrations/20260817014247_phase_l2_fix_occurred_at_ambiguity.sql",
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
+        "lib/family/task-actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "tasks",
+          "cardinality": "status/version/completed_at/completed_by updated in place on the single targeted row"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only task.family_completed/task.family_reopened event per successful toggle"
+        }
+      ],
+      "rls_authority_predicate": "Case must have organization_id null (D2C only) and the caller must be workflows.user_id, or (as of the already-committed 20260818110000 widening) an accepted elevated participant per passage_private.has_elevated_family_authority",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.family_completed / task.family_reopened",
+        "idempotency_key": "family_task_completion:<request id>"
+      },
+      "failure_recovery_states": [
+        "org-backed case, or caller is neither the owner nor an elevated participant -> 42501, denied, task stays read-only",
+        "version mismatch (task changed elsewhere first) -> 40001, 'Task changed before the action was saved', reload required",
+        "same request id replayed -> original status/version/event returned, no duplicate write",
+        "found and fixed same session (35 seconds after initial creation): the RETURNING clause's bare `occurred_at` collided with the function's own occurred_at OUT parameter -> 42702 ambiguous column, fixed by qualifying it as workflow_events.occurred_at into a dedicated local variable"
+      ],
+      "persona_projection": "Only the case owner or an accepted elevated participant on that specific case can complete tasks; a plain participant sees the same list read-only (version always null); org-backed cases never expose this control to family at all.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817014212_phase_l2_family_self_serve_task_completion.sql",
+        "supabase/migrations/20260817014247_phase_l2_fix_occurred_at_ambiguity.sql"
+      ]
+    },
+    {
+      "id": "phasel3.director_family.task_communications_engine",
+      "cycle": "Phase L.3",
+      "capability": "Director or D2C case owner drafts a task-related email (subject/body/recipients), reviews it, then explicitly sends it -- a prepared-then-sent, human-reviewed message, never auto-sent",
+      "status": "implemented",
+      "persona": [
+        "director",
+        "family"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/cases/[workflowId]",
+        "component": [
+          "app/director/cases/[workflowId]/CommunicationForms.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/case/[id]/messages/page.tsx",
+          "lib/communications/actions.ts"
+        ],
+        "files": [
+          "app/director/cases/[workflowId]/CommunicationForms.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/case/[id]/messages/page.tsx",
+          "lib/communications/actions.ts"
+        ],
+        "note": "Prepare and Send are two distinct forms in CommunicationForms.tsx (director side); the family-facing /case/[id]/messages page reads the same communications list read-only via get_workflow_communications."
+      },
+      "action_status": "prepared -> sent, or prepared -> failed (with a retryable reason); each transition is its own idempotent command",
+      "server_command": [
+        "public.prepare_task_communication_idempotent(p_workflow_id uuid, p_task_id uuid, p_subject text, p_body text, p_recipients jsonb, p_request_id uuid)",
+        "public.confirm_task_communication_sent_idempotent(p_communication_id uuid, p_provider_message_ids jsonb, p_request_id uuid)",
+        "public.confirm_task_communication_failed_idempotent(p_communication_id uuid, p_failure_reason text, p_request_id uuid)",
+        "public.get_workflow_communications(p_workflow_id uuid)"
+      ],
+      "backend_files": [
+        "supabase/migrations/20260817015152_phase_l3_task_communications_engine.sql",
+        "lib/communications/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "task_communications",
+          "cardinality": "one row per prepared draft; content columns (subject/body/recipients/workflow_id/task_id/created_by_user_id/creation_request_id) are append-only after insert via a BEFORE UPDATE trigger, only status/send-related columns may change"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only communication.sent event per successful send (prepare and failed-send emit no event)"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_message_workflow(workflow_id), re-checked inside every SECURITY DEFINER RPC; the table itself has zero RLS policies (enabled, deny-by-default) so all reads and writes are routed through these four functions",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "communication.sent",
+        "idempotency_key": "n/a -- uniqueness enforced via task_communications.send_request_id equality check inside confirm_task_communication_sent_idempotent, not a workflow_events idempotency_key column"
+      },
+      "failure_recovery_states": [
+        "not authenticated, or caller cannot message this case -> 42501/28000, nothing prepared or sent",
+        "empty subject/body, malformed recipients, or zero valid recipient emails -> 22023, rejected before any write",
+        "task_id supplied but does not belong to the workflow -> 22023, rejected",
+        "send attempted on an already-sent communication with a different request id -> 55000, rejected",
+        "same prepare request id replayed -> original draft id/status returned, no duplicate row (unique index on workflow_id+creation_request_id)",
+        "provider send fails -> confirm_task_communication_failed_idempotent records status='failed' with a truncated reason, retryable",
+        "provider send succeeds but confirm write fails -> UI explicitly tells the user it sent but the confirmation could not be saved, rather than claiming nothing happened (sendTaskCommunication in lib/communications/actions.ts)",
+        "flagged, not silently fixed: live grants leave anon/authenticated with full table-level privileges on task_communications (never revoked, unlike the task_proofs precedent) -- safe today only because RLS is enabled with zero policies; a follow-up hardening pass matching the task_proofs revoke-then-grant-select convention is recommended"
+      ],
+      "persona_projection": "Only someone who can_message_workflow (case owner/coordinator, org staff/director, or an authorized participant) sees or drafts communications for that case; recipients are stored as plain data on the draft, never merged with any other case's list.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817015152_phase_l3_task_communications_engine.sql"
+      ]
+    },
+    {
+      "id": "phasel4.family.d2c_planning_checklist_seed",
+      "cycle": "Phase L.4",
+      "capability": "A new D2C/self-serve advance-planning record is automatically seeded with a 10-item planning checklist (POA, will, beneficiary designations, executor conversation, digital accounts, etc.)",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/case/start",
+        "component": [
+          "app/case/start/StartFamilyRecordForm.tsx",
+          "app/case/start/actions.ts"
+        ],
+        "files": [
+          "app/case/start/StartFamilyRecordForm.tsx",
+          "app/case/start/actions.ts"
+        ],
+        "note": "The 10 tasks appear immediately in the new record's task list the moment self_serve_create_family_record completes -- no separate seed step or user input."
+      },
+      "action_status": "0 tasks -> 10 tasks, run once per new D2C record, no user input",
+      "server_command": "public.self_serve_create_family_record(p_person_name text, p_relationship_to_deceased text) -> passage_private.self_serve_create_family_record, which calls passage_private.seed_default_d2c_planning_tasks",
+      "backend_files": [
+        "supabase/migrations/20260817020700_phase_l4_seed_d2c_planning_checklist.sql",
+        "app/case/start/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "tasks",
+          "cardinality": "exactly 10 new rows per new D2C workflow, version=1 each, staggered due_at offsets from 0 to 21 days"
+        },
+        {
+          "table": "workflows",
+          "cardinality": "one new self-serve (organization_id null) row per subscriber, unique per user_id"
+        }
+      ],
+      "rls_authority_predicate": "SECURITY DEFINER; requires an active or trialing subscriptions row for the caller before any workflow is created",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "self_serve_create_family_record has no workflow_events emission for record creation itself; the durable receipt is the unique workflows row plus its replayed=false/true return value."
+      },
+      "failure_recovery_states": [
+        "not authenticated -> 28000, denied",
+        "empty/over-length name -> 22023, rejected",
+        "no active/trialing subscription -> 42501, denied, nothing created",
+        "caller already has a workflow -> idempotent no-op, existing workflow_id returned with replayed=true, no second checklist seeded"
+      ],
+      "persona_projection": "Only the creating user ever sees this record and its checklist; no organization or staff visibility exists for a pure D2C case.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260817020700_phase_l4_seed_d2c_planning_checklist.sql"
+      ]
+    },
+    {
+      "id": "phasej.director.multi_location_creation_and_plan_gating",
+      "cycle": "Phase J",
+      "capability": "Director/owner adds a new physical location to their organization, gated to the number of locations included in their plan, with a clear upgrade path once the limit is hit",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/team",
+        "component": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "files": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "note": "CreateLocationForm on /director/team; a 55001 error renders the shared 'Upgrade required' receipt with a link to /pricing (app/director/CommandForms.tsx Receipt component)."
+      },
+      "action_status": "creates a location if under plan capacity; over-capacity returns errcode 55001 with an upgrade prompt instead of a silent failure",
+      "server_command": "public.create_organization_location_idempotent(p_organization_id uuid, p_name text, p_address text, p_city text, p_state text, p_zip text, p_request_id uuid) -> passage_private.create_organization_location_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260818022320_create_organization_location_idempotent.sql",
+        "supabase/migrations/20260818022423_gate_additional_locations_on_upgrade.sql",
+        "app/director/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "organization_locations",
+          "cardinality": "one new row per successful create"
+        },
+        {
+          "table": "organization_member_locations",
+          "cardinality": "one row granting the creating director access to the new location"
+        },
+        {
+          "table": "organizations",
+          "cardinality": "read-only; included_location_slots/additional_location_fee_cents gate the count, not mutated by this command"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only organization_location.created event per successful create"
+        }
+      ],
+      "rls_authority_predicate": "Active owner/director membership in the target organization (organization_members.role in owner/director and status='active')",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "organization_location.created",
+        "idempotency_key": "org_location_create:<request id>"
+      },
+      "failure_recovery_states": [
+        "not authenticated, or actor lacks owner/director role -> 28000/42501, denied",
+        "empty location name -> 22023, rejected",
+        "location count already at or above included_location_slots -> 55001, 'Your plan includes N location(s). Upgrade to add another.', nothing created",
+        "same request id replayed -> original location id/count returned with is_additional recomputed, no duplicate row",
+        "reconstruction note: the plan-gating check (included_location_slots, is_additional) and the organizations columns it reads did not exist in the first version of this function -- added 63 seconds later by 20260818022423_gate_additional_locations_on_upgrade.sql, which is what's live today"
+      ],
+      "persona_projection": "Only the creating organization's own owner/director sees or uses this; other organizations, staff, family, and vendor personas have no visibility into location creation.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818022320_create_organization_location_idempotent.sql",
+        "supabase/migrations/20260818022423_gate_additional_locations_on_upgrade.sql"
+      ]
+    },
+    {
+      "id": "phasej.director.grant_staff_new_location",
+      "cycle": "Phase J",
+      "capability": "Director/owner assigns an already-existing staff member to an additional location, without requiring a brand-new invitation",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/team",
+        "component": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "files": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "note": "GrantStaffLocationForm on /director/team. This RPC's own migration was applied directly and never committed to git either -- flagged in that file's own header as a separate, already-known backfill gap distinct from the 12 files this pass closes."
+      },
+      "action_status": "creates a new organization_member_locations row for a staff member at a location they are not yet assigned to, idempotent by request id",
+      "server_command": "public.grant_staff_new_location_idempotent(...) -> passage_private.grant_staff_new_location_idempotent, same authority/idempotency/audit shape as set_staff_case_creation_grant_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260818050000_grant_staff_new_location_idempotent.sql",
+        "app/director/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "organization_member_locations",
+          "cardinality": "one new row per successful grant"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only audit event per successful grant"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_manage_location(organization_id, location_id) -- director/owner authority over the target location",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "staff_location.granted (organization-internal audience)",
+        "idempotency_key": "request-id-scoped, same shape as set_staff_case_creation_grant_idempotent"
+      },
+      "failure_recovery_states": [
+        "actor lacks director/owner authority at the target location -> 42501, denied",
+        "target member already assigned to that location -> idempotent no-op / conflict handling, no duplicate row",
+        "same request id replayed -> original outcome returned, no duplicate write"
+      ],
+      "persona_projection": "Only the granting organization's own owner/director sees or uses this; the newly-granted staff member gains task visibility at the new location on their next load.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818050000_grant_staff_new_location_idempotent.sql"
+      ]
+    },
+    {
+      "id": "phasel.family.d2c_multi_estate_provisioning",
+      "cycle": "Phase L (D2C multi-estate)",
+      "capability": "A D2C subscriber with multiple estate slots on their plan adds an additional, separate estate record (not co-ownership of the same estate), gated to their plan's included slot count",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/case",
+        "component": [
+          "app/case/EstateActions.tsx",
+          "app/case/actions.ts"
+        ],
+        "files": [
+          "app/case/EstateActions.tsx",
+          "app/case/actions.ts"
+        ],
+        "note": "A 55001 error surfaces as the same 'Upgrade required' pattern used elsewhere (app/case/actions.ts line ~37)."
+      },
+      "action_status": "creates an additional estate workflow if under the subscriber's included_estate_slots; over-capacity returns errcode 55001",
+      "server_command": "public.create_additional_estate_idempotent(p_person_name text, p_relationship text, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260818040000_production_d2c_multi_estate.sql",
+        "supabase/migrations/20260818040100_restrict_active_estate_slots_to_self.sql",
+        "app/case/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflows",
+          "cardinality": "one additional self-serve (organization_id null) row per successful create, owned solely by the creating user"
+        },
+        {
+          "table": "subscriptions",
+          "cardinality": "read-only; included_estate_slots is the sole enforcement source for the gate"
+        }
+      ],
+      "rls_authority_predicate": "workflows.user_id = auth.uid() on every row this subscriber can see or create; subscriptions.included_estate_slots checked server-side inside the RPC, not by RLS",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Modeled the same way as the original self-serve record creation (self_serve_create_family_record) -- the durable receipt is the new workflows row and its replay flag, not a workflow_events entry."
+      },
+      "failure_recovery_states": [
+        "not authenticated -> denied, nothing created",
+        "estate count already at or above included_estate_slots -> 55001, upgrade-required message, nothing created",
+        "same request id replayed -> original estate id returned, no duplicate row",
+        "founder decision needed, flagged in the roadmap, not yet confirmed: this access model (separate estates per plan, not co-ownership) was built from /pricing copy alone and has not been explicitly confirmed against intent"
+      ],
+      "persona_projection": "Each estate is independently owned and scoped to the creating user only; no cross-estate visibility exists between a subscriber's own multiple estates.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818040000_production_d2c_multi_estate.sql",
+        "supabase/migrations/20260818040100_restrict_active_estate_slots_to_self.sql"
+      ]
+    },
+    {
+      "id": "phasek.director.manual_case_intake",
+      "cycle": "Phase K (case intake)",
+      "capability": "Director or a staff member with an explicit can_create_cases grant opens a brand-new case for a walk-in family, without requiring a prior urgent-intake request to claim",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director",
+        "component": [
+          "app/director/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "files": [
+          "app/director/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "note": "A 'New case' form is always visible on /director for any director/owner or explicitly-granted staff member; the form also takes an optional family contact and, in the same submission, creates a family invitation and emails the secure link via Resend."
+      },
+      "action_status": "not_created -> active case with its 15-item default checklist seeded, plus an optional family invitation created and emailed in the same command",
+      "server_command": "public.create_case_manual_idempotent(p_organization_id uuid, p_organization_location_id uuid, p_case_reference text, p_family_name text, p_person_name text, p_request_id uuid) -> passage_private.create_case_manual_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260818060000_manual_case_intake.sql",
+        "app/director/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "workflows",
+          "cardinality": "one new org-backed active case per successful create"
+        },
+        {
+          "table": "tasks",
+          "cardinality": "15 rows seeded via passage_private.seed_default_case_tasks"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only case.created event per successful create"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_create_case_at_location(organization_id, location_id) -- owner/director, or staff with an explicit can_create_cases grant at that location (phasej.director.staff_case_creation_grant)",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "case.created",
+        "idempotency_key": "manual_case_create:<request id>"
+      },
+      "failure_recovery_states": [
+        "not authenticated, or actor lacks case-creation authority at the location -> 28000/42501, denied",
+        "missing/over-length case reference, family name, or person name -> 22023, rejected",
+        "org past trial with an existing active case and not on a paid plan -> 55001, upgrade-required, nothing created",
+        "same request id replayed -> original workflow id returned, no duplicate case or checklist"
+      ],
+      "persona_projection": "Only the creating organization's own director/owner or explicitly-granted staff sees or uses this; the resulting case follows the same org-scoped visibility as every other case.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818060000_manual_case_intake.sql"
+      ]
+    },
+    {
+      "id": "phasem.vendor.multi_employee_invitation",
+      "cycle": "Phase M (vendor)",
+      "capability": "A vendor/partner organization owner invites additional employees to their own partner team, closing the single-login gap where a partner organization could previously only ever have one usable account",
+      "status": "implemented",
+      "persona": "vendor",
+      "frontend": {
+        "user_visible": true,
+        "route": "/partner/invitations/new",
+        "component": [
+          "app/partner/invitations/new/page.tsx",
+          "app/partner/invitations/new/InvitationForm.tsx",
+          "app/partner/invitations/new/actions.ts"
+        ],
+        "files": [
+          "app/partner/invitations/new/page.tsx",
+          "app/partner/invitations/new/InvitationForm.tsx",
+          "app/partner/invitations/new/actions.ts"
+        ],
+        "note": "Adversarially tested 11/11 per the roadmap's vendor-persona pass; verified as real (not a sandbox) alongside Stripe Connect onboarding/payouts."
+      },
+      "action_status": "pending_acceptance -> accepted, idempotent invitation create/accept, same shape as the funeral-home-side employee invitation flow",
+      "server_command": "app/partner/invitations/new/actions.ts's invitation-create Server Action",
+      "backend_files": [
+        "supabase/migrations/20260818090000_partner_employee_invitations.sql",
+        "app/partner/invitations/new/actions.ts"
+      ],
+      "durable_tables": [
+        {
+          "table": "partner_members",
+          "cardinality": "one row per accepted employee, scoped to one partner_organization_id"
+        }
+      ],
+      "rls_authority_predicate": "Active owner/admin membership in the inviting partner_organization",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "vendor employee invitation created/accepted (organization-internal to the partner org)",
+        "idempotency_key": "request-id-scoped"
+      },
+      "failure_recovery_states": [
+        "actor lacks owner/admin authority in the partner organization -> denied, nothing created",
+        "invalid/expired/already-accepted token on accept -> distinct calm copy per state, no acceptance form rendered",
+        "same request id replayed -> original invitation id returned, no duplicate row"
+      ],
+      "persona_projection": "Only the inviting partner organization's own owner/admin sees or manages its invitations; other partner organizations and funeral-home personas have no visibility.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818090000_partner_employee_invitations.sql"
+      ]
+    },
+    {
+      "id": "phasel5.family.participant_role_selection",
+      "cycle": "Phase L.5 (structured participant roles)",
+      "capability": "Director or family case owner selects a structured functional role (executor, POA/medical-proxy, clergy/officiant, cemetery/crematory contact, or plain family member) when inviting a family/participant, instead of every invitee getting identical generic access",
+      "status": "implemented",
+      "persona": [
+        "director",
+        "family"
+      ],
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/cases/[workflowId]",
+        "component": [
+          "app/director/cases/[workflowId]/FamilyInvitationForm.tsx",
+          "app/case/EstateActions.tsx"
+        ],
+        "files": [
+          "app/director/cases/[workflowId]/FamilyInvitationForm.tsx",
+          "app/case/EstateActions.tsx"
+        ],
+        "note": "Both invite-creation forms (director-side and D2C owner-side) carry a Role <select name=\"participantRole\"> defaulting to family_member, matching the 5-value participant_role vocabulary."
+      },
+      "action_status": "invited -> accepted; executor/poa_medical_proxy roles grant estate_access.role='authorized_participant' on accept, the other roles remain display-label only",
+      "server_command": "public.accept_case_family_invitation(...) derives estate_access.role from case_family_invitations.participant_role at acceptance time",
+      "backend_files": [
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
+        "supabase/migrations/20260818110100_fix_accept_family_invitation_variable_conflict.sql",
+        "app/director/cases/[workflowId]/FamilyInvitationForm.tsx",
+        "app/case/EstateActions.tsx"
+      ],
+      "durable_tables": [
+        {
+          "table": "case_family_invitations",
+          "cardinality": "participant_role column, one of 5 fixed values, on every invitation row"
+        },
+        {
+          "table": "estate_access",
+          "cardinality": "role gains 'authorized_participant' only for an accepted executor/poa_medical_proxy invitation, scoped to that one case"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.can_invite_family_to_workflow, extended to also cover an already-accepted elevated participant inviting others on their own case (not cross-estate)",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "case_family_invitation.created / case_family_invitation.accepted",
+        "idempotency_key": "request-id-scoped, unchanged by this migration"
+      },
+      "failure_recovery_states": [
+        "CRITICAL, found and fixed same session, predates this migration entirely: accept_case_family_invitation's `on conflict (workflow_id, user_id)` target collided with its own RETURNS TABLE output columns (42702 ambiguous), meaning every family-invite acceptance by every real user had always silently failed since the feature shipped -- fixed via `#variable_conflict use_column` in 20260818110100, reverified with a 15-assertion adversarial suite including the accept step itself",
+        "participant_role outside the fixed 5-value vocabulary -> 22023, rejected",
+        "elevated authority is scoped to self-serve (D2C, organization_id null) cases only -- an executor never gains write authority over a funeral home's own operational task list"
+      ],
+      "persona_projection": "Role selection and its downstream authority are visible only to the inviting director/owner and the invited participant themselves; other participants on the same case cannot see anyone else's structured role.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
+        "supabase/migrations/20260818110100_fix_accept_family_invitation_variable_conflict.sql"
+      ]
+    },
+    {
+      "id": "phasel5.family.elevated_participant_task_authority",
+      "cycle": "Phase L.5 (structured participant roles)",
+      "capability": "An accepted executor/POA participant creates and manages tasks on the one case they were invited to, and invites other participants to it, on the same authority tier as the case owner (scoped to that case only)",
+      "status": "backend_only",
+      "persona": "family",
+      "frontend": {
+        "user_visible": false,
+        "route": null,
+        "component": null,
+        "note": "Explicitly documented as still open in the roadmap: no page is reachable by an accepted (non-owner) participant to host a task-create or invite-others form -- /case/page.tsx is hard-scoped to workflows.user_id = auth.uid(), so a participant never reaches it. Searched app/ exhaustively for a call site of create_family_task_idempotent and found none -- confirms the roadmap's own account rather than contradicting it."
+      },
+      "action_status": "not_created -> assigned, idempotent create, mirroring create_task_idempotent's shape but keyed by workflow_id since D2C cases have no organization_id",
+      "server_command": "public.create_family_task_idempotent(p_workflow_id uuid, p_title text, p_category text, p_request_id uuid), public.list_family_tasks_for_participant(p_workflow_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
+        "supabase/migrations/20260818110200_create_family_task_owner_authority.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "tasks",
+          "cardinality": "one new row per successful create, workflow-scoped, no organization_id"
+        },
+        {
+          "table": "workflow_events",
+          "cardinality": "one append-only task.created event per successful create"
+        }
+      ],
+      "rls_authority_predicate": "passage_private.has_elevated_family_authority(workflow_id) -- accepted, non-revoked estate_access.role='authorized_participant' on that specific case only",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.created",
+        "idempotency_key": "request-id-scoped, same shape as create_task_idempotent"
+      },
+      "failure_recovery_states": [
+        "caller is not an accepted elevated participant on that case -> 42501, denied",
+        "org-backed case -> 42501, denied (D2C-only boundary)",
+        "same request id replayed -> original task id/version/event returned, no duplicate row",
+        "no frontend entry point exists yet -- the RPCs are real and adversarially tested (15/15 assertions per the roadmap) but the participant-facing page they'd be wired into has not been built"
+      ],
+      "persona_projection": "Would be visible only to the accepted elevated participant and the case owner on that one case, never cross-estate -- not currently reachable by any persona through the UI.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md",
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
+        "supabase/migrations/20260818110200_create_family_task_owner_authority.sql"
       ]
     }
   ]
