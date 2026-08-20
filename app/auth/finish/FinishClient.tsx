@@ -4,17 +4,31 @@ import { useEffect, useState } from 'react';
 import { getPassageBrowserClient } from '@/lib/supabase/browser';
 import styles from '../../login/Auth.module.css';
 
-// getSession() awaits the browser client's own initial-session promise,
-// which is where detectSessionInUrl's hash-fragment parsing happens -- so
-// this reliably waits for that to finish rather than racing it, without
-// needing to hand-parse window.location.hash ourselves.
+// CORRECTED 2026-08-20: the original assumption here was wrong and never
+// actually verified live -- @supabase/ssr's createBrowserClient (unlike the
+// raw supabase-js client) does NOT auto-detect a session from a URL hash
+// fragment; it's built around the cookie/PKCE code-exchange flow used by
+// /auth/callback, not the implicit #access_token=... flow admin-generated
+// links deliver. Confirmed by direct testing: a real, valid, unexpired
+// access_token in the hash still left getSession() empty. Real fix:
+// hand-parse the fragment ourselves and hand the tokens to setSession(),
+// which @supabase/ssr's client does support and correctly persists to
+// cookies regardless of how the tokens were obtained.
 export function FinishClient({ next, supabaseUrl, publishableKey }: { next: string; supabaseUrl: string; publishableKey: string }) {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const client = getPassageBrowserClient(supabaseUrl, publishableKey);
-    client.auth.getSession().then((result: Awaited<ReturnType<typeof client.auth.getSession>>) => {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+
+    const establish = accessToken && refreshToken
+      ? client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      : client.auth.getSession();
+
+    establish.then((result: { data: { session: unknown } }) => {
       if (cancelled) return;
       if (result.data.session) {
         // A full navigation, not client-side routing: the next request must
