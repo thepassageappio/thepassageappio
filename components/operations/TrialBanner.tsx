@@ -3,15 +3,24 @@ import styles from '@/app/operations-beta.module.css';
 
 // organization_trial_status has existed since the self-serve trial gating
 // migration, but nothing ever rendered it -- a director signing up had zero
-// visibility into their own trial status until this component.
-export function TrialBanner({ isGated, isPaid, trialEndsAt }: { isGated: boolean; isPaid: boolean; trialEndsAt: string | null }) {
+// visibility into their own trial status until this component. The
+// 'estate' context reuses the same component for D2C's d2c_trial_status
+// (20260820030000_d2c_self_serve_trial_gating.sql) -- founder decision
+// 2026-08-20: D2C mirrors B2B's "never lock out" model (an estate created
+// inside the 7-day trial window stays free permanently), so the gated
+// copy below is honest about nothing being paused, unlike B2B's.
+export function TrialBanner({ context = 'organization', isGated, isPaid, trialEndsAt }: { context?: 'organization' | 'estate'; isGated: boolean; isPaid: boolean; trialEndsAt: string | null }) {
   if (isPaid) return null;
 
   if (isGated) {
     return (
       <div className={`${styles.trialBanner} ${styles.trialBannerGated}`} role="status">
-        <span><strong>Your 90-day trial has ended.</strong> New cases and vendor requests are paused until you upgrade.</span>
-        <Link href="/pricing">Upgrade now</Link>
+        <span>
+          {context === 'estate'
+            ? <><strong>Your 7-day trial has ended.</strong> This estate stays free to use. Upgrade to add more estates or support Passage.</>
+            : <><strong>Your 90-day trial has ended.</strong> New cases and vendor requests are paused until you upgrade.</>}
+        </span>
+        <Link href="/pricing">{context === 'estate' ? 'See plans' : 'Upgrade now'}</Link>
       </div>
     );
   }
