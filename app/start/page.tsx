@@ -13,7 +13,7 @@ export default function StartPage() {
       <main className={styles.main} id="main-content">
         <p className={styles.eyebrow}>START HERE</p>
         <h1 className={styles.title}>What do you need right now?</h1>
-        <p className={styles.lede}>Answer a few short questions. We will give you one clear next step and, if you want, have someone call you back.</p>
+        <p className={styles.lede}>Answer a few short questions. We will give you one clear next step.</p>
         <Link className={styles.primaryButton} href="/start/situation" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
           Someone needs help now
         </Link>
