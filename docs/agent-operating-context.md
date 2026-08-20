@@ -1830,3 +1830,33 @@ Release truth:
   - `supabase/migrations/20260810230100_participant_case_update_for_workflow_grant_hardening.sql` -- revokes the implicit PUBLIC/anon EXECUTE grant CREATE FUNCTION adds by default.
   - `lib/family/case-view.ts` -- falls back to the new RPC when the owner-only raw `workflows` read denies a caller, building a thinner participant-scoped view from the bounded projection.
 - Verification: rollback-only RLS/RPC sim against the isolated project (passage-cycle-7a-test) before applying (same migrations, shared DB -- see PR #77 for the full matrix). Hosted QA with the real dana-family-participant@passage.test identity against a live greenfield/passage-zero preview in progress.
+
+## Family urgent-request detail repair - 2026-08-20
+
+### Product Manager Sprint Brief
+
+- **Status:** COMPLETE for this bounded P1 production-maintenance repair.
+- **Goal:** make every immediate-help request on `/case` an understandable, authorized destination instead of a dead card, while preserving the existing request-to-funeral-home-to-care-record state machine.
+- **Requirements:** each request opens a family-scoped detail page; submitted, claimed, case-created, and historical self-handling states use human language; the page shows what the family sent, what happens next, saved timestamps, visibility, and recovery; a created care record links to the existing family case room.
+- **Components:** `/case` urgent cards; new `/case/urgent/[requestId]` family detail route; responsive styles; no new mutation or schema.
+- **Frontend/backend contract:** UI trigger `View request` -> authenticated Server Component query on `urgent_intake_requests` filtered by request id and `requester_user_id` -> requester RLS -> rendered request state. When `workflow_id` exists, the existing family-authorized `/case/[workflowId]/today` projection remains the next destination.
+- **Acceptance criteria:** all urgent cards have a 44px-or-larger visible action; the family cannot read another user's request; each status names the next owner and next action; 1440/390/360 have no horizontal overflow; no raw enum or UUID is rendered; reload preserves the same state.
+- **Dependencies:** existing urgent intake row, requester RLS, and care-record family access. No external messaging, billing, or referral logic.
+- **QA/deploy plan:** TypeScript, persona-language, parity, optimized build, desktop/mobile responsive-source inspection, then live Chrome proof after the governed release path.
+- **Risks:** an old request may be `self_handling`; render it honestly as a private historical save. A claimed request may not yet have a workflow; do not invent a care-room link.
+- **Non-goals / owner gates:** no pricing, lead-generation matching, legal claims, email/SMS, new schema, data deletion, or financial action.
+- **Classification:** fix now. The dead-card interaction blocks an urgent family persona at the first post-intake dashboard action.
+
+### UX Review handoff
+
+- **Status:** PASS for Engineering with conditions.
+- The request card must have an explicit `View request` action even before a funeral home creates a care record.
+- The detail page must lead with status and the next expected handoff, not intake fields; details use progressive disclosure/compact panels.
+- It must explain saved proof, visibility, and a safe recovery route in the first useful screenful, keep contact information family-scoped, and avoid implying that a funeral home has responded before `claimed`.
+- Desktop and mobile use the same content and actions; layout alone may reflow.
+
+### Role handoff
+
+- Product Manager received the founder's screenshot and classified the dead urgent cards as fix-now P1.
+- UX Review received the Sprint Brief and passed the bounded experience above to Engineering.
+- Engineering is in progress. Independent QA, release review, Deploy, and live Chrome verification remain pending.
