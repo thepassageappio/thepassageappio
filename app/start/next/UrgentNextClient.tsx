@@ -102,9 +102,10 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
     setAuthBusy(true);
     const client = getPassageBrowserClient(supabaseUrl, publishableKey);
     if (authMode === 'create') {
-      const result = await client.auth.signUp({ email: authEmail.trim(), password: authPassword });
+      const emailRedirectTo = new URL('/auth/finish?next=%2Fstart%2Fnext', window.location.origin).toString();
+      const result = await client.auth.signUp({ email: authEmail.trim(), password: authPassword, options: { emailRedirectTo } });
       if (result.error) { setAuthError('Passage could not create that account. Try a different email or sign in instead.'); setAuthBusy(false); return; }
-      if (!result.data.session) { setAuthError('Your account was created. Check your email to confirm it, or ask Passage to confirm it for you.'); setAuthBusy(false); return; }
+      if (!result.data.session) { setAuthError('Your account was created. Check your email and open the confirmation link to come back here signed in.'); setAuthBusy(false); return; }
     } else {
       const result = await client.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
       if (result.error || !result.data.session) { setAuthError('That email and password did not match. Try again.'); setAuthBusy(false); return; }
