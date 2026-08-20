@@ -25,7 +25,11 @@ export async function GET() {
     results.push({
       email: identity.email,
       ok: !error,
-      error: error?.message ?? null,
+      errorMessage: error?.message ?? null,
+      errorName: error?.name ?? null,
+      errorStatus: error?.status ?? null,
+      errorCode: error?.code ?? null,
+      errorFull: error ? JSON.stringify(Object.getOwnPropertyNames(error).reduce((acc, k) => ({ ...acc, [k]: (error)[k] }), {})) : null,
       actionLink: data?.properties?.action_link ?? null,
     });
   }
