@@ -24,7 +24,7 @@ export default async function DirectorUrgentDetailPage({ params }: { params: Pro
   const claimedByMyOrg = request.claimed_organization_id === viewer.viewer.organizationId;
 
   return (
-    <AppFrame active="director" identity={humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role)} mode="verified" role={`${viewer.viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.viewer.organizationName)}`}>
+    <AppFrame active="urgent" identity={humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role)} mode="verified" role={`${viewer.viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.viewer.organizationName)}`}>
       <Link className={styles.backLink} href="/director/urgent">← Urgent requests</Link>
       <header className={styles.hero}>
         <div>

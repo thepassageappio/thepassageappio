@@ -32,6 +32,7 @@ export async function TopShell({ children, context = 'Connected care', mode = 'w
 
   const authLinks = accountLink ? (
     <>
+      {accountLink.personalHref && <Link className="top-shell__navSignIn" href={accountLink.personalHref}>Plan for your family</Link>}
       <Link className="top-shell__navPrimary" href={accountLink.href}>{accountLink.label}</Link>
     </>
   ) : (
