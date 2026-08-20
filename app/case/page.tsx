@@ -137,10 +137,10 @@ export default async function CaseIndexPage() {
         <section className={`${styles.lane} ${styles.urgentLane}`} aria-labelledby="urgent-records-title">
           <div className={styles.laneHeading}>
             <div><p>HELP NEEDED NOW</p><h2 id="urgent-records-title">Immediate-help requests</h2><span>Requests sent for a funeral home to claim and coordinate.</span></div>
-            <strong>{urgentRequests.length + additionalCareRecords.length} item{urgentRequests.length + additionalCareRecords.length === 1 ? '' : 's'}</strong>
+            <strong>{urgentRequests.length} request{urgentRequests.length === 1 ? '' : 's'}</strong>
           </div>
 
-          {urgentRequests.length > 0 || additionalCareRecords.length > 0 ? (
+          {urgentRequests.length > 0 ? (
             <ul className={styles.recordGrid}>
               {urgentRequests.map((request) => (
                 <li className={styles.recordCard} key={request.id}>
@@ -148,15 +148,22 @@ export default async function CaseIndexPage() {
                   {request.workflow_id ? <Link href={`/case/${request.workflow_id}/today`}>Open care record →</Link> : <span className={styles.waiting}>Passage will show the care record here after a funeral home creates it.</span>}
                 </li>
               ))}
-              {additionalCareRecords.map((workflow) => (
-                <li className={styles.recordCard} key={workflow.id}>
-                  <div><span>{readableStatus(workflow.phase || workflow.status)}</span><h3>{workflow.person_name?.trim() || 'Family care record'}</h3><p>Coordinated with a funeral home</p></div>
-                  <Link href={`/case/${workflow.id}/today`}>Open care record →</Link>
-                </li>
-              ))}
             </ul>
           ) : (
             <div className={styles.emptyCard}><h3>No immediate-help requests.</h3><p>If someone has just died, Passage will give you one clear next step.</p></div>
+          )}
+          {additionalCareRecords.length > 0 && (
+            <details className={`${styles.management} ${styles.careHistory}`}>
+              <summary>Care records shared by funeral homes ({additionalCareRecords.length})</summary>
+              <div><ul className={styles.recordGrid}>
+                {additionalCareRecords.map((workflow) => (
+                  <li className={styles.recordCard} key={workflow.id}>
+                    <div><span>{readableStatus(workflow.phase || workflow.status)}</span><h3>{workflow.person_name?.trim() || 'Family care record'}</h3><p>Coordinated with a funeral home</p></div>
+                    <Link href={`/case/${workflow.id}/today`}>Open care record →</Link>
+                  </li>
+                ))}
+              </ul></div>
+            </details>
           )}
           <Link className={styles.urgentAction} href="/start">Get help right now</Link>
         </section>

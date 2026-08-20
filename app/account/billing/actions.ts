@@ -73,7 +73,7 @@ export async function loadBillingSummary(): Promise<BillingSummaryResult> {
   const [subscriptionsResult, trialResult, estatesResult, urgentResult] = await Promise.all([
     client.from('subscriptions').select('id, additional_estate_slots, amount_cents, included_estate_slots, interval, plan, renewal_date, started_at, status, stripe_customer_id, stripe_subscription_id').eq('user_id', user.id).order('started_at', { ascending: false }),
     client.rpc('d2c_trial_status'),
-    client.from('workflows').select('id', { count: 'exact', head: true }).eq('user_id', user.id).is('organization_id', null),
+    client.from('workflows').select('id, mode, path').eq('user_id', user.id).is('organization_id', null),
     client.from('urgent_intake_requests').select('status, submitted_at').eq('requester_user_id', user.id).order('submitted_at', { ascending: false }),
   ]);
   if (subscriptionsResult.error || trialResult.error || estatesResult.error || urgentResult.error) return { ok: false, reason: 'unavailable' };
@@ -85,6 +85,7 @@ export async function loadBillingSummary(): Promise<BillingSummaryResult> {
   const trialData = Array.isArray(trialResult.data) ? trialResult.data[0] : trialResult.data;
   const trial = trialData as { is_gated?: boolean; is_paid?: boolean; trial_ends_at?: string | null } | null;
   const urgentRows = (urgentResult.data ?? []) as Array<{ status: string; submitted_at: string }>;
+  const estateCount = ((estatesResult.data ?? []) as Array<{ id: string; mode: string | null; path: string | null }>).filter((workflow) => workflow.mode === 'green' || workflow.path === 'green').length;
 
   let planning: PlanningBillingSummary;
   if (recurring) {
@@ -105,7 +106,7 @@ export async function loadBillingSummary(): Promise<BillingSummaryResult> {
       addOnSeats: addOnItem?.quantity ?? recurring.additional_estate_slots,
       amountCents: liveAmount,
       cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
-      estateCount: estatesResult.count ?? 0,
+      estateCount,
       includedEstateSlots: currentSlots + (addOnItem?.quantity ?? recurring.additional_estate_slots),
       interval: recurring.interval,
       mode: 'recurring',
@@ -116,10 +117,10 @@ export async function loadBillingSummary(): Promise<BillingSummaryResult> {
       upgradeOptions: currentIndex >= 0 ? planOrder.slice(currentIndex + 1).map((plan) => ({ plan, slots: D2C_PLAN_ESTATE_SLOTS[plan], amountCents: D2C_RECURRING_PRICE_CENTS[plan][period] })) : [],
     };
   } else if (oneTimePlanning) {
-    planning = { addOnAmountCents: null, addOnSeats: 0, amountCents: oneTimePlanning.amount_cents, cancelAtPeriodEnd: false, estateCount: estatesResult.count ?? 0, includedEstateSlots: 1, interval: 'once', mode: 'one-time', plan: oneTimePlanning.plan, renewalDate: null, status: oneTimePlanning.status, trialEndsAt: null, upgradeOptions: [] };
+    planning = { addOnAmountCents: null, addOnSeats: 0, amountCents: oneTimePlanning.amount_cents, cancelAtPeriodEnd: false, estateCount, includedEstateSlots: 1, interval: 'once', mode: 'one-time', plan: oneTimePlanning.plan, renewalDate: null, status: oneTimePlanning.status, trialEndsAt: null, upgradeOptions: [] };
   } else {
     const inTrial = trial?.is_gated === false;
-    planning = { addOnAmountCents: null, addOnSeats: 0, amountCents: 0, cancelAtPeriodEnd: false, estateCount: estatesResult.count ?? 0, includedEstateSlots: 1, interval: null, mode: inTrial ? 'trial' : 'free', plan: null, renewalDate: null, status: inTrial ? 'trialing' : 'no plan', trialEndsAt: trial?.trial_ends_at ?? null, upgradeOptions: [] };
+    planning = { addOnAmountCents: null, addOnSeats: 0, amountCents: 0, cancelAtPeriodEnd: false, estateCount, includedEstateSlots: 1, interval: null, mode: inTrial ? 'trial' : 'free', plan: null, renewalDate: null, status: inTrial ? 'trialing' : 'no plan', trialEndsAt: trial?.trial_ends_at ?? null, upgradeOptions: [] };
   }
 
   return { ok: true, data: { planning, urgent: { amountCents: urgentPurchase?.amount_cents ?? 0, latestRequestStatus: urgentRows[0]?.status ?? null, mode: urgentPurchase ? 'one-time' : 'free', requestCount: urgentRows.length, startedAt: urgentPurchase?.started_at ?? null } } };
