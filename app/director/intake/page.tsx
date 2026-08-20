@@ -1,4 +1,7 @@
+import { AppFrame } from '@/components/operations/AppFrame';
 import { resolveOperationalViewer } from '@/lib/auth/authorization';
+import { humanizePreviewIdentity, humanizePreviewLabel } from '@/lib/presentation/plain-language';
+import { createPassageServerClient } from '@/lib/supabase/server';
 import { ManualIntakeForm } from './ManualIntakeForm';
 import styles from '../../proof-loop.module.css';
 
@@ -10,14 +13,19 @@ export const revalidate = 0;
 // creating a real case -- flagged as a Tier 1 trust risk in the 2026-08-17
 // full UX audit. create_case_manual_idempotent already existed, built for
 // exactly this page, but nothing ever called it. Now wired to the real RPC.
+// Also previously had no AppFrame wrapper at all -- no nav, no identity
+// block, no sign-out -- inconsistent with every other director page.
 export default async function DirectorIntakePage() {
   const viewer = await resolveOperationalViewer();
   if (!viewer.ok) {
     return <main className={styles.closed} id="main-content"><h1>This isn&apos;t available to your account.</h1><p>Nothing changed.</p></main>;
   }
+  const client = await createPassageServerClient();
+  const adminCheck = client ? await client.rpc('is_platform_admin') : null;
+  const isPlatformAdmin = adminCheck?.data === true;
 
   return (
-    <main id="main-content">
+    <AppFrame active="intake" identity={humanizePreviewIdentity(viewer.viewer.displayName, viewer.viewer.role)} isPlatformAdmin={isPlatformAdmin} mode="verified" role={`${viewer.viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.viewer.organizationName)}`}>
       <header className={styles.hero}>
         <div>
           <p>DIRECTOR / INTAKE</p>
@@ -28,6 +36,6 @@ export default async function DirectorIntakePage() {
       <section className={styles.panel}>
         <ManualIntakeForm locations={viewer.viewer.locations} />
       </section>
-    </main>
+    </AppFrame>
   );
 }

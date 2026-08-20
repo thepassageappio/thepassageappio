@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { ACTIVE_ORG_COOKIE, landingPathForRole, type OperationalRole } from '@/lib/auth/authorization';
 import { verifiedUser } from '@/lib/auth/session';
 import { createPassageServerClient } from '@/lib/supabase/server';
@@ -24,5 +25,13 @@ export async function selectWorkspace(formData: FormData): Promise<void> {
   if (membership.error || !membership.data) redirect('/workspace/select?error=denied');
 
   (await cookies()).set(ACTIVE_ORG_COOKIE, organizationId, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 90 });
+  // Without this, Next's client router cache can serve the pre-selection
+  // "Workspace access remains closed" render for /director or /staff even
+  // though the redirect below targets the right URL with the new cookie
+  // already set -- confirmed live: the founder picked a workspace and still
+  // saw the stale denial screen. force-dynamic on those routes prevents
+  // static generation but does not by itself bust this client-side cache.
+  revalidatePath('/director');
+  revalidatePath('/staff');
   redirect(landingPathForRole((membership.data as { role: OperationalRole }).role));
 }

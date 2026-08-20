@@ -26,7 +26,7 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
-      {!staffView && !partnerView && mode === 'demo' && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
+      {!staffView && !partnerView && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
       {staffView && <Link aria-current="page" href="/staff">My work</Link>}
       {partnerView && <Link aria-current={active === 'partner' ? 'page' : undefined} href="/partner">Requests</Link>}
       {partnerView && <Link aria-current={active === 'payouts' ? 'page' : undefined} href="/partner/payouts">Payouts</Link>}
@@ -52,7 +52,19 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
           </form>
         </MobileNavDisclosure>
         <div className={styles.identity}>
-          <span><strong>{identity}</strong><small>{role}</small></span>
+          <span>
+            <strong>{identity}</strong>
+            <small>{role}</small>
+            {/* Founder feedback 2026-08-20: an account with 2+ organizations had no
+                persistent way to switch, only a one-time forced gate right after
+                sign-in. This is the standard SaaS pattern -- always reachable, not
+                just shown to accounts we already know are ambiguous, since a
+                single-org viewer landing here is harmless (the page just shows
+                their one workspace). Stacked into the existing text column rather
+                than a new flex sibling so it doesn't squeeze an already-tight
+                fixed-width header column. */}
+            {!partnerView && <Link className={styles.switchWorkspace} href="/workspace/select">Switch workspace</Link>}
+          </span>
           <b aria-hidden="true">{initials}</b>
           {/* Plain HTML form POST, not a client dropdown - same auth-escape-hatch pattern used
               in OperationalBoundary/PartnerBoundary, so signing out doesn't depend on client JS. */}
