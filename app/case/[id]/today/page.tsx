@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { loadFamilyCaseView, type FamilyCaseViewResult } from '@/lib/family/case-view';
+import { loadFamilyCaseView, type FamilyCaseView, type FamilyCaseViewResult } from '@/lib/family/case-view';
 import { loginPath } from '@/lib/auth/redirects';
 import { humanTaskStatus, humanWorkflowPhase, humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import { CaseNav } from '@/components/family/CaseNav';
 import styles from '../../../proof-loop.module.css';
+import overviewStyles from '../../CaseOverview.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -17,6 +18,7 @@ export default async function FamilyCaseTodayPage({ params }: { params: Promise<
     return <Closed reason={result.reason} />;
   }
   const { workflow, currentTask, recentUpdates } = result.data;
+  if (workflow.isPlanning) return <PlanningToday caseId={id} data={result.data} />;
 
   return (
     <main id="main-content">
@@ -44,6 +46,53 @@ export default async function FamilyCaseTodayPage({ params }: { params: Promise<
           </ol>
         )}
       </section>
+    </main>
+  );
+}
+
+function PlanningToday({ caseId, data }: { caseId: string; data: FamilyCaseView }) {
+  const { workflow, currentTask, recentUpdates } = data;
+  const person = humanizePreviewLabel(workflow.personName ?? '', 'Your plan');
+
+  return (
+    <main className={overviewStyles.shell} id="main-content">
+      <div className={overviewStyles.detailPage}>
+        <CaseNav active="today" caseId={caseId} planning />
+        <header className={`${overviewStyles.detailHero} ${overviewStyles.planningDetailHero}`}>
+          <div>
+            <p className={overviewStyles.eyebrow}>PLANNING AHEAD</p>
+            <h1>{person}</h1>
+            <p>Your private plan for the people who may need it later.</p>
+          </div>
+          <strong>PLANNING IN PROGRESS</strong>
+        </header>
+
+        <section className={overviewStyles.nextStep} aria-labelledby="planning-next-heading">
+          <p className={overviewStyles.eyebrow}>YOUR NEXT STEP</p>
+          <h2 id="planning-next-heading">{currentTask ? humanizePreviewLabel(currentTask.title ?? '', 'Continue your checklist') : 'Your checklist is up to date.'}</h2>
+          <p>{currentTask ? 'Work through this at your own pace. Nothing is shared unless you choose to invite someone.' : 'You can review completed steps or add something else you want your family to know.'}</p>
+          <Link className={overviewStyles.planningAction} href={`/case/${caseId}/tasks`}>{currentTask ? 'Open planning checklist' : 'Review your checklist'}</Link>
+        </section>
+
+        <div className={overviewStyles.detailGrid}>
+          <section className={overviewStyles.detailPanel} aria-labelledby="privacy-heading">
+            <p className={overviewStyles.eyebrow}>WHO CAN SEE THIS</p>
+            <h2 id="privacy-heading">You control this plan.</h2>
+            <p className={overviewStyles.panelCopy}>Only you and people you deliberately invite can see it. Return to Your plans when you want to invite a trusted person.</p>
+            <Link className={overviewStyles.inlineAction} href="/case">Manage people and plans →</Link>
+          </section>
+
+          <section className={overviewStyles.detailPanel} aria-labelledby="planning-updates-heading">
+            <p className={overviewStyles.eyebrow}>SAVED ACTIVITY</p>
+            <h2 id="planning-updates-heading">What changed</h2>
+            {recentUpdates.length === 0 ? <p className={overviewStyles.panelCopy}>No saved changes yet.</p> : (
+              <ol className={overviewStyles.receiptList}>
+                {recentUpdates.map((update) => <li key={update.id}><strong>{update.summary}</strong></li>)}
+              </ol>
+            )}
+          </section>
+        </div>
+      </div>
     </main>
   );
 }

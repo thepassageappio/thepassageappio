@@ -28,18 +28,18 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
 
   return (
     <main id="main-content">
-      <CaseNav active="tasks" caseId={id} />
+      <CaseNav active="tasks" caseId={id} planning={isSelfServe} />
       <header className={styles.hero}>
         <div>
-          <p>Every step on this case</p>
-          <h1>{humanizePreviewLabel(personName ?? '', 'Your family record')}</h1>
+          <p>{isSelfServe ? 'Your planning checklist' : 'Every step on this case'}</p>
+          <h1>{isSelfServe ? `${humanizePreviewLabel(personName ?? '', 'Your plan')} · what to work on next` : humanizePreviewLabel(personName ?? '', 'Your family record')}</h1>
         </div>
       </header>
 
       {canCreateTasks && (
         <section className={styles.panel} aria-labelledby="add-step-heading">
-          <p className={styles.eyebrow}>Add a step</p>
-          <h2 id="add-step-heading">Something else that needs doing?</h2>
+          <p className={styles.eyebrow}>{isSelfServe ? 'Make it yours' : 'Add a step'}</p>
+          <h2 id="add-step-heading">{isSelfServe ? 'Add something you want to plan.' : 'Something else that needs doing?'}</h2>
           <CreateFamilyTaskForm requestId={randomUUID()} workflowId={id} />
         </section>
       )}
@@ -53,8 +53,8 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
       )}
 
       <section className={styles.panel} aria-labelledby="open-tasks-heading">
-        <p className={styles.eyebrow}>Open</p>
-        <h2 id="open-tasks-heading">What&apos;s still happening.</h2>
+        <p className={styles.eyebrow}>{isSelfServe ? 'Next' : 'Open'}</p>
+        <h2 id="open-tasks-heading">{isSelfServe ? 'Work through these at your own pace.' : 'What\'s still happening.'}</h2>
         {openItems.length === 0 ? <p>Nothing open right now.</p> : (
           <ol className={styles.history}>
             {openItems.map((item) => (
@@ -63,7 +63,7 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
                   {item.kind === 'vendor_request' && <span aria-hidden="true">🤝 </span>}
                   <strong>{humanizePreviewLabel(item.title ?? '', 'Case step')}</strong> <span className={styles.status} data-state={item.status}>{humanTaskStatus(item.status)}</span>
                 </p>
-                <p>{item.statusSummary} {item.ownerLabel} is on this.</p>
+                <p>{item.statusSummary}{!isSelfServe && ` ${item.ownerLabel} is on this.`}</p>
                 {item.version !== null && (
                   <TaskCompletionToggle
                     action={setFamilyTaskCompletion}
@@ -83,7 +83,7 @@ export default async function FamilyCaseTasksPage({ params }: { params: Promise<
       {completedItems.length > 0 && (
         <section className={styles.panel} aria-labelledby="done-tasks-heading" style={{ marginTop: 18 }}>
           <p className={styles.eyebrow}>Complete</p>
-          <h2 id="done-tasks-heading">What&apos;s already been handled.</h2>
+          <h2 id="done-tasks-heading">{isSelfServe ? 'What you have already planned.' : 'What\'s already been handled.'}</h2>
           <ol className={styles.history}>
             {completedItems.map((item) => (
               <li key={item.id}>

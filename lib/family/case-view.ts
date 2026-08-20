@@ -13,6 +13,7 @@ export type FamilyWorkflowView = {
   personName: string | null;
   phase: string | null;
   status: FamilyCaseStatus;
+  isPlanning: boolean;
 };
 
 export type FamilyTaskView = {
@@ -45,7 +46,7 @@ export type FamilyCaseViewResult =
   | { ok: true; data: FamilyCaseView }
   | { ok: false; reason: 'signed-out' | 'not-found' | 'not-authorized' | 'unavailable' };
 
-type WorkflowRow = { id: string; case_reference: string | null; family_name: string | null; person_name: string | null; phase: string | null; status: string };
+type WorkflowRow = { id: string; case_reference: string | null; family_name: string | null; person_name: string | null; phase: string | null; status: string; mode: string | null; path: string | null; organization_id: string | null };
 type TaskRow = { id: string; workflow_id: string; title: string | null; status: string; waiting_party: string | null; due_at: string | null; updated_at: string | null };
 type EventRow = { id: string; name: string; occurred_at: string };
 
@@ -138,6 +139,21 @@ function familyTaskSummary(status: string): string {
   return 'Passage will show the next update here as soon as there is one.';
 }
 
+function normalizedFamilyTaskStatus(status: string): FamilyTaskStatus {
+  if (status === 'in_progress' || status === 'proof_submitted' || status === 'blocked' || status === 'completed') return status;
+  if (status === 'done') return 'completed';
+  return 'assigned';
+}
+
+function planningTaskSummary(status: string): string {
+  const normalized = normalizedFamilyTaskStatus(status);
+  if (normalized === 'assigned') return 'Ready when you are.';
+  if (normalized === 'in_progress') return 'You marked this as in progress.';
+  if (normalized === 'proof_submitted') return 'Saved and waiting for review.';
+  if (normalized === 'blocked') return 'You marked this as needing help.';
+  return 'You completed this step.';
+}
+
 // public.get_family_case_update_for_workflow() bakes the status -> sentence
 // translation into SQL rather than returning the raw tasks.status enum (the
 // bounded participant projection deliberately exposes no operator-facing
@@ -222,6 +238,7 @@ function buildParticipantCaseView(workflowId: string, row: ParticipantCaseUpdate
       personName: row.person_name,
       phase: null,
       status: 'active',
+      isPlanning: false,
     },
     currentTask,
     recentUpdates,
@@ -239,7 +256,7 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
 
   const workflowResult = await client
     .from('workflows')
-    .select('id, case_reference, family_name, person_name, phase, status')
+    .select('id, case_reference, family_name, person_name, phase, status, mode, path, organization_id')
     .eq('id', workflowId)
     .maybeSingle();
   if (workflowResult.error) return { ok: false, reason: 'unavailable' };
@@ -265,11 +282,11 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
         id: selectedTask.id,
         workflowId: selectedTask.workflow_id,
         title: selectedTask.title,
-        status: selectedTask.status as FamilyTaskStatus,
+        status: normalizedFamilyTaskStatus(selectedTask.status),
         waitingParty: selectedTask.waiting_party,
         dueAt: selectedTask.due_at,
         ownerLabel: familyOwnerLabel(selectedTask.waiting_party),
-        lastUpdateSummary: familyTaskSummary(selectedTask.status),
+        lastUpdateSummary: workflowRow.organization_id === null ? planningTaskSummary(selectedTask.status) : familyTaskSummary(selectedTask.status),
         lastUpdateAt: selectedTask.updated_at ?? selectedTask.due_at,
       }
     : null;
@@ -313,6 +330,7 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
         personName: workflowRow.person_name,
         phase: workflowRow.phase,
         status: workflowRow.status as FamilyCaseStatus,
+        isPlanning: workflowRow.organization_id === null && (workflowRow.mode === 'green' || workflowRow.path === 'green'),
       },
       currentTask,
       recentUpdates,
@@ -366,7 +384,7 @@ function toTaskCommitment(task: { id: string; title: string | null; status: stri
     id: task.id,
     kind: 'task',
     title: task.title,
-    status: task.status as FamilyTaskStatus,
+    status: normalizedFamilyTaskStatus(task.status),
     ownerLabel: familyOwnerLabel(task.waiting_party),
     statusSummary: familyTaskSummary(task.status),
     dueAt: task.due_at,
@@ -488,7 +506,10 @@ export async function loadFamilyTaskList(workflowId: string): Promise<FamilyTask
   if (tasksResult.error) return { ok: false, reason: 'unavailable' };
 
   const items = sortCommitments([
-    ...(tasksResult.data ?? []).map((task) => toTaskCommitment(task, isSelfServe)),
+    ...(tasksResult.data ?? []).map((task) => {
+      const item = toTaskCommitment(task, isSelfServe);
+      return isSelfServe ? { ...item, ownerLabel: 'You', statusSummary: planningTaskSummary(task.status) } : item;
+    }),
     ...partnerRequests.map(toPartnerRequestCommitment),
   ]);
 

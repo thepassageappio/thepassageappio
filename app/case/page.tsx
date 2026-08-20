@@ -145,7 +145,7 @@ export default async function CaseIndexPage() {
               {urgentRequests.map((request) => (
                 <li className={styles.recordCard} key={request.id}>
                   <div><span>{readableStatus(request.status)}</span><h3>{request.person_name}</h3><p>Submitted {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(request.submitted_at))}</p></div>
-                  {request.workflow_id ? <Link href={`/case/${request.workflow_id}/today`}>Open care record →</Link> : <span className={styles.waiting}>Passage will show the care record here after a funeral home creates it.</span>}
+                  <Link href={`/case/urgent/${request.id}`}>{request.workflow_id ? 'View request and care record' : 'View request'} →</Link>
                 </li>
               ))}
             </ul>

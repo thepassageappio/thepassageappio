@@ -20,18 +20,21 @@ export type FamilyCaseSegment = (typeof FAMILY_NAV)[number]['segment'];
 // "Sign in"/"Get started", and AppFrame's sign-out affordance only covers
 // the director/staff/vendor personas. A signed-in family owner had to type
 // a URL directly to reach billing, or clear cookies to sign out.
-export function CaseNav({ caseId, active }: { caseId: string; active: FamilyCaseSegment }) {
+export function CaseNav({ caseId, active, planning = false }: { caseId: string; active: FamilyCaseSegment; planning?: boolean }) {
+  const visibleItems = planning
+    ? FAMILY_NAV.filter((item) => item.segment === 'today' || item.segment === 'tasks' || item.segment === 'messages')
+    : FAMILY_NAV;
   return (
-    <nav aria-label="Your case" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginBottom: 20 }}>
-      {FAMILY_NAV.map((item) => (
+    <nav aria-label={planning ? 'Your plan' : 'Your case'} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginBottom: 20 }}>
+      {visibleItems.map((item) => (
         item.available
-          ? <Link key={item.segment} aria-current={item.segment === active ? 'page' : undefined} href={`/case/${caseId}/${item.segment}`} style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>{item.label}</Link>
-          : <span key={item.segment} aria-disabled="true" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, color: 'var(--muted)', minHeight: 40, display: 'inline-flex', alignItems: 'center' }} title="Not available yet">{item.label}</span>
+          ? <Link key={item.segment} aria-current={item.segment === active ? 'page' : undefined} href={`/case/${caseId}/${item.segment}`} style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{planning && item.segment === 'today' ? 'Overview' : planning && item.segment === 'tasks' ? 'Checklist' : planning && item.segment === 'messages' ? 'Share' : item.label}</Link>
+          : <span key={item.segment} aria-disabled="true" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, color: 'var(--muted)', minHeight: 44, display: 'inline-flex', alignItems: 'center' }} title="Not available yet">{item.label}</span>
       ))}
-      <Link href="/case" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>Your estates</Link>
-      <Link href="/account/billing" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>Plan &amp; billing</Link>
+      <Link href="/case" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>{planning ? 'Your plans' : 'Your estates'}</Link>
+      <Link href="/account/billing" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Plan &amp; billing</Link>
       <form action="/auth/signout" method="post" style={{ marginLeft: 'auto' }}>
-        <button style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer' }} type="submit">Sign out</button>
+        <button style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 44, background: 'none', border: 'none', cursor: 'pointer' }} type="submit">Sign out</button>
       </form>
     </nav>
   );
