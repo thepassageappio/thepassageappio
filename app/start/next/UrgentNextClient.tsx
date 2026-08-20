@@ -167,17 +167,13 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
             <h2>Already saved.</h2>
             <p>
               {existing.status === 'claimed' || existing.status === 'case_created'
-                ? 'Someone from the Passage team is helping with this request.'
-                : existing.wants_callback
-                  ? `Passage has this request. A team member will contact ${existing.coordinator_name} using the details provided.`
-                  : 'Saved privately. Nobody else can see it.'}
+                ? 'A funeral home has claimed this request and can begin coordinating next steps.'
+                : 'Passage shared this request with participating funeral homes so one can claim it and respond.'}
             </p>
             <dl className={styles.receiptFacts}>
               <div><dt>Situation</dt><dd>{humanSituationCategory(draft.situationCategory)}</dd></div>
-              {existing.wants_callback
-                ? <div><dt>Sent to</dt><dd>Passage team</dd></div>
-                : <div><dt>Visibility</dt><dd>Only you</dd></div>}
-              {existing.wants_callback && <div><dt>Visibility</dt><dd>You and the Passage team</dd></div>}
+              <div><dt>Sent to</dt><dd>Participating funeral homes</dd></div>
+              <div><dt>Visibility</dt><dd>You and funeral homes available to respond</dd></div>
               <div><dt>Contact</dt><dd>{existing.coordinator_phone || existing.coordinator_email}</dd></div>
               <div>
                 <dt>Saved</dt>
@@ -190,6 +186,7 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
             </dl>
             {!existing.occurredAt && <button className={styles.recoveryButton} onClick={() => window.location.reload()} type="button">Reload and check</button>}
             <Link className={styles.primaryButton} href="/case" style={{ display: 'inline-flex', marginTop: 16, textDecoration: 'none' }}>Go to your account</Link>
+            <p style={{ marginTop: 14 }}><Link href="/account/billing">View plan &amp; billing</Link></p>
           </div>
         )}
 
@@ -254,15 +251,17 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
           <div className={styles.receipt}>
             <div className={styles.receiptMark} aria-hidden="true">✓</div>
             <h2>Saved.</h2>
-            <p>Saved privately. Only you can see it.</p>
+            <p>Passage shared this request with participating funeral homes so one can claim it and respond.</p>
             {state.receipt && (
               <dl className={styles.receiptFacts}>
-                <div><dt>Visibility</dt><dd>Only you</dd></div>
+                <div><dt>Sent to</dt><dd>Participating funeral homes</dd></div>
+                <div><dt>Visibility</dt><dd>You and funeral homes available to respond</dd></div>
                 <div><dt>Contact</dt><dd>{draft.coordinatorPhone || draft.coordinatorEmail}</dd></div>
                 <div><dt>Saved</dt><dd><time dateTime={state.receipt.occurredAt}>{formatSavedTime(state.receipt.occurredAt)}</time></dd></div>
               </dl>
             )}
             <Link className={styles.primaryButton} href="/case" style={{ display: 'inline-flex', marginTop: 16, textDecoration: 'none' }}>Go to your account</Link>
+            <p style={{ marginTop: 14 }}><Link href="/account/billing">View plan &amp; billing</Link></p>
           </div>
         )}
       </main>

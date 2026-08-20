@@ -1190,6 +1190,17 @@ The first founder-approved task after the full persona sweep is complete. Funera
 
 The two strategic threads remain deliberately untouched: two-sided paid lead-gen matching still requires a funeral-referral-fee legal decision; the under-30 discount remains a founder pricing decision.
 
+## Persona-aware family plan and billing hub (2026-08-20, shipped)
+
+Founder correctly flagged that the B2B hub did not close the account gap for the green planning-ahead and red urgent-family personas. `/account/billing` existed, but anyone on the new 7-day planning trial or free urgent path saw only "No active subscription yet," and capacity/trial upgrade links still sent them to generic Pricing. A paid signed-in subscriber could start Checkout again and create a second recurring subscription instead of changing the first.
+
+- Rebuilt `/account/billing` as one account hub with two explicit projections: **Planning ahead** (green) and **Urgent help** (red). Planning shows trial, recurring, or one-time state; estate usage/capacity; total price; renewal or scheduled cancellation; add-ons; upgrades; and Stripe payment/invoice/cancellation handoff. Urgent shows free versus paid-once status, request count/latest state, and unambiguous no-renewal/no-cancellation language.
+- Added safe in-place Individual -> Couple/Family and Couple -> Family upgrades, preserving the current monthly/annual cadence and using Stripe proration. Estate add-ons now use the same compensating-rollback boundary as the location add-on: if Passage cannot advance the entitlement after Stripe succeeds, Stripe is restored.
+- `customer.subscription.updated` now derives the D2C base plan and included estate slots from the live Stripe Price, in addition to its existing add-on/amount/status sync. Portal-side or recovered plan changes therefore cannot leave Passage's plan label and estate limit stale.
+- Existing paid subscribers are blocked from starting a second recurring Pricing checkout and returned to `/account/billing`. Trial banners, estate-limit receipts, family navigation, and urgent-save receipts now lead to **Plan & billing** instead of generic Pricing.
+- While tracing the red path, found a severe trust-copy regression left behind by the urgent visibility fix: the database correctly submitted every request to the funeral-home queue, but both success receipts still told the family "Saved privately. Only you can see it." Receipts now truthfully say the request was shared with participating funeral homes and explain the actual visibility boundary.
+- Verification before publish: TypeScript PASS; optimized Next.js production build PASS; persona-language PASS; parity 17/17 PASS; operational route gate PASS; `git diff --check` PASS.
+
 ## L.5 and other open items
 
 - **L.5** -- Decisions, Service, and Costs family pages (Costs needs its own billing/estimate data-model design pass, not bundled into the same migration as the others; the UX map above confirms these currently 404 on direct URL access rather than showing a branded "coming soon").

@@ -16,7 +16,7 @@ export function CreateEstateForm({ requestId }: { requestId: string }) {
       <div className={styles.unavailable} role="alert">
         <strong>Upgrade required</strong>
         <p>{state.message}</p>
-        <Link className={styles.textLink} href="/pricing">Upgrade your plan</Link>
+        <Link className={styles.textLink} href="/account/billing">Manage your plan</Link>
       </div>
     );
   }

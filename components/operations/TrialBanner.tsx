@@ -20,7 +20,7 @@ export function TrialBanner({ context = 'organization', isGated, isPaid, trialEn
             ? <><strong>Your 7-day trial has ended.</strong> This estate stays free to use. Upgrade to add more estates or support Passage.</>
             : <><strong>Your 90-day trial has ended.</strong> New cases and vendor requests are paused until you upgrade.</>}
         </span>
-        <Link href="/pricing">{context === 'estate' ? 'See plans' : 'Upgrade now'}</Link>
+        <Link href={context === 'estate' ? '/account/billing' : '/director/billing'}>{context === 'estate' ? 'Manage plan' : 'Upgrade now'}</Link>
       </div>
     );
   }

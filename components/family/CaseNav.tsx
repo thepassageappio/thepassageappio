@@ -29,7 +29,7 @@ export function CaseNav({ caseId, active }: { caseId: string; active: FamilyCase
           : <span key={item.segment} aria-disabled="true" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, color: 'var(--muted)', minHeight: 40, display: 'inline-flex', alignItems: 'center' }} title="Not available yet">{item.label}</span>
       ))}
       <Link href="/case" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>Your estates</Link>
-      <Link href="/account/billing" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>Account</Link>
+      <Link href="/account/billing" style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>Plan &amp; billing</Link>
       <form action="/auth/signout" method="post" style={{ marginLeft: 'auto' }}>
         <button style={{ padding: '10px 14px', fontWeight: 780, fontSize: 13, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer' }} type="submit">Sign out</button>
       </form>

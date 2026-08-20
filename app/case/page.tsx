@@ -44,7 +44,7 @@ export default async function CaseIndexPage() {
       <header className={styles.brandBar}>
         <Link href="/">PASSAGE</Link>
         <nav aria-label="Account" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Link href="/account/billing">Account</Link>
+          <Link href="/account/billing">Plan &amp; billing</Link>
           <form action="/auth/signout" method="post">
             <button style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }} type="submit">Sign out</button>
           </form>
@@ -68,7 +68,7 @@ export default async function CaseIndexPage() {
         {canAddAnother ? (
           <CreateEstateForm requestId={randomUUID()} />
         ) : (
-          <p className={styles.notice} role="status">You&apos;re using all {slots} estate{slots === 1 ? '' : 's'} on your plan. <Link className={styles.textLink} href="/pricing">Upgrade</Link> to add another.</p>
+          <p className={styles.notice} role="status">You&apos;re using all {slots} estate{slots === 1 ? '' : 's'} on your plan. <Link className={styles.textLink} href="/account/billing">Manage your plan</Link> to add another.</p>
         )}
 
         <div style={{ marginTop: 28 }}>

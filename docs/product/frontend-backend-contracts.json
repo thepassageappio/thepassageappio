@@ -2245,6 +2245,62 @@
       "evidence_test_references": [
         "docs/product/operational-readiness-roadmap.md"
       ]
+    },
+    {
+      "id": "20260820.family.persona_aware_plan_billing",
+      "cycle": "2026-08-20",
+      "capability": "Family account sees and safely changes planning and urgent billing from one persona-aware hub",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/account/billing",
+        "component": [
+          "app/account/billing/page.tsx",
+          "components/family/CaseNav.tsx",
+          "components/operations/TrialBanner.tsx"
+        ],
+        "files": [
+          "app/account/billing/page.tsx",
+          "app/account/billing/actions.ts",
+          "app/pricing/actions.ts",
+          "app/start/next/UrgentNextClient.tsx",
+          "components/family/CaseNav.tsx"
+        ],
+        "note": "The green planning projection shows trial/paid/one-time state, estate usage and capacity, current total, renewal or scheduled cancellation, in-place upgrades, add-ons, and the Stripe portal. The red urgent projection separately shows free versus paid-once access, request count/status, and explicitly states that urgent access does not renew."
+      },
+      "action_status": "planning recurring subscription -> in-place higher-tier or estate-add-on proration -> immediate entitlement reconciliation; payment method, invoices, and cancellation -> Stripe Billing Portal; urgent one-time and free paths remain non-recurring",
+      "server_command": "app/account/billing/actions.ts#upgradePlanningPlan, #addEstateSeat, and #openBillingPortal; app/pricing/actions.ts#startCheckout blocks a second recurring checkout for an existing subscriber",
+      "backend_files": [
+        "app/account/billing/actions.ts",
+        "app/api/webhooks/stripe/route.ts",
+        "app/pricing/actions.ts",
+        "lib/billing/legacy-plan.ts",
+        "lib/stripe.ts"
+      ],
+      "durable_tables": [
+        { "table": "subscriptions", "cardinality": "one current recurring planning row plus optional independent one-time planning or urgent purchase rows per user" },
+        { "table": "urgent_intake_requests", "cardinality": "zero or more urgent requests owned by the signed-in user, read-only in the billing projection" },
+        { "table": "workflows", "cardinality": "zero or more D2C planning estates counted against the active subscription allowance" }
+      ],
+      "rls_authority_predicate": "Every account billing action resolves the verified signed-in user and selects only subscriptions where user_id equals that user. Service-role reconciliation is reached only after the verified-user check and Stripe success, and is constrained by both subscription row id and user id.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Stripe is the financial ledger; urgent requests and workflows are read-only projections on this page."
+      },
+      "failure_recovery_states": [
+        "signed-out visitor sees a sign-in boundary and no account data",
+        "planning trial or expired/free account sees truthful no-card/no-renewal state instead of a generic missing-subscription dead end",
+        "existing recurring subscriber attempting Pricing checkout is redirected to the current subscription hub, preventing duplicate billing",
+        "invalid or non-upgrade plan transition changes nothing",
+        "Stripe plan/add-on success followed by entitlement-write failure triggers a compensating Stripe rollback",
+        "customer.subscription.updated recomputes base plan, included estates, add-on estates, current amount, status, and renewal from Stripe"
+      ],
+      "persona_projection": "A signed-in family account sees separate green planning and red urgent cards even when one side is free or unused; operator and vendor billing remain on their own organization-scoped surfaces.",
+      "evidence_test_references": [
+        "scripts/test-frontend-backend-parity.js",
+        "docs/product/operational-readiness-roadmap.md"
+      ]
     }
   ]
 }

@@ -13,6 +13,13 @@ export function legacySubscriptionPlanValue(plan: D2cPlanKey, period: BillingPer
   return `${LEGACY_D2C_PREFIX[plan]}_${period === 'monthly' ? 'monthly' : 'annual'}`;
 }
 
+export function d2cPlanFromLegacy(value: string): { plan: D2cPlanKey; period: BillingPeriod } | null {
+  const match = /^(single|couple|family)_(monthly|annual)$/.exec(value);
+  if (!match) return null;
+  const plan: D2cPlanKey = match[1] === 'single' ? 'individual' : match[1] as D2cPlanKey;
+  return { plan, period: match[2] as BillingPeriod };
+}
+
 const LEGACY_B2B_PLAN: Record<B2bPlanKey, string> = {
   funeral_home_local: 'partner_local',
   funeral_home_pilot: 'partner_pilot',

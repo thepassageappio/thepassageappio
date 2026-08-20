@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
 import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, HUBSPOT_LIFECYCLE_STAGE, syncD2cEstateUsage, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
-import { ADDITIONAL_LOCATION_FEE_CENTS, ADDITIONAL_LOCATION_PRICE_ID, B2B_MONTHLY_PRICE_IDS, D2C_PLAN_ESTATE_SLOTS, ESTATE_ADD_ON_PRICE_ID, getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
+import { ADDITIONAL_LOCATION_FEE_CENTS, ADDITIONAL_LOCATION_PRICE_ID, B2B_MONTHLY_PRICE_IDS, d2cPlanForPriceId, D2C_PLAN_ESTATE_SLOTS, ESTATE_ADD_ON_PRICE_ID, getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
@@ -98,7 +98,8 @@ async function handleCheckoutCompleted(service: ServiceClient, stripe: Stripe, s
   const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
   const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  const primaryItem = subscription.items.data[0];
+  const planningBaseItem = subscription.items.data.find((item) => d2cPlanForPriceId(item.price.id));
+  const primaryItem = planningBaseItem ?? subscription.items.data[0];
   const amountCents = primaryItem?.price.unit_amount ?? 0;
   // Stripe moved current_period_start/end from the subscription object onto
   // each SubscriptionItem (a subscription can have items on different
@@ -571,7 +572,8 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
   if (!existingRow) return;
   const row = existingRow as { id: string; user_id: string | null; amount_cents: number; included_estate_slots: number; additional_estate_slots: number };
 
-  const primaryItem = subscription.items.data[0];
+  const planningBaseItem = subscription.items.data.find((item) => d2cPlanForPriceId(item.price.id));
+  const primaryItem = planningBaseItem ?? subscription.items.data[0];
   // Sum every line item, not just the first -- a subscription with an
   // Estate Add-On has two items, and the total (not just the base plan's
   // price) is the correct current amount.
@@ -589,6 +591,8 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
     (item) => item.price.id === ESTATE_ADD_ON_PRICE_ID.monthly || item.price.id === ESTATE_ADD_ON_PRICE_ID.annual,
   );
   const additionalEstateSlots = addOnItem?.quantity ?? 0;
+  const planningPlan = planningBaseItem ? d2cPlanForPriceId(planningBaseItem.price.id) : null;
+  const includedEstateSlots = planningPlan ? D2C_PLAN_ESTATE_SLOTS[planningPlan.plan] : row.included_estate_slots;
 
   await service
     .from('subscriptions')
@@ -597,15 +601,19 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
       amount_cents: newAmountCents,
       current_period_end: currentPeriodEnd,
       renewal_date: currentPeriodEnd,
+      ...(planningPlan ? {
+        plan: legacySubscriptionPlanValue(planningPlan.plan, planningPlan.period),
+        included_estate_slots: includedEstateSlots,
+      } : {}),
       additional_estate_slots: additionalEstateSlots,
       updated_at: new Date().toISOString(),
     })
     .eq('id', row.id);
 
-  if (row.user_id && additionalEstateSlots !== row.additional_estate_slots) {
+  if (row.user_id && (additionalEstateSlots !== row.additional_estate_slots || includedEstateSlots !== row.included_estate_slots)) {
     const { data: userRow } = await service.from('users').select('email').eq('id', row.user_id).maybeSingle();
     const email = (userRow as { email: string } | null)?.email;
-    if (email) await syncD2cEstateUsage(email, { estateSlotsIncluded: row.included_estate_slots + additionalEstateSlots }).catch(() => null);
+    if (email) await syncD2cEstateUsage(email, { estateSlotsIncluded: includedEstateSlots + additionalEstateSlots }).catch(() => null);
   }
 
   // B2B location add-ons live on the same Stripe subscription as the base

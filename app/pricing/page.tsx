@@ -43,7 +43,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         </section>
 
         <section className={styles.section}>
-          <div className={`${styles.card} ${styles.urgentCard}`}>
+          <div className={`${styles.card} ${styles.urgentCard}`} id="urgent">
             <p className={`${styles.badge} ${styles.badgeDanger}`}>Someone just passed</p>
             <h2 className={styles.h2Small}>Get help now.</h2>
             <p className={styles.note} style={{ marginBottom: 16, maxWidth: 560 }}>A first-24-hours family record for calls, family notifications, owners, and proof. Includes a remembrance tree dedication and contributes to the 10% Passage family pledge.</p>
@@ -59,7 +59,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             </form>
           </div>
 
-          <div className={styles.sectionHeading}>
+          <div className={styles.sectionHeading} id="planning">
             <h2>Planning ahead</h2>
             <p>Begin with one family record and add estates as your family needs them.</p>
           </div>

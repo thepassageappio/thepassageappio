@@ -11,7 +11,7 @@ const initialState: PartnerCommandState = { status: 'idle' };
 function Result({ state }: { state: PartnerCommandState }) {
   if (!state.message) return null;
   if (state.status === 'upgrade-required') {
-    return <div className={styles.error} role="alert"><h3>Upgrade required</h3><p>{state.message}</p><Link href="/pricing">Upgrade now</Link></div>;
+    return <div className={styles.error} role="alert"><h3>Upgrade required</h3><p>{state.message}</p><Link href="/director/billing">Upgrade now</Link></div>;
   }
   return <div className={state.status === 'saved' ? styles.receipt : styles.error} role={state.status === 'saved' ? 'status' : 'alert'}><h3>{state.status === 'saved' ? 'Saved.' : 'Nothing changed.'}</h3><p>{state.message}</p></div>;
 }

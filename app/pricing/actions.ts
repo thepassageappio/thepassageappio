@@ -12,6 +12,7 @@ import {
   type BillingPeriod,
   type D2cPlanKey,
 } from '@/lib/stripe';
+import { verifiedUser } from '@/lib/auth/session';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 const validD2cPlans = new Set<D2cPlanKey>(['individual', 'couple', 'family']);
@@ -40,6 +41,23 @@ export async function startCheckout(formData: FormData): Promise<void> {
   const period = String(formData.get('period') ?? '');
   if (!validD2cPlans.has(plan as D2cPlanKey) || !validPeriods.has(period as BillingPeriod)) {
     redirect('/pricing?checkout=invalid');
+  }
+
+  // Existing subscribers change the plan attached to their current Stripe
+  // subscription in /account/billing. Starting Checkout again would create
+  // duplicate recurring billing and split the account's entitlements.
+  const passageClient = await createPassageServerClient();
+  const existingUser = passageClient ? await verifiedUser(passageClient) : null;
+  if (passageClient && existingUser) {
+    const { data: existingSubscription } = await passageClient
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', existingUser.id)
+      .neq('interval', 'once')
+      .in('status', ['active', 'trialing', 'past_due'])
+      .limit(1)
+      .maybeSingle();
+    if (existingSubscription) redirect('/account/billing?error=manage-existing');
   }
 
   const stripe = getStripeClient();

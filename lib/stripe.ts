@@ -35,6 +35,12 @@ const D2C_RECURRING_PRICE_IDS: Record<D2cPlanKey, Record<BillingPeriod, string>>
   family: { monthly: 'price_1TRt83RteXSJR0llvQAoJkbB', annual: 'price_1TRt8URteXSJR0llMdlGvgq8' },
 };
 
+export const D2C_RECURRING_PRICE_CENTS: Record<D2cPlanKey, Record<BillingPeriod, number>> = {
+  individual: { monthly: 999, annual: 7999 },
+  couple: { monthly: 1499, annual: 11999 },
+  family: { monthly: 2499, annual: 19999 },
+};
+
 const D2C_ENV_OVERRIDE: Record<D2cPlanKey, Record<BillingPeriod, string>> = {
   individual: { monthly: 'STRIPE_PRICE_SINGLE_MONTHLY', annual: 'STRIPE_PRICE_SINGLE_ANNUAL' },
   couple: { monthly: 'STRIPE_PRICE_COUPLE_MONTHLY', annual: 'STRIPE_PRICE_COUPLE_ANNUAL' },
@@ -44,6 +50,15 @@ const D2C_ENV_OVERRIDE: Record<D2cPlanKey, Record<BillingPeriod, string>> = {
 export function priceIdForD2cPlan(plan: D2cPlanKey, period: BillingPeriod): string {
   const envVar = D2C_ENV_OVERRIDE[plan][period];
   return process.env[envVar]?.trim() || D2C_RECURRING_PRICE_IDS[plan][period];
+}
+
+export function d2cPlanForPriceId(priceId: string): { plan: D2cPlanKey; period: BillingPeriod } | null {
+  for (const plan of ['individual', 'couple', 'family'] as const) {
+    for (const period of ['monthly', 'annual'] as const) {
+      if (priceIdForD2cPlan(plan, period) === priceId) return { plan, period };
+    }
+  }
+  return null;
 }
 
 /** @deprecated use priceIdForD2cPlan */
