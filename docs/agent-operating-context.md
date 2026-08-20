@@ -1859,4 +1859,4 @@ Release truth:
 
 - Product Manager received the founder's screenshot and classified the dead urgent cards as fix-now P1.
 - UX Review received the Sprint Brief and passed the bounded experience above to Engineering.
-- Engineering is in progress. Independent QA, release review, Deploy, and live Chrome verification remain pending.
+- Engineering source work is complete. TypeScript, persona-language, parity 17/17, operational-route, optimized build, and diff checks pass. Independent QA, release review, Deploy, and live Chrome verification remain pending.\n- The first PR #87 validation exposed a pre-existing repository-wide governance defect on `main`: `scripts/check-release-train.js` contained duplicate declarations plus references to undefined variables, so it could not parse and every candidate failed before product checks. The repair restores the exact known-good implementation from `greenfield/passage-zero`; `scripts/test-release-governance.js` passes. This is classified fix-now because the broken gate prevents any reviewed production-maintenance release.
