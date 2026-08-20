@@ -4,7 +4,7 @@ import { MobileNavDisclosure } from '@/components/core/MobileNavDisclosure';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'team' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner' | 'payouts' | 'partner-team';
+  active: 'director' | 'team' | 'billing' | 'activity' | 'urgent' | 'intake' | 'staff' | 'receive' | 'partner' | 'payouts' | 'partner-team';
   children: ReactNode;
   identity: string;
   isPlatformAdmin?: boolean;
@@ -24,6 +24,7 @@ export function AppFrame({ active, children, identity, isPlatformAdmin = false, 
     <>
       {!staffView && !partnerView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'team' ? 'page' : undefined} href="/director/team">Team</Link>}
+      {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'billing' ? 'page' : undefined} href="/director/billing">Billing</Link>}
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'activity' ? 'page' : undefined} href="/director/activity">Activity</Link>}
       {!staffView && !partnerView && mode === 'verified' && <Link aria-current={active === 'urgent' ? 'page' : undefined} href="/director/urgent">Urgent</Link>}
       {!staffView && !partnerView && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}

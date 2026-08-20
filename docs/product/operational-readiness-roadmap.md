@@ -1177,6 +1177,19 @@ Triggered by the founder pushing back hard that the persona sweep above wasn't e
 
 **Also not started, explicitly requested by the founder for the next session**: a full, in-character persona walkthrough (a Gen Z user who found Passage via ChatGPT; a Boomer user who "realized they need a plan so they don't fuck over their family") running 3-4 full cases through both urgent and planning-ahead paths, live in the founder's real Chrome. Framed as validating the *whole* experience including whatever the billing hub above adds -- do the billing hub first.
 
+## B2B billing hub + per-location subscription add-on (2026-08-20, shipped)
+
+The first founder-approved task after the full persona sweep is complete. Funeral-home owners/directors now have a persistent **Billing** destination at `/director/billing` instead of zero subscription visibility and generic D2C-pricing dead ends.
+
+- Created the live Stripe product **Passage - Additional Location** with recurring monthly Price `price_1U6aVXRteXSJR0llrzlS9FAm` at **$49/month**. Updated `lib/stripe.ts` with the non-secret Price id and fee amount.
+- Added `app/director/billing/page.tsx` + `actions.ts`: organization plan/status/current amount/renewal/location-capacity summary; an owner/director-only **Add a location — $49/month** action that creates or increments the subscription item; and a Stripe Billing Portal handoff for payment method, invoices, and cancellation.
+- The add-on is operational, not display-only: after Stripe succeeds, Passage advances `organizations.included_location_slots`; if that database reconciliation fails, the action restores Stripe to its previous quantity so an organization is never billed for a slot it cannot use. `customer.subscription.updated` independently recomputes the allowance from Stripe, and `customer.subscription.deleted` clears paid status and resets future location capacity to the base slot.
+- Rewired the `/director/team` and manual-intake **Upgrade now** recovery links to `/director/billing`, added Billing to desktop/mobile Director navigation, and added the route to the production operational-gate matrix.
+- Applied `20260820182002_align_additional_location_fee_to_49.sql` to production: the old anticipated $99 default and all 7 existing organization rows are now 4900 cents, matching the founder-approved live Price.
+- Updated the frontend/backend contract ledger with the billing boundary and repaired a stale parity assertion that still enforced the removed urgent callback receiver. The replacement assertion now protects the real critical contract: the UI may keep `wantsCallback=false`, but the RPC must always persist `status='submitted'` so every urgent request remains visible/claimable. Verification: optimized Next.js production build PASS; TypeScript PASS; persona-language PASS; operational route gate PASS; parity **17/17** PASS; `git diff --check` PASS.
+
+The two strategic threads remain deliberately untouched: two-sided paid lead-gen matching still requires a funeral-referral-fee legal decision; the under-30 discount remains a founder pricing decision.
+
 ## L.5 and other open items
 
 - **L.5** -- Decisions, Service, and Costs family pages (Costs needs its own billing/estimate data-model design pass, not bundled into the same migration as the others; the UX map above confirms these currently 404 on direct URL access rather than showing a branded "coming soon").

@@ -2,10 +2,10 @@ import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 
 // Service-role client: bypasses RLS entirely. Only for trusted server-only
-// contexts that never act on behalf of a browser session -- currently just
-// the Stripe webhook handler, which has no signed-in user to authenticate as
-// and must be able to write subscriptions/users state for any account.
-// Never import this into anything that runs in response to a user request.
+// contexts. Most calls come from Stripe webhooks. A server action may use it
+// only after separately resolving a verified, authorized actor, and only for
+// a narrow write that reconciles a completed Stripe mutation. Never expose
+// this client or its key to browser code.
 export function createPassageServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();

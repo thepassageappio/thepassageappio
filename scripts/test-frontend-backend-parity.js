@@ -330,33 +330,32 @@ function testRealPendingInvitationProjection() {
   );
 }
 
-function testRealUrgentReceiverBinding() {
+function testRealUrgentSubmissionVisibilityBinding() {
   const repoRoot = path.resolve(__dirname, '..');
   const clientPath = path.join(repoRoot, 'app', 'start', 'next', 'UrgentNextClient.tsx');
   const actionPath = path.join(repoRoot, 'app', 'start', 'actions.ts');
+  const migrationPath = path.join(repoRoot, 'supabase', 'migrations', '20260820200000_fix_urgent_intake_always_submitted.sql');
   let clientSource;
   let actionSource;
+  let migrationSource;
   try {
     clientSource = fs.readFileSync(clientPath, 'utf8');
     actionSource = fs.readFileSync(actionPath, 'utf8');
+    migrationSource = fs.readFileSync(migrationPath, 'utf8');
   } catch (err) {
-    report('integration: urgent receiver form/action sources are readable', false, err.message);
+    report('integration: urgent visibility form/action/migration sources are readable', false, err.message);
     return;
   }
 
-  const hiddenReceiverField = clientSource.includes(
-    '<input name="receivingOrganizationId" type="hidden" value={PREVIEW_RECEIVING_ORGANIZATION.id} />'
-  );
-  const actionReadsReceiver = actionSource.includes(
-    "const receivingOrganizationId = String(formData.get('receivingOrganizationId') ?? '');"
-  );
-  const rpcReceivesReceiver = actionSource.includes(
-    'p_receiving_organization_id: receivingOrganizationId'
-  );
+  const callbackChoiceRemoved = clientSource.includes('<input name="wantsCallback" type="hidden" value="false" />');
+  const actionPreservesHistoricalFlag = actionSource.includes("const wantsCallback = String(formData.get('wantsCallback') ?? '') === 'true';")
+    && actionSource.includes('p_wants_callback: wantsCallback');
+  const migrationAlwaysSubmits = migrationSource.includes("v_status := 'submitted';")
+    && !migrationSource.includes("then 'submitted' else 'self_handling'");
   report(
-    'integration: urgent callback receiver stays bound from hidden form field to RPC argument',
-    hiddenReceiverField && actionReadsReceiver && rpcReceivesReceiver,
-    `hiddenReceiverField=${hiddenReceiverField} actionReadsReceiver=${actionReadsReceiver} rpcReceivesReceiver=${rpcReceivesReceiver}`
+    'integration: urgent submission remains visible after callback-choice removal',
+    callbackChoiceRemoved && actionPreservesHistoricalFlag && migrationAlwaysSubmits,
+    `callbackChoiceRemoved=${callbackChoiceRemoved} actionPreservesHistoricalFlag=${actionPreservesHistoricalFlag} migrationAlwaysSubmits=${migrationAlwaysSubmits}`
   );
 }
 
@@ -438,7 +437,7 @@ function main() {
     console.log('Integration test (real repository ledger):');
     testRealLedger();
     testRealPendingInvitationProjection();
-    testRealUrgentReceiverBinding();
+    testRealUrgentSubmissionVisibilityBinding();
     testRealUrgentReceiverEvidenceScope();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });

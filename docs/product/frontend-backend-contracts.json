@@ -1679,7 +1679,7 @@
           "app/director/CommandForms.tsx",
           "app/director/actions.ts"
         ],
-        "note": "CreateLocationForm on /director/team; a 55001 error renders the shared 'Upgrade required' receipt with a link to /pricing (app/director/CommandForms.tsx Receipt component)."
+        "note": "CreateLocationForm on /director/team; a 55001 error renders the shared 'Upgrade required' receipt with a link to /director/billing (app/director/CommandForms.tsx Receipt component)."
       },
       "action_status": "creates a location if under plan capacity; over-capacity returns errcode 55001 with an upgrade prompt instead of a silent failure",
       "server_command": "public.create_organization_location_idempotent(p_organization_id uuid, p_name text, p_address text, p_city text, p_state text, p_zip text, p_request_id uuid) -> passage_private.create_organization_location_idempotent",
@@ -2052,6 +2052,59 @@
         "docs/product/operational-readiness-roadmap.md",
         "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
         "supabase/migrations/20260818110200_create_family_task_owner_authority.sql"
+      ]
+    },
+    {
+      "id": "20260820.director.billing_location_add_on",
+      "cycle": "2026-08-20",
+      "capability": "Director or owner sees organization billing state, adds a $49 monthly location to an existing subscription, and manages payment or cancellation in Stripe",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/billing",
+        "component": [
+          "app/director/billing/page.tsx",
+          "app/director/billing/actions.ts"
+        ],
+        "files": [
+          "app/director/billing/page.tsx",
+          "app/director/billing/actions.ts",
+          "components/operations/AppFrame.tsx",
+          "app/director/CommandForms.tsx"
+        ],
+        "note": "Billing is a persistent Director-nav destination. The Team and Intake upgrade-required receipts lead here instead of generic consumer pricing."
+      },
+      "action_status": "active or trialing paid B2B subscription -> Stripe location line-item quantity increment -> organization location allowance increment; payment details and cancellation hand off to a short-lived Stripe Billing Portal session",
+      "server_command": "app/director/billing/actions.ts#addLocationSeat and #openDirectorBillingPortal using Stripe Subscription Items and Billing Portal APIs",
+      "backend_files": [
+        "app/director/billing/actions.ts",
+        "app/api/webhooks/stripe/route.ts",
+        "lib/stripe.ts",
+        "supabase/migrations/20260820182002_align_additional_location_fee_to_49.sql"
+      ],
+      "durable_tables": [
+        {
+          "table": "organizations",
+          "cardinality": "one organization row stores Stripe customer/subscription ids and the total location allowance"
+        }
+      ],
+      "rls_authority_predicate": "Every billing Server Action first resolves one active operational viewer and requires role owner or director; organization reads remain scoped by existing organization RLS. The service-role entitlement reconciliation runs only after that check and after Stripe succeeds, against the same organization and subscription id.",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Stripe is the immutable external billing ledger for subscription-item and portal activity; this slice does not duplicate financial events into workflow_events."
+      },
+      "failure_recovery_states": [
+        "signed-out or staff caller -> denied before Stripe or organization state changes",
+        "missing or non-current subscription -> no-subscription, nothing changed",
+        "Stripe succeeds but organization allowance update fails -> compensating Stripe quantity rollback, no billed-but-locked location",
+        "Stripe subscription.updated webhook recomputes the location allowance from add-on quantity",
+        "Stripe subscription.deleted webhook clears paid status and resets future location capacity to the base slot"
+      ],
+      "persona_projection": "Only an active owner/director of the selected funeral-home organization can see its plan, location allowance, renewal, add-on action, or portal handoff; staff, families, vendors, and other organizations cannot.",
+      "evidence_test_references": [
+        "scripts/test-operational-route-gate.js",
+        "docs/product/operational-readiness-roadmap.md"
       ]
     },
     {

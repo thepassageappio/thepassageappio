@@ -15,7 +15,7 @@ function Receipt({ state }: { state: DirectorCommandState }) {
       <div className={styles.commandError} role="alert">
         <strong>Upgrade required</strong>
         <p>{state.message}</p>
-        <Link className={styles.primaryLink} href="/pricing">Upgrade now</Link>
+        <Link className={styles.primaryLink} href="/director/billing">Upgrade now</Link>
       </div>
     );
   }

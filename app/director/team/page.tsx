@@ -99,7 +99,7 @@ export default async function TeamPage() {
         {orgLocations.map((location) => (
           <article className={styles.teamCard} key={location.id}>
             <div>
-              <p>{location.status === 'active' ? 'ACTIVE' : location.status.toUpperCase()}</p>
+              <p>{location.status === 'active' ? 'ACTIVE' : 'UNAVAILABLE'}</p>
               <h3>{humanizePreviewLabel(location.name)}</h3>
               <dl className={styles.facts}>
                 <div><dt>City / State</dt><dd>{[location.city, location.state].filter(Boolean).join(', ') || 'Not set'}</dd></div>

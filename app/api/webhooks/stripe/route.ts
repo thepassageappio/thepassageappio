@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 import { resolveAcquisitionChannel } from '@/lib/billing/acquisition-channel';
 import { b2bPlanDisplayName, legacyB2bPlanValue, legacyOneTimePlanValue, legacySubscriptionPlanValue, legacySubscriptionStatus, planDisplayName } from '@/lib/billing/legacy-plan';
 import { createChurnDeal, createNewBusinessDeal, createRenewalDeal, HUBSPOT_LIFECYCLE_STAGE, syncD2cEstateUsage, upsertOrganizationCompany, type RevenueSegment } from '@/lib/hubspot';
-import { D2C_PLAN_ESTATE_SLOTS, ESTATE_ADD_ON_PRICE_ID, getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
+import { ADDITIONAL_LOCATION_FEE_CENTS, ADDITIONAL_LOCATION_PRICE_ID, B2B_MONTHLY_PRICE_IDS, D2C_PLAN_ESTATE_SLOTS, ESTATE_ADD_ON_PRICE_ID, getStripeClient, VENDOR_PLATFORM_FEE_PERCENT, type B2bPlanKey, type BillingPeriod, type D2cPlanKey } from '@/lib/stripe';
 import { createPassageServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
@@ -607,6 +607,28 @@ async function handleSubscriptionUpdated(service: ServiceClient, subscription: S
     const email = (userRow as { email: string } | null)?.email;
     if (email) await syncD2cEstateUsage(email, { estateSlotsIncluded: row.included_estate_slots + additionalEstateSlots }).catch(() => null);
   }
+
+  // B2B location add-ons live on the same Stripe subscription as the base
+  // funeral-home plan. Keep the organization entitlement aligned with the
+  // add-on quantity so webhook replay, portal changes, or a recovered server
+  // action can never leave Stripe and the location gate out of sync.
+  const locationAddOnItem = subscription.items.data.find((item) => item.price.id === ADDITIONAL_LOCATION_PRICE_ID);
+  const locationAddOnQuantity = locationAddOnItem?.quantity ?? 0;
+  const { data: organization } = await service
+    .from('organizations')
+    .select('id, stripe_price_id')
+    .eq('stripe_subscription_id', subscriptionId)
+    .maybeSingle();
+  const organizationRow = organization as { id: string; stripe_price_id: string | null } | null;
+  if (organizationRow && organizationRow.stripe_price_id !== B2B_MONTHLY_PRICE_IDS.funeral_home_multi_location) {
+    await service
+      .from('organizations')
+      .update({
+        additional_location_fee_cents: ADDITIONAL_LOCATION_FEE_CENTS,
+        included_location_slots: 1 + locationAddOnQuantity,
+      })
+      .eq('id', organizationRow.id);
+  }
 }
 
 async function handleSubscriptionDeleted(service: ServiceClient, subscription: Stripe.Subscription) {
@@ -618,6 +640,14 @@ async function handleSubscriptionDeleted(service: ServiceClient, subscription: S
     .maybeSingle();
   if (!existingRow) return;
   const row = existingRow as { id: string; user_id: string | null; amount_cents: number; plan: string };
+
+  // A canceled B2B subscription must stop counting as paid and must not keep
+  // unused purchased location capacity. Existing locations remain intact;
+  // only future creation is capped back to the base slot.
+  await service
+    .from('organizations')
+    .update({ included_location_slots: 1, stripe_subscription_id: null })
+    .eq('stripe_subscription_id', subscriptionId);
 
   await service
     .from('subscriptions')

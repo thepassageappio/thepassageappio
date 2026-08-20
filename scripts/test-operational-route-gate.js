@@ -17,6 +17,7 @@ assert.equal(isolatedPreviewInvitationEnabled(approved), true);
 assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/team', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/billing', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/activity', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/intake', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/intake/extra', approved), false);
@@ -45,6 +46,7 @@ const production = { available: true, runtime: 'production', projectRef: 'qsveqf
 assert.equal(canRenderVerifiedOperationalChild('/director', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/staff', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/team', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/billing', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/activity', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/intake', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/cases/11111111-1111-1111-1111-111111111111', production), true);
@@ -61,6 +63,7 @@ assert.equal(staffInvitationEnabled({ ...production, available: false }), false)
 
 assert.equal(operationalRecoveryPath(DIRECTOR_INVITATION_PATH, '/director'), DIRECTOR_INVITATION_PATH);
 assert.equal(operationalRecoveryPath('/director/team', '/director'), '/director/team');
+assert.equal(operationalRecoveryPath('/director/billing', '/director'), '/director/billing');
 assert.equal(operationalRecoveryPath('/director/activity', '/director'), '/director/activity');
 assert.equal(operationalRecoveryPath('/director/intake', '/director'), '/director/intake');
 assert.equal(operationalRecoveryPath('/staff', '/staff'), '/staff');

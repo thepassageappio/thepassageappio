@@ -56,6 +56,11 @@ export const ESTATE_ADD_ON_PRICE_ID: Record<BillingPeriod, string> = {
   annual: 'price_1TRt9lRteXSJR0llCFh45Gpu',
 };
 
+// One additional funeral-home location on an existing monthly B2B
+// subscription. Created in the live Stripe catalog on 2026-08-20.
+export const ADDITIONAL_LOCATION_PRICE_ID = 'price_1U6aVXRteXSJR0llrzlS9FAm';
+export const ADDITIONAL_LOCATION_FEE_CENTS = 4900;
+
 // How many estates each D2C plan includes before an Estate Add-On is needed --
 // drives subscriptions.included_estate_slots at checkout. Matches the plan
 // copy on /pricing exactly ("Couple -- 2 estates", "Family -- 5 estates").

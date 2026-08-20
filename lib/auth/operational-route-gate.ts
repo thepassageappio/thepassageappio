@@ -3,7 +3,7 @@ import type { RuntimeConfiguration } from '@/lib/runtime-config';
 export const OPERATIONAL_PATHNAME_HEADER = 'x-passage-operational-pathname';
 export const DIRECTOR_INVITATION_PATH = '/director/invitations/new';
 const ISOLATED_PREVIEW_PROJECT_REF = 'uyacxqtsiwlvtmhxvoxr';
-const VERIFIED_OPERATIONAL_PATHS = new Set(['/director', '/director/intake', '/director/team', '/director/activity', '/director/urgent', DIRECTOR_INVITATION_PATH, '/staff']);
+const VERIFIED_OPERATIONAL_PATHS = new Set(['/director', '/director/intake', '/director/team', '/director/billing', '/director/activity', '/director/urgent', DIRECTOR_INVITATION_PATH, '/staff']);
 // Case-room, work-detail, and urgent-request-detail routes carry a dynamic id
 // segment, so an exact-match Set can never cover them. Match those shapes by
 // pattern instead.

@@ -26,7 +26,7 @@ export function ManualIntakeForm({ locations }: { locations: { id: string; name:
       </fieldset>
       {state.status !== 'idle' && state.message && (
         state.status === 'upgrade-required' ? (
-          <div className={styles.error} role="alert"><h3>Upgrade required</h3><p>{state.message}</p><Link href="/pricing">Upgrade now</Link></div>
+          <div className={styles.error} role="alert"><h3>Upgrade required</h3><p>{state.message}</p><Link href="/director/billing">Upgrade now</Link></div>
         ) : (
           <div className={styles.error} role="alert"><h3>Nothing changed.</h3><p>{state.message}</p></div>
         )
