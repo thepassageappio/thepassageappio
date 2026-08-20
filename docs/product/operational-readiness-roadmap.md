@@ -1201,6 +1201,16 @@ Founder correctly flagged that the B2B hub did not close the account gap for the
 - While tracing the red path, found a severe trust-copy regression left behind by the urgent visibility fix: the database correctly submitted every request to the funeral-home queue, but both success receipts still told the family "Saved privately. Only you can see it." Receipts now truthfully say the request was shared with participating funeral homes and explain the actual visibility boundary.
 - Verification before publish: TypeScript PASS; optimized Next.js production build PASS; persona-language PASS; parity 17/17 PASS; operational route gate PASS; `git diff --check` PASS.
 
+## Family account home: planning and urgent records separated (2026-08-20, shipped)
+
+Founder opened **Plan for your family** and correctly called the result "a bunch of slop and confusion." Live Chrome inspection showed ten cards under "Your plan includes 1 estate," mostly labeled "Untitled estate," followed immediately by a ten-checkbox household-invite form. This was not merely a styling problem: `/case` selected every workflow with the user's id, mixing green D2C planning records with organization-bound urgent/funeral-home care workflows, and labeled the combined set "estates."
+
+- Rebuilt `/case` as a calm household overview with two explicit lanes: green **Plans for the future** and red **Immediate-help requests**. Planning records are limited to green, non-organization workflows; urgent requests and organization-linked care records stay in the red lane with honest submitted/claimed/case-created language.
+- Removed the contradictory "Your plan includes 1 estate" hero. Capacity is now a secondary boundary that distinguishes existing records from the allowance for creating another; existing records are never implied to disappear.
+- Replaced "Untitled estate" with stable human labels such as "Planning record 2" plus a clear "Needs a name" state. Cards use a responsive grid and a direct **Continue planning** or **Open care record** action.
+- Moved add-record and household-invite controls into collapsed disclosure panels. The invitation picker now contains planning records only, and its checkbox/select layout has real sizing instead of the narrow vertical controls visible in the founder's screenshot.
+- Verification before publish: TypeScript PASS; optimized production build PASS; persona-language PASS; parity 17/17 PASS. Production Chrome re-verification follows the deployment.
+
 ## L.5 and other open items
 
 - **L.5** -- Decisions, Service, and Costs family pages (Costs needs its own billing/estimate data-model design pass, not bundled into the same migration as the others; the UX map above confirms these currently 404 on direct URL access rather than showing a branded "coming soon").

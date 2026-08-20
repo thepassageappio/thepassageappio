@@ -2212,6 +2212,7 @@
         "route": "/case",
         "component": [
           "app/case/page.tsx",
+          "app/case/CaseOverview.module.css",
           "app/case/EstateActions.tsx"
         ],
         "files": [
@@ -2219,7 +2220,7 @@
           "app/case/EstateActions.tsx",
           "app/case/actions.ts"
         ],
-        "note": "Founder decision 2026-08-19 on cross-estate visibility: 'owner's choice per invite', not automatic household-wide sharing and not fully independent per-estate invites. InviteAcrossHouseholdForm checkbox-selects estate(s); InviteToEstateForm (single-estate, no picker) remains separately for the elevated-participant context on app/case/[id]/tasks, where the inviter has authority over only their own one case."
+        "note": "Founder decision 2026-08-19 on cross-estate visibility: 'owner's choice per invite', not automatic household-wide sharing and not fully independent per-estate invites. The 2026-08-20 account-home correction keeps this form collapsed until requested and limits its selector to green planning records; urgent/funeral-home workflows render in a separate red lane and are no longer mislabeled as estates. InviteToEstateForm (single-estate, no picker) remains separately for the elevated-participant context on app/case/[id]/tasks, where the inviter has authority over only their own one case."
       },
       "action_status": "owner selects 1+ estates + invitee details -> one create_case_family_invitation_idempotent call per selected estate, each with its own stable request id -> per-estate created/replayed/conflict/denied/unavailable receipt",
       "server_command": "public.create_case_family_invitation_idempotent(...) -> passage_private.create_case_family_invitation_idempotent, invoked once per selected workflow_id from app/case/actions.ts#inviteToHousehold",

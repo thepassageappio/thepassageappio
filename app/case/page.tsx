@@ -5,76 +5,162 @@ import { verifiedUser } from '@/lib/auth/session';
 import { loginPath } from '@/lib/auth/redirects';
 import { createPassageServerClient } from '@/lib/supabase/server';
 import { CreateEstateForm, InviteAcrossHouseholdForm } from './EstateActions';
-import styles from '../login/Auth.module.css';
+import styles from './CaseOverview.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type WorkflowRow = { id: string; person_name: string | null; phase: string | null; status: string; seat_index: number | null };
+type WorkflowRow = {
+  id: string;
+  mode: string | null;
+  name: string | null;
+  organization_id: string | null;
+  path: string | null;
+  person_name: string | null;
+  phase: string | null;
+  seat_index: number | null;
+  status: string;
+};
 
-// Landing point for a D2C subscriber: the redirectTo target of the invite
-// email sent by provisionD2cFamilyRecordIfNeeded, and the link
-// /pricing/success points to. A plain Individual subscriber (the common
-// case) is sent straight to their one estate with zero extra screens -- no
-// duplicative step just because multi-estate support now exists. A
-// Couple/Family subscriber (more than one estate slot, whether or not
-// they've used it yet) sees this list instead, so the plan they paid for
-// is actually discoverable on first login rather than silently limited to
-// the one estate auto-provisioned at checkout.
+type UrgentRequestRow = {
+  id: string;
+  person_name: string;
+  status: string;
+  submitted_at: string;
+  workflow_id: string | null;
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Planning started',
+  planning_active: 'Planning started',
+  coordination_active: 'Care in progress',
+  submitted: 'Waiting for a funeral home',
+  claimed: 'A funeral home is responding',
+  case_created: 'Care record created',
+  completed: 'Completed',
+  ready: 'Ready',
+};
+
+function readableStatus(value: string | null) {
+  if (!value) return 'In progress';
+  return STATUS_LABELS[value] ?? value.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function planningLabel(workflow: WorkflowRow, index: number) {
+  const personName = workflow.person_name?.trim();
+  if (personName) return personName;
+  const recordName = workflow.name?.trim();
+  if (recordName && !['My family record', 'Untitled estate'].includes(recordName)) return recordName;
+  return `Planning record ${workflow.seat_index ?? index + 1}`;
+}
+
 export default async function CaseIndexPage() {
   const client = await createPassageServerClient();
   if (!client) redirect('/');
   const user = await verifiedUser(client);
   if (!user) redirect(loginPath('/case'));
 
-  const [{ data: workflowsData }, { data: slotsData }] = await Promise.all([
-    client.from('workflows').select('id, person_name, phase, status, seat_index').eq('user_id', user.id).order('seat_index', { ascending: true, nullsFirst: true }),
+  const [workflowsResult, slotsResult, urgentResult] = await Promise.all([
+    client.from('workflows').select('id, mode, name, organization_id, path, person_name, phase, seat_index, status').eq('user_id', user.id).order('seat_index', { ascending: true, nullsFirst: true }),
     client.rpc('active_estate_slots'),
+    client.from('urgent_intake_requests').select('id, person_name, status, submitted_at, workflow_id').eq('requester_user_id', user.id).order('submitted_at', { ascending: false }),
   ]);
-  const workflows = (workflowsData ?? []) as WorkflowRow[];
-  const slots = typeof slotsData === 'number' ? slotsData : 1;
 
-  if (workflows.length === 0) redirect('/case/start');
-  if (workflows.length === 1 && slots <= 1) redirect(`/case/${workflows[0].id}/today`);
+  const workflows = (workflowsResult.data ?? []) as WorkflowRow[];
+  const planningRecords = workflows.filter((workflow) => workflow.organization_id === null && (workflow.path === 'green' || workflow.mode === 'green'));
+  const careRecords = workflows.filter((workflow) => workflow.organization_id !== null || workflow.path === 'red' || workflow.mode === 'red');
+  const urgentRequests = (urgentResult.data ?? []) as UrgentRequestRow[];
+  const slots = typeof slotsResult.data === 'number' ? slotsResult.data : 1;
 
-  const canAddAnother = workflows.length < slots;
+  if (planningRecords.length === 0 && careRecords.length === 0 && urgentRequests.length === 0) redirect('/case/start');
+
+  const canAddAnother = planningRecords.length < slots;
+  const linkedUrgentWorkflowIds = new Set(urgentRequests.map((request) => request.workflow_id).filter(Boolean));
+  const additionalCareRecords = careRecords.filter((record) => !linkedUrgentWorkflowIds.has(record.id));
 
   return (
     <main className={styles.shell} id="main-content">
       <header className={styles.brandBar}>
-        <Link href="/">PASSAGE</Link>
-        <nav aria-label="Account" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Link className={styles.wordmark} href="/">PASSAGE</Link>
+        <nav aria-label="Account" className={styles.accountNav}>
           <Link href="/account/billing">Plan &amp; billing</Link>
-          <form action="/auth/signout" method="post">
-            <button style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }} type="submit">Sign out</button>
-          </form>
+          <form action="/auth/signout" method="post"><button type="submit">Sign out</button></form>
         </nav>
       </header>
-      <section className={styles.panel} aria-labelledby="estates-title">
-        <p className={styles.eyebrow}>YOUR ESTATES</p>
-        <h1 id="estates-title">Your plan includes {slots} estate{slots === 1 ? '' : 's'}.</h1>
-        <p className={styles.lede}>Each estate tracks one person&apos;s planning separately. Invite a spouse or family member to see any of them — they view, they don&apos;t need their own plan.</p>
 
-        <ul style={{ listStyle: 'none', margin: '0 0 28px', padding: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {workflows.map((workflow) => (
-            <li key={workflow.id} style={{ border: '1px solid var(--line, #ddd)', borderRadius: 8, padding: 16 }}>
-              <strong style={{ display: 'block', marginBottom: 4 }}>{workflow.person_name || 'Untitled estate'}</strong>
-              <span style={{ display: 'block', marginBottom: 12, fontSize: 13, opacity: 0.75 }}>{workflow.phase || workflow.status}</span>
-              <Link className={styles.textLink} href={`/case/${workflow.id}/today`}>Open →</Link>
-            </li>
-          ))}
-        </ul>
+      <div className={styles.overview}>
+        <section className={styles.hero}>
+          <div>
+            <p className={styles.eyebrow}>YOUR FAMILY</p>
+            <h1>Choose what you need today.</h1>
+            <p>Planning ahead and immediate help are different kinds of work. Passage keeps them separate here so you can continue without sorting through one mixed list.</p>
+          </div>
+          <Link className={styles.billingLink} href="/account/billing">Review plan &amp; billing</Link>
+        </section>
 
-        {canAddAnother ? (
-          <CreateEstateForm requestId={randomUUID()} />
-        ) : (
-          <p className={styles.notice} role="status">You&apos;re using all {slots} estate{slots === 1 ? '' : 's'} on your plan. <Link className={styles.textLink} href="/account/billing">Manage your plan</Link> to add another.</p>
-        )}
+        <section className={`${styles.lane} ${styles.planningLane}`} aria-labelledby="planning-records-title">
+          <div className={styles.laneHeading}>
+            <div><p>PLANNING AHEAD</p><h2 id="planning-records-title">Plans for the future</h2><span>Wishes, documents, people, and next steps before they are urgent.</span></div>
+            <strong>{planningRecords.length} record{planningRecords.length === 1 ? '' : 's'}</strong>
+          </div>
 
-        <div style={{ marginTop: 28 }}>
-          <InviteAcrossHouseholdForm estates={workflows.map((workflow) => ({ workflowId: workflow.id, personLabel: workflow.person_name || 'this estate', requestId: randomUUID() }))} />
-        </div>
-      </section>
+          {planningRecords.length > 0 ? (
+            <ul className={styles.recordGrid}>
+              {planningRecords.map((workflow, index) => (
+                <li className={styles.recordCard} key={workflow.id}>
+                  <div><span>{workflow.person_name ? readableStatus(workflow.phase || workflow.status) : 'Needs a name'}</span><h3>{planningLabel(workflow, index)}</h3><p>{workflow.person_name ? 'Private family planning record' : 'Open this record and add who the plan is for.'}</p></div>
+                  <Link href={`/case/${workflow.id}/today`}>Continue planning →</Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={styles.emptyCard}><h3>No planning record yet.</h3><p>Start one when you are ready. Urgent requests stay separate below.</p><Link href="/case/start">Start planning</Link></div>
+          )}
+
+          <div className={styles.capacityBar}>
+            <div><strong>{planningRecords.length} existing · {slots} included with the current plan</strong><span>Existing records remain available. The plan limit only controls whether another can be created.</span></div>
+            {!canAddAnother && <Link href="/account/billing">Manage plan</Link>}
+          </div>
+
+          {canAddAnother && <details className={styles.management}><summary>Add another planning record</summary><div><CreateEstateForm requestId={randomUUID()} /></div></details>}
+          {planningRecords.length > 0 && (
+            <details className={styles.management}>
+              <summary>Invite family or a trusted person</summary>
+              <div>
+                <p className={styles.managementIntro}>Choose only the planning records this person should be able to see.</p>
+                <InviteAcrossHouseholdForm estates={planningRecords.map((workflow, index) => ({ workflowId: workflow.id, personLabel: planningLabel(workflow, index), requestId: randomUUID() }))} />
+              </div>
+            </details>
+          )}
+        </section>
+
+        <section className={`${styles.lane} ${styles.urgentLane}`} aria-labelledby="urgent-records-title">
+          <div className={styles.laneHeading}>
+            <div><p>HELP NEEDED NOW</p><h2 id="urgent-records-title">Immediate-help requests</h2><span>Requests sent for a funeral home to claim and coordinate.</span></div>
+            <strong>{urgentRequests.length + additionalCareRecords.length} item{urgentRequests.length + additionalCareRecords.length === 1 ? '' : 's'}</strong>
+          </div>
+
+          {urgentRequests.length > 0 || additionalCareRecords.length > 0 ? (
+            <ul className={styles.recordGrid}>
+              {urgentRequests.map((request) => (
+                <li className={styles.recordCard} key={request.id}>
+                  <div><span>{readableStatus(request.status)}</span><h3>{request.person_name}</h3><p>Submitted {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(request.submitted_at))}</p></div>
+                  {request.workflow_id ? <Link href={`/case/${request.workflow_id}/today`}>Open care record →</Link> : <span className={styles.waiting}>Passage will show the care record here after a funeral home creates it.</span>}
+                </li>
+              ))}
+              {additionalCareRecords.map((workflow) => (
+                <li className={styles.recordCard} key={workflow.id}>
+                  <div><span>{readableStatus(workflow.phase || workflow.status)}</span><h3>{workflow.person_name?.trim() || 'Family care record'}</h3><p>Coordinated with a funeral home</p></div>
+                  <Link href={`/case/${workflow.id}/today`}>Open care record →</Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={styles.emptyCard}><h3>No immediate-help requests.</h3><p>If someone has just died, Passage will give you one clear next step.</p></div>
+          )}
+          <Link className={styles.urgentAction} href="/start">Get help right now</Link>
+        </section>
+      </div>
     </main>
   );
 }

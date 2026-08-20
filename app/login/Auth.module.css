@@ -16,7 +16,11 @@
 .divider::before, .divider::after { content: ''; height: 1px; flex: 1; background: var(--line); }
 .inviteForm { display: grid; gap: 8px; }
 .inviteForm label { font-size: 12px; font-weight: 750; }
-.inviteForm input { min-height: 48px; width: 100%; border: 1px solid var(--line-strong); border-radius: 3px; padding: 11px 13px; background: var(--surface); color: var(--ink); }
+.inviteForm input, .inviteForm select { min-height: 48px; width: 100%; border: 1px solid var(--line-strong); border-radius: 3px; padding: 11px 13px; background: var(--surface); color: var(--ink); }
+.inviteForm fieldset { min-width: 0; margin: 0 0 8px; padding: 14px; border: 1px solid var(--line); border-radius: 6px; }
+.inviteForm fieldset legend { padding: 0 6px; font-size: 12px; font-weight: 780; }
+.inviteForm fieldset label { min-width: 0; padding: 7px 0; line-height: 1.35; }
+.inviteForm fieldset input[type='checkbox'] { min-height: 20px; width: 20px; flex: 0 0 20px; padding: 0; }
 .alert, .notice, .unavailable { margin: 0 0 22px; padding: 14px 16px; border-left: 3px solid var(--danger); background: var(--danger-soft); color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
 .notice { border-color: var(--success); background: var(--success-soft); }
 .unavailable { border-color: var(--calm-strong); background: var(--calm-soft); }

@@ -1,0 +1,42 @@
+.shell { min-height: 100vh; padding: 0 clamp(18px, 4vw, 64px) 72px; background: radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--calm) 18%, transparent), transparent 30rem), var(--canvas); color: var(--ink); }
+.brandBar { max-width: 1180px; min-height: 68px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
+.wordmark { min-height: 44px; display: inline-flex; align-items: center; font-family: var(--font-display); font-size: 20px; font-weight: 650; letter-spacing: .08em; }
+.accountNav { display: flex; align-items: center; gap: 18px; font-size: 13px; font-weight: 720; }
+.accountNav a, .accountNav button { min-height: 44px; display: inline-flex; align-items: center; border: 0; padding: 0; background: none; color: inherit; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.overview { width: min(100%, 1180px); margin: clamp(36px, 7vw, 76px) auto 0; display: grid; gap: 24px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 28px; padding: clamp(26px, 5vw, 54px); border: 1px solid var(--line); border-radius: 14px; background: var(--surface-raised); box-shadow: var(--shadow-raised); }
+.eyebrow, .laneHeading p { margin: 0 0 10px; color: var(--signal-strong); font-size: 11px; font-weight: 850; letter-spacing: .14em; }
+.hero h1 { max-width: 720px; margin: 0; font-family: var(--font-display); font-size: clamp(42px, 6vw, 72px); font-weight: 600; letter-spacing: -.045em; line-height: .98; }
+.hero p:not(.eyebrow) { max-width: 720px; margin: 20px 0 0; color: var(--ink-soft); font-size: 16px; line-height: 1.65; }
+.billingLink, .urgentAction { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 999px; padding: 12px 20px; font-weight: 780; text-align: center; }
+.lane { padding: clamp(24px, 4vw, 40px); border: 1px solid var(--line); border-radius: 14px; background: var(--surface-raised); }
+.planningLane { border-top: 5px solid var(--success); }
+.urgentLane { border-top: 5px solid var(--danger); }
+.urgentLane .laneHeading p { color: var(--danger); }
+.laneHeading { display: flex; justify-content: space-between; align-items: start; gap: 24px; margin-bottom: 24px; }
+.laneHeading h2 { margin: 0; font-family: var(--font-display); font-size: clamp(30px, 4vw, 46px); font-weight: 620; letter-spacing: -.025em; }
+.laneHeading span { display: block; margin-top: 8px; color: var(--ink-soft); line-height: 1.5; }
+.laneHeading > strong { flex: 0 0 auto; border-radius: 999px; padding: 8px 12px; background: var(--calm-soft); font-size: 12px; }
+.urgentLane .laneHeading > strong { background: var(--danger-soft); }
+.recordGrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px; }
+.recordCard { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.recordCard span:first-child { color: var(--muted); font-size: 11px; font-weight: 820; letter-spacing: .08em; text-transform: uppercase; }
+.recordCard h3 { margin: 8px 0 6px; font-family: var(--font-display); font-size: 26px; font-weight: 650; line-height: 1.05; overflow-wrap: anywhere; }
+.recordCard p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
+.recordCard a { min-height: 44px; display: inline-flex; align-items: center; color: var(--signal-strong); font-weight: 780; }
+.urgentLane .recordCard a { color: var(--danger); }
+.waiting { color: var(--ink-soft) !important; font-size: 12px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.5; text-transform: none !important; }
+.emptyCard { padding: 24px; border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface); }
+.emptyCard h3 { margin: 0 0 8px; font-family: var(--font-display); font-size: 26px; }
+.emptyCard p { margin: 0 0 14px; color: var(--ink-soft); }
+.emptyCard a { font-weight: 780; }
+.capacityBar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 18px; padding: 16px 18px; border-radius: 8px; background: var(--success-soft); }
+.capacityBar strong, .capacityBar span { display: block; }
+.capacityBar span { margin-top: 4px; color: var(--ink-soft); font-size: 12px; line-height: 1.45; }
+.capacityBar a { flex: 0 0 auto; font-weight: 780; text-decoration: underline; text-underline-offset: 3px; }
+.management { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.management summary { min-height: 52px; display: flex; align-items: center; padding: 14px 18px; cursor: pointer; font-weight: 780; list-style-position: inside; }
+.management > div { padding: 4px 18px 20px; }
+.managementIntro { margin: 0 0 16px; color: var(--ink-soft); font-size: 13px; }
+.urgentAction { margin-top: 18px; border-color: var(--danger); background: var(--danger); color: white; }
+@media (max-width: 720px) { .brandBar { align-items: flex-start; padding: 12px 0; } .accountNav { flex-wrap: wrap; justify-content: flex-end; gap: 6px 14px; } .overview { margin-top: 24px; } .hero { grid-template-columns: 1fr; align-items: start; } .billingLink { justify-self: start; } .laneHeading, .capacityBar { align-items: flex-start; flex-direction: column; } .recordGrid { grid-template-columns: 1fr; } }
