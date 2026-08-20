@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data, error } = await service.auth.admin.generateLink({
     type: 'magiclink',
-    email: 'e2e-clean-test-820b@thepassageapp.io',
+    email: 'e2e-clean-test-820c@thepassageapp.io',
     options: { redirectTo: 'https://www.thepassageapp.io/auth/finish?next=%2Fcase%2Fstart' },
   });
 
