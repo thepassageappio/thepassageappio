@@ -19,5 +19,5 @@ export default function StartNextPage() {
     );
   }
 
-  return <UrgentNextClient publishableKey={configuration.supabasePublishableKey} supabaseUrl={configuration.supabaseUrl} />;
+  return <UrgentNextClient googleEnabled={configuration.googleAuthEnabled} publishableKey={configuration.supabasePublishableKey} supabaseUrl={configuration.supabaseUrl} />;
 }

@@ -35,7 +35,7 @@ function formatSavedTime(value: string): string {
   }
 }
 
-export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl: string; publishableKey: string }) {
+export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }: { googleEnabled: boolean; supabaseUrl: string; publishableKey: string }) {
   const router = useRouter();
   const { draft, hydrated } = useStartWizard();
   const [phase, setPhase] = useState<Phase>('checking');
@@ -45,6 +45,7 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
   const [authPassword, setAuthPassword] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [state, formAction, pending] = useActionState(submitUrgentIntake, initialState);
   const actionError = useRef<HTMLDivElement>(null);
 
@@ -95,6 +96,19 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.requestId, draft.situationCategory, hydrated, publishableKey, router, supabaseUrl]);
+
+  async function continueWithGoogle() {
+    setAuthError('');
+    setGoogleBusy(true);
+    const callback = new URL('/auth/callback', window.location.origin);
+    callback.searchParams.set('next', '/start/next');
+    const client = getPassageBrowserClient(supabaseUrl, publishableKey);
+    const result = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callback.toString() } });
+    if (result.error) {
+      setAuthError('Google sign-in is unavailable right now. Try email instead.');
+      setGoogleBusy(false);
+    }
+  }
 
   async function handleAuth(event: FormEvent) {
     event.preventDefault();
@@ -187,6 +201,12 @@ export function UrgentNextClient({ supabaseUrl, publishableKey }: { supabaseUrl:
           <div className={styles.authCard}>
             <h2>Save this and continue</h2>
             <p>Create a free account (or sign in) so nothing is lost and, if you ask for one, a director can call you back.</p>
+            {googleEnabled && (
+              <>
+                <button className={styles.primaryButton} disabled={googleBusy} onClick={continueWithGoogle} type="button">{googleBusy ? 'Opening Google…' : 'Continue with Google'}</button>
+                <div className={styles.divider}><span>or use email</span></div>
+              </>
+            )}
             <div className={styles.authToggle}>
               <button data-active={authMode === 'create'} onClick={() => setAuthMode('create')} type="button">Create account</button>
               <button data-active={authMode === 'signin'} onClick={() => setAuthMode('signin')} type="button">I already have one</button>
