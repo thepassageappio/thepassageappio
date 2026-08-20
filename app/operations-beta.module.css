@@ -17,6 +17,16 @@
 .trialBanner a { color: var(--signal); font-weight: 760; text-decoration: underline; text-underline-offset: 2px; }
 .trialBannerGated { border-color: var(--danger); background: var(--danger-soft); }
 .workList { display: grid; gap: 18px; margin-top: 30px; }
+.caseGroup { display: grid; gap: 12px; }
+.caseGroup + .caseGroup { margin-top: 8px; }
+.caseGroupHeader { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.caseGroupHeader p { margin: 0 0 6px; color: var(--muted); font-size: 12px; font-weight: 780; letter-spacing: .06em; text-transform: uppercase; }
+.caseGroupHeader h3 { margin: 0; font-size: clamp(20px, 2.4vw, 28px); letter-spacing: -.02em; }
+.caseGroupMeta { display: flex; align-items: center; gap: 14px; }
+.caseGroupMeta b { padding: 6px 10px; border: 1px solid color-mix(in srgb, var(--warm) 40%, var(--line)); border-radius: 999px; background: var(--warm); color: var(--ink); font-size: 11px; font-weight: 780; letter-spacing: .05em; text-transform: uppercase; }
+.caseGroupMeta a { color: var(--signal); font-size: 13px; font-weight: 760; text-decoration: none; }
+.caseGroupMeta a:hover { text-decoration: underline; }
+.caseGroup .workCard { margin-left: clamp(0px, 2vw, 20px); }
 .sectionHeading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .sectionHeading h2 { margin: 0; font-size: clamp(28px, 3vw, 38px); }
 .sectionHeading > span { color: var(--muted); font-size: 13px; }
