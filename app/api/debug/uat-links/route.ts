@@ -11,9 +11,9 @@ export async function GET() {
   if (!service) return Response.json({ ok: false, error: 'service client unavailable' });
 
   const { data, error } = await service.auth.admin.generateLink({
-    type: 'signup',
+    type: 'magiclink',
     email: 'e2e-planning-test-820@thepassageapp.io',
-    password: 'E2eTestPass!820x',
+    options: { redirectTo: 'https://www.thepassageapp.io/auth/finish?next=%2Fcase%2Fstart' },
   });
 
   return Response.json({ ok: !error, error: error?.message ?? null, actionLink: data?.properties?.action_link ?? null });
