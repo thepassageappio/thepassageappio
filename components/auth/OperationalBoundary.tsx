@@ -39,7 +39,16 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   if (!result.ok && result.reason === 'signed-out') redirect(loginPath(recoveryPath));
 
   if (!result.ok) {
-    return <AccessSurface title="Workspace access remains closed" message={reasonCopy[result.reason]} runtime={publicRuntimeLabel(configuration.runtime)} />;
+    const isSelectionRequired = result.reason === 'membership-selection-required';
+    return (
+      <AccessSurface
+        title={isSelectionRequired ? 'Choose a workspace' : 'Workspace access remains closed'}
+        message={reasonCopy[result.reason]}
+        runtime={publicRuntimeLabel(configuration.runtime)}
+        recoveryHref={isSelectionRequired ? '/workspace/select' : undefined}
+        recoveryLabel={isSelectionRequired ? 'Choose a workspace' : undefined}
+      />
+    );
   }
 
   const { viewer } = result;

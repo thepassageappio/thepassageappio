@@ -27,9 +27,9 @@
 .nav a { display: flex; align-items: center; padding: 0 20px; color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 650; border-bottom: 3px solid transparent; }
 .nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--signal); }
 .identity { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 0 16px; border-left: 1px solid var(--line); }
-.identity > span { text-align: right; line-height: 1.15; }
-.identity strong { display: block; font-size: 12px; }
-.identity small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+.identity > span { text-align: right; line-height: 1.15; min-width: 0; }
+.identity strong { display: block; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 168px; }
+.identity small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 168px; }
 .identity b { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: var(--surface); font-size: 12px; }
 .signOut { margin: 0; }
 .signOut button { min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 650; cursor: pointer; white-space: nowrap; }
