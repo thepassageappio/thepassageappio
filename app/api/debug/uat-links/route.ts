@@ -29,7 +29,7 @@ export async function GET() {
       errorName: error?.name ?? null,
       errorStatus: error?.status ?? null,
       errorCode: error?.code ?? null,
-      errorFull: error ? JSON.stringify(Object.getOwnPropertyNames(error).reduce((acc, k) => ({ ...acc, [k]: (error)[k] }), {})) : null,
+      errorFull: error ? JSON.stringify(Object.getOwnPropertyNames(error).reduce((acc: Record<string, unknown>, k) => ({ ...acc, [k]: (error as unknown as Record<string, unknown>)[k] }), {})) : null,
       actionLink: data?.properties?.action_link ?? null,
     });
   }
