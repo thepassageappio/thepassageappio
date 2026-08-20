@@ -10,6 +10,8 @@ const moments: [string, string][] = [
 ];
 
 export const metadata = { title: 'Our story' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function StoryPage() {
   return (

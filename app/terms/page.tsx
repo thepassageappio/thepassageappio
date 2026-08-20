@@ -19,6 +19,8 @@ const terms: [string, string][] = [
 ];
 
 export const metadata = { title: 'Terms of service' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function TermsPage() {
   return (

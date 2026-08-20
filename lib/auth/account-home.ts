@@ -1,0 +1,30 @@
+import 'server-only';
+
+import { verifiedUser } from '@/lib/auth/session';
+import { createPassageServerClient } from '@/lib/supabase/server';
+
+export type AccountHomeLink = { href: string; label: string };
+
+// Lightweight, nav-only membership check -- deliberately not resolveOperationalViewer/
+// resolvePartnerViewer (those also pull location grants and are meant to gate real
+// operational pages, not decide what a marketing-page header link should say). Used by
+// TopShell on every gateway page, so kept to the minimum needed to route "my account"
+// correctly instead of always showing "Sign in" to an already-authenticated visitor.
+export async function resolveAccountHomeLink(): Promise<AccountHomeLink | null> {
+  const client = await createPassageServerClient();
+  if (!client) return null;
+  const user = await verifiedUser(client);
+  if (!user) return null;
+
+  const [orgMembership, partnerMembership] = await Promise.all([
+    client.from('organization_members').select('role').eq('user_id', user.id).eq('status', 'active').limit(1).maybeSingle(),
+    client.from('partner_members').select('id').eq('user_id', user.id).eq('status', 'active').limit(1).maybeSingle(),
+  ]);
+
+  if (orgMembership.data) {
+    const role = (orgMembership.data as { role: string }).role;
+    return role === 'staff' ? { href: '/staff', label: 'My work' } : { href: '/director', label: 'My dashboard' };
+  }
+  if (partnerMembership.data) return { href: '/partner', label: 'My work' };
+  return { href: '/case', label: 'My account' };
+}

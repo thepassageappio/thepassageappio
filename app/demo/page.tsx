@@ -3,6 +3,8 @@ import { ContinuityRail, TopShell } from '@/components/core';
 import { continuity, demoCase } from '@/lib/demo';
 
 export const metadata = { title: 'How Passage works' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // This page is deliberately illustrative only -- it used to link each
 // persona card straight into the real, authenticated /director, /staff,

@@ -15,6 +15,8 @@ const rows: [string, string][] = [
 ];
 
 export const metadata = { title: 'Privacy policy' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function PrivacyPage() {
   return (

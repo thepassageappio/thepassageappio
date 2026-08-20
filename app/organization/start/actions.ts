@@ -17,11 +17,13 @@ function failure(status: OrganizationCreationState['status'], message: string): 
 }
 
 export async function createOrganization(_previous: OrganizationCreationState, formData: FormData): Promise<OrganizationCreationState> {
+  const ownerDisplayName = String(formData.get('ownerDisplayName') ?? '').trim();
   const organizationName = String(formData.get('organizationName') ?? '').trim();
   const locationName = String(formData.get('locationName') ?? '').trim();
   const city = String(formData.get('city') ?? '').trim();
   const state = String(formData.get('state') ?? '').trim();
 
+  if (!ownerDisplayName || ownerDisplayName.length > 200) return failure('validation', 'Enter your name. Nothing was created.');
   if (!organizationName || organizationName.length > 200) return failure('validation', 'Enter your funeral home’s name. Nothing was created.');
   if (!locationName || locationName.length > 200) return failure('validation', 'Enter your first location’s name. Nothing was created.');
   if (city.length > 100) return failure('validation', 'Shorten the city name. Nothing was created.');
@@ -37,6 +39,7 @@ export async function createOrganization(_previous: OrganizationCreationState, f
     p_location_name: locationName,
     p_city: city || null,
     p_state: state || null,
+    p_owner_display_name: ownerDisplayName,
   });
 
   if (result.error) {
@@ -59,8 +62,9 @@ export async function createOrganization(_previous: OrganizationCreationState, f
   // which starts the same clock from organizations.created_at), and a task
   // assigned to the founder so a self-serve signup is never silent.
   const company = await upsertOrganizationCompany({ name: organizationName, locationCount: 1, city: city || undefined, state: state || undefined }).catch(() => null);
+  const [ownerFirstName, ...ownerLastNameParts] = ownerDisplayName.split(/\s+/).filter(Boolean);
   const contactId = user.email
-    ? await upsertContact(user.email, undefined, undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null)
+    ? await upsertContact(user.email, ownerFirstName, ownerLastNameParts.join(' ') || undefined, undefined, HUBSPOT_LIFECYCLE_STAGE.funeralHomeDirectorOrEmployee).catch(() => null)
     : null;
   // M3 exit criterion 5 ("a named recovery owner for every failure"): this
   // was the one site left uncovered when crm_sync_events was wired into the

@@ -4,6 +4,8 @@ import { getStripeClient } from '@/lib/stripe';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 export const metadata = { title: 'Payment confirmed' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function PricingSuccessPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const { session_id: sessionId } = await searchParams;

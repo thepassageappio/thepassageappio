@@ -21,6 +21,8 @@ export function OrganizationStartForm() {
 
   return (
     <form className={styles.inviteForm} action={action} aria-busy={pending}>
+      <label htmlFor="ownerDisplayName">Your name</label>
+      <input id="ownerDisplayName" maxLength={200} name="ownerDisplayName" placeholder="Jordan Rivera" required type="text" />
       <label htmlFor="organizationName">Funeral home name</label>
       <input id="organizationName" maxLength={200} name="organizationName" placeholder="Riverside Family Funeral Home" required type="text" />
       <label htmlFor="locationName">First location name</label>

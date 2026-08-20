@@ -3,6 +3,8 @@ import { GuideBrowser } from './GuideBrowser';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 export const metadata = { title: 'Guides' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function GuidesPage() {
   return (

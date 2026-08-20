@@ -4,6 +4,8 @@ import { ContactForm } from './ContactForm';
 import styles from '@/components/marketing/MarketingPage.module.css';
 
 export const metadata = { title: 'Contact' };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function ContactPage() {
   return (
