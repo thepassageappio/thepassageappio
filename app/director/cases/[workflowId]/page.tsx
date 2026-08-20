@@ -69,7 +69,24 @@ export default async function DirectorCasePage({ params, searchParams }: { param
     <header className={styles.hero}><div><p>{humanizePreviewLabel(workflow.case_reference ?? '', 'Authorized case')} · {humanizePreviewLabel(location?.name ?? '', 'Managed location')} · {humanWorkflowPhase(workflow.phase)}</p><h1>{humanizePreviewLabel(workflow.person_name ?? '', 'Person withheld')}</h1><span>{humanizePreviewLabel(workflow.family_name ?? '', 'Family')} family · proof review</span></div><strong className={styles.status} data-state={selectedTask.status}>{humanTaskStatus(selectedTask.status)}</strong></header>
     {query.vendorPayment === 'success' && <div className={styles.receipt} role="status"><h3>Vendor payment sent</h3><p>Stripe confirmed the payment. It will appear against the vendor request below once processed.</p></div>}
     {query.vendorPayment === 'cancelled' && <div className={styles.error} role="alert"><h3>Vendor payment cancelled</h3><p>Nothing was charged. Approve the quote again when ready to pay.</p></div>}
-    <div className={styles.layout}>
+
+    <section className={styles.panel} aria-labelledby="family-heading">
+      <p className={styles.eyebrow}>Family access</p><h2 id="family-heading">Invite a family member to this case.</h2>
+      <FamilyInvitationForm requestId={randomUUID()} workflowId={workflow.id} />
+    </section>
+
+    <section className={styles.panel} aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Messages</p><h2 id="messages-heading">Talk with the family on this case.</h2>
+      <MessageThread
+        loadError={messagesResult.ok ? undefined : messagesResult.message}
+        messages={messagesResult.ok ? messagesResult.messages : []}
+        postAction={postWorkflowMessage}
+        requestId={randomUUID()}
+        workflowId={workflow.id}
+      />
+    </section>
+
+    <div className={styles.layout} style={{ marginTop: 18 }}>
       <section className={styles.panel} id="proof" aria-labelledby="proof-heading"><p className={styles.eyebrow}>Proof</p><h2 id="proof-heading">{selectedTask.status === 'proof_submitted' && latestProof && !latestReview ? 'Proof waiting for review.' : selectedTask.status === 'completed' ? 'Proof verified. Task complete.' : 'No proof is waiting for review.'}</h2><p>{selectedTask.status === 'proof_submitted' ? 'Review the saved submission before changing the task.' : 'The current owner and task status appear below.'}</p>
         {latestProof && <div className={styles.receipt}><h3>{latestReview?.decision === 'needs_replacement' ? 'Replacement requested' : latestReview?.decision === 'verified' ? 'Verified proof' : 'Submitted proof'}</h3><p>{humanizePreviewLabel(latestProof.completion_summary, 'Proof summary available')}</p>{latestProof.reference && <p>Supporting reference: {humanizePreviewLabel(latestProof.reference, 'Reference saved')}</p>}<small>{humanProofType(latestProof.proof_type)} · submitted by {submitterName} · {formatOperationalTime(latestProof.submitted_at)} · {humanAudience(latestProof.audience)}</small>{latestReview && <small>Director decision: {latestReview.decision === 'verified' ? 'Verified' : 'Replacement requested'} by {latestReviewer} · {formatOperationalTime(latestReview.reviewed_at)}</small>}{latestReason && <p>Replacement reason: {latestReason}</p>}</div>}
         {selectedTask.status === 'proof_submitted' && latestProof && !latestReview && <ProofReviewForms proofId={latestProof.id} replacementRequestId={randomUUID()} taskId={selectedTask.id} verifyRequestId={randomUUID()} version={selectedTask.version} workflowId={workflow.id} />}
@@ -104,22 +121,6 @@ export default async function DirectorCasePage({ params, searchParams }: { param
         </ol>
       )}
       <CreatePartnerRequestForm partnerOrganizations={partnerOrganizationOptions} requestId={randomUUID()} workflowId={workflow.id} />
-    </section>
-
-    <section className={styles.panel} aria-labelledby="family-heading" style={{ marginTop: 18 }}>
-      <p className={styles.eyebrow}>Family access</p><h2 id="family-heading">Invite a family member to this case.</h2>
-      <FamilyInvitationForm requestId={randomUUID()} workflowId={workflow.id} />
-    </section>
-
-    <section className={styles.panel} aria-labelledby="messages-heading" style={{ marginTop: 18 }}>
-      <p className={styles.eyebrow}>Messages</p><h2 id="messages-heading">Talk with the family on this case.</h2>
-      <MessageThread
-        loadError={messagesResult.ok ? undefined : messagesResult.message}
-        messages={messagesResult.ok ? messagesResult.messages : []}
-        postAction={postWorkflowMessage}
-        requestId={randomUUID()}
-        workflowId={workflow.id}
-      />
     </section>
 
     <section className={styles.panel} aria-labelledby="communications-heading" style={{ marginTop: 18 }}>
