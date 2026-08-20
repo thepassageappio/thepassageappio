@@ -194,6 +194,7 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
               </div>
             </dl>
             {!existing.occurredAt && <button className={styles.recoveryButton} onClick={() => window.location.reload()} type="button">Reload and check</button>}
+            <Link className={styles.primaryButton} href="/case" style={{ display: 'inline-flex', marginTop: 16, textDecoration: 'none' }}>Go to your account</Link>
           </div>
         )}
 
@@ -271,6 +272,7 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
                 <div><dt>Saved</dt><dd><time dateTime={state.receipt.occurredAt}>{formatSavedTime(state.receipt.occurredAt)}</time></dd></div>
               </dl>
             )}
+            <Link className={styles.primaryButton} href="/case" style={{ display: 'inline-flex', marginTop: 16, textDecoration: 'none' }}>Go to your account</Link>
           </div>
         )}
       </main>

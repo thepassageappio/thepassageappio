@@ -18,6 +18,26 @@ export function humanSituationCategory(value: string | null): string {
   return SITUATION_OPTIONS.find((option) => option.value === value)?.label ?? 'Situation not recorded';
 }
 
+// Founder feedback 2026-08-20: free-text "where are they right now" and
+// "when did this happen" were slow to fill out and easy to leave vague under
+// stress. Preset choices cover the common cases fast; "Other" still lets
+// someone give the exact detail when it matters.
+export const LOCATION_OPTIONS = [
+  'At home',
+  'At a hospital',
+  'At a hospice facility',
+  'At a care or nursing facility',
+  'Other',
+] as const;
+
+export const TIMING_OPTIONS = [
+  'Just now',
+  'Within the last hour',
+  'A few hours ago',
+  'Earlier today',
+  'Yesterday or earlier',
+] as const;
+
 // One prepared, situation-specific next step. Deliberately short and concrete --
 // this is read by someone in crisis, often on a phone, often exhausted.
 export function situationGuidance(value: SituationCategory): { heading: string; steps: string[] } {

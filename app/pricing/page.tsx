@@ -50,6 +50,15 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             <Link className={`${styles.button} ${styles.buttonDanger}`} href="/start">Get help now</Link>
           </div>
 
+          <div className={styles.card} style={{ marginTop: 12 }}>
+            <p className={styles.note}>
+              Need dedicated urgent support without a recurring plan? A one-time Urgent record is also available. This is separate from <Link href="/start">free immediate help</Link>, which is always available.
+            </p>
+            <form action={startUrgentOneTimeCheckout}>
+              <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Buy Urgent record — $79.99 one-time</button>
+            </form>
+          </div>
+
           <div className={styles.sectionHeading}>
             <h2>Planning ahead</h2>
             <p>Begin with one family record and add estates as your family needs them.</p>
@@ -119,15 +128,6 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                 <Link className={styles.note} href={`/contact?category=funeral-home&plan=${group.key}`} style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>or talk to us first</Link>
               </div>
             ))}
-          </div>
-
-          <div className={styles.card} style={{ marginTop: 20 }}>
-            <p className={styles.note}>
-              Need dedicated urgent support without a recurring plan? A one-time Urgent record is also available. This is separate from <Link href="/start">free immediate help</Link>, which is always available.
-            </p>
-            <form action={startUrgentOneTimeCheckout}>
-              <button className={`${styles.buttonSecondary} ${styles.fullWidth}`} type="submit">Buy Urgent record — $79.99 one-time</button>
-            </form>
           </div>
         </section>
 
