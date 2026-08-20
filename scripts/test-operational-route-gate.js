@@ -30,6 +30,30 @@ for (const denied of [
   { ...approved, passwordAuthEnabled: false },
 ]) assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, denied), false);
 
+// CRITICAL, added 2026-08-20 after a real production regression: every
+// assertion above only ever checked the isolated-preview-approved config.
+// Nothing here ever asserted that /director, /staff, and the Case
+// Room/work-detail routes actually render under a real PRODUCTION runtime
+// config -- so a version of this gate that silently required
+// isolatedPreviewInvitationEnabled (preview-only) for every operational
+// path, not just the invitation page, passed this entire suite while
+// replacing every real director/staff page with a placeholder for every
+// real user in production. This is the assertion that would have caught
+// it; do not remove it.
+const production = { available: true, runtime: 'production', projectRef: 'qsveqfchwylsbncsfgxe', passwordAuthEnabled: false };
+assert.equal(canRenderVerifiedOperationalChild('/director', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/staff', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/team', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/activity', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/intake', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/cases/11111111-1111-1111-1111-111111111111', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/staff/work/11111111-1111-1111-1111-111111111111', production), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/urgent/11111111-1111-1111-1111-111111111111', production), true);
+// The one path that SHOULD stay preview-only even in production: the
+// isolated-lab invitation feature.
+assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, production), false);
+assert.equal(canRenderVerifiedOperationalChild('/unknown/path', production), false);
+
 assert.equal(operationalRecoveryPath(DIRECTOR_INVITATION_PATH, '/director'), DIRECTOR_INVITATION_PATH);
 assert.equal(operationalRecoveryPath('/director/team', '/director'), '/director/team');
 assert.equal(operationalRecoveryPath('/director/activity', '/director'), '/director/activity');

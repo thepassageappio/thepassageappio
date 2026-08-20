@@ -20,13 +20,28 @@ export function isolatedPreviewInvitationEnabled(configuration: Pick<RuntimeConf
     && configuration.passwordAuthEnabled;
 }
 
+// CRITICAL FIX 2026-08-20: this previously required isolatedPreviewInvitationEnabled
+// (true only in the isolated preview environment) for EVERY operational
+// path, not just the invitation page it was actually meant for --
+// app/director/invitations/new/page.tsx already has its own independent
+// isolatedPreviewInvitationEnabled check (defense in depth for that one
+// preview-only feature), proving the restriction was only ever meant to
+// scope to that page. Because runtime is 'production' in production,
+// isolatedPreviewInvitationEnabled is always false there, so this gate
+// silently replaced every real director/staff page (dashboard, Case Room,
+// work detail, team, activity, urgent) with the generic OperationalBoundary
+// fallback ("SECURE PREVIEW · You're signed in.") for every real user,
+// site-wide, the entire time this app has been in production. Found via
+// live testing during item 8's browser-level denial matrix -- a real,
+// authorized test session got the same placeholder on every route,
+// regardless of whether the page or the case/task it pointed to existed.
 export function canRenderVerifiedOperationalChild(
   pathname: string | null,
   configuration: Pick<RuntimeConfiguration, 'available' | 'runtime' | 'projectRef' | 'passwordAuthEnabled'>,
 ) {
-  return pathname !== null
-    && isVerifiedOperationalPathname(pathname)
-    && isolatedPreviewInvitationEnabled(configuration);
+  if (pathname === null || !isVerifiedOperationalPathname(pathname)) return false;
+  if (pathname === DIRECTOR_INVITATION_PATH) return isolatedPreviewInvitationEnabled(configuration);
+  return true;
 }
 
 export function operationalRecoveryPath(pathname: string | null, fallback: '/director' | '/director/intake' | '/staff') {
