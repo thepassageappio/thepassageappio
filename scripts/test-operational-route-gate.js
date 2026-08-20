@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.Modu
 const moduleBox = { exports: {} };
 vm.runInNewContext(compiled, { module: moduleBox, exports: moduleBox.exports }, { filename: sourcePath });
 
-const { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath } = moduleBox.exports;
+const { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath, staffInvitationEnabled } = moduleBox.exports;
 const approved = { available: true, runtime: 'preview', projectRef: 'uyacxqtsiwlvtmhxvoxr', passwordAuthEnabled: true };
 
 assert.equal(isolatedPreviewInvitationEnabled(approved), true);
@@ -25,7 +25,8 @@ assert.equal(canRenderVerifiedOperationalChild(`${DIRECTOR_INVITATION_PATH}/extr
 for (const denied of [
   { ...approved, available: false },
   { ...approved, runtime: 'demo' },
-  { ...approved, runtime: 'production' },
+  // NOT runtime: 'production' here -- production is now a legitimate, separately
+  // tested allow case for the invitation path (see staffInvitationEnabled below).
   { ...approved, projectRef: 'qsveqfchwylsbncsfgxe' },
   { ...approved, passwordAuthEnabled: false },
 ]) assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, denied), false);
@@ -49,10 +50,14 @@ assert.equal(canRenderVerifiedOperationalChild('/director/intake', production), 
 assert.equal(canRenderVerifiedOperationalChild('/director/cases/11111111-1111-1111-1111-111111111111', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/staff/work/11111111-1111-1111-1111-111111111111', production), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/urgent/11111111-1111-1111-1111-111111111111', production), true);
-// The one path that SHOULD stay preview-only even in production: the
-// isolated-lab invitation feature.
-assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, production), false);
+// Staff invitation creation is enabled in real production too (2026-08-20):
+// the feature itself has no preview-only dependency, only its rollout did.
+assert.equal(staffInvitationEnabled(production), true);
+assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, production), true);
 assert.equal(canRenderVerifiedOperationalChild('/unknown/path', production), false);
+// Still denied everywhere else: demo runtime, and an unavailable environment.
+assert.equal(staffInvitationEnabled({ ...production, runtime: 'demo' }), false);
+assert.equal(staffInvitationEnabled({ ...production, available: false }), false);
 
 assert.equal(operationalRecoveryPath(DIRECTOR_INVITATION_PATH, '/director'), DIRECTOR_INVITATION_PATH);
 assert.equal(operationalRecoveryPath('/director/team', '/director'), '/director/team');

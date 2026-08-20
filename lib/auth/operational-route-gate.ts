@@ -20,6 +20,17 @@ export function isolatedPreviewInvitationEnabled(configuration: Pick<RuntimeConf
     && configuration.passwordAuthEnabled;
 }
 
+// Staff invitation creation was built and QA'd only against the disposable
+// preview sandbox above, then never extended to real production -- every
+// owner/director hit "We couldn't confirm your team access" in production,
+// permanently. The RPC (create_employee_invitation_idempotent_v2), its RLS,
+// and the accept-invite flow at /invite/[token] have no preview-only
+// dependency, so production is enabled here directly rather than by loosening
+// the preview check.
+export function staffInvitationEnabled(configuration: Pick<RuntimeConfiguration, 'available' | 'runtime' | 'projectRef' | 'passwordAuthEnabled'>) {
+  return isolatedPreviewInvitationEnabled(configuration) || (configuration.available && configuration.runtime === 'production');
+}
+
 // CRITICAL FIX 2026-08-20: this previously required isolatedPreviewInvitationEnabled
 // (true only in the isolated preview environment) for EVERY operational
 // path, not just the invitation page it was actually meant for --
@@ -40,7 +51,7 @@ export function canRenderVerifiedOperationalChild(
   configuration: Pick<RuntimeConfiguration, 'available' | 'runtime' | 'projectRef' | 'passwordAuthEnabled'>,
 ) {
   if (pathname === null || !isVerifiedOperationalPathname(pathname)) return false;
-  if (pathname === DIRECTOR_INVITATION_PATH) return isolatedPreviewInvitationEnabled(configuration);
+  if (pathname === DIRECTOR_INVITATION_PATH) return staffInvitationEnabled(configuration);
   return true;
 }
 

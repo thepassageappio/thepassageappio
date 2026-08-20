@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { canOpenOperationalPath, landingPathForRole, resolveOperationalViewer } from '@/lib/auth/authorization';
-import { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, isolatedPreviewInvitationEnabled, operationalRecoveryPath, OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
+import { canRenderVerifiedOperationalChild, DIRECTOR_INVITATION_PATH, operationalRecoveryPath, OPERATIONAL_PATHNAME_HEADER, staffInvitationEnabled } from '@/lib/auth/operational-route-gate';
 import { loginPath } from '@/lib/auth/redirects';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
 import styles from './OperationalBoundary.module.css';
@@ -77,7 +77,7 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
           <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
         </dl>
         <div className={styles.recovery}>
-          {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
+          {staffInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}
           <SignOutButton />
         </div>
       </section>
