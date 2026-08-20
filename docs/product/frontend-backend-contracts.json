@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
-  "version": 5,
-  "last_updated": "2026-08-19",
+  "version": 6,
+  "last_updated": "2026-08-20",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -780,8 +780,8 @@
             "proofs?: boolean;",
             "client.from('task_proofs').select(",
             "client.from('task_proof_reviews').select(",
-            "proofs: (proofResult.data ?? []) as HostedTaskProof[]",
-            "proofReviews: (proofReviewResult.data ?? []) as HostedTaskProofReview[]"
+            "const proofs = (proofResult.data ?? []) as HostedTaskProof[]",
+            "const proofReviews = (proofReviewResult.data ?? []) as HostedTaskProofReview[]"
           ]
         },
         {
@@ -2052,6 +2052,145 @@
         "docs/product/operational-readiness-roadmap.md",
         "supabase/migrations/20260818110000_family_participant_structured_roles.sql",
         "supabase/migrations/20260818110200_create_family_task_owner_authority.sql"
+      ]
+    },
+    {
+      "id": "20260819.staff.self_service_blocking",
+      "cycle": "2026-08-19",
+      "capability": "Assigned staff reports and clears their own task blocker, no director gate",
+      "status": "implemented",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff/work/[taskId]",
+        "component": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/staff/work/[taskId]/BlockTaskForm.tsx"
+        ],
+        "files": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/staff/work/[taskId]/BlockTaskForm.tsx",
+          "app/staff/actions.ts"
+        ],
+        "note": "BlockTaskForm renders when task.status === 'in_progress' (reason required); UnblockTaskForm renders when task.status === 'blocked' (no reason required). Founder decision 2026-08-19: staff-only, no director action needed to clear it."
+      },
+      "action_status": "in_progress -> blocked (reason required) -> in_progress (unblock, no reason required), with a task.version increment on every successful transition",
+      "server_command": "public.set_task_blocked_idempotent(p_task_id uuid, p_blocked boolean, p_reason text, p_expected_version integer, p_request_id uuid) -> passage_private.set_task_blocked_idempotent",
+      "backend_files": [
+        "supabase/migrations/20260819140000_staff_set_task_blocked_idempotent.sql",
+        "app/staff/actions.ts"
+      ],
+      "durable_tables": [
+        { "table": "tasks", "cardinality": "one current status and monotonically increasing version per task" },
+        { "table": "workflow_events", "cardinality": "one task.blocked or task.unblocked event per organization/request UUID" }
+      ],
+      "rls_authority_predicate": "Caller must be the task's current active assigned staff member with an active grant on the workflow's exact location -- identical authority pattern to passage_private.start_task_idempotent",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.blocked or task.unblocked",
+        "idempotency_key": "task_blocked:<caller-supplied request UUID>"
+      },
+      "failure_recovery_states": [
+        "empty-reason block attempt fails (22023), no state change",
+        "unrelated staff (not the current assignee) cannot block or unblock (42501)",
+        "a director cannot block or unblock either -- staff-only per founder decision (42501)",
+        "blocking a task not currently in_progress fails (55000)",
+        "unblocking a task not currently blocked fails (55000)",
+        "stale expected_version fails (40001), no partial write",
+        "same-key replay returns the original receipt without a duplicate event or version bump"
+      ],
+      "persona_projection": "Only the currently assigned staff member sees the block/unblock controls; directors see the resulting status via the existing task-status display, with no separate director-side action surface for this transition.",
+      "evidence_test_references": [
+        "supabase/migrations/20260819140000_staff_set_task_blocked_idempotent.sql",
+        "docs/product/operational-readiness-roadmap.md"
+      ]
+    },
+    {
+      "id": "20260819.staff.vendor_request_visibility",
+      "cycle": "2026-08-19",
+      "capability": "Staff assigned to a case sees vendor/partner request status for it, read-only",
+      "status": "implemented",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff/work/[taskId]",
+        "component": "app/staff/work/[taskId]/page.tsx",
+        "files": [
+          "app/staff/work/[taskId]/page.tsx",
+          "lib/partner/hosted.ts"
+        ],
+        "note": "Founder decision 2026-08-19: confirmed a real gap, not by-design director-only scoping (flagged twice in persona-interaction-map-2026-08-18.md, never actioned until now). Read-only vendor section mirrors the family-visible projection -- no approve/reject/quote actions, matching a staff member's bounded authority."
+      },
+      "action_status": "read-only projection of partner_requests for the workflow, scoped by RLS to cases the caller is actually assigned work on",
+      "server_command": "RLS-scoped server SELECT over public.partner_requests via lib/partner/hosted.ts#loadPartnerRequestsForWorkflow",
+      "backend_files": [
+        "supabase/migrations/20260819141000_staff_visible_partner_requests.sql",
+        "lib/partner/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "partner_requests", "cardinality": "existing table, read-only from this persona's projection -- no new rows" }
+      ],
+      "rls_authority_predicate": "passage_private.can_view_partner_request widened with the same staff-assigned-task branch already used by passage_private.can_message_workflow (active staff member with an active location grant AND an assigned task on the request's workflow) -- picked up automatically by the existing partner_requests_authorized_select RLS policy, no new policy needed",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Read-only visibility projection; no state mutation. The events that populate this view are already covered by the vendor-request command contracts."
+      },
+      "failure_recovery_states": [
+        "staff with no assigned task on the request's workflow still sees zero rows (denied, not just hidden)",
+        "director and vendor authority are unaffected by the widened predicate",
+        "empty state renders 'No vendor requests have been sent for this case yet.' rather than an error"
+      ],
+      "persona_projection": "Staff sees only requests for cases they are actually assigned work on -- category, title, status, quote amount, proof summary, sent date. No approve/reject/quote controls, unlike the director projection.",
+      "evidence_test_references": [
+        "supabase/migrations/20260819141000_staff_visible_partner_requests.sql",
+        "docs/product/persona-interaction-map-2026-08-18.md",
+        "docs/product/operational-readiness-roadmap.md"
+      ]
+    },
+    {
+      "id": "20260819.family.household_multi_estate_invite",
+      "cycle": "2026-08-19",
+      "capability": "D2C owner invites a participant to a chosen subset of their household's estates in one action",
+      "status": "implemented",
+      "persona": "family",
+      "frontend": {
+        "user_visible": true,
+        "route": "/case",
+        "component": [
+          "app/case/page.tsx",
+          "app/case/EstateActions.tsx"
+        ],
+        "files": [
+          "app/case/page.tsx",
+          "app/case/EstateActions.tsx",
+          "app/case/actions.ts"
+        ],
+        "note": "Founder decision 2026-08-19 on cross-estate visibility: 'owner's choice per invite', not automatic household-wide sharing and not fully independent per-estate invites. InviteAcrossHouseholdForm checkbox-selects estate(s); InviteToEstateForm (single-estate, no picker) remains separately for the elevated-participant context on app/case/[id]/tasks, where the inviter has authority over only their own one case."
+      },
+      "action_status": "owner selects 1+ estates + invitee details -> one create_case_family_invitation_idempotent call per selected estate, each with its own stable request id -> per-estate created/replayed/conflict/denied/unavailable receipt",
+      "server_command": "public.create_case_family_invitation_idempotent(...) -> passage_private.create_case_family_invitation_idempotent, invoked once per selected workflow_id from app/case/actions.ts#inviteToHousehold",
+      "backend_files": [
+        "app/case/actions.ts",
+        "supabase/migrations/20260818110000_family_participant_structured_roles.sql"
+      ],
+      "durable_tables": [
+        { "table": "case_family_invitations", "cardinality": "one independent row per (selected estate, invitee) -- no schema change, this reuses the existing per-estate invitation table N times" }
+      ],
+      "rls_authority_predicate": "Unchanged from the existing per-estate invitation authority: create_case_family_invitation_idempotent already authorizes a D2C owner via workflows.user_id = auth.uid() for each individual workflow_id in the selection",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This is a frontend/action-layer orchestration (looping an existing idempotent command); the invitation-creation event itself is already covered by the underlying per-estate invitation contract."
+      },
+      "failure_recovery_states": [
+        "zero estates selected fails client-side validation, nothing submitted",
+        "each selected estate's invitation succeeds or fails independently -- a denial or conflict on one estate does not roll back or block the others",
+        "per-estate results (created/replayed/conflict/denied/unavailable) are shown individually, not collapsed into one pass/fail",
+        "the single-estate participant-side invite path (executor/POA on their own case) is unchanged and still correctly cannot see or select the owner's other estates"
+      ],
+      "persona_projection": "Only the D2C owner sees and uses the household-wide selector; each invited participant's resulting estate_access row is scoped exactly to the estate(s) the owner selected for them, identical in shape to a manually-created single-estate invitation.",
+      "evidence_test_references": [
+        "docs/product/operational-readiness-roadmap.md"
       ]
     }
   ]
