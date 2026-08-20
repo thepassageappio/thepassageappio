@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { signOut } from '@/app/auth/actions';
+import { OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
 import { resolvePartnerViewer } from '@/lib/auth/partner-authorization';
 import { loginPath } from '@/lib/auth/redirects';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
@@ -15,6 +17,15 @@ import styles from './OperationalBoundary.module.css';
 // keeps the two authority boundaries from becoming entangled.
 type PartnerBoundaryProps = { children: ReactNode };
 
+// /partner/start is vendor self-serve signup, for accounts that do NOT have a
+// vendor membership yet -- it is the /organization/start equivalent. Wrapping
+// it in this boundary made it permanently unreachable: no account could ever
+// pass resolvePartnerViewer() before creating its first partner_organizations
+// row, so nobody could ever sign up as a vendor. The page has its own
+// signed-in-only + already-a-member checks (app/partner/start/page.tsx), so
+// it is exempted here rather than requiring existing vendor authority.
+const SELF_SERVE_PATH = '/partner/start';
+
 const reasonCopy = {
   'environment-unavailable': 'Secure workspace access is not configured for this environment.',
   'signed-out': 'Sign in before opening the vendor workspace.',
@@ -23,6 +34,9 @@ const reasonCopy = {
 } as const;
 
 export async function PartnerBoundary({ children }: PartnerBoundaryProps) {
+  const pathname = (await headers()).get(OPERATIONAL_PATHNAME_HEADER);
+  if (pathname === SELF_SERVE_PATH) return children;
+
   const configuration = getRuntimeConfiguration();
   const result = await resolvePartnerViewer();
   if (!result.ok && result.reason === 'signed-out') redirect(loginPath('/partner'));
