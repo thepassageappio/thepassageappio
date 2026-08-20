@@ -151,11 +151,6 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
           <ol>{guidance.steps.map((step) => <li key={step}>{step}</li>)}</ol>
         </section>
 
-        <section className={styles.receivingHome} aria-labelledby="receiving-home-heading">
-          <span>If you request a callback</span>
-          <strong id="receiving-home-heading">The Passage team</strong>
-          <p>A real person on the Passage team will reach out using the contact details you give below. Saving privately keeps this to just you.</p>
-        </section>
 
         {phase === 'checking' && <p className={styles.lede}>One moment…</p>}
 
@@ -201,7 +196,7 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
         {phase === 'needs-auth' && (
           <div className={styles.authCard}>
             <h2>Save this and continue</h2>
-            <p>Create a free account (or sign in) so nothing is lost and, if you ask for one, a director can call you back.</p>
+            <p>Create a free account (or sign in) so nothing is lost.</p>
             {googleEnabled && (
               <>
                 <button className={styles.primaryButton} disabled={googleBusy} onClick={continueWithGoogle} type="button">{googleBusy ? 'Opening Google…' : 'Continue with Google'}</button>
@@ -246,9 +241,9 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
                 )}
               </div>
             )}
+            <input name="wantsCallback" type="hidden" value="false" />
             <fieldset disabled={pending} style={{ border: 'none', padding: 0, margin: 0 }}>
-              <button className={styles.primaryButton} name="wantsCallback" type="submit" value="true">{pending ? 'Saving…' : 'Save and request a callback from Passage'}</button>
-              <button className={styles.secondaryButton} name="wantsCallback" type="submit" value="false">Save privately, no callback</button>
+              <button className={styles.primaryButton} type="submit">{pending ? 'Saving…' : 'Save'}</button>
             </fieldset>
           </form>
         )}
@@ -257,17 +252,10 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
           <div className={styles.receipt}>
             <div className={styles.receiptMark} aria-hidden="true">✓</div>
             <h2>Saved.</h2>
-            <p>
-              {state.receipt?.wantsCallback
-                ? `Passage has this request. A team member will contact ${draft.coordinatorName || 'your contact'} using the details provided.`
-                : 'Saved privately. Come back anytime if you decide to request a callback.'}
-            </p>
+            <p>Saved privately. Only you can see it.</p>
             {state.receipt && (
               <dl className={styles.receiptFacts}>
-                {state.receipt.wantsCallback
-                  ? <div><dt>Sent to</dt><dd>Passage team</dd></div>
-                  : <div><dt>Visibility</dt><dd>Only you</dd></div>}
-                {state.receipt.wantsCallback && <div><dt>Visibility</dt><dd>You and the Passage team</dd></div>}
+                <div><dt>Visibility</dt><dd>Only you</dd></div>
                 <div><dt>Contact</dt><dd>{draft.coordinatorPhone || draft.coordinatorEmail}</dd></div>
                 <div><dt>Saved</dt><dd><time dateTime={state.receipt.occurredAt}>{formatSavedTime(state.receipt.occurredAt)}</time></dd></div>
               </dl>

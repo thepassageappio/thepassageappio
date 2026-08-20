@@ -10,7 +10,7 @@ const groups = [
 ];
 
 const b2bGroups = [
-  { key: 'funeral_home_pilot', label: 'Pilot', locations: '1 location', desc: 'Try Passage at one location before committing to the full rate.', monthly: '$99' },
+  { key: 'funeral_home_pilot', label: 'Pilot', locations: '1 location', desc: 'Try Passage at one location before committing to the full rate. Free for your first 90 days as a new organization, then billed monthly.', monthly: '$99' },
   { key: 'funeral_home_local', label: 'Local', locations: '1 location', desc: 'For a single-location funeral home ready to run on Passage.', monthly: '$249.99' },
   { key: 'funeral_home_multi_location', label: 'Multiple Locations', locations: '2+ locations', desc: 'For a funeral home group operating across several locations.', monthly: '$349.99' },
 ];

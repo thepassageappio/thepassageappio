@@ -43,7 +43,7 @@ export default function StartPeoplePage() {
       <main className={styles.main} id="main-content">
         <p className={styles.eyebrow}>STEP 2 OF 3</p>
         <h1 className={styles.title}>Who should we reach?</h1>
-        <p className={styles.lede}>This is the person best placed to make decisions and take a callback right now. It can be you.</p>
+        <p className={styles.lede}>This is the person best placed to make decisions right now. It can be you.</p>
         {error && <p className={styles.alert} role="alert">{error}</p>}
         <form onSubmit={handleSubmit} noValidate>
           <div className={styles.field}>
