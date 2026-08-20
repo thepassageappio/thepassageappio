@@ -98,6 +98,14 @@ export default function StartSituationPage() {
           </div>
 
           <div className={styles.field}>
+            <label htmlFor="personCity">City and state <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional, helps us reach a nearby funeral home)</span></label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input id="personCity" onChange={(event) => update({ personCity: event.target.value })} placeholder="City" style={{ flex: 2 }} value={draft.personCity} />
+              <input aria-label="State" maxLength={2} onChange={(event) => update({ personState: event.target.value.toUpperCase() })} placeholder="State" style={{ flex: 1, textTransform: 'uppercase' }} value={draft.personState} />
+            </div>
+          </div>
+
+          <div className={styles.field}>
             <label htmlFor="personTiming">When did this happen? <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span></label>
             <select
               id="personTiming"

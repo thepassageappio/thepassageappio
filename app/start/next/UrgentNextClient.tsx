@@ -227,6 +227,8 @@ export function UrgentNextClient({ googleEnabled, supabaseUrl, publishableKey }:
             <input name="situationCategory" type="hidden" value={draft.situationCategory} />
             <input name="personName" type="hidden" value={draft.personName} />
             <input name="personLocation" type="hidden" value={draft.personLocation} />
+            <input name="personCity" type="hidden" value={draft.personCity} />
+            <input name="personState" type="hidden" value={draft.personState} />
             <input name="personTiming" type="hidden" value={draft.personTiming} />
             <input name="coordinatorName" type="hidden" value={draft.coordinatorName} />
             <input name="coordinatorPhone" type="hidden" value={draft.coordinatorPhone} />

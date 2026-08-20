@@ -21,6 +21,8 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
   const situationCategory = String(formData.get('situationCategory') ?? '');
   const personName = String(formData.get('personName') ?? '').trim();
   const personLocation = String(formData.get('personLocation') ?? '').trim();
+  const personCity = String(formData.get('personCity') ?? '').trim();
+  const personState = String(formData.get('personState') ?? '').trim();
   const personTiming = String(formData.get('personTiming') ?? '').trim();
   const coordinatorName = String(formData.get('coordinatorName') ?? '').trim();
   const coordinatorPhone = String(formData.get('coordinatorPhone') ?? '').trim();
@@ -54,6 +56,8 @@ export async function submitUrgentIntake(_previous: UrgentCommandState, formData
     p_callback_notes: callbackNotes || null,
     p_wants_callback: wantsCallback,
     p_request_id: requestId,
+    p_person_city: personCity || null,
+    p_person_state: personState || null,
   });
   if (result.error) {
     if (result.error.code === '28000') return { status: 'denied', message: 'Sign in or create a free account to save this and request a callback.' };

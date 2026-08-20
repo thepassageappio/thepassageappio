@@ -5,7 +5,7 @@ import { humanizePreviewIdentity, humanizePreviewLabel } from '@/lib/presentatio
 import { createPassageServerClient } from '@/lib/supabase/server';
 import { formatOperationalTime } from '@/lib/operations/hosted';
 import { humanSituationCategory } from '@/lib/urgent/situations';
-import { humanUrgentStatus, loadUrgentIntakeQueue, type UrgentIntakeRequest } from '@/lib/urgent/hosted';
+import { humanProximity, humanUrgentStatus, loadUrgentIntakeQueue, type UrgentIntakeRequest, type UrgentProximity } from '@/lib/urgent/hosted';
 import styles from '../../operations-beta.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export default async function DirectorUrgentPage() {
         <div className={styles.sectionHeading}><div><p>WAITING</p><h2 id="unclaimed-title">Not yet claimed by anyone.</h2></div><span>{queue.unclaimed.length} shown</span></div>
         {queue.unclaimed.length === 0 ? (
           <p role="status">Nothing is waiting right now.</p>
-        ) : queue.unclaimed.map((request) => <RequestCard key={request.id} request={request} />)}
+        ) : queue.unclaimed.map((request) => <RequestCard key={request.id} proximity={request.proximity} request={request} />)}
       </section>
 
       <section className={styles.workList} aria-labelledby="mine-title" style={{ marginTop: 18 }}>
@@ -41,14 +41,20 @@ export default async function DirectorUrgentPage() {
   );
 }
 
-function RequestCard({ request }: { request: UrgentIntakeRequest }) {
+function RequestCard({ request, proximity }: { request: UrgentIntakeRequest; proximity?: UrgentProximity }) {
   return (
     <article className={styles.workCard}>
-      <div className={styles.cardTop}><span>{humanSituationCategory(request.situation_category)}</span><b data-state={request.status}>{humanUrgentStatus(request.status)}</b></div>
+      <div className={styles.cardTop}>
+        <span>{humanSituationCategory(request.situation_category)}</span>
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {proximity && proximity !== 'other' && <b data-state="in_progress">{humanProximity(proximity)}</b>}
+          <b data-state={request.status}>{humanUrgentStatus(request.status)}</b>
+        </span>
+      </div>
       <div className={styles.cardBody}>
         <h3>{request.person_name}</h3>
         <dl className={styles.facts}>
-          <div><dt>Where</dt><dd>{request.person_location}</dd></div>
+          <div><dt>Where</dt><dd>{request.person_location}{request.person_city ? ` · ${request.person_city}${request.person_state ? `, ${request.person_state}` : ''}` : ''}</dd></div>
           <div><dt>Contact</dt><dd>{request.coordinator_name}</dd></div>
           <div><dt>Received</dt><dd>{formatOperationalTime(request.submitted_at)}</dd></div>
         </dl>

@@ -8,6 +8,8 @@ export type StartDraft = {
   situationCategory: SituationCategory | '';
   personName: string;
   personLocation: string;
+  personCity: string;
+  personState: string;
   personTiming: string;
   coordinatorName: string;
   coordinatorPhone: string;
@@ -20,6 +22,8 @@ const EMPTY_DRAFT: StartDraft = {
   situationCategory: '',
   personName: '',
   personLocation: '',
+  personCity: '',
+  personState: '',
   personTiming: '',
   coordinatorName: '',
   coordinatorPhone: '',
