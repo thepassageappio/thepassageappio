@@ -9,6 +9,7 @@ export type FamilyMessagesView = {
   personName: string | null;
   familyName: string | null;
   messages: WorkflowMessage[];
+  isSelfServe: boolean;
 };
 
 export type FamilyMessagesViewResult =
@@ -38,7 +39,7 @@ export async function loadFamilyMessagesView(workflowId: string): Promise<Family
 
   const workflowResult = await client
     .from('workflows')
-    .select('id, person_name, family_name')
+    .select('id, person_name, family_name, organization_id')
     .eq('id', workflowId)
     .maybeSingle();
   if (workflowResult.error) return { ok: false, reason: 'unavailable' };
@@ -58,6 +59,7 @@ export async function loadFamilyMessagesView(workflowId: string): Promise<Family
       personName: workflowResult.data?.person_name ?? null,
       familyName: workflowResult.data?.family_name ?? null,
       messages: messagesResult.messages,
+      isSelfServe: workflowResult.data?.organization_id === null,
     },
   };
 }

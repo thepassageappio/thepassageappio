@@ -47,10 +47,13 @@
 .detailHero h1 { max-width: 700px; margin: 0; font-family: var(--font-display); font-size: clamp(38px, 6vw, 62px); font-weight: 620; letter-spacing: -.035em; line-height: 1; overflow-wrap: anywhere; }
 .detailHero p:not(.eyebrow) { margin: 14px 0 0; color: var(--ink-soft); }
 .detailHero > strong { flex: 0 0 auto; max-width: 260px; border-radius: 999px; padding: 9px 13px; background: var(--danger-soft); color: var(--danger); font-size: 11px; letter-spacing: .08em; text-align: center; }
+.planningDetailHero { border-top-color: var(--success); }
+.planningDetailHero > strong { background: var(--success-soft); color: var(--success); }
 .nextStep, .detailPanel, .visibilityNote { padding: clamp(22px, 4vw, 34px); border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); }
 .nextStep h2, .detailPanel h2, .visibilityNote h2 { margin: 0; font-family: var(--font-display); font-size: clamp(27px, 4vw, 38px); font-weight: 620; line-height: 1.08; }
 .nextStep > p:last-of-type { max-width: 760px; margin: 12px 0 0; color: var(--ink-soft); line-height: 1.6; }
 .nextStep .urgentAction { margin-top: 20px; text-decoration: none; }
+.planningAction { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; margin-top: 20px; border: 1px solid var(--success); border-radius: 999px; padding: 12px 20px; background: var(--success); color: white; font-weight: 780; text-align: center; text-decoration: none; }
 .detailGrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 18px; }
 .detailFacts { margin: 20px 0 0; display: grid; gap: 0; }
 .detailFacts div { display: grid; grid-template-columns: minmax(110px, .42fr) minmax(0, 1fr); gap: 18px; padding: 13px 0; border-top: 1px solid var(--line); }
@@ -63,4 +66,6 @@
 .visibilityNote { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); gap: 28px; align-items: start; background: var(--danger-soft); }
 .visibilityNote p:last-child { margin: 0; color: var(--ink-soft); line-height: 1.6; }
 .visibilityNote a { font-weight: 780; text-decoration: underline; text-underline-offset: 3px; }
+.panelCopy { margin: 14px 0 0; color: var(--ink-soft); line-height: 1.6; }
+.inlineAction { min-height: 44px; display: inline-flex; align-items: center; margin-top: 12px; color: var(--success); font-weight: 780; }
 @media (max-width: 720px) { .brandBar { align-items: flex-start; padding: 12px 0; } .accountNav { flex-wrap: wrap; justify-content: flex-end; gap: 6px 14px; } .overview, .detailPage { margin-top: 24px; } .hero { grid-template-columns: 1fr; align-items: start; } .billingLink { justify-self: start; } .laneHeading, .capacityBar, .detailHero { align-items: flex-start; flex-direction: column; } .recordGrid, .detailGrid, .visibilityNote { grid-template-columns: 1fr; } .detailHero > strong { max-width: 100%; } .detailFacts div { grid-template-columns: 1fr; gap: 4px; } }

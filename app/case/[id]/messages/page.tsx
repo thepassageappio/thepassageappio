@@ -23,7 +23,7 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
     if (result.reason === 'signed-out') redirect(loginPath(`/case/${id}/messages`));
     return <Closed reason={result.reason} />;
   }
-  const { personName, familyName, messages } = result.data;
+  const { personName, familyName, messages, isSelfServe } = result.data;
 
   // Fails closed to an empty list -- a family owner who can't reach the
   // communications RPC (e.g. an invited participant, out of scope for this
@@ -34,23 +34,23 @@ export default async function FamilyCaseMessagesPage({ params }: { params: Promi
 
   return (
     <main id="main-content">
-      <CaseNav active="messages" caseId={id} />
+      <CaseNav active="messages" caseId={id} planning={isSelfServe} />
       <header className={styles.hero}>
         <div>
-          <p>Messages</p>
-          <h1>{humanizePreviewLabel(personName ?? '', 'Your family record')}</h1>
-          <span>{humanizePreviewLabel(familyName ?? '', 'Your family')} · messages with your care team</span>
+          <p>{isSelfServe ? 'Share your plan' : 'Messages'}</p>
+          <h1>{humanizePreviewLabel(personName ?? '', isSelfServe ? 'Your plan' : 'Your family record')}</h1>
+          <span>{isSelfServe ? 'Notes and updates for people you trust' : `${humanizePreviewLabel(familyName ?? '', 'Your family')} · messages with your care team`}</span>
         </div>
       </header>
       <section className={styles.panel} aria-labelledby="messages-heading">
-        <p className={styles.eyebrow}>Messages</p>
-        <h2 id="messages-heading">Talk with your care team.</h2>
+        <p className={styles.eyebrow}>{isSelfServe ? 'Private conversation' : 'Messages'}</p>
+        <h2 id="messages-heading">{isSelfServe ? 'Write to people you invited to this plan.' : 'Talk with your care team.'}</h2>
         <MessageThread messages={messages} postAction={postWorkflowMessage} requestId={randomUUID()} workflowId={id} />
       </section>
 
       <section className={styles.panel} aria-labelledby="email-heading" style={{ marginTop: 18 }}>
         <p className={styles.eyebrow}>Email updates</p>
-        <h2 id="email-heading">Email relatives, friends, or your care team about your case.</h2>
+        <h2 id="email-heading">{isSelfServe ? 'Email someone you trust about this plan.' : 'Email relatives, friends, or your care team about your case.'}</h2>
         <p>These are real emails Passage sends on your behalf, once you review and click Send. Nothing sends automatically.</p>
         {communications.length > 0 && (
           <ol className={styles.history}>
