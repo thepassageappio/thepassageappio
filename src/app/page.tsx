@@ -1,13 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { CommercialFooter } from "@/components/commercial/CommercialFooter";
 import { CommercialHeader } from "@/components/commercial/CommercialHeader";
 import styles from "./home.module.css";
 
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
 const steps = [
-  ["01", "Start with policy", "Choose a financial POA template and define the account boundary, permitted actions, exclusions, evidence, and review owners."],
-  ["02", "Guide the people", "Give the account holder and representative a secure, role-specific path with one clear next step at a time."],
-  ["03", "Complete the record", "Collect the document, certification, identity result, and any institution-requested correction in one request."],
-  ["04", "Make the decision", "Let the institution accept, limit, reject, or request information using its own policy and review authority."],
-  ["05", "Keep it current", "Issue the same scoped receipt to every permitted party and preserve expiration, revocation, and delivery history."],
+  ["01", "Define the request", "Choose the policy, people, account boundary, permitted actions, and required evidence."],
+  ["02", "Guide each person", "Give the account holder and representative a secure path with one clear next step at a time."],
+  ["03", "Decide and stay current", "Record the institution’s scoped decision, share one receipt, and preserve later changes."],
 ];
 
 export default function Home() {
@@ -45,7 +49,7 @@ export default function Home() {
             <div><span>Representative certification</span><b>Complete</b></div>
             <div><span>Institution review</span><b data-pending="true">Next</b></div>
           </div>
-          <div className={styles.transactionFoot}><span><i /> Current status shared by permission</span><strong>Append-only history</strong></div>
+          <div className={styles.transactionFoot}><span><i /> Current status shared by permission</span><strong>Complete activity history</strong></div>
         </div>
       </section>
 
@@ -56,25 +60,11 @@ export default function Home() {
         <div><strong>Participant ready</strong><span>Hosted paths with no software training</span></div>
       </section>
 
-      <section className={styles.problem}>
-        <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>The operational gap</p>
-          <h2>The document is only the beginning.</h2>
-          <span>A financial institution still needs complete evidence, the right participants, a reviewable scope, a defensible decision, and a current record after the decision changes.</span>
-        </div>
-        <div className={styles.problemGrid}>
-          <article><span>01</span><h3>Repeated intake</h3><p>Customers and representatives repeat information across calls, branches, mail, and back-office queues.</p></article>
-          <article><span>02</span><h3>Unclear scope</h3><p>A document can authorize broad activity while the immediate request involves only a narrow account-service need.</p></article>
-          <article><span>03</span><h3>Invisible review</h3><p>Participants cannot see what is missing, who owns the next step, or whether a correction reached the reviewer.</p></article>
-          <article><span>04</span><h3>Static outcomes</h3><p>A mailed letter cannot keep channels and downstream systems aligned after limitation, expiration, or revocation.</p></article>
-        </div>
-      </section>
-
       <section className={styles.flowSection} id="how-it-works">
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>One governed transaction</p>
           <h2>Simple for people. Precise for institutions.</h2>
-          <span>Every participant sees only what they need. Every operational change produces durable state, a receipt event, and an observable next owner.</span>
+          <span>Every participant sees only what they need, what happens next, and the same current result.</span>
         </div>
         <ol className={styles.flow}>
           {steps.map(([number, title, description]) => (
@@ -117,6 +107,7 @@ export default function Home() {
           <Link className={styles.textCta} href="/pricing">View pricing</Link>
         </div>
       </section>
+      <CommercialFooter />
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requestSignInAction } from "@/app/account-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
@@ -10,6 +11,8 @@ import { safeAppPath } from "@/lib/supabase/config";
 type Props = {
   searchParams: Promise<{ intent?: string; next?: string; error?: string }>;
 };
+
+export const metadata: Metadata = { title: "Start an Evaluation", robots: { index: false, follow: false } };
 
 export default async function StartPage({ searchParams }: Props) {
   const query = await searchParams;

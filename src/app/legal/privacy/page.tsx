@@ -1,5 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import styles from "../legal.module.css";
+
+export const metadata: Metadata = { title: "Evaluation Privacy Notice", description: "How Passage Authority handles information during the controlled evaluation.", alternates: { canonical: "/legal/privacy" } };
 
 export default function EvaluationPrivacyPage() {
   return (

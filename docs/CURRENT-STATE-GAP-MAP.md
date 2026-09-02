@@ -32,10 +32,10 @@ Gate 1 now provides in the isolated hosted Authority Supabase project:
 - organization access administration and append-only access activity;
 - database replay evidence and a real owner-to-staff browser acceptance journey.
 
-The missing commercial foundation is:
+The remaining commercial foundation is:
 
 - reliable inbox placement plus the remaining expiry, wrong-person, and revocation recovery proofs;
-- private document storage;
+- negative direct-document-access evidence plus retention and recovery controls;
 - real provider adapters;
 - Stripe test-mode entitlement activation;
 - billing and full organization audit surfaces;
@@ -45,11 +45,11 @@ The missing commercial foundation is:
 
 | Target screen | Current surface | Current status | Main gap | Delivery gate |
 | --- | --- | --- | --- | --- |
-| W-01 Homepage | `/` | Demonstration ready | Approved offer and trial copy must replace older commercial assumptions | Gate 7 |
+| W-01 Homepage | `/` | Public and responsive | Owner message approval and real-user performance data | Gate 7 |
 | W-02 How it works | Homepage and integrations content | Partial | Dedicated cross-person transaction explanation | Gate 7 |
 | W-03 Templates | `/templates` | Demonstration ready | Active template detail and honest availability states | Gate 7 |
 | W-04 Pricing | `/pricing` | Current approved commercial copy | Behavior must prove $0 for 10 days and 5 activated requests, $15,000 pilot, and enterprise from $36,000 per year | Gate 7 after Gate 2 and Gate 6 behavior passes |
-| W-05 Security | `/security` | Controlled-boundary ready | Real control status and trust package as controls are implemented | Gate 7 |
+| W-05 Security | `/security` | Controlled-boundary ready with user-facing control copy | Real control status and trust package as controls are implemented | Gate 7 |
 | W-06 Developers | `/developer`, `/integrations` | Demonstration ready | Account-bound keys and production-safe environment separation | Gate 5 and Gate 7 |
 | W-07 Demo | Existing sandbox routes | Strong | One stable, resettable seven-minute entry route | Gate 7 |
 | W-08 Pilot | `/pilot` | Commercial hypothesis | Approved 90-day, $15,000 pilot credited toward year one and qualified workflow | Gate 6 and Gate 7 |

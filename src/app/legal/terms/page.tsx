@@ -1,5 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import styles from "../legal.module.css";
+
+export const metadata: Metadata = { title: "Evaluation Terms", description: "Terms for the controlled Passage Authority product evaluation.", alternates: { canonical: "/legal/terms" } };
 
 export default function EvaluationTermsPage() {
   return (

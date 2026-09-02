@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://passage-authority-uat.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepassageapp.io";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Passage Authority | Financial POA Operations",
+  title: {
+    default: "Passage Authority | Financial POA Operations",
+    template: "%s | Passage Authority",
+  },
   description: "Turn a power of attorney request into a guided, reviewable, scoped institution decision and keep every permitted party current.",
   referrer: "no-referrer",
   openGraph: {

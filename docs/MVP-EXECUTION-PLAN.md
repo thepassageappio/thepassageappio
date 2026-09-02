@@ -128,6 +128,27 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Verify signature, duplicate delivery, out-of-order event, failed payment, cancellation, and reconciliation behavior.
 - Promote to live mode only after the complete test transaction and entitlement replay pass.
 
+## Product, commercial, and testing readiness
+
+| Workstream | Start gate | Current readiness | Next action |
+| --- | --- | --- | --- |
+| User accounts | Hosted organization signup, sign-in, onboarding, membership, and recovery happy path | Ready for final hardening now | Move Auth callbacks to the public domain; close expiry, wrong-person, revoke, and recovery tests |
+| End-to-end persona UAT | One hosted transaction reaches a matching three-party receipt and lifecycle change | Engineering-assisted flow passed | Owner independently repeats institution → principal → representative → reviewer → receipt → revocation on the public domain |
+| Demo | Stable public entry, resettable approved test data, and a seven-minute script | Product is demonstrable with engineering guidance | Create one resettable hosted demo record and rehearse without developer intervention |
+| ICP and positioning | Narrow problem, workflow, buyer, and honest product boundary are documented | Ready to begin now | Interview regional-bank and credit-union operations/compliance leaders; test problem urgency and buying process before scaling outbound |
+| Sales strategy | ICP evidence plus a repeatable demo and pilot offer | Discovery and design-partner outreach can begin; broad selling is premature | Build qualification, discovery, objection, security, pilot-success, and follow-up materials from verified claims only |
+| Stripe test payments | Public Auth callback and owner-run UAT pass; entitlement mapping is approved | Not ready to connect yet | Build test-mode Checkout and verified webhook-to-organization entitlement after the release-candidate closeout |
+| Live payments | Stripe duplicate, signature, ordering, failure, cancellation, refund, and reconciliation tests pass | Blocked | Owner explicitly approves live Stripe products, prices, tax, terms, and customer-support operations |
+| Controlled pilot | Legal, security, retention, support, monitoring, deliverability, and institution acceptance are approved | Not ready | Complete the pilot-readiness control package after MVP UAT and Stripe test entitlement |
+
+## Public-site quality baseline
+
+- Responsive review covers desktop, 390px, 360px, and the WCAG 320px reflow boundary.
+- Public navigation, account entry, legal routes, sitemap, robots rules, distinct page metadata, error recovery, and baseline security headers ship together.
+- Public copy describes user outcomes and boundaries; database names, command names, raw identifiers, internal event names, and implementation terminology do not appear in the linked marketing or account-entry journey.
+- The preferred internal target size is 44px, exceeding the WCAG 2.2 minimum, with visible focus and no horizontal page scrolling.
+- Real-user Core Web Vitals, accessibility automation, CSP rollout, and production error monitoring are required before a controlled pilot; a clean build or visual inspection alone is not evidence for those controls.
+
 ## Schedule and decision gates
 
 | Window | Target | Decision gate |

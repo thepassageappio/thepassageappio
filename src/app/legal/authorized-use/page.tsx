@@ -1,5 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import styles from "../legal.module.css";
+
+export const metadata: Metadata = { title: "Authorized Use Attestation", description: "Organization responsibilities for authorized use of the Passage Authority evaluation.", alternates: { canonical: "/legal/authorized-use" } };
 
 export default function AuthorizedUsePage() {
   return (
