@@ -35,11 +35,13 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 ## Public website cutover
 
 - `thepassageapp.io` and `www.thepassageapp.io` now resolve to Authority deployment `dpl_5kHcpF1ab6XX8Y5RQNiW37qj83ju`.
+- Both custom domains are assigned at the project level to `passage-authority-uat`; the retired `thepassageappio` project retains only its `vercel.app` domain and cannot reclaim the public aliases on a later build.
 - The public homepage renders the Passage Authority title and financial POA value proposition with no browser warnings or errors.
 - An unauthenticated request to `/app` redirects to `/start?intent=sign-in` on the public domain.
 - The 390px and 360px homepage checks passed without horizontal overflow.
 - No Authority runtime error was present in the 30-minute post-cutover log check.
 - Legacy rollback remains available at deployment `dpl_CJUFCYSw9GZBuK4Wy98z6tTbqa4A`; rollback requires reassigning both public aliases to that deployment.
+- GitHub `main` was fast-forwarded without history rewriting to Authority cutover commit `fe0766e`, preventing a later main deployment from restoring the retired product source.
 - Secure email and participant links intentionally continue to use `https://passage-authority-uat.vercel.app` until the public domain is added to the Supabase Auth redirect allowlist and retested.
 
 ## Complete browser transaction
