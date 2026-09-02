@@ -48,11 +48,11 @@ The remaining commercial foundation is:
 | W-01 Homepage | `/` | Public and responsive | Owner message approval and real-user performance data | Gate 7 |
 | W-02 How it works | Homepage and integrations content | Partial | Dedicated cross-person transaction explanation | Gate 7 |
 | W-03 Templates | `/templates` | Demonstration ready | Active template detail and honest availability states | Gate 7 |
-| W-04 Pricing | `/pricing` | Current approved commercial copy | Behavior must prove $0 for 10 days and 5 activated requests, $15,000 pilot, and enterprise from $36,000 per year | Gate 7 after Gate 2 and Gate 6 behavior passes |
+| W-04 Pricing | `/pricing` | Current approved commercial copy | Behavior must prove $0 for 10 days and 5 activated requests, a $5,000 founding pilot, and a custom post-pilot institution relationship | Gate 7 after Gate 2 and Gate 6 behavior passes |
 | W-05 Security | `/security` | Controlled-boundary ready with user-facing control copy | Real control status and trust package as controls are implemented | Gate 7 |
 | W-06 Developers | `/developer`, `/integrations` | Demonstration ready | Account-bound keys and production-safe environment separation | Gate 5 and Gate 7 |
 | W-07 Demo | Existing sandbox routes | Strong | One stable, resettable seven-minute entry route | Gate 7 |
-| W-08 Pilot | `/pilot` | Commercial hypothesis | Approved 90-day, $15,000 pilot credited toward year one and qualified workflow | Gate 6 and Gate 7 |
+| W-08 Pilot | `/pilot` | Commercial hypothesis | Approved 60-to-90-day, $5,000 founding pilot credited toward year one and qualified workflow | Gate 6 and Gate 7 |
 | O-01 Start | `/start` | Hosted vertical slice passed | Production email and MFA hardening remain pilot controls | Gate 1 passed |
 | O-02 Auth confirm | `/auth/confirm` | Hosted vertical slice passed | Session recovery and MFA hardening remain pilot controls | Gate 1 passed |
 | O-03 Organization | `/onboarding/organization` | Hosted vertical slice passed | Organization verification operations remain pilot controls | Gate 1 passed |

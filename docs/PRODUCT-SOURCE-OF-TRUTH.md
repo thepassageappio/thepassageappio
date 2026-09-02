@@ -127,8 +127,8 @@ This differentiation is a hypothesis until an external institution confirms that
 | Offer | Price | Duration | Real authority transactions | Payment and entitlement |
 | --- | ---: | ---: | ---: | --- |
 | Try Passage Authority | $0 | 10 calendar days from first activation | 5 | No card. Passage entitlement only. |
-| 90-day Pilot | $15,000 | 90 days | Defined in the signed pilot scope | Paid by Stripe invoice or approved checkout. Credited toward year one when converted under the pilot agreement. |
-| Enterprise Relationship | From $36,000 per year | 12 months | Included volume and any overage terms are set after pilot evidence | Activated only from a verified Stripe payment or subscription event. |
+| Founding proof-of-concept pilot | $5,000 | 60 to 90 days | Defined in the signed pilot scope | Paid by Stripe invoice or approved checkout. Credited toward year one when converted under the pilot agreement. |
+| Institution relationship | Custom after pilot evidence | Contracted term | Included volume and any overage terms are set after pilot evidence | Activated only from a verified Stripe payment or subscription event. |
 
 ### 5.2 What counts as a transaction
 
@@ -156,7 +156,7 @@ The product never trusts a browser redirect as proof of payment. Paid entitlemen
 
 - Free evaluation requires organization verification, terms acceptance, privacy notice, authorized-use attestation, and secure data controls before real information is accepted.
 - No anonymous public checkout grants product access.
-- The $15,000 pilot is a defined engagement, not a self-serve commodity purchase.
+- The $5,000 founding pilot is a defined proof-of-concept engagement, not a self-serve commodity purchase.
 - Annual included volume remains a commercial decision to be set from real pilot usage. The website must not invent a limit or overage fee.
 
 ## 6. Personas and access model
@@ -443,7 +443,7 @@ The wireframes define information hierarchy and behavior. Visual polish may impr
 +--------------------------------------------------------------------------------+
 | Active template: New York financial POA for limited account service             |
 +--------------------------------------------------------------------------------+
-| Free: 5 over 10 days | Pilot: $15,000 | Enterprise: from $36,000 per year      |
+| Free: 5 over 10 days | Pilot: $5,000 | Institution: custom after proof       |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -667,12 +667,12 @@ The wireframes define information hierarchy and behavior. Visual polish may impr
 | 3 of 5 real requests activated | 7 of 10 days remaining                  |
 | Existing requests remain available after the evaluation ends.            |
 |                                                                          |
-| 90-day pilot                                                             |
-| $15,000 | credited toward year one when converted under pilot agreement  |
+| Founding pilot                                                           |
+| $5,000 | credited toward year one when converted under pilot agreement   |
 | [Review pilot]                                                           |
 |                                                                          |
 | Enterprise relationship                                                  |
-| From $36,000 per year | production relationship and agreed usage         |
+| Custom after pilot evidence | production relationship and agreed usage   |
 | [Talk with Passage]                                                      |
 |                                                                          |
 | Payment status and invoices appear only when Stripe confirms them.        |
@@ -850,6 +850,18 @@ Required controls:
 ### 16.3 Stripe
 
 Stripe manages the paid pilot and annual relationship.
+
+Commercial rules:
+
+- the institution organization is the customer; principals and representatives are never charged;
+- the free evaluation requires no card and permits five activated requests during 10 days;
+- the founding pilot is sales-assisted and defaults to a Stripe invoice or Hosted Invoice Page, with card or supported bank-transfer payment methods selected in Stripe;
+- the annual relationship begins as a contracted base price with an included transaction allowance; exact volume bands and overage prices remain a validated commercial decision, not a code assumption;
+- Passage records one usage event when a request is activated. Drafts, retries, failed commands, and idempotent replays do not create billable usage;
+- the Passage usage ledger remains the canonical transaction count. Stripe meters may receive a derived copy later but never replace Passage's auditable usage record;
+- Stripe-hosted surfaces collect payment details. Passage never stores raw card numbers or bank credentials;
+- Plaid is not required for card collection or the first billing release. It may be considered later only for a separately approved bank-account or payment use case;
+- ending or losing a paid entitlement blocks new activation but does not hide existing authority records, receipts, or lifecycle status.
 
 Required controls:
 
@@ -1285,10 +1297,11 @@ An HTTP 200, passing component test, successful email API response, Stripe redir
 - Keep institution acceptance separate from identity and document evidence.
 - Use institution accounts and passwordless, role-bound participant invitations.
 - Offer five real free transactions over 10 days, starting at first activation.
-- Offer a $15,000, 90-day pilot credited toward year one when converted under the pilot agreement.
-- Offer an enterprise relationship starting at $36,000 per year.
+- Offer a $5,000, 60-to-90-day founding proof-of-concept pilot credited toward year one when converted under the pilot agreement.
+- Price the institution relationship after qualified discovery and pilot evidence; do not publish an unsupported annual floor.
 - Count a transaction at first participant invitation.
 - Preserve existing records and receipts after entitlement expiration.
+- Treat one free activation per verified organization per calendar month as a future PLG experiment, not the current controlled evaluation. Require organization verification, abuse controls, automated onboarding and recovery, durable monthly reset, and end-to-end entitlement evidence before migration.
 - Use Stripe only for paid offers and activate entitlement from verified webhooks.
 - Use a separate Authority Supabase environment.
 - Keep current deterministic MVP as the fictional demo and regression harness.

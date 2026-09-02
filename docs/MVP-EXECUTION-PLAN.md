@@ -124,9 +124,15 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 
 - Archive superseded Passage Stripe products without touching historical records.
 - Create clean Passage Authority pilot and annual products in Stripe test mode first.
-- Store customer and subscription mapping by organization.
+- Default the $5,000 founding proof-of-concept pilot to a sales-assisted Stripe invoice or Hosted Invoice Page; credit it toward year one when converted and do not require a consumer-style checkout.
+- Model the annual relationship as a contracted base price with included authority-request volume. Validate exact bands and overage pricing before encoding them.
+- Store Stripe customer, invoice, payment, and optional subscription mapping by organization.
+- Treat the existing Passage activation ledger as canonical usage; send a derived meter event to Stripe only if usage billing is later approved.
 - Verify signature, duplicate delivery, out-of-order event, failed payment, cancellation, and reconciliation behavior.
+- Never activate access from a success redirect, and never charge a principal or representative.
+- Do not add Plaid to the billing flow; Stripe-hosted card and bank-payment surfaces are the first payment boundary.
 - Promote to live mode only after the complete test transaction and entitlement replay pass.
+- After controlled pilots and low-touch operations pass, test a separate PLG entitlement of one free activation per verified organization per calendar month. This is not part of the current controlled evaluation or MVP release gate.
 
 ## Product, commercial, and testing readiness
 

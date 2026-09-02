@@ -23,8 +23,8 @@ When documents conflict, the lower order number controls.
 | --- | --- | --- |
 | Free offer | 10 days from first real activation or 5 real authority transactions, with no card | Fictional-only developer evaluation as the only free offer |
 | Trial transaction | Count once when the first participant invitation is issued | Count drafts, API calls, or completed decisions |
-| Pilot | $15,000 for 90 days, credited toward year one when converted under the pilot agreement | $2,500 for 60 days and 20 real transactions |
-| Enterprise relationship | From $36,000 per year; included volume finalized after pilot evidence | $7,500 per year |
+| Pilot | $5,000 for 60 to 90 days, credited toward year one when converted under the pilot agreement | $2,500 for 60 days and 20 real transactions |
+| Institution relationship | Custom after pilot evidence; included volume finalized from qualified discovery and pilot results | $7,500 per year |
 | Account model | Organization users have accounts. Principals and representatives use secure role-bound invitations without passwords. | Local role-switch cookie as a real access model |
 | Data environment | New isolated Authority Supabase environment | Reuse or migrate the legacy Passage production schema |
 | Product wedge | New York financial POA intake and limited account servicing | Broad death-care, family, vendor, estate, or universal delegated-authority scope |
