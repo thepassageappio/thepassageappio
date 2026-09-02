@@ -1,0 +1,67 @@
+.reviewOption {
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.reviewOption summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.reviewOption[open] summary {
+  margin-bottom: 15px;
+}
+
+.decisionField {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.decisionField textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 13px;
+  resize: vertical;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.decisionField textarea:focus {
+  outline: 3px solid rgba(29, 91, 77, 0.15);
+  border-color: var(--green);
+}
+
+.prohibited {
+  margin: 15px 0 19px;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+  list-style: none;
+}
+
+.prohibited li {
+  position: relative;
+  padding-left: 19px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.prohibited li::before {
+  content: "×";
+  position: absolute;
+  left: 0;
+  color: #833d31;
+  font-weight: 900;
+}

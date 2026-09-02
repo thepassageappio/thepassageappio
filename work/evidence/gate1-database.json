@@ -1,0 +1,36 @@
+{
+  "verifiedAt": "2026-08-28T18:22:29.850Z",
+  "environment": "isolated local Supabase",
+  "users": {
+    "ownerA": "bb9bad8b-1696-4975-8c8d-f2d443317149",
+    "ownerB": "1f261559-3f86-45ce-951f-af185ac3f45e",
+    "staff": "66de912e-e198-4a3e-a332-c0af71775a14",
+    "wrongRecipient": "fb613d02-7cca-4f80-bead-c0dfadc32855"
+  },
+  "organizations": {
+    "organizationA": "6535ee89-82c8-4205-b612-f6354b9ac462",
+    "organizationB": "a3c9cfcc-8266-4a0f-b197-268f1a46e0ce"
+  },
+  "membership": {
+    "accepted": "7299d0ca-bd5f-4ef4-84b3-221bac67d93c",
+    "revoked": "7299d0ca-bd5f-4ef4-84b3-221bac67d93c"
+  },
+  "invitation": {
+    "id": "b0c15ffc-e7eb-4878-b206-73b6a2afafcc",
+    "tokenRecorded": false
+  },
+  "assertions": {
+    "idempotentOrganizationCreation": true,
+    "versionedTermsAcceptance": true,
+    "immutableTemplateSelection": true,
+    "emailBoundHashedInvitation": true,
+    "receivingMemberAccess": true,
+    "crossTenantReadsDenied": true,
+    "unauthorizedRoleCommandDenied": true,
+    "staleVersionDenied": true,
+    "lastOwnerProtected": true,
+    "revokedAccessDeniedImmediately": true,
+    "appendOnlyAuditProtected": true
+  },
+  "auditEventCount": 9
+}

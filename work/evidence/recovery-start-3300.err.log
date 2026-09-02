@@ -1,0 +1,73 @@
+$ next start "--port" "3300"
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+Error [AuthRetryableFetchError]: fetch failed
+    at cl (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:47143)
+    at async ck (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:11:46625)
+    at async c (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23699)
+    at async (C:\Users\Turrisi OS\Documents\Codex\2026-08-31\we-were-in-the-middle-of\.next\server\chunks\ssr\_c2297a7c._.js:24:23962) {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}

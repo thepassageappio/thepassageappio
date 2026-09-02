@@ -1,0 +1,149 @@
+# Passage Authority MVP execution plan
+
+**Launched:** August 28, 2026  
+**Current score:** 7.7 of 10 to a working MVP  
+**Target score:** 8 of 10 with a hosted, independently replayable product  
+**Active work limit:** One complete vertical slice
+
+## Outcome
+
+An authenticated institution can create and activate a New York financial power of attorney request. The principal, representative, and institution reviewer can complete their separate steps. Every action produces durable organization-isolated state, an append-only event, a matching receipt, and an observable notification or integration outcome.
+
+The product is not an MVP until the hosted product completes this story. The local sandbox remains a regression and sales demonstration environment, but it is not release evidence for hosted product behavior.
+
+## Critical path
+
+| Order | Slice | Exit result | Status |
+| --- | --- | --- | --- |
+| 1 | Hosted request foundation | Authorized institution user creates a draft in the correct organization queue. A second authorized user can read it through organization RLS. A non-member and revoked member cannot. | Core evidence passed; revoked-user browser message is final hardening evidence |
+| 2 | Trial and activation | First invitation starts the 10-day trial and consumes one of five transactions exactly once. Request six is blocked without hiding existing work. | Passed end to end |
+| 3 | Participant access | Principal and representative receive separate expiring links and complete only their permitted actions. | Hosted real-email happy path passed; recovery hardening remains |
+| 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Foundation and certification passed; browser source upload awaits Chrome local-file access |
+| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Not started |
+| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Not started |
+| 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Blocked by slices 1 through 6 |
+| 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Not started |
+
+## Slice 1 acceptance contract
+
+### User story
+
+An authenticated organization owner, administrator, staff member, or reviewer starts a request from the selected New York financial power of attorney template, saves it as a draft, and sees it in the organization queue.
+
+### Durable results
+
+- One organization-owned authority record with status `draft`.
+- One immutable template key and version reference.
+- One exact participant and scope snapshot.
+- One append-only `authority.draft_created` event.
+- One idempotency receipt for the authenticated actor and command.
+- No invitation, usage debit, trial clock, or email.
+
+### Authorization
+
+- Owner, administrator, staff, and reviewer may create a draft.
+- Auditor may read authorized organization records but may not create or change them.
+- Developer has no personal-data access in the first hosted slice.
+- A non-member, revoked member, or member of another organization receives no record existence signal.
+- Organization and actor identity come from the authenticated session and database membership, never from trusted browser fields.
+
+### Negative paths
+
+- Invalid or reused idempotency key with different content.
+- Duplicate participant email.
+- Unsupported action.
+- Missing selected template.
+- Organization not ready.
+- Revoked membership.
+- Cross-organization record identifier.
+- Invalid or past end date.
+
+### Release evidence
+
+1. Browser action creates the draft.
+2. Database query proves organization, actor, status, version, and policy snapshot.
+3. Event query proves sequence 1 and matching record identifier.
+4. Queue displays the saved draft after a fresh page load.
+5. Another authorized institution user sees the same draft.
+6. A revoked or unrelated user cannot list or open the draft.
+7. Replaying the same idempotency key returns the same record without a duplicate event.
+8. TypeScript, lint, domain tests, optimized build, database advisors, and browser console checks pass.
+
+## Current Slice 2 evidence
+
+### Slice 2: activation and free usage
+
+- Organization entitlements and append-only usage events are hosted.
+- The request detail previews the principal, representative, scope, and exact trial consequence before activation.
+- Activation atomically checks entitlement and record version, counts usage, advances status, creates two hashed invitations, writes one event and audit entry, queues principal delivery, and keeps representative delivery held.
+- The 10-day clock started once on the first successful activation and remained unchanged through transaction five.
+- Five activations completed with exactly five usage events, ten participant invitation records, ten hashed secrets, and ten outbox records. Principal delivery is first; representative delivery remains held until principal confirmation.
+- The sixth activation returned `evaluation_limit_reached`, preserved the request as draft version 1, kept usage at 5 of 5, and created no activation side effect.
+- Idempotent replay returns the same record without raw participant tokens or duplicate side effects.
+- TypeScript, ESLint, 52 automated tests, the optimized build, and database security and performance review pass. The one missing outbox organization index found by the advisor was added.
+
+### Browser closeout passed
+
+- The owner browser shows 5 of 5 activated requests, five waiting requests, and one saved draft.
+- An activated request shows principal-first sequencing and two separate role records.
+- The sixth draft shows no activation button, explains that it remains saved, and links to the 90-day pilot.
+- A direct sixth activation attempt returned the friendly evaluation-limit error before the proactive UI fix and produced no database side effect.
+- Fresh-page state and browser logs passed after the corrected production rebuild.
+
+### Slice 3: participant journeys
+
+- Passed: invitation secrets are hashed and single-use invitation exchange creates a 30-minute record-bound, role-bound session.
+- Passed: invitation reuse and wrong-record access fail safely without mutating the request.
+- Passed: the principal decision requires explicit acknowledgment, writes one append-only decision and event, advances the canonical record, rotates representative access, and releases its notification only after confirmation.
+- Passed: the representative receives the upstream change, opens separate access, explicitly accepts responsibility, and advances the same request to requirements.
+- Passed: the institution browser sees both participant access events, both decisions, and the current record state with no browser log errors.
+- Passed: independent replay returns the original results, produces no duplicate decision or event, preserves the same representative token, rejects idempotency payload mismatch, and rejects a stale version.
+- Passed: real principal and representative messages were delivered through Resend from the hosted product, signed delivery webhooks changed durable state, and the owner saw confirmed delivery.
+- Passed: principal acted first and the representative received access only after principal confirmation.
+- Passed: audited fresh-link issuance revoked the old session and token. A schema defect that rejected the replacement session was found in hosted UAT, corrected to enforce one active session while preserving revoked history, and retested successfully.
+- Active hardening: expiry, invitation revoke, wrong-person, post-revocation message, and safe recovery browser proofs.
+- Known blocker: both real messages landed in Gmail Spam. Provider acceptance and mail-server delivery are not sufficient for commercial deliverability.
+
+### Active Slice 4: private evidence and assisted review
+
+- Store uploaded evidence privately and expose it only through short-lived authorized access.
+- Keep the source artifact, scan state, provider result, extracted finding, human confirmation, and institution policy result as separate records and labels.
+- Render one role-owned requirement list for the representative with reason, acceptable methods, current status, and next action.
+- Allow the institution reviewer to inspect source-linked findings, confirm or flag them, and request one specific missing item.
+- Preserve optimistic concurrency, idempotency, ordered events, access logs, and provider failure states.
+- Close only after Chrome, database, receiving reviewer, negative access, and replay evidence agree.
+
+### Slices 5 and 6: transaction parity
+
+- Move the canonical tested transition behavior from the SQLite adapter to hosted Postgres-backed commands.
+- Preserve optimistic concurrency, idempotency, immutable events, policy snapshot, minimum disclosure, decision limits, and revocation.
+- Make every receiving persona observe and act on each upstream change.
+- Produce a shared receipt and signed lifecycle events from the same canonical record version.
+
+### Slice 7: commercial entitlement
+
+- Archive superseded Passage Stripe products without touching historical records.
+- Create clean Passage Authority pilot and annual products in Stripe test mode first.
+- Store customer and subscription mapping by organization.
+- Verify signature, duplicate delivery, out-of-order event, failed payment, cancellation, and reconciliation behavior.
+- Promote to live mode only after the complete test transaction and entitlement replay pass.
+
+## Schedule and decision gates
+
+| Window | Target | Decision gate |
+| --- | --- | --- |
+| Days 1 to 3 | Hosted draft, queue, organization isolation, and event evidence | Continue only when Slice 1 passes all evidence |
+| Days 4 to 6 | Activation, five-free entitlement, and participant invitation foundation. Command, data, test, and UI evidence passed; browser closeout active. | Continue only when count and invitation are atomic |
+| Days 7 to 10 | Principal, representative, reviewer, receipt, and lifecycle parity | Continue only when another persona completes each received action |
+| Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
+| Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
+
+From the current verified position, the expected path to a hosted MVP release candidate is 7 to 10 focused working days. Pilot readiness follows with deliverability, legal, security, support, monitoring, retention, and written institution acceptance requirements.
+
+External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
+
+## Commercial release boundary
+
+The MVP may be demonstrated to prospective institutions when the hosted end-to-end story passes with approved test data. It may enter a controlled pilot only after legal terms, information handling, private storage, provider boundaries, support, monitoring, and the institution's written acceptance requirements are approved.
+
+The product may not claim universal legal validity, automatic institution acceptance, bank integration, enterprise certification, or production readiness without evidence for that exact claim.

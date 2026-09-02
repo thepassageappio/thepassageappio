@@ -1,33 +1,38 @@
 {
-  "name": "passage-zero",
+  "name": "passage-authority",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "test:deploy-gate": "node scripts/test-vercel-ignore-build.js",
-    "test:operational-route-gate": "node scripts/test-operational-route-gate.js",
-    "test:release-governance": "node scripts/test-release-governance.js",
-    "test:persona-language": "node scripts/check-persona-language.js",
-    "test:agent-context": "node scripts/check-agent-context.js",
-    "test:runtime-config": "node scripts/test-runtime-config.js",
     "start": "next start",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
-    "test:server-actions": "node scripts/test-use-server-exports.js"
+    "test:domain": "node --experimental-strip-types --test src/lib/authority/*.test.mts",
+    "verify:gate1:database": "node scripts/verify-gate1-database.mjs",
+    "verify:live-story": "node scripts/verify-live-story.mjs",
+    "verify": "pnpm test:domain && pnpm typecheck && pnpm lint && pnpm build"
+  },
+  "engines": {
+    "node": ">=24.15.0"
   },
   "dependencies": {
-    "@supabase/ssr": "0.12.3",
-    "@supabase/supabase-js": "2.110.7",
+    "@supabase/ssr": "0.12.5",
+    "@supabase/supabase-js": "2.112.4",
     "next": "16.1.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "stripe": "^22.5.0"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-email": "6.9.3",
+    "resend": "6.24.0",
+    "stripe": "22.6.0"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
-    "typescript": "^5.9.3"
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.1.6",
+    "typescript": "5.9.3"
   }
 }

@@ -1,0 +1,6 @@
+.env*
+/.data
+/docs
+/supabase
+/work
+/tmp

@@ -1,0 +1,2 @@
+-- Gate 1 verification creates fictional users and organizations at runtime.
+-- No legacy Passage data is copied into the Authority environment.
