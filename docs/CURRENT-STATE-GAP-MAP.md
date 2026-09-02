@@ -81,7 +81,7 @@ The missing commercial foundation is:
 | H-09 Respond | Existing RFI response | Strong fictional skeleton | Real email and secure resume | Gate 3 and Gate 5 |
 | H-10 Status | Existing status card | Strong fictional skeleton | Real session, delivery state, and reminders | Gate 3 and Gate 5 |
 | H-11 Receipt | Hosted role-bound receipt | Principal, representative, and institution matched through revocation | Export and scheduled expiration remain | Gate 5 core passed |
-| D-01 Sandbox | `/developer` scenarios | Strong | Explicit environment banner and isolation from UAT | Gate 5 |
+| D-01 Sandbox | `/developer` scenarios | Strong local regression harness | Public CTAs route to hosted Authority; keep the SQLite harness local-only | Gate 5 |
 | D-02 Quickstart | Developer page and REST routes | Strong fictional skeleton | Account-bound test keys and hosted-link creation | Gate 5 |
 | D-03 Webhooks | Delivery log and replay | Strong local skeleton | Durable Postgres outbox, real signing secret, endpoint verification | Gate 5 |
 | D-04 API documentation | Developer page snippets | Partial | Complete versioned reference and error catalog | Gate 5 and Gate 7 |

@@ -21,7 +21,7 @@ export default function Home() {
           <h1>Turn a power of attorney request into a clear, scoped institution decision.</h1>
           <p className={styles.lede}>Passage guides account holders, representatives, and review teams through one policy-controlled transaction. Your institution decides. Everyone sees the same current result.</p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="/institution/new">Run the sample transaction <span>→</span></Link>
+            <Link className={styles.primary} href="/start">Start an Authority evaluation <span>→</span></Link>
             <Link className={styles.secondary} href="#how-it-works">See how it works</Link>
           </div>
           <p className={styles.boundary}>Passage does not create a power of attorney or determine legal validity. It makes an institution&apos;s intake, review, decision, and lifecycle process operational.</p>
@@ -113,7 +113,7 @@ export default function Home() {
           <span>Explore the institution, account holder, representative, reviewer, receipt, and lifecycle experience using sample records.</span>
         </div>
         <div className={styles.ctaActions}>
-          <Link className={styles.lightCta} href="/institution/new">Explore the product</Link>
+          <Link className={styles.lightCta} href="/start">Explore the product</Link>
           <Link className={styles.textCta} href="/pricing">View pricing</Link>
         </div>
       </section>
