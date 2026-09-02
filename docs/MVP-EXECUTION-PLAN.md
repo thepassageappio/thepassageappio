@@ -19,8 +19,8 @@ The product is not an MVP until the hosted product completes this story. The loc
 | 2 | Trial and activation | First invitation starts the 10-day trial and consumes one of five transactions exactly once. Request six is blocked without hiding existing work. | Passed end to end |
 | 3 | Participant access | Principal and representative receive separate expiring links and complete only their permitted actions. | Hosted real-email happy path passed; recovery hardening remains |
 | 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Core passed with two browser uploads, certification, and institution review; negative direct-access replay remains |
-| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Decision and revocation passed; RFI/withdrawal/expiration closeout remains |
-| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Three-party receipt and revocation fingerprint passed; independent hosted event replay remains |
+| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Hosted decision and revocation passed; RFI/withdrawal/expiration negative-path closeout remains |
+| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Hosted three-party receipt and revocation fingerprint passed; independent hosted event replay remains |
 | 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Blocked by slices 1 through 6 |
 | 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Engineering-assisted synthetic UAT passed; owner-run public-domain replay remains |
 
@@ -112,12 +112,13 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Passed: a fresh unauthenticated participant browser exposed and verified the corrected anonymous command boundary.
 - Remaining: negative direct-source access and independent database replay closeout.
 
-### Slices 5 and 6: transaction parity
+### Slices 5 and 6: hosted transaction parity
 
-- Move the canonical tested transition behavior from the SQLite adapter to hosted Postgres-backed commands.
-- Preserve optimistic concurrency, idempotency, immutable events, policy snapshot, minimum disclosure, decision limits, and revocation.
-- Make every receiving persona observe and act on each upstream change.
-- Produce a shared receipt and signed lifecycle events from the same canonical record version.
+- Passed: hosted Postgres-backed commands preserved optimistic concurrency, immutable events, the policy snapshot, decision limits, and revocation through the tested transaction.
+- Passed: institution, principal, and representative observed the same current record and matching receipt from separate browser profiles.
+- Passed: revocation advanced the canonical request version while preserving the saved decision fingerprint.
+- Remaining: hosted negative-path closeout for request-for-information, withdrawal, expiration, and an independent event replay from the hosted adapter.
+- Boundary: the SQLite adapter remains a local regression harness and is not reachable from public website calls to action.
 
 ### Slice 7: commercial entitlement
 
