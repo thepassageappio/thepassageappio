@@ -95,6 +95,15 @@ The homepage, templates, integrations, security, pricing, pilot, institution que
 - ESLint: passed
 - Next.js production build: passed
 
+## Founding pilot offer release
+
+- Production deployment `dpl_55r7qtLwAY9eCbmyWezXWYAqqbQf` is Ready and aliased to `thepassageapp.io`, `www.thepassageapp.io`, and `passage-authority-uat.vercel.app`.
+- Public pricing now offers a no-card controlled evaluation, a $5,000 founding proof-of-concept pilot credited toward year one, and a custom institution relationship priced after pilot evidence.
+- The public site no longer publishes the superseded $15,000 pilot or $36,000 annual floor.
+- `/pricing` and `/pilot` passed live checks at 1440px, 390px, and 360px with no horizontal overflow, empty links, console warnings, or console errors.
+- At 390px, pricing measured about 2.19 viewport heights and pilot about 1.86; at 360px, pricing measured about 2.25 and pilot about 1.94.
+- The current five-activation, 10-day evaluation remains the verified MVP entitlement. One free activation per verified organization per calendar month is recorded as a future product-led-growth experiment and is not represented as implemented.
+
 ## Controlled boundary
 
 This release uses fictional records and synthetic evidence. It does not contact an institution, validate a live legal instrument, provide a legal opinion, or claim production security certification. Earlier hosted invitation tests used controlled owner mailboxes; provider acceptance and inbox placement remain separate from the authority decision.
