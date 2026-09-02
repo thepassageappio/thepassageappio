@@ -1,8 +1,8 @@
 # Passage Authority MVP execution plan
 
-**Launched:** August 28, 2026  
-**Current score:** 7.7 of 10 to a working MVP  
-**Target score:** 8 of 10 with a hosted, independently replayable product  
+**Launched:** August 28, 2026
+**Current score:** 8.7 of 10 to a working MVP
+**Target score:** 9 of 10 with a hosted, independently replayable product on the approved public domain
 **Active work limit:** One complete vertical slice
 
 ## Outcome
@@ -18,11 +18,11 @@ The product is not an MVP until the hosted product completes this story. The loc
 | 1 | Hosted request foundation | Authorized institution user creates a draft in the correct organization queue. A second authorized user can read it through organization RLS. A non-member and revoked member cannot. | Core evidence passed; revoked-user browser message is final hardening evidence |
 | 2 | Trial and activation | First invitation starts the 10-day trial and consumes one of five transactions exactly once. Request six is blocked without hiding existing work. | Passed end to end |
 | 3 | Participant access | Principal and representative receive separate expiring links and complete only their permitted actions. | Hosted real-email happy path passed; recovery hardening remains |
-| 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Foundation and certification passed; browser source upload awaits Chrome local-file access |
-| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Not started |
-| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Not started |
+| 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Core passed with two browser uploads, certification, and institution review; negative direct-access replay remains |
+| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Decision and revocation passed; RFI/withdrawal/expiration closeout remains |
+| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Three-party receipt and revocation fingerprint passed; independent hosted event replay remains |
 | 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Blocked by slices 1 through 6 |
-| 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Not started |
+| 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Engineering-assisted synthetic UAT passed; owner-run public-domain replay remains |
 
 ## Slice 1 acceptance contract
 
@@ -104,14 +104,13 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Active hardening: expiry, invitation revoke, wrong-person, post-revocation message, and safe recovery browser proofs.
 - Known blocker: both real messages landed in Gmail Spam. Provider acceptance and mail-server delivery are not sufficient for commercial deliverability.
 
-### Active Slice 4: private evidence and assisted review
+### Slice 4 hosted evidence result
 
-- Store uploaded evidence privately and expose it only through short-lived authorized access.
-- Keep the source artifact, scan state, provider result, extracted finding, human confirmation, and institution policy result as separate records and labels.
-- Render one role-owned requirement list for the representative with reason, acceptable methods, current status, and next action.
-- Allow the institution reviewer to inspect source-linked findings, confirm or flag them, and request one specific missing item.
-- Preserve optimistic concurrency, idempotency, ordered events, access logs, and provider failure states.
-- Close only after Chrome, database, receiving reviewer, negative access, and replay evidence agree.
+- Passed: two separate synthetic PDF sources uploaded through the hosted representative browser flow and remained private storage references.
+- Passed: the representative and institution saw matching source and certification states.
+- Passed: institution review advanced the canonical record only after all three requirements were complete.
+- Passed: a fresh unauthenticated participant browser exposed and verified the corrected anonymous command boundary.
+- Remaining: negative direct-source access and independent database replay closeout.
 
 ### Slices 5 and 6: transaction parity
 
@@ -138,7 +137,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 | Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
 | Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
 
-From the current verified position, the expected path to a hosted MVP release candidate is 7 to 10 focused working days. Pilot readiness follows with deliverability, legal, security, support, monitoring, retention, and written institution acceptance requirements.
+From the current verified position, the expected path to a public-domain MVP release candidate is one focused release cycle: replay and negative-path closeout, responsive smoke testing, domain cutover, and rollback verification. Pilot readiness still follows with deliverability, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
 
 External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
 

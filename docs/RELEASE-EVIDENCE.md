@@ -1,12 +1,36 @@
 # Passage Authority controlled MVP release evidence
 
-> **Document status, August 27, 2026:** This proves only the fictional controlled MVP. It is not evidence of real authentication, tenant isolation, email delivery, private document storage, paid entitlement, legal acceptance, or enterprise production readiness.
+> **Document status, September 2, 2026:** This proves the fictional controlled MVP and the isolated hosted Authority UAT environment. It is not evidence of legal validity, institutional acceptance, paid entitlement, enterprise security certification, or readiness for real customer data.
 
-Date: August 26, 2026
+Date: September 2, 2026
 
 ## Release outcome
 
 The controlled MVP now supports one complete New York financial power of attorney transaction for limited account servicing. It begins with institution setup and ends with a current decision receipt, revocation, and independently replayable integration evidence.
+
+## Hosted Authority UAT transaction
+
+Deployment: `https://passage-authority-uat.vercel.app`
+
+Browser request: `PA-79F08BDB4D`
+
+Decision receipt: `PAR-EE13818AF409`
+
+| Boundary | Hosted evidence | Result |
+| --- | --- | --- |
+| Institution authentication | A synthetic organization owner opened the deployed workspace through the server confirmation route | Pass |
+| Representative resume | A new single-use, role-bound session preserved the earlier responsibility decision | Pass |
+| POA source | `fictional-poa-uat.pdf` was uploaded through the browser, stored privately, and projected as awaiting institution review | Pass |
+| Identity source | `fictional-identity-uat.pdf` was uploaded independently and projected as awaiting institution review | Pass |
+| Certification | The representative saved the versioned certification and both personas saw it complete | Pass |
+| Institution review | The institution accepted each source for this request without claiming universal legal validity | Pass |
+| Decision | The institution recorded an acceptance with two explicit limits | Pass |
+| Shared receipt | Institution, principal, and representative saw the same receipt identifier, decision version, scope, limits, and fingerprint | Pass |
+| Lifecycle | Revocation advanced the request from version 10 to 11 while preserving the decision fingerprint | Pass |
+| Browser isolation | Principal and representative were verified in separate browser profiles with the correct independent role projection | Pass |
+| Anonymous participant boundary | Fresh participant access initially exposed a missing schema permission; migration `authority_participant_anon_boundary` restricted anonymous access to exactly four token-validated functions and zero private tables | Pass after remediation |
+
+Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d094918426be21`
 
 ## Complete browser transaction
 
@@ -49,13 +73,13 @@ The homepage, templates, integrations, security, pricing, pilot, institution que
 
 ## Automated release gates
 
-- Domain and persistence tests: 16 passed
+- Domain and persistence tests: 65 passed
 - TypeScript: passed
 - ESLint: passed
 - Next.js production build: passed
 
 ## Controlled boundary
 
-This release uses fictional records and deterministic evidence results. It does not send messages, contact an institution, validate a live legal instrument, provide a legal opinion, or claim production security certification.
+This release uses fictional records and synthetic evidence. It does not contact an institution, validate a live legal instrument, provide a legal opinion, or claim production security certification. Earlier hosted invitation tests used controlled owner mailboxes; provider acceptance and inbox placement remain separate from the authority decision.
 
 Production readiness still requires tenant isolation, production authentication, reviewed Postgres row-level security, real evidence-provider integrations, key management, retention and recovery controls, observability, security testing, legal review, and a named institution pilot.

@@ -1,12 +1,12 @@
 # Passage Authority current-state gap map
 
-**Date:** August 30, 2026  
-**Baseline:** Greenfield controlled MVP in this repository  
+**Date:** September 2, 2026
+**Baseline:** Greenfield controlled MVP in this repository
 **Target:** UAT-ready product defined in `PRODUCT-SOURCE-OF-TRUTH.md`
 
 ## 1. Executive status
 
-The current application combines a strong fictional transaction harness with a deployed hosted account, organization, request, entitlement, activation, participant-delivery, participant-decision, secure-resume, and evidence foundation. The hosted product now carries one request from institution authentication through real participant messages, role-bound sessions, both decisions, dynamic requirements, a durable certification, institution visibility, events, and audit records. It is not yet a complete hosted transaction product because browser source upload and review, decision receipt, lifecycle, commercial entitlement, deliverability hardening, and enterprise operating controls remain.
+The current application combines a strong fictional transaction harness with a deployed hosted account, organization, request, entitlement, activation, participant-delivery, participant-decision, secure-resume, evidence, institution-decision, receipt, and lifecycle implementation. The isolated hosted product has now carried one synthetic request from institution authentication through browser uploads, separate participant roles, human evidence review, a limited institution decision, a shared fingerprinted receipt, and revocation. The remaining MVP release work is public-domain cutover, independent replay/negative-path closeout, delivery hardening, and operating evidence; commercial payment and enterprise controls remain later gates.
 
 The reusable core is:
 
@@ -75,12 +75,12 @@ The missing commercial foundation is:
 | H-03 Overview | `/request/[id]/overview` | Hosted role-bound session and status projection passed | Resume and lifecycle states | Gate 3 and Gate 5 |
 | H-04 Grant | `/request/[id]/grant` | Hosted explicit confirm journey passed | Decline browser replay and pilot identity assurance | Gate 3 and Gate 4 |
 | H-05 Responsibility | `/request/[id]/responsibility` | Hosted explicit acceptance journey passed | Decline browser replay and delivery recovery | Gate 3 |
-| H-06 Requirements | Hosted participant requirements page | Three real dynamic requirements; certification passed in Chrome | Source upload and identity-provider completion | Gate 4 |
-| H-07 Evidence task | Private storage and reviewer foundation | File validation, private path, metadata, review command, and signed source route built | Chrome upload, negative access, reviewer replay | Gate 4 |
+| H-06 Requirements | Hosted participant requirements page | Three dynamic requirements, two browser uploads, and certification passed | External identity-provider completion is post-MVP | Gate 4 core passed |
+| H-07 Evidence task | Private storage and reviewer foundation | Browser upload, private path, metadata, institution review, and cross-persona projection passed | Negative direct-access replay remains closeout | Gate 4 core passed |
 | H-08 Review share | Existing minimum-disclosure panel | Strong fictional skeleton | Real artifact references and disclosure enforcement | Gate 4 |
 | H-09 Respond | Existing RFI response | Strong fictional skeleton | Real email and secure resume | Gate 3 and Gate 5 |
 | H-10 Status | Existing status card | Strong fictional skeleton | Real session, delivery state, and reminders | Gate 3 and Gate 5 |
-| H-11 Receipt | Existing receipt | Strong fictional skeleton | Real access, export, expiration, and revocation propagation | Gate 5 |
+| H-11 Receipt | Hosted role-bound receipt | Principal, representative, and institution matched through revocation | Export and scheduled expiration remain | Gate 5 core passed |
 | D-01 Sandbox | `/developer` scenarios | Strong | Explicit environment banner and isolation from UAT | Gate 5 |
 | D-02 Quickstart | Developer page and REST routes | Strong fictional skeleton | Account-bound test keys and hosted-link creation | Gate 5 |
 | D-03 Webhooks | Delivery log and replay | Strong local skeleton | Durable Postgres outbox, real signing secret, endpoint verification | Gate 5 |
@@ -135,13 +135,13 @@ Progress is measured by complete vertical slices, not the number of pages or int
 | Gate 2 passed | Browser, command, and database evidence prove five real requests activate once, request six cannot activate, and existing work remains available |
 | Gate 3 hosted happy path passed | Principal and representative begin from separate real delivered messages, complete separate hosted decisions, and advance one canonical record to evidence requirements; institution state and signed provider receipts agree |
 | Gate 3 hardening passed | Resend, reuse, reissue, expiry, revoke, wrong-person, and recovery tests pass with no stale browser copy or duplicate effect. Stale notice rendering is already corrected. |
-| Gate 4 passed | A private test document creates authorized, sourced, human-reviewed evidence |
-| Gate 5 passed | Reviewer decision, receipt, event delivery, replay, and revocation all match |
+| Gate 4 core passed | Two private synthetic documents create authorized, sourced, human-reviewed evidence visible to the submitting representative and institution |
+| Gate 5 core passed | Institution decision, principal receipt, representative receipt, fingerprint, and revocation match across isolated browser profiles |
 | Gate 6 passed | Stripe test payment changes the right organization's entitlement once |
 | Gate 7 passed | Owner runs the complete deployed demo and UAT suite without developer intervention |
 
 ## 6. Next controlled build action
 
-Finish Gate 4 without touching legacy Passage. Secure representative resume, dynamic requirements, private storage boundaries, versioned certification, and institution visibility are deployed and browser-proven. Enable Chrome local-file access, upload the fictional source, prove direct-access denial, complete the institution review, and replay it. New authority types, broad AI features, public live sales, and live Stripe remain blocked.
+Close the hosted release candidate without touching legacy Passage: commit the anonymous participant-boundary repair, independently replay the hosted event chain and negative direct-access cases, complete mobile/browser smoke checks, then move the approved public Authority domains from the legacy Vercel project to the verified Authority deployment with a documented rollback target. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
 
 The controlled fictional MVP remains available throughout as the regression and demonstration harness.
