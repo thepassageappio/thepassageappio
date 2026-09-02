@@ -32,6 +32,16 @@ Decision receipt: `PAR-EE13818AF409`
 
 Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d094918426be21`
 
+## Public website cutover
+
+- `thepassageapp.io` and `www.thepassageapp.io` now resolve to Authority deployment `dpl_5kHcpF1ab6XX8Y5RQNiW37qj83ju`.
+- The public homepage renders the Passage Authority title and financial POA value proposition with no browser warnings or errors.
+- An unauthenticated request to `/app` redirects to `/start?intent=sign-in` on the public domain.
+- The 390px and 360px homepage checks passed without horizontal overflow.
+- No Authority runtime error was present in the 30-minute post-cutover log check.
+- Legacy rollback remains available at deployment `dpl_CJUFCYSw9GZBuK4Wy98z6tTbqa4A`; rollback requires reassigning both public aliases to that deployment.
+- Secure email and participant links intentionally continue to use `https://passage-authority-uat.vercel.app` until the public domain is added to the Supabase Auth redirect allowlist and retested.
+
 ## Complete browser transaction
 
 Browser record: `ar_request_3e69c0b5-4969-4798-810b-c6035eda8b0e`

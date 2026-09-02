@@ -1,7 +1,7 @@
 # Passage Authority MVP execution plan
 
 **Launched:** August 28, 2026
-**Current score:** 8.7 of 10 to a working MVP
+**Current score:** 8.9 of 10 to a working MVP
 **Target score:** 9 of 10 with a hosted, independently replayable product on the approved public domain
 **Active work limit:** One complete vertical slice
 
@@ -137,7 +137,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 | Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
 | Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
 
-From the current verified position, the expected path to a public-domain MVP release candidate is one focused release cycle: replay and negative-path closeout, responsive smoke testing, domain cutover, and rollback verification. Pilot readiness still follows with deliverability, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
+The public-domain cutover, responsive smoke test, and rollback capture are complete. The remaining path to the MVP release candidate is one focused closeout: independent replay and negative-path evidence, branded Auth callback migration, and owner-run public-domain UAT. Pilot readiness still follows with deliverability, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
 
 External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
 

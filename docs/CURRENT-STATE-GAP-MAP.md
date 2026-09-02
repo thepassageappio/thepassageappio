@@ -6,7 +6,7 @@
 
 ## 1. Executive status
 
-The current application combines a strong fictional transaction harness with a deployed hosted account, organization, request, entitlement, activation, participant-delivery, participant-decision, secure-resume, evidence, institution-decision, receipt, and lifecycle implementation. The isolated hosted product has now carried one synthetic request from institution authentication through browser uploads, separate participant roles, human evidence review, a limited institution decision, a shared fingerprinted receipt, and revocation. The remaining MVP release work is public-domain cutover, independent replay/negative-path closeout, delivery hardening, and operating evidence; commercial payment and enterprise controls remain later gates.
+The current application combines a strong fictional transaction harness with a deployed hosted account, organization, request, entitlement, activation, participant-delivery, participant-decision, secure-resume, evidence, institution-decision, receipt, and lifecycle implementation. The hosted product has now carried one synthetic request from institution authentication through browser uploads, separate participant roles, human evidence review, a limited institution decision, a shared fingerprinted receipt, and revocation. Both public Passage domains now serve Authority with a preserved legacy rollback deployment. The remaining MVP release work is independent replay/negative-path closeout, branded Auth callback migration, delivery hardening, and operating evidence; commercial payment and enterprise controls remain later gates.
 
 The reusable core is:
 
@@ -142,6 +142,6 @@ Progress is measured by complete vertical slices, not the number of pages or int
 
 ## 6. Next controlled build action
 
-Close the hosted release candidate without touching legacy Passage: commit the anonymous participant-boundary repair, independently replay the hosted event chain and negative direct-access cases, complete mobile/browser smoke checks, then move the approved public Authority domains from the legacy Vercel project to the verified Authority deployment with a documented rollback target. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
+Close the hosted release candidate without touching legacy Passage data: independently replay the hosted event chain and negative direct-access cases, add the public domain to the Supabase Auth redirect allowlist, switch `AUTHORITY_APP_URL` after verification, and complete the owner-run public-domain UAT. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
 
 The controlled fictional MVP remains available throughout as the regression and demonstration harness.
