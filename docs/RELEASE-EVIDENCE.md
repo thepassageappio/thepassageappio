@@ -34,16 +34,19 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 
 ## Public website cutover
 
-- `thepassageapp.io` and `www.thepassageapp.io` now resolve to Authority deployment `dpl_2u5vpw7QnWvaeERCLphFoABkdP2t` (`passage-authority-177rbdbhf-thepassageappio-7018s-projects.vercel.app`).
+- `thepassageapp.io` and `www.thepassageapp.io` now resolve to Authority deployment `dpl_BaTWiw8zrP43HooRVjJDNsZaRY8Q` (`passage-authority-o129lizsh-thepassageappio-7018s-projects.vercel.app`).
 - Both custom domains are assigned at the project level to `passage-authority-uat`; the retired `thepassageappio` project retains only its `vercel.app` domain and cannot reclaim the public aliases on a later build.
 - The public homepage renders the Passage Authority title and financial POA value proposition with no browser warnings or errors.
 - The public homepage, header, pilot, template, and integration calls to action route to the hosted `/start` workspace. The SQLite demonstration routes remain local-only because Vercel Functions cannot persist the local database on their read-only filesystem.
 - The `www` hostname independently returned the Passage Authority page and the `Start an Authority evaluation` call to action after the final deployment.
 - An unauthenticated request to `/app` redirects to `/start?intent=sign-in` on the public domain.
 - The 390px and 360px homepage checks passed without horizontal overflow.
+- The final linked-route review also passed at a true 320 CSS-pixel content width. The shortened homepage measures about 4.1 mobile screens at 390px and 4.6 at 360px, down from approximately 6.4 to 7 screens.
+- All 12 unique public links and the `#how-it-works` anchor resolve; the linked public route set has distinct titles, no exposed implementation terms, no undersized WCAG targets, and no browser console warning or error.
+- Production responses include HSTS, no-sniff, frame denial, no-referrer, and restrictive camera, microphone, and location headers. Public sitemap and robots responses are live while authenticated, participant, API, developer, and local-demo surfaces are excluded from discovery.
 - No Authority runtime error was present in the 30-minute post-cutover log check.
 - Legacy rollback remains available at deployment `dpl_CJUFCYSw9GZBuK4Wy98z6tTbqa4A`; rollback requires reassigning both public aliases to that deployment.
-- GitHub `main` was fast-forwarded without history rewriting to Authority cutover commit `5d61cd0`, preventing a later main deployment from restoring the retired product source.
+- GitHub `main` was fast-forwarded without history rewriting and now contains public-site quality commit `efd881d`, preventing a later main deployment from restoring the retired product source.
 - Secure email and participant links intentionally continue to use `https://passage-authority-uat.vercel.app` until the public domain is added to the Supabase Auth redirect allowlist and retested.
 
 ## Complete browser transaction

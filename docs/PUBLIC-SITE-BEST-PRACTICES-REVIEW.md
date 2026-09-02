@@ -19,9 +19,9 @@
 
 | Area | Evidence | Status |
 | --- | --- | --- |
-| Responsive reflow | Desktop, 390px, and 360px linked-route audit has no page-level horizontal overflow | Pass; 320px final production replay remains |
-| Page length | Supporting public pages remain about one to 2.4 mobile screens; the homepage was shortened from five steps plus a redundant problem section to three stages | Pass pending production measurement |
-| Interaction targets | Navigation, primary actions, account header, legal header, and footer links use a 44px preferred minimum | Pass pending production measurement |
+| Responsive reflow | Desktop, 390px, 360px, and a true 320 CSS-pixel linked-route audit has no page-level horizontal overflow | Pass |
+| Page length | Supporting public pages remain about one to 2.6 mobile screens; the homepage was shortened from approximately 6.4–7 screens to 4.1 at 390px and 4.6 at 360px | Pass |
+| Interaction targets | Navigation, primary actions, account header, legal header, and footer links use a 44px preferred minimum; no tested interactive element is below the WCAG 24px minimum | Pass |
 | Keyboard focus | Public interactive styles use a visible 3px outline and offset | Pass by code review; full keyboard traversal remains |
 | Contrast | Small muted and amber public labels were changed to color pairs meeting at least 4.5:1 in the reviewed backgrounds | Pass for reviewed pairs; automated full-page scan remains |
 | Language | Linked marketing and account-entry routes do not expose database names, internal command names, raw identifiers, or internal event names | Pass |
@@ -29,7 +29,7 @@
 | Discovery | Public sitemap and robots routes are generated; authenticated, participant, API, developer, and local-demo surfaces are excluded | Pass |
 | Legal access | A compact footer links privacy, terms, and authorized-use pages from every marketing page | Pass |
 | Error recovery | Route error handling plus a root error fallback provide a retry path without exposing internals | Pass |
-| Browser security baseline | No-referrer, no-sniff, frame denial, restrictive camera/microphone/location policy, and HSTS headers are configured | Pass pending production header replay |
+| Browser security baseline | No-referrer, no-sniff, frame denial, restrictive camera/microphone/location policy, and HSTS headers are present in the production response | Pass |
 | Release gates | 65 domain tests, TypeScript, ESLint, and the optimized Next.js build pass | Pass |
 
 ## Required before a controlled pilot
