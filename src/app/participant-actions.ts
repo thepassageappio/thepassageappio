@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { normalizeParticipantToken, PARTICIPANT_SESSION_COOKIE, participantOverviewPath, type ParticipantDecision } from "@/lib/authority/participant-access";
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
+import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
 import { AUTHORITY_EVIDENCE_BUCKET, evidenceStoragePath, prepareEvidenceUpload } from "@/lib/authority/evidence";
 import { getParticipantEvidenceContext } from "@/lib/authority/participant-session";
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
@@ -45,6 +46,15 @@ function participantErrorCode(error: unknown) {
     evidence_requirement_not_uploadable: "evidence_changed",
     certification_acknowledgment_required: "certification_required",
     certification_already_saved: "evidence_changed",
+    information_response_required: "information_response_required",
+    information_response_not_available: "information_response_not_available",
+    information_request_unavailable: "information_request_unavailable",
+    withdrawal_acknowledgment_required: "withdrawal_acknowledgment_required",
+    withdrawal_reason_required: "withdrawal_reason_required",
+    withdrawal_not_available: "withdrawal_not_available",
+    "Explain what you confirmed or added.": "information_response_required",
+    "Explain why you can no longer serve.": "withdrawal_reason_required",
+    "Confirm that you intend to withdraw from this responsibility.": "withdrawal_acknowledgment_required",
   };
   return map[message] ?? "link_unavailable";
 }
@@ -128,6 +138,62 @@ export async function submitRepresentativeCertificationAction(formData: FormData
     revalidatePath(`/request/${encodeURIComponent(recordId)}/overview`);
     revalidatePath(`/app/requests/${encodeURIComponent(recordId)}`);
     destination += "?notice=certification_saved";
+  } catch (error) {
+    destination += `?error=${encodeURIComponent(participantErrorCode(error))}`;
+  }
+  redirect(destination);
+}
+
+export async function respondToAuthorityInformationAction(formData: FormData) {
+  const recordId = textField(formData, "recordId");
+  let destination = `/request/${encodeURIComponent(recordId)}/overview`;
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
+    if (!sessionToken) throw new Error("participant_session_unavailable");
+    const input = prepareHostedInformationResponse({ response: textField(formData, "response") });
+    const admin = createAuthorityAdminClient();
+    const { error } = await admin.rpc("respond_to_authority_information_v1", {
+      p_session_token: sessionToken,
+      p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")),
+      p_response: input.response,
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    revalidatePath(`/request/${encodeURIComponent(recordId)}/overview`);
+    revalidatePath(`/app/requests/${encodeURIComponent(recordId)}`);
+    destination += "?notice=information_response_saved";
+  } catch (error) {
+    destination += `?error=${encodeURIComponent(participantErrorCode(error))}`;
+  }
+  redirect(destination);
+}
+
+export async function withdrawAuthorityResponsibilityAction(formData: FormData) {
+  const recordId = textField(formData, "recordId");
+  let destination = `/request/${encodeURIComponent(recordId)}/overview`;
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
+    if (!sessionToken) throw new Error("participant_session_unavailable");
+    const input = prepareHostedWithdrawal({
+      reason: textField(formData, "reason"),
+      acknowledged: formData.get("acknowledged") === "on",
+    });
+    const admin = createAuthorityAdminClient();
+    const { error } = await admin.rpc("withdraw_authority_responsibility_v1", {
+      p_session_token: sessionToken,
+      p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")),
+      p_reason: input.reason,
+      p_acknowledged: input.acknowledged,
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    revalidatePath(`/request/${encodeURIComponent(recordId)}/overview`);
+    revalidatePath(`/app/requests/${encodeURIComponent(recordId)}`);
+    destination += "?notice=responsibility_withdrawn";
   } catch (error) {
     destination += `?error=${encodeURIComponent(participantErrorCode(error))}`;
   }

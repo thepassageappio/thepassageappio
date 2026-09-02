@@ -231,12 +231,17 @@ stateDiagram-v2
     AwaitingRepresentative --> Declined: Representative declines
     EvidenceRequired --> ReadyToSubmit: Required evidence complete
     EvidenceRequired --> Withdrawn: Representative withdraws
+    ReadyToSubmit --> Withdrawn: Representative withdraws
     ReadyToSubmit --> UnderReview: Representative consents and submits
     UnderReview --> InformationRequested: Reviewer requests information
     InformationRequested --> UnderReview: Representative responds
+    UnderReview --> Withdrawn: Representative withdraws
+    InformationRequested --> Withdrawn: Representative withdraws
     UnderReview --> Accepted: Reviewer accepts
     UnderReview --> AcceptedWithLimits: Reviewer accepts with limits
     UnderReview --> Rejected: Reviewer rejects
+    Accepted --> Withdrawn: Representative withdraws
+    AcceptedWithLimits --> Withdrawn: Representative withdraws
     Accepted --> Revoked: Principal revokes
     AcceptedWithLimits --> Revoked: Principal revokes
     Accepted --> Expired: Validity ends
@@ -251,6 +256,8 @@ stateDiagram-v2
 - Failed commands do not advance the record, consume another transaction, emit a success notification, or create a success event.
 - Every accepted, limited, rejected, declined, withdrawn, revoked, and expired outcome keeps a readable receipt.
 - Expiration is a durable lifecycle event, not a visual calculation only.
+- A reviewer information request is requirement-linked, versioned, and append-only. Only one request may remain open for a record, and a representative response resolves that exact request before review resumes.
+- Representative withdrawal requires the active representative session, an explicit reason, acknowledgment, the expected record version, and an idempotency key. It ends future reliance without rewriting earlier evidence, decisions, or receipts.
 
 ## 9. Complete MVP use-case catalog
 

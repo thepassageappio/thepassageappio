@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { prepareHostedAuthorityDraft } from "@/lib/authority/hosted-records";
 import { prepareHostedInstitutionDecision, prepareHostedLifecycleChange } from "@/lib/authority/hosted-decisions";
+import { prepareHostedInformationRequest } from "@/lib/authority/hosted-information";
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
 import { participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { deliverTeamInvitation } from "@/lib/authority/team-invitation-delivery";
@@ -95,6 +96,13 @@ function errorCode(error: unknown) {
     authority_lifecycle_not_available: "authority_lifecycle_not_available",
     authority_lifecycle_not_expired: "authority_lifecycle_not_expired",
     institution_decision_unavailable: "institution_decision_unavailable",
+    information_request_message_required: "information_request_message_required",
+    information_request_not_allowed: "information_request_not_allowed",
+    information_request_not_available: "information_request_not_available",
+    information_request_requirement_invalid: "information_request_requirement_invalid",
+    information_request_already_open: "information_request_already_open",
+    "Choose the requirement that needs more information.": "information_request_requirement_invalid",
+    "Explain what information is still needed.": "information_request_message_required",
     "Confirm that this is the institution's decision for this request.": "institution_decision_acknowledgment_required",
     "Choose an available institution decision.": "institution_decision_outcome_invalid",
     "Record a clear decision reason using 3 to 500 characters.": "institution_decision_reason_required",
@@ -587,6 +595,36 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
     revalidatePath(`/app/requests/${recordId}`);
     revalidatePath(`/app/requests/${recordId}/receipt`);
     destination = withMessage(`/app/requests/${recordId}/receipt`, "notice", "institution_decision_saved");
+  } catch (error) {
+    destination = withMessage(destination, "error", errorCode(error));
+  }
+  redirect(destination);
+}
+
+export async function requestHostedAuthorityInformationAction(formData: FormData) {
+  const recordId = textField(formData, "recordId");
+  let destination = `/app/requests/${recordId}`;
+  try {
+    const access = await getAuthorityAccessContext();
+    if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    const input = prepareHostedInformationRequest({
+      requirementKey: textField(formData, "requirementKey"),
+      message: textField(formData, "message"),
+    });
+    const admin = createAuthorityAdminClient();
+    const { error } = await admin.rpc("request_authority_information_service_v1", {
+      p_actor_user_id: access.user.id,
+      p_organization_id: access.membership.organizationId,
+      p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")),
+      p_requirement_key: input.requirementKey,
+      p_message: input.message,
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    revalidatePath("/app");
+    revalidatePath(`/app/requests/${recordId}`);
+    destination = withMessage(destination, "notice", "information_requested");
   } catch (error) {
     destination = withMessage(destination, "error", errorCode(error));
   }

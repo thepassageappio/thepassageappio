@@ -58,6 +58,11 @@ const errorMessages: Record<string, string> = {
   authority_lifecycle_not_available: "This lifecycle change is not available for the current decision.",
   authority_lifecycle_not_expired: "This request has not reached its recorded end date.",
   institution_decision_unavailable: "The institution decision receipt is not available.",
+  information_request_message_required: "Explain what information is still needed.",
+  information_request_not_allowed: "Your role cannot request information for this review.",
+  information_request_not_available: "More information can be requested only while the institution is reviewing the request.",
+  information_request_requirement_invalid: "Choose a current policy requirement.",
+  information_request_already_open: "This request already has an unanswered information request.",
 };
 
 const noticeMessages: Record<string, string> = {
@@ -76,6 +81,7 @@ const noticeMessages: Record<string, string> = {
   institution_decision_saved: "The institution decision and scoped receipt were saved together.",
   authority_revocation_saved: "The revocation notice was saved and the receipt now shows that future reliance has ended.",
   authority_expiration_saved: "The request expiration was saved to the receipt.",
+  information_requested: "The information request was saved and is visible to the representative.",
 };
 
 export function userErrorMessage(code: string | undefined) {

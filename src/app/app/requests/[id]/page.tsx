@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
+import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
@@ -30,6 +30,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     { data: requirements, error: requirementError },
     { data: evidenceArtifacts, error: evidenceError },
     { data: decisionRow, error: decisionError },
+    { data: informationRequests, error: informationRequestError },
+    { data: informationResponses, error: informationResponseError },
   ] = await Promise.all([
     supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
     supabase.from("authority_events").select("event_id, authority_record_id, sequence, event_type, summary, detail, occurred_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("sequence", { ascending: true }),
@@ -39,6 +41,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     supabase.from("authority_requirements").select("id, requirement_key, title, reason, input_kind, status, ordinal, version, completed_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("ordinal", { ascending: true }),
     supabase.from("authority_evidence_artifacts").select("id, requirement_id, original_filename, media_type, byte_size, provider_status, review_status, reviewer_note, version, created_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("created_at", { ascending: false }),
     supabase.from("authority_institution_decisions").select("id, receipt_code, authority_record_id, record_version, outcome, reason, accepted_action_keys, limitations, decided_by, decided_by_role, decided_at, receipt_sha256, receipt_snapshot").eq("organization_id", access.organization.id).eq("authority_record_id", id).maybeSingle(),
+    supabase.from("authority_information_requests").select("id, requirement_key, message, requested_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("requested_at", { ascending: false }),
+    supabase.from("authority_information_responses").select("information_request_id, response, responded_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("responded_at", { ascending: false }),
   ]);
   if (recordError) throw recordError;
   if (eventError) throw eventError;
@@ -48,6 +52,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   if (requirementError) throw requirementError;
   if (evidenceError) throw evidenceError;
   if (decisionError) throw decisionError;
+  if (informationRequestError) throw informationRequestError;
+  if (informationResponseError) throw informationResponseError;
   if (!recordRow) notFound();
 
   const record = mapHostedAuthorityRecord(recordRow as never);
@@ -124,6 +130,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     };
     return labels[String(status)] ?? "Updated";
   };
+  const responseByRequest = new Map((informationResponses ?? []).map((item) => [String(item.information_request_id), item]));
+  const openInformationRequest = (informationRequests ?? []).find((item) => !responseByRequest.has(String(item.id)));
 
   return <>
     <header className={styles.pageHeader}>
@@ -224,6 +232,23 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             </li>;
           })}</ul>
           <p>Accepting a source means it satisfies this institution review step. It does not establish universal legal validity.</p>
+        </section> : null}
+        {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel}>
+          <div className={styles.panelHead}><div><h2>Review questions</h2><p>Each question is tied to one policy requirement and preserved with its response.</p></div><span className={styles.badge}>{openInformationRequest ? "Response needed" : "Current"}</span></div>
+          {(informationRequests ?? []).length > 0 ? <ul className={styles.activity}>{(informationRequests ?? []).map((item) => {
+            const response = responseByRequest.get(String(item.id));
+            return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>Waiting for the representative</span>}</div></li>;
+          })}</ul> : null}
+          {record.status === "under_review" && canRecordDecision && !openInformationRequest ? <form action={requestHostedAuthorityInformationAction} className={styles.field}>
+            <input type="hidden" name="recordId" value={record.id} />
+            <input type="hidden" name="expectedVersion" value={record.version} />
+            <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+            <label htmlFor="information-requirement">Policy requirement</label>
+            <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{(requirements ?? []).map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
+            <label htmlFor="information-message">What is still needed?</label>
+            <textarea id="information-message" name="message" minLength={3} maxLength={500} required placeholder="Describe the exact information needed to continue this review." />
+            <button className={styles.secondary} type="submit">Send information request</button>
+          </form> : null}
         </section> : null}
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Institution decision</h2><p>Record the institution&apos;s operational decision only after every required review step is complete.</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : decisionReady ? "Ready" : "Not ready"}</span></div>

@@ -1,0 +1,39 @@
+:root {
+  --pa-green: #1b4d3e;
+  --pa-green-ledger: #0e2a22;
+  --pa-green-active: #2e6e5b;
+  --pa-brass: #b5851f;
+  --pa-brass-bright: #d8a73c;
+  --pa-ink: #131614;
+  --pa-ink-soft: #3e4642;
+  --pa-muted: #6b7269;
+  --pa-muted-light: #8a8577;
+  --pa-border: #e2ded3;
+  --pa-border-strong: #d6d2c7;
+  --pa-surface: #fbfaf7;
+  --pa-parchment: #efede7;
+  --pa-status-active-bg: #eaf1ed;
+  --pa-status-review-bg: #faf2df;
+  --pa-status-revoked-bg: #f7ebe6;
+  --ink: var(--pa-ink);
+  --muted: var(--pa-muted);
+  --green: var(--pa-green);
+  --green-soft: var(--pa-status-active-bg);
+  --amber-soft: var(--pa-status-review-bg);
+  --paper: var(--pa-surface);
+  --canvas: var(--pa-parchment);
+  --line: var(--pa-border);
+  --line-strong: var(--pa-border-strong);
+  --sans: "Public Sans", Arial, Helvetica, sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}

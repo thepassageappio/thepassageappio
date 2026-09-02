@@ -43,3 +43,31 @@ export async function getParticipantDecisionReceipt(authorityRecordId: string) {
   });
   return error ? null : mapParticipantDecisionReceipt(data);
 }
+
+export type ParticipantInformationRequest = {
+  id: string;
+  requirementKey: string;
+  message: string;
+  requestedAt: string;
+};
+
+export async function getParticipantInformationRequest(authorityRecordId: string): Promise<ParticipantInformationRequest | null> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
+  if (!sessionToken) return null;
+
+  const supabase = createAuthorityAdminClient();
+  const { data, error } = await supabase.rpc("get_participant_information_request_v1", {
+    p_session_token: sessionToken,
+    p_authority_record_id: authorityRecordId,
+  });
+  if (error || !data || typeof data !== "object") return null;
+  const row = data as Record<string, unknown>;
+  if (!row.id || !row.requirement_key || !row.message || !row.requested_at) return null;
+  return {
+    id: String(row.id),
+    requirementKey: String(row.requirement_key),
+    message: String(row.message),
+    requestedAt: String(row.requested_at),
+  };
+}

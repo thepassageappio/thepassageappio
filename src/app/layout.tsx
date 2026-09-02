@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./brand.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thepassageapp.io";
 
@@ -10,6 +11,10 @@ export const metadata: Metadata = {
     template: "%s | Passage Authority",
   },
   description: "Turn a power of attorney request into a guided, reviewable, scoped institution decision and keep every permitted party current.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   referrer: "no-referrer",
   openGraph: {
     title: "Passage Authority | Financial POA Operations",
