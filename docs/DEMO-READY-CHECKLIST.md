@@ -47,3 +47,4 @@ The reset action must create a fresh synthetic organization, owner, account hold
 - The public site has no horizontal overflow at 390px or 360px across the homepage, About, Contact, Resources and all three articles, Integrations, Security, Pricing, Pilot, Templates, and evaluation entry.
 - Two approved fictional PDFs are downloadable from the sample form and match its preloaded participants and account boundary.
 - Remaining before this gate passes: create a fresh evaluation entitlement without database work and rehearse the timed story with independent profiles.
+- The older SQLite demonstration UI and API are now code-gated to development and test mode. The enterprise demo must use the authenticated hosted organization flow; a production request cannot switch synthetic roles, reset the shared SQLite store, or open its local review queue.

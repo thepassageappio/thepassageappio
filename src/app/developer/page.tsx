@@ -1,6 +1,8 @@
 import { createScenarioAction, replayWebhookAction } from "@/app/actions";
+import { notFound } from "next/navigation";
 import { PortalHeader } from "@/components/authority/PortalHeader";
 import { getAuthorityRepository } from "@/lib/authority/repository";
+import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
 import styles from "@/components/authority/portal.module.css";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,7 @@ function formatTime(value: string) {
 }
 
 export default async function DeveloperSandbox({ searchParams }: Props) {
+  if (!isLocalAuthoritySandboxAvailable()) notFound();
   const messages = await searchParams;
   const repository = getAuthorityRepository();
   const records = repository.listRecords();

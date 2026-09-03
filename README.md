@@ -31,7 +31,7 @@ The sandbox starts with five deterministic records spanning principal action, in
 - `/api/v1/authority-records/:id/receipt`: policy, source, consent, disclosure, decision, revocation, and role-filtered events.
 - `/api/v1/webhook-deliveries`: delivery observability and replay state.
 
-The local API key is `passage_sandbox_test_key`. Production mode refuses API, session, and webhook actions unless `AUTHORITY_SANDBOX_API_KEY`, `AUTHORITY_SANDBOX_COOKIE_SECRET`, and `AUTHORITY_SANDBOX_WEBHOOK_SECRET` are configured.
+The local API key is `passage_sandbox_test_key`. These SQLite-backed pages, API routes, role switching, reset actions, and webhook replays are available only in development and test mode. Production builds return a generic not-found response before opening the repository or accepting a sandbox mutation.
 
 ## Verification gates
 

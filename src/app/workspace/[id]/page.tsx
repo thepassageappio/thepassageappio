@@ -10,6 +10,7 @@ import { ScopePanel } from "@/components/authority/ScopePanel";
 import { StatusCard } from "@/components/authority/StatusCard";
 import { isAuthorityError } from "@/lib/authority/errors";
 import { getAuthorityRepository } from "@/lib/authority/repository";
+import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
 import { ACTOR_COOKIE, resolveActorCookie } from "@/lib/authority/session";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default async function AuthorityWorkspace({ params, searchParams }: Props) {
+  if (!isLocalAuthoritySandboxAvailable()) notFound();
   const { id } = await params;
   const messages = await searchParams;
   let record;

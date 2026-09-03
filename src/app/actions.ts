@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isAuthorityError } from "@/lib/authority/errors";
 import { getAuthorityRepository } from "@/lib/authority/repository";
+import { requireLocalAuthoritySandbox } from "@/lib/authority/sandbox-boundary";
 import { ACTOR_COOKIE, partyForRole, resolveActorCookie, signedActorCookie } from "@/lib/authority/session";
 import type { ActorRole, AuthorityCommand, Party, SandboxScenario } from "@/lib/authority/types";
 
@@ -28,6 +29,7 @@ async function setActorCookie(party: Party) {
 }
 
 export async function selectActorAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   const recordId = text(formData, "recordId");
   const record = getAuthorityRepository().getRecord(recordId);
   const party = partyForRole(record, text(formData, "role") as ActorRole);
@@ -37,6 +39,7 @@ export async function selectActorAction(formData: FormData) {
 }
 
 export async function openReviewerAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   const recordId = text(formData, "recordId");
   const record = getAuthorityRepository().getRecord(recordId);
   await setActorCookie(record.reviewer);
@@ -44,6 +47,7 @@ export async function openReviewerAction(formData: FormData) {
 }
 
 export async function createAuthorityRequestAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   let destination: { recordId: string; principalName: string };
   try {
     const endDate = text(formData, "validUntil");
@@ -72,6 +76,7 @@ export async function createAuthorityRequestAction(formData: FormData) {
 }
 
 export async function executeAuthorityAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   const recordId = text(formData, "recordId");
   const repository = getAuthorityRepository();
   const record = repository.getRecord(recordId);
@@ -165,6 +170,7 @@ export async function executeAuthorityAction(formData: FormData) {
 }
 
 export async function createScenarioAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   const scenario = text(formData, "scenario") as SandboxScenario;
   let destination: { kind: "notice" | "error"; message: string };
   try {
@@ -185,6 +191,7 @@ export async function createScenarioAction(formData: FormData) {
 }
 
 export async function replayWebhookAction(formData: FormData) {
+  requireLocalAuthoritySandbox();
   let destination: { kind: "notice" | "error"; message: string };
   try {
     const delivery = getAuthorityRepository().replayWebhook(text(formData, "deliveryId"));
@@ -203,6 +210,7 @@ export async function replayWebhookAction(formData: FormData) {
 }
 
 export async function resetSandboxAction() {
+  requireLocalAuthoritySandbox();
   const record = getAuthorityRepository().resetSandbox();
   await setActorCookie(record.principal);
   revalidatePath("/");

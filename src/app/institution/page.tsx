@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { openReviewerAction } from "@/app/actions";
 import { PortalHeader } from "@/components/authority/PortalHeader";
 import { getAuthorityRepository } from "@/lib/authority/repository";
+import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
 import type { AuthorityStatus } from "@/lib/authority/types";
 import styles from "@/components/authority/portal.module.css";
 
@@ -30,6 +32,7 @@ function formatUpdated(value: string) {
 type Props = { searchParams: Promise<{ notice?: string; error?: string }> };
 
 export default async function InstitutionQueue({ searchParams }: Props) {
+  if (!isLocalAuthoritySandboxAvailable()) notFound();
   const messages = await searchParams;
   const records = getAuthorityRepository().listRecords();
   const counts = {

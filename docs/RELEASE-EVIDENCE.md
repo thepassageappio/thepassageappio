@@ -145,3 +145,10 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - A live authenticated Chrome check showed the sample notice, both downloads, matching form values, and no console error. No draft was saved and no invitation or message was created during verification.
 - Mail DNS has a Resend receiving MX record, published Resend DKIM, sending-subdomain SPF, and DMARC monitoring. The application key is correctly restricted to sending only. Delivery or forwarding for `hello@thepassageapp.io` is not independently proven, so the Contact page mailbox remains an operating gap.
 - GitHub `main` and `authority-launch` include the repeatable sample-demo entry at commit `7d6e47f`; the corresponding Vercel production deployment is aliased to `thepassageapp.io`.
+
+## September 3 production-surface hardening candidate
+
+- The SQLite regression UI, role switcher, reset action, deterministic-scenario actions, webhook replay action, and sandbox API now stop before repository access when `NODE_ENV` is `production`.
+- Production requests receive a generic not-found response rather than a record, role, environment, or configuration signal. Development and test mode retain the complete deterministic regression harness.
+- Private no-store/no-index response headers now cover authenticated workspace, onboarding, authentication callback, participant, team invitation, API, and local-test route families. Baseline frame, MIME, referrer, browser-capability, and transport protections remain global.
+- Automated coverage proves the environment gate, generic private 404, baseline security headers, and private cache/indexing policy. Deployment and live-header verification remain required because this commit is intentionally not deployed from the hardening workstream.

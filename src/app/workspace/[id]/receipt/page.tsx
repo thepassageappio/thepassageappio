@@ -5,6 +5,7 @@ import { RecordHeader } from "@/components/authority/RecordHeader";
 import { ReceiptTimeline } from "@/components/authority/ReceiptTimeline";
 import { isAuthorityError } from "@/lib/authority/errors";
 import { getAuthorityRepository } from "@/lib/authority/repository";
+import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
 import { ACTOR_COOKIE, resolveActorCookie } from "@/lib/authority/session";
 import type { AuthorityRecord } from "@/lib/authority/types";
 import styles from "./receipt.module.css";
@@ -32,6 +33,7 @@ function date(value?: string) {
 }
 
 export default async function DecisionReceipt({ params }: { params: Promise<{ id: string }> }) {
+  if (!isLocalAuthoritySandboxAvailable()) notFound();
   const { id } = await params;
   let record;
   try {

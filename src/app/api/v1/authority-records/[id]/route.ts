@@ -1,10 +1,12 @@
 import { getAuthorityRepository } from "@/lib/authority/repository";
 import { actorFromRequest, commandFromBody, errorResponse, publicResult, recordProjection } from "@/lib/authority/http";
+import { isLocalAuthoritySandboxAvailable, localAuthoritySandboxNotFoundResponse } from "@/lib/authority/sandbox-boundary";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isLocalAuthoritySandboxAvailable()) return localAuthoritySandboxNotFoundResponse();
   try {
     const { id } = await params;
     const record = getAuthorityRepository().getRecord(id);
@@ -16,6 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isLocalAuthoritySandboxAvailable()) return localAuthoritySandboxNotFoundResponse();
   try {
     const { id } = await params;
     const repository = getAuthorityRepository();

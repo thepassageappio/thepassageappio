@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { createAuthorityRequestAction } from "@/app/actions";
 import { PortalHeader } from "@/components/authority/PortalHeader";
+import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
 import styles from "./setup.module.css";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +10,7 @@ export const dynamic = "force-dynamic";
 type Props = { searchParams: Promise<{ error?: string }> };
 
 export default async function NewAuthorityRequest({ searchParams }: Props) {
+  if (!isLocalAuthoritySandboxAvailable()) notFound();
   const { error } = await searchParams;
   return (
     <main className={styles.page}>
