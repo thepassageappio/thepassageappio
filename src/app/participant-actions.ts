@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { normalizeParticipantToken, PARTICIPANT_SESSION_COOKIE, participantOverviewPath, type ParticipantDecision } from "@/lib/authority/participant-access";
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
 import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
+import { prepareHostedSubmission } from "@/lib/authority/hosted-submission";
 import { AUTHORITY_EVIDENCE_BUCKET, evidenceStoragePath, prepareEvidenceUpload } from "@/lib/authority/evidence";
 import { getParticipantEvidenceContext } from "@/lib/authority/participant-session";
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
@@ -52,11 +53,41 @@ function participantErrorCode(error: unknown) {
     withdrawal_acknowledgment_required: "withdrawal_acknowledgment_required",
     withdrawal_reason_required: "withdrawal_reason_required",
     withdrawal_not_available: "withdrawal_not_available",
+    submission_acknowledgment_required: "submission_acknowledgment_required",
+    submission_not_available: "submission_not_available",
+    submission_requirements_incomplete: "submission_requirements_incomplete",
     "Explain what you confirmed or added.": "information_response_required",
     "Explain why you can no longer serve.": "withdrawal_reason_required",
     "Confirm that you intend to withdraw from this responsibility.": "withdrawal_acknowledgment_required",
+    "Confirm the information sharing before sending the request.": "submission_acknowledgment_required",
   };
   return map[message] ?? "link_unavailable";
+}
+
+export async function submitAuthorityForReviewAction(formData: FormData) {
+  const recordId = textField(formData, "recordId");
+  let destination = `/request/${encodeURIComponent(recordId)}/overview`;
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
+    if (!sessionToken) throw new Error("participant_session_unavailable");
+    const input = prepareHostedSubmission({ acknowledged: formData.get("acknowledged") === "on" });
+    const admin = createAuthorityAdminClient();
+    const { error } = await admin.rpc("submit_authority_for_review_v1", {
+      p_session_token: sessionToken,
+      p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")),
+      p_acknowledged: input.acknowledged,
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    revalidatePath(`/request/${encodeURIComponent(recordId)}/overview`);
+    revalidatePath(`/app/requests/${encodeURIComponent(recordId)}`);
+    destination += "?notice=request_submitted";
+  } catch (error) {
+    destination += `?error=${encodeURIComponent(participantErrorCode(error))}`;
+  }
+  redirect(destination);
 }
 
 export async function uploadParticipantEvidenceAction(formData: FormData) {

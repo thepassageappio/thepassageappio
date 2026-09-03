@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
-import { respondToAuthorityInformationAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
+import { respondToAuthorityInformationAction, submitAuthorityForReviewAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
 import decisionStyles from "../participant-decision.module.css";
@@ -23,7 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
   awaiting_principal: "Waiting for your decision",
   awaiting_representative: "Waiting for the representative",
   evidence_required: "Requirements in progress",
-  ready_to_submit: "Ready for institution review",
+  ready_to_submit: "Ready to send for institution review",
   under_review: "Institution review in progress",
   information_requested: "More information requested",
   accepted: "Accepted by the institution",
@@ -45,6 +45,7 @@ const NOTICE_MESSAGES: Record<string, string> = {
   representative_decline: "Your decision was saved. This request is now closed.",
   information_response_saved: "Your response was saved. The institution can continue its review.",
   responsibility_withdrawn: "Your withdrawal was saved. The institution and the person granting authority will see that this request ended.",
+  request_submitted: "Your disclosure acknowledgment and completed request were sent to the institution for review.",
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -54,6 +55,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   withdrawal_acknowledgment_required: "Confirm that you intend to withdraw from this responsibility.",
   withdrawal_reason_required: "Explain briefly why you can no longer serve.",
   withdrawal_not_available: "This responsibility can no longer be withdrawn from this page.",
+  submission_acknowledgment_required: "Confirm what will be shared before sending the request.",
+  submission_not_available: "This request is no longer ready to send. Review its current status.",
+  submission_requirements_incomplete: "Complete every requirement before sending the request.",
   request_changed: "The request changed while this page was open. Review the latest status before trying again.",
   session_unavailable: "Your secure session is no longer available. Use the latest link from the institution.",
 };
@@ -108,6 +112,18 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
     {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
     {canDecide ? <Link className={styles.primary} href={nextPath}>{isPrincipal ? "Review and decide" : "Review responsibilities"}</Link> : null}
     {context.status === "evidence_required" && !isPrincipal ? <div className={styles.summary}><h2>Next: complete the requirements</h2><p>Your responsibility decision is saved. Complete one clear requirement at a time and see why the institution needs it.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/requirements`}>Continue to requirements</Link></div> : null}
+    {context.status === "ready_to_submit" && !isPrincipal ? <div className={styles.summary}>
+      <h2>Review and send to the institution</h2>
+      <p>The institution will receive the participant names, requested scope, account boundary, policy-requirement results, source-file metadata, and your certification. Passage saves this disclosure acknowledgment with the request.</p>
+      <form action={submitAuthorityForReviewAction} className={styles.field}>
+        <input type="hidden" name="recordId" value={context.authorityRecordId} />
+        <input type="hidden" name="expectedVersion" value={context.recordVersion} />
+        <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+        <label><input type="checkbox" name="acknowledged" required /> I reviewed what will be shared and authorize sending this completed request to {context.institutionName} for its decision.</label>
+        <button className={styles.primary} type="submit">Send to institution review</button>
+      </form>
+      <p className={styles.legal}>Sending does not guarantee acceptance. The institution keeps the final decision.</p>
+    </div> : null}
     {informationRequest ? <div className={styles.summary}>
       <h2>The institution needs one clarification</h2>
       <p>{informationRequest.message}</p>

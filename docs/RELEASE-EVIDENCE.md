@@ -56,6 +56,7 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 - The new synthetic owner completed organization profile, evaluation terms, and policy selection in Chrome. `Passage UAT Credit Union` opened with zero of five activations used.
 - The first fresh request was saved as a draft with zero usage, then activated once as `PA-1C3C4DABBD`; the institution view showed one of five activations, principal-only action, held representative access, append-only activation and submission activity, and final provider delivery confirmation.
 - Gmail placed the first participant invitation in Spam even though the receiving server and Resend confirmed delivery. Inbox placement is therefore still an explicit pre-pilot deliverability gap.
+- Fresh UAT exposed a release-blocking hosted parity gap at `ready_to_submit`: the representative had no final disclosure/send action, the record could not enter `under_review`, and the institution decision form appeared one state too early. The corrective migration and UI must pass before this transaction continues.
 
 ## Complete browser transaction
 

@@ -35,7 +35,7 @@ begin
     representative_name, representative_email_normalized, allowed_action_keys,
     valid_until, activated_at
   ) values (
-    v_record, v_org, v_owner, v_owner, 'under_review', 'ny-financial-poa', '1',
+    v_record, v_org, v_owner, v_owner, 'ready_to_submit', 'ny-financial-poa', '1',
     'Deposit account ending 4821', 'Eleanor Carter', 'eleanor@local.authority.test',
     'Maya Carter', 'maya@local.authority.test', array['receive_duplicate_statements']::text[],
     now() + interval '30 days', now()
@@ -63,8 +63,59 @@ begin
   );
 
   begin
+    perform authority_private.record_institution_decision_service_v1(
+      v_owner, v_org, v_record, 1, 'accepted', 'All synthetic requirements passed.',
+      '{}'::text[], true, '60000000-0000-4000-8000-000000000010'
+    );
+    raise exception 'decision before representative submission unexpectedly succeeded';
+  exception when sqlstate '42501' then
+    if sqlerrm <> 'institution_decision_submission_required' then raise; end if;
+  end;
+
+  begin
+    perform authority_private.submit_authority_for_review_v1(
+      v_session_token, v_record, 1, false,
+      '60000000-0000-4000-8000-000000000011'
+    );
+    raise exception 'unacknowledged submission unexpectedly succeeded';
+  exception when sqlstate '22023' then
+    if sqlerrm <> 'submission_acknowledgment_required' then raise; end if;
+  end;
+
+  v_result := authority_private.submit_authority_for_review_v1(
+    v_session_token, v_record, 1, true,
+    '60000000-0000-4000-8000-000000000012'
+  );
+  if v_result ->> 'status' <> 'under_review' or (v_result ->> 'replayed')::boolean then
+    raise exception 'representative submission did not transition once: %', v_result;
+  end if;
+  v_result := authority_private.submit_authority_for_review_v1(
+    v_session_token, v_record, 1, true,
+    '60000000-0000-4000-8000-000000000012'
+  );
+  if not (v_result ->> 'replayed')::boolean then raise exception 'submission replay was not detected'; end if;
+  select count(*) into v_count from public.authority_disclosures where authority_record_id = v_record;
+  if v_count <> 1 then raise exception 'expected one append-only disclosure, found %', v_count; end if;
+
+  begin
+    perform authority_private.record_institution_decision_service_v1(
+      v_owner, v_org, v_record, 2, 'accepted', 'All synthetic requirements passed.',
+      '{}'::text[], true, '60000000-0000-4000-8000-000000000013'
+    );
+    if not exists (
+      select 1 from public.authority_institution_decisions d
+      where d.authority_record_id = v_record
+        and d.receipt_snapshot ? 'disclosure'
+        and d.receipt_snapshot #>> '{disclosure,text_version}' = 'minimum-necessary-disclosure-2026.1'
+    ) then raise exception 'decision receipt did not include the saved disclosure'; end if;
+    raise exception using errcode = 'P0001', message = 'rollback_successful_decision_probe';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'rollback_successful_decision_probe' then raise; end if;
+  end;
+
+  begin
     perform authority_private.request_authority_information_service_v1(
-      v_staff, v_org, v_record, 1, 'power_of_attorney', 'Confirm page two is complete.',
+      v_staff, v_org, v_record, 2, 'power_of_attorney', 'Confirm page two is complete.',
       '60000000-0000-4000-8000-000000000001'
     );
     raise exception 'unauthorized staff request unexpectedly succeeded';
@@ -73,21 +124,21 @@ begin
   end;
 
   v_result := authority_private.request_authority_information_service_v1(
-    v_owner, v_org, v_record, 1, 'power_of_attorney', 'Confirm page two is complete.',
+    v_owner, v_org, v_record, 2, 'power_of_attorney', 'Confirm page two is complete.',
     '60000000-0000-4000-8000-000000000002'
   );
   if v_result ->> 'status' <> 'information_requested' or (v_result ->> 'replayed')::boolean then
     raise exception 'information request did not transition once: %', v_result;
   end if;
   v_result := authority_private.request_authority_information_service_v1(
-    v_owner, v_org, v_record, 1, 'power_of_attorney', 'Confirm page two is complete.',
+    v_owner, v_org, v_record, 2, 'power_of_attorney', 'Confirm page two is complete.',
     '60000000-0000-4000-8000-000000000002'
   );
   if not (v_result ->> 'replayed')::boolean then raise exception 'request replay was not detected'; end if;
 
   begin
     perform authority_private.respond_to_authority_information_v1(
-      v_session_token, v_record, 1, 'Page two is complete.',
+      v_session_token, v_record, 2, 'Page two is complete.',
       '70000000-0000-4000-8000-000000000001'
     );
     raise exception 'stale response unexpectedly succeeded';
@@ -96,14 +147,14 @@ begin
   end;
 
   v_result := authority_private.respond_to_authority_information_v1(
-    v_session_token, v_record, 2, 'Page two is complete.',
+    v_session_token, v_record, 3, 'Page two is complete.',
     '70000000-0000-4000-8000-000000000002'
   );
   if v_result ->> 'status' <> 'under_review' or (v_result ->> 'replayed')::boolean then
     raise exception 'response did not resolve the request once: %', v_result;
   end if;
   v_result := authority_private.respond_to_authority_information_v1(
-    v_session_token, v_record, 2, 'Page two is complete.',
+    v_session_token, v_record, 3, 'Page two is complete.',
     '70000000-0000-4000-8000-000000000002'
   );
   if not (v_result ->> 'replayed')::boolean then raise exception 'response replay was not detected'; end if;
@@ -112,7 +163,7 @@ begin
   if v_count <> 1 then raise exception 'expected one durable response, found %', v_count; end if;
 
   perform authority_private.request_authority_information_service_v1(
-    v_owner, v_org, v_record, 3, 'power_of_attorney', 'Confirm the signature date.',
+    v_owner, v_org, v_record, 4, 'power_of_attorney', 'Confirm the signature date.',
     '60000000-0000-4000-8000-000000000003'
   );
   begin
@@ -125,22 +176,22 @@ begin
     if sqlerrm <> 'withdrawal_acknowledgment_required' then raise; end if;
   end;
   v_result := authority_private.withdraw_authority_responsibility_v1(
-    v_session_token, v_record, 4, 'I can no longer serve.', true,
+    v_session_token, v_record, 5, 'I can no longer serve.', true,
     '80000000-0000-4000-8000-000000000002'
   );
   if v_result ->> 'status' <> 'withdrawn' or (v_result ->> 'replayed')::boolean then
     raise exception 'withdrawal did not end the request once: %', v_result;
   end if;
   v_result := authority_private.withdraw_authority_responsibility_v1(
-    v_session_token, v_record, 4, 'I can no longer serve.', true,
+    v_session_token, v_record, 5, 'I can no longer serve.', true,
     '80000000-0000-4000-8000-000000000002'
   );
   if not (v_result ->> 'replayed')::boolean then raise exception 'withdrawal replay was not detected'; end if;
 
   select count(*) into v_count from public.authority_events
   where authority_record_id = v_record
-    and event_type in ('review.information_requested', 'review.information_resolved', 'representative.withdrawn');
-  if v_count <> 4 then raise exception 'expected four append-only workflow events, found %', v_count; end if;
+    and event_type in ('representative.submitted', 'review.information_requested', 'review.information_resolved', 'representative.withdrawn');
+  if v_count <> 5 then raise exception 'expected five append-only workflow events, found %', v_count; end if;
 end;
 $$;
 

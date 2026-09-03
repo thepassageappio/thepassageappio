@@ -120,7 +120,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   const canRecordDecision = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
   const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
-  const decisionReady = requirementsComplete && ["ready_to_submit", "under_review"].includes(record.status) && !decision;
+  const decisionReady = requirementsComplete && record.status === "under_review" && !decision;
   const requirementStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
       not_started: "Not started",
@@ -279,7 +279,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <ul className={styles.checklist}>
               <li>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length || 3} required review steps are complete</li>
               <li>The requested actions and account boundary remain unchanged</li>
-              <li>{canRecordDecision ? "The decision form opens automatically when the request is ready" : "An institution reviewer or administrator records the final outcome"}</li>
+              <li>{record.status === "ready_to_submit" ? "The representative must review the disclosure and send the completed request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
             </ul>
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}
