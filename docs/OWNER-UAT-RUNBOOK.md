@@ -4,10 +4,11 @@
 
 ## Before the clock starts
 
+- Open the isolated Demo workspace at `https://passage-authority-demo.vercel.app` and sign in with the allowlisted Demo owner account. The owner lands in the institution workspace with owner/admin controls; no developer console or database access is required.
 - Open four isolated sessions: Institution owner, Account holder, Representative, and Institution reviewer. Use separate Chrome profiles, private windows that do not share cookies, or separate devices.
 - Confirm access to two controlled inboxes. One inbox acts as Parker Quinn; the other acts as Casey Quinn.
 - Sign the owner and reviewer into the same synthetic institution workspace with separate institution accounts.
-- From the workspace, choose **Start a sample request**.
+- From the owner workspace, choose **Prepare a fresh demo**. Confirm that a new Draft opens with a unique Demo run code, prior runs remain available, usage does not change, and no message is sent.
 - Download the two fictional files linked above the form. They are visibly marked as synthetic and create no authority.
 - Start a screen recording or note the start time. Keep this sheet available outside the four product sessions.
 
@@ -18,7 +19,7 @@ Stop immediately if any session shows another persona's private action, a real c
 | Target | Persona | Action | Pass evidence |
 | --- | --- | --- | --- |
 | 0:00–0:45 | Buyer | Open the homepage and explain the problem in one sentence | “Passage gets a POA request to a clear institution decision.” |
-| 0:45–1:30 | Owner | Open **Start a sample request**, enter the controlled inboxes, save, review, and send | Draft is saved before sending; usage changes exactly once after sending |
+| 0:45–1:30 | Owner | Open the prepared Draft, confirm the controlled inboxes, save, review, and send | Draft is saved before sending; usage changes exactly once after sending |
 | 1:30–2:15 | Account holder | Open the first secure message and confirm | Correct people, purpose, account boundary, actions, end date, and institution are visible; no account is required |
 | 2:15–3:30 | Representative | Open the separately delivered message, accept, upload both fictional PDFs, and complete the certification | Only representative actions are available; both filenames and requirement states persist after refresh |
 | 3:30–4:15 | Reviewer | Open the request and ask for one specific clarification | Request returns to the representative with the saved question; no decision is recorded early |
