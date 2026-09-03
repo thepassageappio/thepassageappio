@@ -181,6 +181,7 @@ export async function createOrganizationAction(formData: FormData) {
       p_idempotency_key: textField(formData, "idempotencyKey"),
     });
     if (error) throw error;
+    revalidatePath("/", "layout");
   } catch (error) {
     destination = withMessage("/onboarding/organization", "error", errorCode(error));
   }
@@ -211,6 +212,7 @@ export async function acceptTermsAction(formData: FormData) {
       p_idempotency_key: textField(formData, "idempotencyKey"),
     });
     if (error) throw error;
+    revalidatePath("/", "layout");
   } catch (error) {
     destination = withMessage("/onboarding/terms", "error", errorCode(error));
   }
@@ -230,6 +232,7 @@ export async function selectTemplateAction(formData: FormData) {
       p_idempotency_key: textField(formData, "idempotencyKey"),
     });
     if (error) throw error;
+    revalidatePath("/", "layout");
   } catch (error) {
     destination = withMessage("/onboarding/template", "error", errorCode(error));
   }

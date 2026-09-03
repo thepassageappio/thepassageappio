@@ -1,22 +1,22 @@
 {
-  "verifiedAt": "2026-08-28T18:22:29.850Z",
-  "environment": "isolated local Supabase",
+  "verifiedAt": "2026-09-03T11:40:18.705Z",
+  "environment": "isolated Demo Supabase",
   "users": {
-    "ownerA": "bb9bad8b-1696-4975-8c8d-f2d443317149",
-    "ownerB": "1f261559-3f86-45ce-951f-af185ac3f45e",
-    "staff": "66de912e-e198-4a3e-a332-c0af71775a14",
-    "wrongRecipient": "fb613d02-7cca-4f80-bead-c0dfadc32855"
+    "ownerA": "3e09c51e-efe9-4714-b7b7-bc8c0da93353",
+    "ownerB": "0400315b-986d-4cdf-a952-c6cacffec543",
+    "staff": "fe57c449-e503-4d0c-9fd4-d0284c7fb1c6",
+    "wrongRecipient": "c6b8fa96-967a-48f7-af48-87d25e9a8187"
   },
   "organizations": {
-    "organizationA": "6535ee89-82c8-4205-b612-f6354b9ac462",
-    "organizationB": "a3c9cfcc-8266-4a0f-b197-268f1a46e0ce"
+    "organizationA": "97437681-96af-42d1-9610-9aa6d939fe1b",
+    "organizationB": "4908b5e2-dbb9-4246-a808-406f387e3255"
   },
   "membership": {
-    "accepted": "7299d0ca-bd5f-4ef4-84b3-221bac67d93c",
-    "revoked": "7299d0ca-bd5f-4ef4-84b3-221bac67d93c"
+    "accepted": "02b3e9bb-1c71-42ce-9411-1e52ee8e7681",
+    "revoked": "02b3e9bb-1c71-42ce-9411-1e52ee8e7681"
   },
   "invitation": {
-    "id": "b0c15ffc-e7eb-4878-b206-73b6a2afafcc",
+    "id": "d99c4099-aff2-42b5-902d-bb0ac46c7a9e",
     "tokenRecorded": false
   },
   "assertions": {

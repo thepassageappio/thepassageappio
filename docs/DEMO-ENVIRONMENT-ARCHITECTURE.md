@@ -1,7 +1,7 @@
 # Passage Authority demo environment architecture
 
 **Decision date:** September 3, 2026  
-**Status:** Recommended architecture; no infrastructure provisioned by this document  
+**Status:** Core Demo boundary provisioned; deterministic run provisioning and provider sandboxes remain
 **Objective:** Maintain a client-ready demonstration instance that is isolated from production while running the same released product.
 
 ## Decision
@@ -110,6 +110,13 @@ Creating a new namespaced run is safer than truncating a shared demo database: t
 - **Share production provider credentials:** permits demo activity to create real messages, charges, CRM records, or misleading metrics.
 - **Use one global demo tenant for every presenter:** creates meeting collisions and makes deterministic reset unsafe.
 
-## Boundary truth
+## September 3 implementation status
 
-This architecture describes the required target. It does not claim that the dedicated Demo Vercel project, Supabase project, domain, provider sandboxes, CI promotion, or `demo_run` provisioning command already exists.
+- The dedicated Vercel project `passage-authority-demo` deploys the same GitHub `main` release as Production.
+- The dedicated Supabase project `passage-demo` was restored empty, verified to contain no legacy users or objects, and received all 27 versioned Authority migrations.
+- Demo uses its own database URL, publishable key, server secret, Auth users, Storage boundary, and runtime environment variables. No Production database or provider credential is bound to Demo.
+- The stable fallback `https://passage-authority-demo.vercel.app` is public for evaluation while the branded domain waits on one Cloudflare DNS record. Authenticated routes remain protected by Supabase and private routes remain no-store/no-index.
+- `demo.thepassageapp.io` is assigned in Vercel and its exact Auth callbacks are already allowlisted. The remaining DNS action is `A demo.thepassageapp.io 76.76.21.21` in Cloudflare, followed by switching the two public URL variables and Auth Site URL back to the branded domain.
+- The isolated database passed organization isolation, idempotency, stale-version, role, revocation, append-only audit, representative submission, information-request/response, decision-receipt, and withdrawal replays.
+- The obsolete Vercel project `thepassageappio` was removed after confirming it served no active alias and was not the current Production project. The current `passage-authority-uat` project remains the Production host.
+- Still required for the full target: namespaced `demo_run` provisioning, a presenter allowlist, outbound-recipient enforcement, independent four-profile persona UAT, test-provider isolation, and a timed seven-minute rehearsal.

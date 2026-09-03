@@ -154,3 +154,14 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Automated coverage proves the environment gate, generic private 404, baseline security headers, and private cache/indexing policy. The combined branch passed 75 of 75 tests, TypeScript, ESLint, and the optimized 23-page production build.
 - Commit `bf4ec5f` was pushed to `authority-launch` and `main`, then production deployment `dpl_F7F9MXkiVyZwojJygm8Ut2yLHTXJ` reached Ready and was aliased to `thepassageapp.io`.
 - Live public-domain probes returned HTTP 200 for `/` and `/pricing`; unauthenticated `/app` returned the expected private, no-store redirect to sign-in; `/institution`, `/developer`, `/workspace/sample`, and `/api/v1/authority-records` returned HTTP 404 with no-store/no-index protections.
+
+## September 3 isolated Demo environment
+
+- Vercel project `passage-authority-demo` deployed the same `af8be3a` release used to define the isolated environment and is connected to the same GitHub `main` branch as Production.
+- Supabase project `passage-demo` started with zero Auth users, zero Storage objects, no application tables, and no migration history. All 27 repository migrations then applied successfully.
+- The clean Demo database passed the Gate 1 replay and the transactional hosted workflow replay, including cross-tenant denial, unauthorized-role denial, stale-version denial, idempotency, immediate revoked-member denial, append-only audit enforcement, disclosure persistence, information request and response, decision receipt, and withdrawal.
+- Vercel environment variables use the Demo Supabase URL, publishable key, and server secret. Supabase Auth allows only the stable fallback and branded Demo callback paths.
+- The stable fallback `https://passage-authority-demo.vercel.app` returned HTTP 200 for every public route, redirected unauthenticated `/app` to sign-in, and returned generic 404s for retired `/institution` and sandbox API routes.
+- Every real public route and resource article passed live Chrome checks at 1440px, 390px, and 360px with no horizontal overflow, empty links, framework overlay, or Passage console warning/error.
+- A controlled presenter reached the real organization onboarding flow. Organization creation and terms acceptance wrote the correct durable state but exposed stale client navigation until reload; onboarding actions now invalidate the full route layout before redirect and require redeployed browser replay.
+- `demo.thepassageapp.io` is assigned to the Demo project but does not resolve until Cloudflare publishes `A demo.thepassageapp.io 76.76.21.21`. The stable Vercel fallback remains usable until then.

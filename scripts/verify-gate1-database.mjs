@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.SUPABASE_URL;
 const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const secretKey = process.env.SUPABASE_SECRET_KEY;
+const environmentLabel = process.env.SUPABASE_ENVIRONMENT_LABEL ?? "isolated Supabase";
 
 assert(url, "SUPABASE_URL is required");
 assert(publishableKey, "SUPABASE_PUBLISHABLE_KEY is required");
@@ -279,7 +280,7 @@ assert(auditMutationError, "Audit mutation unexpectedly succeeded");
 
 const evidence = {
   verifiedAt: new Date().toISOString(),
-  environment: "isolated local Supabase",
+  environment: environmentLabel,
   users: { ownerA: ownerA.id, ownerB: ownerB.id, staff: staff.id, wrongRecipient: wrongRecipient.id },
   organizations: { organizationA: organizationA.organization_id, organizationB: organizationB.organization_id },
   membership: { accepted: acceptedMembership.membership_id, revoked: revokedMembership.membership_id },
