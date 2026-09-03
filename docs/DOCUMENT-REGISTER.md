@@ -23,6 +23,7 @@
 | 15 | `PRICING-AND-PACKAGING-RESEARCH.md` | Evidence-backed pricing model, offer ladder, billable unit, Stripe boundary, CRM lifecycle, and future product vision |
 | 16 | `STRIPE-HUBSPOT-REQUIREMENTS.md` | Approved CRM segmentation, contact roles, subscription and usage intelligence, three-pipeline revenue model, top-ups, renewal calculations, reconciliation, and acceptance evidence |
 | 17 | `COMMERCIAL-DATA-ARCHITECTURE.md` | Implementation-ready Passage-to-Stripe-to-HubSpot source mapping, missing platform model, CRM properties and pipelines, events, privacy, reconciliation, rollout, and acceptance tests |
+| 18 | `DEMO-ENVIRONMENT-ARCHITECTURE.md` | Evidence-backed isolated Demo topology, release parity, synthetic reset model, provider boundaries, and implementation acceptance criteria |
 
 When documents conflict, the lower order number controls.
 
