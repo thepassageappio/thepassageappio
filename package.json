@@ -12,6 +12,7 @@
     "test:domain": "node --experimental-strip-types --test src/lib/authority/*.test.mts",
     "verify:gate1:database": "node scripts/verify-gate1-database.mjs",
     "verify:live-story": "node scripts/verify-live-story.mjs",
+    "verify:public-release": "node scripts/verify-public-release.mjs",
     "verify": "pnpm test:domain && pnpm typecheck && pnpm lint && pnpm build"
   },
   "engines": {

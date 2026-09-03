@@ -207,3 +207,4 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Sixteen public routes returned HTTP 200 in both Production (`https://thepassageapp.io`) and the isolated Demo (`https://passage-authority-demo.vercel.app`), for 32 successful live responses.
 - Coverage included the homepage, About, Contact, Integrations, Pricing, Pilot, Resources index, all three resource articles, Security, Templates, Privacy, Terms, Authorized Use, and the sign-in/evaluation entry page.
 - The live Demo homepage also rendered the current Passage Authority positioning, institution decision boundary, sample request, navigation, and primary evaluation actions in a real browser.
+- The repeatable `pnpm verify:public-release` gate checks those 32 responses plus invalid-link, consumed-link, expired-link, and unavailable-session guidance in both environments. The four recovery views were also rendered and read in the hosted Demo browser.
