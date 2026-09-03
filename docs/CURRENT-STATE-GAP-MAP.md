@@ -142,6 +142,6 @@ Progress is measured by complete vertical slices, not the number of pages or int
 
 ## 6. Next controlled build action
 
-Close the hosted release candidate without touching legacy Passage data: finish the active fresh synthetic cross-persona request, independently replay its hosted event chain and negative direct-access cases, and complete the owner-run public-domain UAT. The public Auth callback allowlist, production Site URL, `AUTHORITY_APP_URL`, branded SMTP, revoked-account recovery, and fresh organization onboarding are verified. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
+Close the hosted release candidate without touching legacy Passage data: independently replay the completed synthetic transaction's hosted event chain and negative direct-access cases, then complete owner-run public-domain UAT. The active request passed representative disclosure, RFI/response, limited institution decision, matching three-party receipt, 30-minute-session recovery, and revocation. The public Auth callback allowlist, production Site URL, `AUTHORITY_APP_URL`, branded SMTP, revoked-account recovery, and fresh organization onboarding are verified. Stripe test schema and negative-path tests may begin; real customer data and live Stripe remain blocked.
 
 The controlled fictional MVP remains available throughout as the regression and demonstration harness.

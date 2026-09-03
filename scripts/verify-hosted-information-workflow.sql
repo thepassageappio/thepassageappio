@@ -162,6 +162,22 @@ begin
   select count(*) into v_count from public.authority_information_responses where authority_record_id = v_record;
   if v_count <> 1 then raise exception 'expected one durable response, found %', v_count; end if;
 
+  begin
+    perform authority_private.record_institution_decision_service_v1(
+      v_owner, v_org, v_record, 4, 'accepted_with_limits', 'Synthetic review completed after clarification.',
+      array['No money movement.']::text[], true, '60000000-0000-4000-8000-000000000014'
+    );
+    if not exists (
+      select 1 from public.authority_institution_decisions d
+      where d.authority_record_id = v_record
+        and d.receipt_snapshot ? 'disclosure'
+        and d.receipt_snapshot #>> '{disclosure,text_version}' = 'minimum-necessary-disclosure-2026.1'
+    ) then raise exception 'post-clarification decision receipt did not include the saved disclosure'; end if;
+    raise exception using errcode = 'P0001', message = 'rollback_post_clarification_decision_probe';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'rollback_post_clarification_decision_probe' then raise; end if;
+  end;
+
   perform authority_private.request_authority_information_service_v1(
     v_owner, v_org, v_record, 4, 'power_of_attorney', 'Confirm the signature date.',
     '60000000-0000-4000-8000-000000000003'

@@ -56,7 +56,13 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 - The new synthetic owner completed organization profile, evaluation terms, and policy selection in Chrome. `Passage UAT Credit Union` opened with zero of five activations used.
 - The first fresh request was saved as a draft with zero usage, then activated once as `PA-1C3C4DABBD`; the institution view showed one of five activations, principal-only action, held representative access, append-only activation and submission activity, and final provider delivery confirmation.
 - Gmail placed the first participant invitation in Spam even though the receiving server and Resend confirmed delivery. Inbox placement is therefore still an explicit pre-pilot deliverability gap.
-- Fresh UAT exposed a release-blocking hosted parity gap at `ready_to_submit`: the representative had no final disclosure/send action, the record could not enter `under_review`, and the institution decision form appeared one state too early. The corrective migration and UI must pass before this transaction continues.
+- Fresh UAT exposed a release-blocking hosted parity gap at `ready_to_submit`: the representative had no final disclosure/send action, the record could not enter `under_review`, and the institution decision form appeared one state too early. The added representative disclosure command, institution guard, UI, and database replay passed locally and on the public domain.
+- The representative sent the completed request, the institution saw the same review state, requested a clarification, and the representative's response returned the record to review.
+- RFI UAT exposed a receipt guard that incorrectly required the final decision immediately after disclosure. Follow-up migration `authority_disclosure_decision_version_window` now requires disclosure to predate the decision while permitting preserved clarification events; clean-schema replay passed both immediate and post-clarification decision probes.
+- The institution recorded `Accepted with limits`; institution, representative, and principal views matched on receipt `PAR-AD9AD8C0ED49`, decision version 15, exact scope, two limits, and fingerprint `9ef9742deae3c0d4a0575320215ba3535c41eff460b9973cedad98eff6e5abf0`.
+- Revocation advanced the request to version 16. All three views showed the same revoked state, reason, and effective time while preserving the original decision fingerprint.
+- The expired 30-minute representative session recovered through a fresh single-use link without losing the saved acceptance or evidence. Participant tabs in one browser profile share the role-bound cookie, so separate personas must use separate profiles/devices or be verified sequentially.
+- Initial invitation and resume messages landed in Gmail Spam, but the principal decision-receipt message landed in Inbox. Deliverability remains a pilot-readiness workstream rather than an unqualified pass.
 
 ## Complete browser transaction
 
@@ -99,7 +105,7 @@ The homepage, templates, integrations, security, pricing, pilot, institution que
 
 ## Automated release gates
 
-- Domain and persistence tests: 65 passed
+- Domain and persistence tests: 70 passed
 - TypeScript: passed
 - ESLint: passed
 - Next.js production build: passed

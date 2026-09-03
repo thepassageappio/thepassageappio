@@ -1,15 +1,15 @@
 # Passage Authority MVP execution plan
 
 **Launched:** August 28, 2026
-**Current score:** 8.9 of 10 to a working MVP
-**Target score:** 9 of 10 with a hosted, independently replayable product on the approved public domain
+**Current score:** 9.2 of 10 to a fully functioning MVP
+**Controlled MVP threshold:** Achieved on the approved public domain with a hosted synthetic transaction; independent owner replay and commercial entitlement remain release-candidate gates
 **Active work limit:** One complete vertical slice
 
 ## Outcome
 
 An authenticated institution can create and activate a New York financial power of attorney request. The principal, representative, and institution reviewer can complete their separate steps. Every action produces durable organization-isolated state, an append-only event, a matching receipt, and an observable notification or integration outcome.
 
-The product is not an MVP until the hosted product completes this story. The local sandbox remains a regression and sales demonstration environment, but it is not release evidence for hosted product behavior.
+The hosted product has completed this synthetic story through revocation. The local sandbox remains a regression harness; owner-run replay, hosted negative-access evidence, deliverability hardening, and Stripe test entitlement remain before a commercial release candidate.
 
 ## Critical path
 
@@ -17,11 +17,11 @@ The product is not an MVP until the hosted product completes this story. The loc
 | --- | --- | --- | --- |
 | 1 | Hosted request foundation | Authorized institution user creates a draft in the correct organization queue. A second authorized user can read it through organization RLS. A non-member and revoked member cannot. | Core evidence passed; revoked-user browser message is final hardening evidence |
 | 2 | Trial and activation | First invitation starts the 10-day trial and consumes one of five transactions exactly once. Request six is blocked without hiding existing work. | Passed end to end |
-| 3 | Participant access | Principal and representative receive separate expiring links and complete only their permitted actions. | Hosted real-email happy path passed; recovery hardening remains |
+| 3 | Participant access | Principal and representative receive separate expiring links and complete only their permitted actions. | Hosted real-email happy path and 30-minute-session recovery passed; deliverability hardening remains |
 | 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Core passed with two browser uploads, certification, and institution review; negative direct-access replay remains |
-| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Hosted decision and revocation passed; RFI/withdrawal/expiration negative-path closeout remains |
-| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Hosted three-party receipt and revocation fingerprint passed; independent hosted event replay remains |
-| 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Blocked by slices 1 through 6 |
+| 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Hosted RFI, response, limited decision, and revocation passed; withdrawal/expiration negative-path closeout remains |
+| 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Hosted three-party receipt and lifecycle synchronization passed; independent hosted event replay remains |
+| 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Data-model and negative-path test design may begin; payment connection follows owner-run UAT |
 | 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Engineering-assisted synthetic UAT passed; owner-run public-domain replay remains |
 
 ## Slice 1 acceptance contract
@@ -101,8 +101,9 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Passed: real principal and representative messages were delivered through Resend from the hosted product, signed delivery webhooks changed durable state, and the owner saw confirmed delivery.
 - Passed: principal acted first and the representative received access only after principal confirmation.
 - Passed: audited fresh-link issuance revoked the old session and token. A schema defect that rejected the replacement session was found in hosted UAT, corrected to enforce one active session while preserving revoked history, and retested successfully.
-- Active hardening: expiry, invitation revoke, wrong-person, post-revocation message, and safe recovery browser proofs.
-- Known blocker: both real messages landed in Gmail Spam. Provider acceptance and mail-server delivery are not sufficient for commercial deliverability.
+- Passed: an intentionally expired 30-minute representative session recovered through a fresh single-use link without changing the prior decision or evidence.
+- Active hardening: invitation revoke, wrong-person, post-revocation message, and remaining recovery browser proofs.
+- Known blocker: initial invitation and resume messages landed in Gmail Spam, while the later decision receipt landed in Inbox. Provider acceptance and mail-server delivery are not sufficient for commercial deliverability.
 
 ### Slice 4 hosted evidence result
 
@@ -115,9 +116,10 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 ### Slices 5 and 6: hosted transaction parity
 
 - Passed: hosted Postgres-backed commands preserved optimistic concurrency, immutable events, the policy snapshot, decision limits, and revocation through the tested transaction.
-- Passed: institution, principal, and representative observed the same current record and matching receipt from separate browser profiles.
+- Passed: institution, principal, and representative sequentially observed the same receipt code, fingerprint, decision, scope, limits, and lifecycle. Two participant tabs in one profile intentionally share one role-bound cookie and are not independent users.
+- Passed: the institution requested clarification after representative disclosure, the representative responded, and the later institution decision preserved the disclosure in the receipt.
 - Passed: revocation advanced the canonical request version while preserving the saved decision fingerprint.
-- Remaining: hosted negative-path closeout for request-for-information, withdrawal, expiration, and an independent event replay from the hosted adapter.
+- Remaining: hosted negative-path closeout for withdrawal and expiration plus an independent event replay from the hosted adapter.
 - Boundary: the SQLite adapter remains a local regression harness and is not reachable from public website calls to action.
 
 ### Slice 7: commercial entitlement
@@ -143,7 +145,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 | Demo | Stable public entry, resettable approved test data, and a seven-minute script | Product is demonstrable with engineering guidance | Create one resettable hosted demo record and rehearse without developer intervention |
 | ICP and positioning | Narrow problem, workflow, buyer, and honest product boundary are documented | Ready to begin now | Interview regional-bank and credit-union operations/compliance leaders; test problem urgency and buying process before scaling outbound |
 | Sales strategy | ICP evidence plus a repeatable demo and pilot offer | Discovery and design-partner outreach can begin; broad selling is premature | Build qualification, discovery, objection, security, pilot-success, and follow-up materials from verified claims only |
-| Stripe test payments | Public Auth callback and owner-run UAT pass; entitlement mapping is approved | Not ready to connect yet | Build test-mode Checkout and verified webhook-to-organization entitlement after the release-candidate closeout |
+| Stripe test payments | Public Auth callback and owner-run UAT pass; entitlement mapping is approved | Ready for schema and negative-path tests; do not connect payment activation until owner replay passes | Build test-mode invoice/Checkout, verified webhook-to-organization entitlement, and reconciliation |
 | Live payments | Stripe duplicate, signature, ordering, failure, cancellation, refund, and reconciliation tests pass | Blocked | Owner explicitly approves live Stripe products, prices, tax, terms, and customer-support operations |
 | Controlled pilot | Legal, security, retention, support, monitoring, deliverability, and institution acceptance are approved | Not ready | Complete the pilot-readiness control package after MVP UAT and Stripe test entitlement |
 
@@ -165,7 +167,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 | Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
 | Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
 
-The public-domain cutover, responsive smoke test, rollback capture, production Auth callback migration, branded SMTP, revoked-account recovery, and fresh synthetic organization setup are complete. The remaining path to the MVP release candidate is one focused closeout: complete the active cross-persona transaction, independently replay its event and negative-access evidence, then perform owner-run public-domain UAT. Pilot readiness still follows with inbox placement, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
+The public-domain cutover, responsive smoke test, rollback capture, production Auth callback migration, branded SMTP, revoked-account recovery, fresh synthetic organization setup, and engineering-assisted hosted transaction through revocation are complete. The remaining path to the release candidate is focused: independently replay hosted events and negative access, then perform owner-run public-domain UAT. Stripe test schema and failure tests can begin in parallel, but payment-driven entitlement must wait for that owner replay. Pilot readiness still follows with inbox placement, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
 
 External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
 
