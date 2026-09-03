@@ -4,6 +4,16 @@
 
 Date: September 2, 2026
 
+## Institution account and commercial model
+
+- Production deployment `dpl_5FhdrfgMPHWsmc2NhjyaScjwyHe8` reached Ready and was aliased to `https://thepassageapp.io`.
+- Authenticated owner verification passed on `/app/organization`: organization identity, owner role, evaluation status, one-of-five usage, period, no-card evaluation, institution-only billing, and pilot path matched durable hosted data.
+- Authenticated `/app/team` verification passed: the role guide opened and separated owner, administrator, operations, reviewer, auditor, and developer access.
+- Responsive verification passed at 390px and 360px with no horizontal overflow. The plan page measured 1,574px and 1,607px high respectively after compacting navigation and secondary detail.
+- All visible links, buttons, and disclosures met the 44px target in the 390px plan-page check. Browser warnings and errors were empty across the plan and team checks.
+- Pricing and packaging research selected a base subscription with included activated requests and graduated overage; exact annual prices remain gated on buyer and pilot evidence.
+- Automated evidence passed: 70 domain tests, TypeScript, ESLint, and the 23-page optimized production build.
+
 ## Release outcome
 
 The controlled MVP now supports one complete New York financial power of attorney transaction for limited account servicing. It begins with institution setup and ends with a current decision receipt, revocation, and independently replayable integration evidence.
