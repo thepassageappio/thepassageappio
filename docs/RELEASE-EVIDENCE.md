@@ -180,4 +180,5 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - The participant decision email now uses the shorter subject and heading “Decision receipt ready,” a compact outcome summary, and the plain-language label “Financial power of attorney request.”
 - The responsive template fixes iPhone text inflation, reduces mobile spacing, and keeps its primary action at least 44px high.
 - A headless Chrome render at 390 × 844 measured the complete email card at 382px high and the primary action bottom at 298px, placing the decision context and action inside the first mobile viewport.
-- The full release gate passed: 78 of 78 domain tests, TypeScript, ESLint, and the optimized 23-page production build.
+- The legacy purpose phrase is also normalized at every institution and participant projection while the durable source value remains unchanged. Purpose-specific institution language is preserved.
+- The full release gate passed: 80 of 80 domain tests, TypeScript, ESLint, and the optimized 23-page production build.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { getParticipantDecisionReceipt } from "@/lib/authority/participant-session";
@@ -48,7 +49,7 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     <div className={styles.summary}>
       <h2>Request boundary</h2>
       <p><strong>{receipt.participantName}</strong> is viewing this receipt as the {roleLabel.toLowerCase()}. The other named person is <strong>{receipt.otherPersonName}</strong>.</p>
-      <p>{receipt.purpose}</p>
+      <p>{authorityPurposeLabel(receipt.purpose)}</p>
       <p>{receipt.accountBoundary}</p>
     </div>
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { exchangeParticipantInvitationAction } from "@/app/participant-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { mapParticipantInvitationPreview, normalizeParticipantToken } from "@/lib/authority/participant-access";
 import { createClient } from "@/lib/supabase/server";
@@ -64,7 +65,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
         : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
   >
     <div className={styles.summary}>
-      <h2>{preview.purpose}</h2>
+      <h2>{authorityPurposeLabel(preview.purpose ?? "")}</h2>
       <p>{preview.accountBoundary}</p>
     </div>
     <div className={styles.facts}>

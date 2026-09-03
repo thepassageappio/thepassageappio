@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
+import { authorityPurposeLabel } from "./display-copy.ts";
 
 export type ParticipantInvitationDelivery = {
   invitationId: string;
@@ -39,14 +40,6 @@ function expirationLabel(expiresAt: string) {
   }).format(value);
 }
 
-function participantPurposeLabel(purpose: string) {
-  const value = purpose.trim();
-  if (value.toLowerCase() === "request recognition of limited financial power of attorney authority") {
-    return "Financial power of attorney request";
-  }
-  return value;
-}
-
 export function participantInvitationIdempotencyKey(delivery: ParticipantInvitationDelivery) {
   return `authority-participant-${delivery.invitationId}-v${delivery.invitationVersion}`;
 }
@@ -78,7 +71,7 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
     : `${delivery.institutionName} invited you as the ${role} to ${action}.`;
   const buttonLabel = isReceipt ? "View decision receipt" : isResume ? "Resume secure request" : "Open secure request";
   const expires = expirationLabel(delivery.expiresAt);
-  const purpose = participantPurposeLabel(delivery.purpose);
+  const purpose = authorityPurposeLabel(delivery.purpose);
 
   const text = [
     `Hello, ${delivery.participantName}.`,

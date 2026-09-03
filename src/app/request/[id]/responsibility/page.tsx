@@ -3,6 +3,7 @@ import Link from "next/link";
 import { submitParticipantDecisionAction } from "@/app/participant-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { getParticipantRequestContext } from "@/lib/authority/participant-session";
 import decisionStyles from "../participant-decision.module.css";
@@ -43,7 +44,7 @@ export default async function RepresentativeResponsibilityPage({ params, searchP
     step="Your decision"
   >
     {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that decision. Nothing was changed."}</div> : null}
-    <div className={styles.summary}><h2>{context.purpose}</h2><p>{context.accountBoundary}</p></div>
+    <div className={styles.summary}><h2>{authorityPurposeLabel(context.purpose)}</h2><p>{context.accountBoundary}</p></div>
     <p className={styles.legend}>You may request only</p>
     <ul className={styles.scope}>{context.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key as keyof typeof HOSTED_ACTIONS] ?? key}</li>)}</ul>
     <div className={styles.rule}>You do not receive ownership, unrestricted account access, or permission to act outside this request. The institution decides what it will recognize.</div>

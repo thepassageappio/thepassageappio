@@ -8,6 +8,7 @@ import { RecordHeader } from "@/components/authority/RecordHeader";
 import { RoleSwitcher } from "@/components/authority/RoleSwitcher";
 import { ScopePanel } from "@/components/authority/ScopePanel";
 import { StatusCard } from "@/components/authority/StatusCard";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { isAuthorityError } from "@/lib/authority/errors";
 import { getAuthorityRepository } from "@/lib/authority/repository";
 import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
@@ -45,7 +46,7 @@ export default async function AuthorityWorkspace({ params, searchParams }: Props
               <h1>{record.principal.name} to {record.representative.name}</h1>
               <span>For {record.relyingParty.name} · {record.accountBoundary}</span>
             </div>
-            <div className="workspace-purpose"><strong>Purpose</strong>{record.purpose}</div>
+            <div className="workspace-purpose"><strong>Purpose</strong>{authorityPurposeLabel(record.purpose)}</div>
           </div>
           {messages.notice ? <div className="notice" role="status">{messages.notice}</div> : null}
           {messages.error ? <div className="error-notice" role="alert">{messages.error}</div> : null}

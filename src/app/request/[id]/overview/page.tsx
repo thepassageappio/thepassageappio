@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { respondToAuthorityInformationAction, submitAuthorityForReviewAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
@@ -95,7 +96,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
     description={description}
   >
     <div className={styles.summary}>
-      <h2>{context.purpose}</h2>
+      <h2>{authorityPurposeLabel(context.purpose)}</h2>
       <p>{context.accountBoundary}</p>
     </div>
     <div className={styles.facts}>

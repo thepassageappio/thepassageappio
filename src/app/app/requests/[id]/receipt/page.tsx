@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { recordAuthorityLifecycleAction, reissueParticipantInvitationAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
@@ -110,7 +111,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}</dd></div>
-            <div><dt>Purpose</dt><dd>{record.purpose}</dd></div>
+            <div><dt>Purpose</dt><dd>{authorityPurposeLabel(record.purpose)}</dd></div>
             <div><dt>Account relationship</dt><dd>{record.accountBoundary}</dd></div>
             <div><dt>End date</dt><dd>{dateTime(record.validUntil)}</dd></div>
           </dl>

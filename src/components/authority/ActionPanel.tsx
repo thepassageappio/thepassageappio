@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { executeAuthorityAction } from "@/app/actions";
+import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import type { AuthorityRecord, Party } from "@/lib/authority/types";
 import styles from "./authority.module.css";
 import extra from "./action-extra.module.css";
@@ -188,7 +189,7 @@ function Representative({ record }: { record: AuthorityRecord }) {
         <h2>Send the minimum-necessary packet</h2>
         <p>The reviewer receives requirement results, source references, and the disclosure receipt. Unrelated personal information and raw identity documents stay outside this packet.</p>
         <dl className={extra.reviewSummary}>
-          <div><dt>Purpose</dt><dd>{record.purpose}</dd></div>
+          <div><dt>Purpose</dt><dd>{authorityPurposeLabel(record.purpose)}</dd></div>
           <div><dt>Recipient</dt><dd>{record.relyingParty.name}</dd></div>
           <div><dt>Policy</dt><dd>{record.policy.label} {record.policy.version} · {record.policy.jurisdiction}</dd></div>
           <div><dt>Evidence results</dt><dd>{record.evidenceArtifacts.length} sourced artifacts</dd></div>
