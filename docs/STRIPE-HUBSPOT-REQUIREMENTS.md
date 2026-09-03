@@ -287,6 +287,45 @@ The three deal pipelines are necessary but not sufficient. The following control
 7. Invoice aging, failed payments, refunds, disputes, and Stripe/Passage/HubSpot reconciliation status.
 8. Onboarding progress, time to first activation, time to first completed receipt, support response, and unresolved risks.
 
+## Additional foundational requirements from the commercial gap audit
+
+### Account hierarchy and subscription history
+
+- Distinguish the legal customer, billing account, HubSpot Company, Passage organization/workspace, and operating business unit. They may begin one-to-one but must not be assumed identical forever.
+- Support a parent institution or holding company with multiple subsidiaries, brands, business units, or Passage workspaces while preserving each legal entity's data boundary.
+- Define which entity signs the agreement, receives invoices, owns the subscription, receives volume pooling, and appears in revenue reporting.
+- Preserve immutable subscription-term history: plan, prices, allowance, add-ons, start/end, renewal, cancellation, predecessor/successor, and the commercial approval that created each change.
+- A Company may eventually have multiple products, workflows, workspaces, or subscriptions. Current-summary fields must not erase contract or product-line history.
+
+### Product and integration segmentation
+
+- Record purchased product/workflow, supported policy/geography, hosted versus API-led adoption, integration type, environment, implementation stage, and go-live status.
+- Usage, completion, support, cost, expansion, and retention reporting must be filterable by product, workflow, geography, and integration method.
+- Partner-sourced and referral-sourced customers retain partner, referral program, source deal, and applicable commercial terms.
+
+### Customer health and success ownership
+
+- Define a transparent health score from adoption, completion rate, utilization, recent activity, support severity, payment state, stakeholder engagement, onboarding progress, and renewal status.
+- Preserve every component and timestamp; never expose only an unexplained red/yellow/green score.
+- Health changes create owned customer-success actions with due dates and outcomes.
+- Track executive sponsor coverage, champion changes, administrator activity, business-review dates, success-plan progress, product requests, and unresolved risks.
+
+### Unit economics and capacity
+
+- Measure direct cost per activated and completed authority request, including email, storage, identity/document providers when introduced, infrastructure, payment fees, and attributable support or review work.
+- Report gross revenue, refunds, direct delivery cost, gross profit, and gross margin by plan, ICP segment, customer, workflow, integration method, and cohort.
+- Track support minutes, implementation effort, and exceptional manual work separately so high-revenue but operationally unscalable accounts are visible.
+- Forecast usage-driven provider cost and operational capacity alongside revenue burn rate and allowance exhaustion.
+
+### Commercial-data governance
+
+- Every synchronized property has a system of record, data owner, definition, allowed values, update trigger, freshness target, and correction procedure.
+- Store `last calculated at`, `last synced at`, `source system`, and `sync status` for critical revenue, subscription, usage, and renewal projections.
+- Restrict sensitive commercial, security, legal, and billing fields by role; preserve an audit trail for material changes.
+- Define retention for CRM activities, expired contracts, payment references, usage snapshots, support records, and deleted or merged Companies.
+- Company merges, ownership transfers, domain changes, contact departures, and subscription transfers require explicit reconciliation tests.
+- Consent, communication preference, lawful-contact basis where applicable, suppression status, and preference source remain independently auditable.
+
 ## Commercial launch gates
 
 ### Before the first real paid pilot
