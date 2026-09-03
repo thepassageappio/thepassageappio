@@ -79,7 +79,7 @@ export default async function DecisionReceipt({ params }: { params: Promise<{ id
 
             <section className={styles.boundary}>
               <strong>What this receipt means</strong>
-              <p>The institution recorded its own decision against its policy and the evidence shown in this request. Passage preserved the scope, evidence references, disclosures, decision, and lifecycle. Passage did not create the legal authority or provide a legal opinion.</p>
+              <p>The institution recorded its own decision against its policy and the evidence shown in this request. Passage preserved the scope, evidence references, disclosures, decision, and later changes. Passage did not create the legal authority or provide a legal opinion.</p>
             </section>
           </div>
           <ReceiptTimeline events={record.events} role={actor.role} />

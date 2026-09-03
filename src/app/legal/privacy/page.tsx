@@ -15,7 +15,7 @@ export default function EvaluationPrivacyPage() {
         <h2>How information is used</h2><ul><li>Authenticate people and enforce organization and record access.</li><li>Coordinate the requested authority review and show each person the next action.</li><li>Preserve consent, disclosure, decision, revocation, expiration, and access history.</li><li>Protect, troubleshoot, and improve the service.</li></ul>
         <h2>Who can see information</h2><p>Access depends on the person&apos;s verified organization role or a secure, record-bound invitation. Passage separates organization access, participant access, private evidence, and integration access. The receiving institution controls its decision and authorized reviewers.</p>
         <h2>Service providers</h2><p>Approved service providers may support authentication, hosting, transactional email, payment, identity or evidence checks, and monitoring. Production use requires an accurate subprocessor and control record.</p>
-        <h2>Your choices</h2><p>Organization owners can manage team access. Participants will be able to review the requested disclosure and applicable lifecycle actions. Requests for access, correction, export, or deletion are handled subject to legal, security, and audit-retention requirements.</p>
+        <h2>Your choices</h2><p>Organization owners can manage team access. Participants can review what they are asked to share and the later actions available to them. Requests for access, correction, export, or deletion are handled subject to legal, security, and record-retention requirements.</p>
       </article>
     </main>
   );

@@ -54,7 +54,7 @@ export default async function TeamPage({ searchParams }: Props) {
   return (
     <>
       <header className={styles.pageHeader}>
-        <div><p className={styles.eyebrow}>People and access</p><h1>Organization access</h1><p>Give each person the narrowest role they need. Revoked access stops at the database boundary immediately.</p></div>
+        <div><p className={styles.eyebrow}>People and access</p><h1>Organization access</h1><p>Give each person the narrowest role they need. Revoked access stops immediately across the workspace.</p></div>
       </header>
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       {notice ? <div className={styles.notice} role="status">{notice}</div> : null}

@@ -255,7 +255,7 @@ function Reviewer({ record }: { record: AuthorityRecord }) {
         <section className={styles.actionPanel}>
           <p className={styles.eyebrow}>Decision recorded</p>
           <h2>{record.status === "accepted_with_limits" ? "Accepted with limits" : record.status === "accepted" ? "Accepted" : "Not accepted"}</h2>
-          <p>The institution&apos;s outcome, accepted actions, limits, evidence references, and lifecycle are preserved in the decision receipt.</p>
+          <p>The institution&apos;s outcome, accepted actions, limits, evidence references, and later changes are preserved in the decision receipt.</p>
         </section>
       );
     }

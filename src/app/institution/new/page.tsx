@@ -22,7 +22,7 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
         <form action={createAuthorityRequestAction} className={styles.form}>
           <section className={styles.card}>
             <div className={styles.cardHead}><div><span>Selected template</span><h2>New York financial power of attorney</h2></div><b>Available now</b></div>
-            <p>Guides document review, representative certification, identity, address, minimum disclosure, institution review, and lifecycle changes.</p>
+            <p>Guides document review, representative certification, identity, address, minimum disclosure, institution review, and later status changes.</p>
           </section>
           <section className={styles.card}>
             <div className={styles.sectionTitle}><span>1</span><div><h2>Who is involved?</h2><p>The product tour starts with sample participant details. Replace them only with approved evaluation data.</p></div></div>
