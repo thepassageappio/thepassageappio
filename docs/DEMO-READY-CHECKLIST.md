@@ -51,3 +51,15 @@ The preparation action must create a fresh namespaced run and request inside the
 - The hosted action, migration, and exact presenter allowlist are deployed. An authenticated owner created a fresh draft at desktop width and verified the notice, next action, session recovery, and controls at 390px and 360px.
 - Remaining before this gate passes: rehearse the timed story with independent profiles.
 - The older SQLite demonstration UI and API are now code-gated to development and test mode. The enterprise demo must use the authenticated hosted organization flow; a production request cannot switch synthetic roles, reset the shared SQLite store, or open its local review queue.
+
+### P0 negative-path status
+
+| Case | Automated durable proof | Still manual in hosted Demo |
+| --- | --- | --- |
+| Wrong role | A principal session cannot perform the representative action; institution staff cannot request information. Request state, events, decisions, and usage remain unchanged. | Confirm the plain-language denial from separate participant and staff browser profiles. |
+| Reused link | Exact command replay returns the original session; opening the consumed one-time token with a new command is denied without a second session or event. | Open the consumed link from a separate device and verify the recovery action. |
+| Stale page | Stale participant and institution commands are rejected before mutation; version, event count, and usage remain unchanged. | Submit an intentionally stale form in Chrome and verify recovery copy and refreshed status. |
+| Rejected | One institution rejection writes one no-authority decision receipt and one event; replay creates no duplicate and usage remains unchanged. | Compare the institution, account-holder, and representative receipt screens. |
+| Withdrawn | Acknowledged representative withdrawal writes one terminal state and event; exact replay creates no duplicate and usage remains unchanged. | Verify the other personas see the same terminal status and no active next action. |
+| Expired | Expiration preserves the original accepted decision, appends one lifecycle event, advances once, and does not change usage. | Verify scheduled/operator initiation and all three receipt projections in hosted Demo. |
+| Session recovery | Reissue revokes the old session, prepares one new role-bound link, preserves the request version/status and usage, and records both recovery events. | Verify message delivery and continuation in a fresh profile without losing saved work. |

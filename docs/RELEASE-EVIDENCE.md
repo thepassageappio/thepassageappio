@@ -193,3 +193,11 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Migration `20260903120000_authority_demo_runs.sql` and the exact presenter allowlist were applied to the isolated Demo environment. Demo deployment `dpl_79LiZy9cSY4SfhpHcErFupu1z7rG` and Production deployment `dpl_38EmoExZd9n3su3vpbnmo8TMSgaG` reached Ready; Production retains the generic not-found boundary for Demo-only commands.
 - The authenticated Demo owner prepared fresh run `PA-3C6EE04048`. The new request opened as Draft, prior run `PA-F37BFD7EBF` remained intact, usage remained 1 of 5, no message was sent, and the activity count began at one.
 - The signed-in workspace and new draft preserved the preparation notice, primary action, owner role, and Sign out recovery at desktop, 390px, and 360px.
+
+## September 3 P0 negative persona matrix
+
+- Transactional local-Postgres coverage now proves the seven required cases: wrong-role participant action, consumed-link reuse, stale participant page, institution rejection, representative withdrawal, accepted-request expiration, and fresh-link session recovery.
+- Denied wrong-role, reused-link, and stale-page commands leave the request version/status, event count, participant decisions, and entitlement usage unchanged.
+- Rejection writes one immutable no-authority decision and one event; exact idempotent replay writes nothing else. Expiration preserves the accepted decision and appends exactly one lifecycle event. Withdrawal remains a single terminal transition on exact replay.
+- Recovery revokes the prior participant session, prepares and exchanges one new role-bound link, preserves request state and usage, and leaves three explicit access/recovery events.
+- Both SQL scripts use fictional local fixtures inside transactions and end with `ROLLBACK`; they do not send email, access providers, or touch Demo, UAT, or Production. Hosted browser copy, message delivery, cross-persona receipt comparison for rejection/withdrawal/expiration, and scheduled expiration initiation remain manual UAT cases.

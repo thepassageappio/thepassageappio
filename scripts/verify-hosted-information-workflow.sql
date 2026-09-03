@@ -208,6 +208,11 @@ begin
   where authority_record_id = v_record
     and event_type in ('representative.submitted', 'review.information_requested', 'review.information_resolved', 'representative.withdrawn');
   if v_count <> 5 then raise exception 'expected five append-only workflow events, found %', v_count; end if;
+
+  if (select activated_count from public.organization_entitlements where organization_id = v_org) <> 0
+    or (select count(*) from public.authority_usage_events where organization_id = v_org) <> 0 then
+    raise exception 'information, stale, wrong-role, or withdrawal paths changed usage';
+  end if;
 end;
 $$;
 

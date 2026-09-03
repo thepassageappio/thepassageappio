@@ -223,6 +223,20 @@ This document is the build checklist. A feature is not complete when a screen ex
 | Revoked | Complete | View receipt | export only | stale session action |
 | Expired | Complete | View receipt | export only | action under expired scope |
 
+### P0 negative persona proof map
+
+The P0 failure matrix has transactional database coverage in `supabase/tests/authority_terminal_and_recovery.sql` and `scripts/verify-hosted-information-workflow.sql`. Both scripts roll back their synthetic fixtures and assert the authority state, event count, decision artifacts, sessions, and entitlement usage after each relevant command.
+
+| Required case | Automated command proof | Preserved invariant | Manual proof still required |
+| --- | --- | --- | --- |
+| Wrong role | Principal session attempts `representative_accept`; staff attempts `request_authority_information` | No state, decision, event, or usage change | Browser denial copy by both personas |
+| Reused link | Exchange replay with the same key, then consumed-token exchange with a new key | One active session and one initial access event | Second-device recovery screen |
+| Stale page | Participant response/decision uses an obsolete expected version | Record version and event/usage counts unchanged | Browser refresh and resubmit behavior |
+| Rejected | Reviewer records `rejected`, then repeats the same idempotency key | One no-authority decision and one event | Three-person receipt comparison |
+| Withdrawn | Representative withdraws with acknowledgment, then replays | One terminal transition and event, no usage debit | Other-person projections and disabled actions |
+| Expired | Accepted request reaches `valid_until`, then operator records expiration | Accepted decision remains immutable; one expiration event; no usage debit | Hosted initiation and three-person receipt comparison |
+| Recovery | Owner reissues participant access and the new token is exchanged | Old session revoked; request version/status and usage unchanged; recovery evidence appended | Real message delivery and fresh-profile continuation |
+
 ## 4. Data-to-interface language map
 
 Human-facing product copy must use the right column. Developer and audit surfaces may show the internal value alongside the human label when necessary.
