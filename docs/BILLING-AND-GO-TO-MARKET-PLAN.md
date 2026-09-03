@@ -61,6 +61,8 @@ Exact annual volume bands and per-request overage rates remain deliberately unse
 
 The researched model comparison, comparable-product evidence, CRM lifecycle, and future platform vision are recorded in [PRICING-AND-PACKAGING-RESEARCH.md](./PRICING-AND-PACKAGING-RESEARCH.md).
 
+Approved revenue operations use three HubSpot deal pipelines: New Business, Expansion, and Renewals. Every paid self-service top-up creates a distinct Closed Won Expansion deal. The Company rolls paid base and expansion revenue into current-contract total spend, and the Renewal deal is automatically seeded from that value 120 days before contract end. Exact fields, event rules, idempotency, refunds, and acceptance tests are defined in [STRIPE-HUBSPOT-REQUIREMENTS.md](./STRIPE-HUBSPOT-REQUIREMENTS.md).
+
 ## Future product-led growth lane
 
 After controlled pilots prove the workflow and the service can support low-touch onboarding, test a self-service offer of one activated authority request per verified organization per calendar month.
