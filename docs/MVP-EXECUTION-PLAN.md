@@ -5,6 +5,26 @@
 **Controlled MVP threshold:** Achieved on the approved public domain with a hosted synthetic transaction; independent owner replay and commercial entitlement remain release-candidate gates
 **Active work limit:** One complete vertical slice
 
+## Release path and measurable success gates
+
+Work proceeds in this order. A later gate may be designed early, but it does not displace an unfinished earlier gate.
+
+| Priority | Gate | Success criteria | Current status |
+| --- | --- | --- | --- |
+| P0 | Clear journeys and copy | Every public and persona page names the user, current status, next action, saved result, visibility, and recovery path in plain language. No raw IDs, database terms, event names, unexplained security jargon, or unsupported enterprise claims are visible. Primary tasks fit in the first useful viewport; history and audit detail are secondary disclosures. Desktop, 390px, 360px, keyboard, link, and empty/error-state checks pass. | Active |
+| P0 | Repeatable enterprise demo | A fresh synthetic organization and request can be reset and completed from institution signup through revocation in 7 minutes or less using a written script, without developer intervention, critical defects, or manual database changes. | Engineering-assisted flow passed; reset and rehearsal remain |
+| P0 | Independent persona UAT | Institution owner, account holder, representative, and reviewer use separate browser profiles or devices. Each receives the right message, completes only authorized actions, sees the same final receipt, and sees the same later lifecycle change. Wrong-role, reused-link, stale-page, rejected, withdrawn, expired, and recovery paths leave correct durable state and activity. | Happy path passed sequentially; independent replay and negative matrix remain |
+| P1 | Enterprise trust and volume proof | Organization isolation, least privilege, private-file denial, signed-delivery replay, retry/idempotency, backup/restore, monitoring, and incident evidence pass. A documented synthetic load test meets an approved concurrency, latency, and error budget without duplicate transitions or mismatched receipts. Claims on the site match collected evidence. | Core transaction controls passed; operating and load evidence remain |
+| P1 | Integration proof | A buyer can choose hosted or API-led adoption. A sandbox quickstart, sample request, authenticated API example, signed webhook example, retry instructions, and system diagram are published. A developer reaches the first complete synthetic request from clean credentials against a measured time target. | Product boundary exists; public quickstart and measured integration replay remain |
+| P1 | Controlled-pilot operations | Email authentication and inbox placement, accessibility, performance, retention/deletion, support ownership, incident response, security review, legal terms, and pilot exit criteria are documented and tested. | Partially complete |
+| P2 | Billing and revenue operations | Stripe test invoices and entitlement webhooks pass signature, duplicate, ordering, failure, refund, cancellation, and reconciliation tests. HubSpot fields, lifecycle stages, inbound routing, ICP qualification, outbound sequences, and reporting use only verified product claims. | Deliberately queued after P0/P1 readiness |
+
+### Demo-ready definition
+
+The product is ready for enterprise demonstrations when the first three P0 gates pass and the demo uses only approved synthetic data. It is ready for a controlled institution pilot only when the P1 trust, integration, and operating gates also pass. Stripe, HubSpot, CRM automation, scaled inbound, and scaled outbound follow those gates so commercial traffic does not outrun the product and support system.
+
+Execution checklists: [demo and persona UAT](./DEMO-READY-CHECKLIST.md) and [prospect-to-pilot journey](./CUSTOMER-JOURNEY-AND-GTM.md).
+
 ## Outcome
 
 An authenticated institution can create and activate a New York financial power of attorney request. The principal, representative, and institution reviewer can complete their separate steps. Every action produces durable organization-isolated state, an append-only event, a matching receipt, and an observable notification or integration outcome.

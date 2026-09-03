@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: "Financial POA Templates", descriptio
 
 export default function Templates() {
   return <main className={styles.page}>
-    <CommercialHeader active="templates" />
-    <section className={styles.hero}><p className={styles.eyebrow}>Ready-to-use workflows</p><h1>Start with a proven request, not a blank screen.</h1><p>Each template turns institutional policy into one guided experience for customers, representatives, reviewers, and connected systems.</p></section>
+    <CommercialHeader />
+    <section className={styles.hero}><p className={styles.eyebrow}>Guided workflows</p><h1>Start with a clear process, not a blank screen.</h1><p>Each template turns your institution&apos;s requirements into one guided experience for account holders, representatives, and reviewers.</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>
         <article className={styles.card}><span>Available now</span><h2>New York financial POA</h2><p>For narrow deposit-account servicing. Includes scope confirmation, document review, representative certification, identity, address, institution review, decision receipt, revocation, and system updates.</p><Link className={styles.secondary} href="/start">Use this template</Link></article>

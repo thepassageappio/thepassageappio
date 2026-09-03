@@ -18,7 +18,7 @@ export default async function OnboardingCompletePage() {
         <h2>Your evaluation is ready</h2>
         <p>Invite the operations staff and reviewers who will test the authority process with you.</p>
         <div className={styles.rule}>
-          <strong>Your free evaluation does not start yet.</strong><br />The 10-day clock and first of five real requests begin only when your first participant invitation is sent.
+          <strong>Your free evaluation does not start yet.</strong><br />The 10-day clock and first of five sample requests begin only when your first participant invitation is sent.
         </div>
         <Link className={styles.primary} href="/app">Open organization workspace</Link>
       </div>

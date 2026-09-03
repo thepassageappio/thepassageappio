@@ -65,13 +65,13 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>This is the institution&apos;s operational outcome for the exact request shown here.</p></div><span className={styles.badge}>{hostedDecisionLabel(decision.outcome)}</span></div>
+          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>This is the saved outcome for this request.</p></div><span className={styles.badge}>{hostedDecisionLabel(decision.outcome)}</span></div>
           <p className={receiptStyles.reason}>{decision.reason}</p>
           <dl className={styles.policyFacts}>
             <div><dt>Institution</dt><dd>{access.organization.displayName}</dd></div>
             <div><dt>Recorded by</dt><dd>{roleLabels[decision.decidedByRole] ?? "Authorized institution reviewer"}</dd></div>
             <div><dt>Recorded at</dt><dd>{dateTime(decision.decidedAt)}</dd></div>
-            <div><dt>Policy template</dt><dd>New York financial power of attorney<br />Version {record.templateVersion}</dd></div>
+            <div><dt>Workflow</dt><dd>New York financial power of attorney</dd></div>
           </dl>
         </section>
 
@@ -94,16 +94,16 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
 
         <section className={receiptStyles.boundary}>
           <strong>What this receipt means</strong>
-          <p>The institution recorded its own decision against its policy and the sources shown in this request. Passage preserved the scope, evidence references, decision, and lifecycle. Passage did not create legal authority or provide a legal opinion.</p>
+          <p>The institution made this decision under its own rules. Passage saved the requested actions, supporting information, decision, and later changes. Passage did not create legal authority or provide a legal opinion.</p>
         </section>
       </div>
 
       <div>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Lifecycle</h2><p>The current lifecycle is shown separately from the original institution decision.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Changes after the decision</h2><p>Revocation and expiration are shown separately so the original decision remains clear.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Current status</dt><dd>{hostedStatusLabel(record.status)}</dd></div>
-            <div><dt>Latest lifecycle update</dt><dd>{lifecycleEvent ? <>{lifecycleEvent.summary}<br />{dateTime(lifecycleEvent.occurredAt)}</> : "No later lifecycle change recorded"}</dd></div>
+            <div><dt>Latest update</dt><dd>{lifecycleEvent ? <>{lifecycleEvent.summary}<br />{dateTime(lifecycleEvent.occurredAt)}</> : "No change since the decision"}</dd></div>
           </dl>
           {canChangeLifecycle ? <form action={recordAuthorityLifecycleAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />
@@ -130,19 +130,21 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
           </form> : null}
         </section>
 
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Receipt integrity</h2><p>The fingerprint identifies the exact decision snapshot saved with this receipt.</p></div></div>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>Receipt verification details</summary>
+          <p>Use these details when confirming that two copies of a receipt match.</p>
           <dl className={styles.policyFacts}>
             <div><dt>Receipt</dt><dd>{decision.receiptCode}</dd></div>
-            <div><dt>Saved version</dt><dd>{decision.recordVersion}</dd></div>
+            <div><dt>Decision record</dt><dd>{decision.recordVersion}</dd></div>
           </dl>
           <code className={receiptStyles.fingerprint}>{decision.receiptSha256}</code>
-        </section>
+        </details>
 
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Saved activity</h2><p>Material events remain preserved in order.</p></div></div>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>View activity history ({events.length})</summary>
+          <p>Every saved change is listed in order.</p>
           <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{event.summary}</strong><span>{event.detail}</span></div><span>{dateTime(event.occurredAt)}</span></li>)}</ul>
-        </section>
+        </details>
         <Link className={styles.secondary} href={`/app/requests/${record.id}`}>Return to request</Link>
       </div>
     </div>

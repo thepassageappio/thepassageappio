@@ -88,7 +88,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       : "Your saved decision and the request's current status are shown below."
     : context.status === "awaiting_representative"
       ? "Review the requested role and limits before deciding whether to accept responsibility."
-      : "Your saved responsibility decision and the request's current status are shown below.";
+      : "Your saved choice and the request's current status are shown below.";
   return <AccountFrame
     eyebrow={`${context.institutionName} · ${context.referenceCode}`}
     title={`Welcome, ${context.participantName}`}
@@ -104,23 +104,25 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <div className={styles.fact}><span>Current status</span><strong>{STATUS_LABELS[context.status] ?? "Request updated"}</strong></div>
       <div className={styles.fact}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(context.validUntil))}</strong></div>
     </div>
-    <p className={styles.legend}>Requested actions</p>
+    <p className={styles.legend}>What the representative may be allowed to do</p>
     <ul className={styles.scope}>{context.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key as keyof typeof HOSTED_ACTIONS] ?? key}</li>)}</ul>
-    <p className={styles.legend}>Not included</p>
-    <ul className={decisionStyles.prohibited}>{context.prohibitedActionKeys.map((key) => <li key={key}>{PROHIBITED_ACTIONS[key] ?? key}</li>)}</ul>
+    <details className={styles.summary}>
+      <summary>What is not included</summary>
+      <ul className={decisionStyles.prohibited}>{context.prohibitedActionKeys.map((key) => <li key={key}>{PROHIBITED_ACTIONS[key] ?? key}</li>)}</ul>
+    </details>
     <div className={styles.notice} role="status">{notice && NOTICE_MESSAGES[notice] ? NOTICE_MESSAGES[notice] : "Opening secure access was saved. Your authority decision has not changed."}</div>
     {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
     {canDecide ? <Link className={styles.primary} href={nextPath}>{isPrincipal ? "Review and decide" : "Review responsibilities"}</Link> : null}
     {context.status === "evidence_required" && !isPrincipal ? <div className={styles.summary}><h2>Next: complete the requirements</h2><p>Your responsibility decision is saved. Complete one clear requirement at a time and see why the institution needs it.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/requirements`}>Continue to requirements</Link></div> : null}
     {context.status === "ready_to_submit" && !isPrincipal ? <div className={styles.summary}>
       <h2>Review and send to the institution</h2>
-      <p>The institution will receive the participant names, requested scope, account boundary, policy-requirement results, source-file metadata, and your certification. Passage saves this disclosure acknowledgment with the request.</p>
+      <p>The institution will receive the names, requested actions, account description, completed requirements, file names, and your certification. You can review that list before sending.</p>
       <form action={submitAuthorityForReviewAction} className={styles.field}>
         <input type="hidden" name="recordId" value={context.authorityRecordId} />
         <input type="hidden" name="expectedVersion" value={context.recordVersion} />
         <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-        <label><input type="checkbox" name="acknowledged" required /> I reviewed what will be shared and authorize sending this completed request to {context.institutionName} for its decision.</label>
-        <button className={styles.primary} type="submit">Send to institution review</button>
+        <label><input type="checkbox" name="acknowledged" required /> I reviewed what will be shared and agree to send this request to {context.institutionName}.</label>
+        <button className={styles.primary} type="submit">Send for review</button>
       </form>
       <p className={styles.legal}>Sending does not guarantee acceptance. The institution keeps the final decision.</p>
     </div> : null}
@@ -150,7 +152,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
         <button className={styles.secondary} type="submit">Withdraw from responsibility</button>
       </form>
     </details> : null}
-    {RECEIPT_STATUSES.has(context.status) ? <div className={styles.summary}><h2>Institution decision receipt</h2><p>See the institution&apos;s outcome, accepted scope, limits, and current lifecycle status for this exact request.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/receipt`}>View decision receipt</Link></div> : null}
+    {RECEIPT_STATUSES.has(context.status) ? <div className={styles.summary}><h2>Your decision receipt</h2><p>See what the institution decided, what actions it accepted, any limits, and whether anything changed later.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/receipt`}>View receipt</Link></div> : null}
     <p className={styles.legal}>Opening this page does not create or accept legal authority.</p>
   </AccountFrame>;
 }

@@ -47,9 +47,9 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
   const isResume = delivery.participantRole === "representative" && delivery.accessPurpose === "resume";
   const isReceipt = delivery.accessPurpose === "receipt";
   const action = delivery.participantRole === "principal"
-    ? "review and confirm the request"
+    ? "review the request and confirm whether it is correct"
     : isResume
-      ? "continue the requested evidence and certification steps"
+      ? "finish the remaining requirements"
       : "review and accept or decline the responsibility";
   const subject = isReceipt
     ? `${delivery.institutionName} recorded a decision on your request`
@@ -61,11 +61,11 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
     : isResume
     ? `Resume your secure authority request with ${delivery.institutionName}.`
     : `${delivery.institutionName} invited you as the ${role}.`;
-  const heading = isReceipt ? "Your institution decision receipt is ready" : isResume ? "Resume your secure authority request" : "A secure authority request needs your review";
+  const heading = isReceipt ? "Your decision is ready" : isResume ? "Continue your request" : "Please review this request";
   const introduction = isReceipt
-    ? `${delivery.institutionName} recorded its decision on this request. Open the secure receipt to see the outcome, accepted scope, limits, and current lifecycle status.`
+    ? `${delivery.institutionName} recorded its decision. Open the secure receipt to see the outcome, accepted actions, any limits, and later changes.`
     : isResume
-    ? `${delivery.institutionName} sent you a fresh link as the ${role} to ${action}. Your prior authority decision remains saved.`
+    ? `${delivery.institutionName} sent you a new link to ${action}. Your earlier answers are still saved.`
     : `${delivery.institutionName} invited you as the ${role} to ${action}.`;
   const buttonLabel = isReceipt ? "View decision receipt" : isResume ? "Resume secure request" : "Open secure request";
   const expires = expirationLabel(delivery.expiresAt);
@@ -95,9 +95,9 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #dce7e2;border-radius:16px;overflow:hidden">
           <tr><td style="padding:32px">
             <p style="margin:0 0 24px;color:#1c765f;font-size:15px;font-weight:700">Passage Authority</p>
-            <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2">${escapeHtml(heading)}</h1>
-            <p style="margin:0 0 18px;font-size:17px;line-height:1.6">Hello, ${escapeHtml(delivery.participantName)}. ${escapeHtml(introduction)}</p>
-            <p style="margin:0 0 18px;color:#4e625d;font-size:15px;line-height:1.6"><strong>Other person:</strong> ${escapeHtml(delivery.otherPersonName)}<br><strong>Purpose:</strong> ${escapeHtml(delivery.purpose)}<br><strong>Relationship:</strong> ${escapeHtml(delivery.accountBoundary)}</p>
+            <h1 style="margin:0 0 16px;font-size:26px;line-height:1.2">${escapeHtml(heading)}</h1>
+            <p style="margin:0 0 18px;font-size:16px;line-height:1.55">Hello, ${escapeHtml(delivery.participantName)}. ${escapeHtml(introduction)}</p>
+            <p style="margin:0 0 18px;color:#4e625d;font-size:14px;line-height:1.55"><strong>Other person:</strong> ${escapeHtml(delivery.otherPersonName)}<br><strong>Purpose:</strong> ${escapeHtml(delivery.purpose)}<br><strong>Account:</strong> ${escapeHtml(delivery.accountBoundary)}</p>
             <p style="margin:0 0 28px"><a href="${escapeHtml(delivery.secureUrl)}" style="display:inline-block;background:#12664f;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 20px;border-radius:10px">${escapeHtml(buttonLabel)}</a></p>
             <p style="margin:0 0 12px;color:#4e625d;font-size:14px;line-height:1.6">This one-time link expires ${escapeHtml(expires)} Eastern Time.</p>
             <p style="margin:0;color:#4e625d;font-size:14px;line-height:1.6">Passage coordinates the request. The receiving institution keeps the final decision.</p>

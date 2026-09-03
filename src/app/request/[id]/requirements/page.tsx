@@ -41,7 +41,7 @@ export default async function ParticipantRequirementsPage({ params, searchParams
   return <AccountFrame
     eyebrow={`${participant.institutionName} · ${participant.referenceCode}`}
     title="Complete the requirements"
-    description={`${completed} of ${evidence.requirements.length} complete. Passage keeps the source, automated result, human review, and institution decision separate.`}
+    description={`${completed} of ${evidence.requirements.length} complete. Finish each item below, then send the request to the institution.`}
   >
     {query.notice && NOTICES[query.notice] ? <div className={styles.notice} role="status">{NOTICES[query.notice]}</div> : null}
     {query.error ? <div className={styles.alert} role="alert">{ERRORS[query.error] ?? "That action could not be completed. Nothing was changed."}</div> : null}
@@ -51,7 +51,7 @@ export default async function ParticipantRequirementsPage({ params, searchParams
           <strong>{requirement.ordinal}. {requirement.title}</strong>
           <span>{requirement.reason}</span>
           <span>Status: {evidenceRequirementStatusLabel(requirement.status)}</span>
-          {requirement.artifact ? <span>Source: {requirement.artifact.originalFilename} · {Math.max(1, Math.round(requirement.artifact.byteSize / 1024))} KB</span> : null}
+          {requirement.artifact ? <span>File: {requirement.artifact.originalFilename} · {Math.max(1, Math.round(requirement.artifact.byteSize / 1024))} KB</span> : null}
           {requirement.artifact?.reviewerNote ? <span>Institution note: {requirement.artifact.reviewerNote}</span> : null}
         </div>
         {requirement.inputKind === "document" && (requirement.status === "not_started" || requirement.status === "needs_attention") ? <form action={uploadParticipantEvidenceAction} className={styles.form}>
@@ -59,7 +59,7 @@ export default async function ParticipantRequirementsPage({ params, searchParams
           <input type="hidden" name="requirementKey" value={requirement.requirementKey} />
           <input type="hidden" name="idempotencyKey" value={randomUUID()} />
           <div className={styles.field}>
-            <label htmlFor={`file-${requirement.id}`}>Choose source file</label>
+            <label htmlFor={`file-${requirement.id}`}>Choose a file</label>
             <input id={`file-${requirement.id}`} name="evidenceFile" type="file" accept="application/pdf,image/jpeg,image/png" required />
             <small>PDF, JPG, or PNG. Maximum 10 MB. The file is private to authorized participants and institution reviewers.</small>
           </div>
@@ -70,13 +70,13 @@ export default async function ParticipantRequirementsPage({ params, searchParams
           <input type="hidden" name="idempotencyKey" value={randomUUID()} />
           <label className={styles.check}>
             <input type="checkbox" name="acknowledged" required />
-            <span>I will act only for {participant.otherPersonName}, only within the permitted actions, and only while this request remains current.<small>The exact certification version and completion time will be preserved.</small></span>
+            <span>I will act only for {participant.otherPersonName}, only within the permitted actions, and only while this request remains current.<small>Passage will save this confirmation and when you completed it.</small></span>
           </label>
           <button className={styles.primary} type="submit">Save certification</button>
         </form> : null}
       </section>)}
     </div>
-    <div className={styles.rule}>Uploading a document means the institution can review that source for this request. Passage does not decide legal validity and does not guarantee institution acceptance.</div>
+    <div className={styles.rule}>The institution can review anything you upload for this request. Passage does not decide whether a document is legally valid or guarantee that the institution will accept it.</div>
     <Link className={styles.secondary} href={`/request/${encodeURIComponent(id)}/overview`}>Return to request status</Link>
   </AccountFrame>;
 }

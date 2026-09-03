@@ -32,6 +32,25 @@
 | Browser security baseline | No-referrer, no-sniff, frame denial, restrictive camera/microphone/location policy, and HSTS headers are present in the production response | Pass |
 | Release gates | 65 domain tests, TypeScript, ESLint, and the optimized Next.js build pass | Pass |
 
+## Adjacent-product language review
+
+Passage does not have a one-for-one category peer, so this review uses adjacent enterprise SaaS products as language and adoption benchmarks rather than claiming they are direct competitors.
+
+| Benchmark | Useful pattern | Passage application |
+| --- | --- | --- |
+| Persona Workflows | Explains the product through a short trigger, consolidate, decide, act sequence and separates product benefit from technical detail | Lead with start, collect, review, decide; keep implementation terms out of participant pages |
+| Alloy | States one institutional outcome, supports it with measurable operational proof, then explains orchestration | Lead with getting a POA request to a clear decision; add scale claims only after a measured load test |
+| Permit.io | Separates authentication from authorization and pairs the buyer story with a concrete developer path | Explain that Passage coordinates the request while the institution decides; publish a hosted-first integration quickstart before claiming easy integration |
+| Stripe and Plaid documentation | Offer a sandbox, a minimal quickstart, realistic sample data, explicit environments, and a visible next step | Provide resettable sample data, a five-minute quickstart, signed webhook example, environment boundary, and recovery instructions |
+
+### Copy rules adopted
+
+1. One outcome per heading; one next action per task panel.
+2. Prefer “request,” “review,” “decision,” “receipt,” and “later changes” over “transaction,” “policy orchestration,” “decision snapshot,” and “lifecycle.”
+3. Put receipt hashes, record versions, delivery attempts, and complete activity history behind clearly named secondary disclosures.
+4. Label sample, evaluation, pilot, and production states explicitly.
+5. Never describe an integration, security control, performance level, or certification as ready until the matching evidence exists.
+
 ## Required before a controlled pilot
 
 1. Run automated accessibility testing plus manual keyboard and screen-reader checks across every persona.

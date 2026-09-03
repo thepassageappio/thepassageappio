@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  ["01", "Define the request", "Choose the policy, people, account boundary, permitted actions, and required evidence."],
-  ["02", "Guide each person", "Give the account holder and representative a secure path with one clear next step at a time."],
-  ["03", "Decide and stay current", "Record the institution’s scoped decision, share one receipt, and preserve later changes."],
+  ["01", "Start the request", "Choose the people, accounts, actions, and documents your institution needs."],
+  ["02", "Collect what is missing", "Each person gets a secure link and sees only the steps they need to complete."],
+  ["03", "Review and decide", "Your team records the outcome. Everyone sees the same decision and later changes."],
 ];
 
 export default function Home() {
@@ -21,14 +21,14 @@ export default function Home() {
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Financial POA operations for regional institutions</p>
-          <h1>Turn a power of attorney request into a clear, scoped institution decision.</h1>
-          <p className={styles.lede}>Passage guides account holders, representatives, and review teams through one policy-controlled transaction. Your institution decides. Everyone sees the same current result.</p>
+          <p className={styles.eyebrow}>Power of attorney requests for financial institutions</p>
+          <h1>Get every power of attorney request to a clear decision.</h1>
+          <p className={styles.lede}>Passage guides the account holder, representative, and your review team through one shared process. Your institution makes the decision. Everyone sees the same current result.</p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="/start">Start an Authority evaluation <span>→</span></Link>
+            <Link className={styles.primary} href="/start">Try Passage free <span>→</span></Link>
             <Link className={styles.secondary} href="#how-it-works">See how it works</Link>
           </div>
-          <p className={styles.boundary}>Passage does not create a power of attorney or determine legal validity. It makes an institution&apos;s intake, review, decision, and lifecycle process operational.</p>
+          <p className={styles.boundary}>Passage does not create a power of attorney or decide whether one is legally valid. Your institution keeps that responsibility.</p>
         </div>
 
         <div className={styles.transaction} aria-label="Sample power of attorney request">
@@ -54,17 +54,17 @@ export default function Home() {
       </section>
 
       <section className={styles.focus} aria-label="Passage Authority focus">
-        <p>One narrow workflow, fully operational</p>
+        <p>Focused and ready to evaluate</p>
         <div><strong>Financial POA</strong><span>New York deposit-account servicing</span></div>
-        <div><strong>Institution controlled</strong><span>Your policy, reviewers, and final decision</span></div>
-        <div><strong>Participant ready</strong><span>Hosted paths with no software training</span></div>
+        <div><strong>Your institution decides</strong><span>Your requirements, reviewers, and final outcome</span></div>
+        <div><strong>Easy for participants</strong><span>Secure links and one clear next step</span></div>
       </section>
 
       <section className={styles.flowSection} id="how-it-works">
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>One governed transaction</p>
-          <h2>Simple for people. Precise for institutions.</h2>
-          <span>Every participant sees only what they need, what happens next, and the same current result.</span>
+          <p className={styles.eyebrow}>How it works</p>
+          <h2>One request. One clear next step for everyone.</h2>
+          <span>Each person sees what they need to do, what was saved, and what happens next.</span>
         </div>
         <ol className={styles.flow}>
           {steps.map(([number, title, description]) => (
@@ -76,17 +76,17 @@ export default function Home() {
       <section className={styles.boundariesSection}>
         <div className={styles.boundaryPanel}>
           <p className={styles.eyebrow}>What Passage does</p>
-          <h2>Operationalizes acceptance.</h2>
+          <h2>Makes the process easier to run.</h2>
           <ul>
-            <li>Turns policy into a guided request and reviewer checklist</li>
+            <li>Turns your requirements into a guided request and review checklist</li>
             <li>Preserves participant decisions and evidence history</li>
             <li>Records the institution&apos;s scoped result and next actions</li>
-            <li>Keeps permitted people and connected systems current</li>
+            <li>Keeps authorized people and connected systems up to date</li>
           </ul>
         </div>
         <div className={styles.boundaryPanel} data-muted="true">
           <p className={styles.eyebrow}>What Passage does not do</p>
-          <h2>Replace institutional judgment.</h2>
+          <h2>Make the institution&apos;s decision.</h2>
           <ul>
             <li>Does not create or notarize a power of attorney</li>
             <li>Does not declare a document legally valid</li>
@@ -98,9 +98,9 @@ export default function Home() {
 
       <section className={styles.finalCta}>
         <div>
-          <p className={styles.eyebrow}>Available product workflow</p>
-          <h2>See financial POA acceptance from every side.</h2>
-          <span>Explore the institution, account holder, representative, reviewer, receipt, and lifecycle experience using sample records.</span>
+          <p className={styles.eyebrow}>Interactive product evaluation</p>
+          <h2>See the complete POA request from every side.</h2>
+          <span>Use sample records to experience the institution, account holder, representative, reviewer, decision, and revocation steps.</span>
         </div>
         <div className={styles.ctaActions}>
           <Link className={styles.lightCta} href="/start">Explore the product</Link>

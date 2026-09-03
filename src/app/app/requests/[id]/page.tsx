@@ -142,26 +142,26 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     <section className={styles.metricGrid} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
-      <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span>Requests used</span><strong>{activatedCount} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(record.validUntil))}</strong></div>
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>People</h2><p>These details prepare separate, role-specific access for each person.</p></div></div>
+          <div className={styles.panelHead}><div><h2>People</h2><p>Each person receives a separate secure link.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}<br />{record.principalEmail}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
           </dl>
         </section>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Permitted authority</h2><p>The institution will review only these requested actions.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>Your team will decide which of these actions to accept.</p></div></div>
           <ul className={styles.checklist}>{record.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
         </section>
       </div>
       <div>
         {record.status === "draft" ? <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Review and activate</h2><p>This draft has not started the trial clock and has not consumed a transaction.</p></div><span className={styles.badge}>Saved</span></div>
+          <div className={styles.panelHead}><div><h2>Review and send</h2><p>This draft is saved. Nothing has been sent or counted yet.</p></div><span className={styles.badge}>Saved</span></div>
           <ul className={styles.checklist}>
             <li>{record.principalName} receives a secure request to confirm the exact scope</li>
             <li>{record.representativeName}&apos;s separate access is prepared and held until the principal confirms</li>
@@ -171,10 +171,10 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <input type="hidden" name="recordId" value={record.id} />
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-            <button className={styles.primary} type="submit">Activate and invite the principal</button>
+            <button className={styles.primary} type="submit">Send to the account holder</button>
           </form> : <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link>}
         </section> : <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Participant access</h2><p>{participantAccessDescription}</p></div><span className={styles.badge}>{invitations?.length ?? 0} role records</span></div>
+          <div className={styles.panelHead}><div><h2>Participant access</h2><p>{participantAccessDescription}</p></div><span className={styles.badge}>{invitations?.length ?? 0} people</span></div>
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {
             const notification = notifications.find((item) => item.invitation_id === String(invitation.id));
             const role = invitation.participant_role === "principal" ? "principal" : "representative";
@@ -195,7 +195,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           <Link className={styles.secondary} href="/app">Return to request queue</Link>
         </section>}
         {(requirements ?? []).length > 0 ? <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Requirements and evidence</h2><p>Source files, automated results, human review, and the institution decision remain separate.</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
+          <div className={styles.panelHead}><div><h2>Required information</h2><p>Review each file or confirmation before making a decision.</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
           <ul className={styles.activity}>{(requirements ?? []).map((requirement) => {
             const artifact = (evidenceArtifacts ?? []).find((item) => String(item.requirement_id) === String(requirement.id));
             return <li key={String(requirement.id)}>
@@ -231,10 +231,10 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
               </div> : null}
             </li>;
           })}</ul>
-          <p>Accepting a source means it satisfies this institution review step. It does not establish universal legal validity.</p>
+          <p>Accepting a file completes this review step. It does not decide whether the power of attorney is legally valid.</p>
         </section> : null}
         {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Review questions</h2><p>Each question is tied to one policy requirement and preserved with its response.</p></div><span className={styles.badge}>{openInformationRequest ? "Response needed" : "Current"}</span></div>
+          <div className={styles.panelHead}><div><h2>Questions</h2><p>Ask the representative for missing or unclear information.</p></div><span className={styles.badge}>{openInformationRequest ? "Response needed" : "Up to date"}</span></div>
           {(informationRequests ?? []).length > 0 ? <ul className={styles.activity}>{(informationRequests ?? []).map((item) => {
             const response = responseByRequest.get(String(item.id));
             return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>Waiting for the representative</span>}</div></li>;
@@ -243,7 +243,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <input type="hidden" name="recordId" value={record.id} />
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-            <label htmlFor="information-requirement">Policy requirement</label>
+            <label htmlFor="information-requirement">Related requirement</label>
             <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{(requirements ?? []).map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
             <label htmlFor="information-message">What is still needed?</label>
             <textarea id="information-message" name="message" minLength={3} maxLength={500} required placeholder="Describe the exact information needed to continue this review." />
@@ -251,7 +251,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           </form> : null}
         </section> : null}
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>Record the institution&apos;s operational decision only after every required review step is complete.</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : decisionReady ? "Ready" : "Not ready"}</span></div>
+          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>Record the outcome after every required review step is complete.</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : decisionReady ? "Ready" : "Not ready"}</span></div>
           {decision ? <>
             <dl className={styles.policyFacts}>
               <div><dt>Outcome</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
@@ -269,12 +269,12 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
               <option value="accepted">Accept as submitted</option>
               <option value="rejected">Do not accept</option>
             </select>
-            <label htmlFor="decision-reason">Decision reason</label>
-            <textarea id="decision-reason" name="reason" minLength={3} maxLength={500} required placeholder="State the policy basis and review conclusion." />
+            <label htmlFor="decision-reason">Reason</label>
+            <textarea id="decision-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain why the institution reached this decision." />
             <label htmlFor="decision-limitations">Limits, one per line</label>
             <textarea id="decision-limitations" name="limitations" maxLength={2400} placeholder="Required only for an acceptance with limits." />
             <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /> <span>I confirm this is the institution&apos;s decision for this request and it should become part of the shared receipt.</span></label>
-            <button className={styles.primary} type="submit">Record decision and issue receipt</button>
+            <button className={styles.primary} type="submit">Save decision and send receipt</button>
           </form> : <>
             <ul className={styles.checklist}>
               <li>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length || 3} required review steps are complete</li>
@@ -284,10 +284,11 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}
         </section>
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Activity</h2><p>Every material change is preserved in order.</p></div></div>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>View activity history ({events.length})</summary>
+          <p>Every saved change is listed in order.</p>
           <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{activitySummary(event)}</strong><span>{activityDetail(event)}</span></div><span>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(event.occurredAt))}</span></li>)}</ul>
-        </section>
+        </details>
       </div>
     </div>
   </>;

@@ -32,7 +32,7 @@ export default async function StartPage({ searchParams }: Props) {
       title={returning ? "Sign in securely" : "Create your evaluation workspace"}
       description={returning
         ? "Enter your work email and we will send a one-time secure link."
-        : "Explore five real authority requests over 10 days. No card is required and the clock starts only when you send the first request."}
+        : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       <form action={requestSignInAction} className={styles.form}>
@@ -50,7 +50,7 @@ export default async function StartPage({ searchParams }: Props) {
         </div>
         <button className={styles.primary} type="submit">Email me a secure link</button>
         <p className={styles.legal}>
-          By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. You will review the evaluation terms before real information can be used.
+          By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
         </p>
       </form>
     </AccountFrame>

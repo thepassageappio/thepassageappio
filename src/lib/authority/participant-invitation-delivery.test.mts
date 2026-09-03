@@ -57,8 +57,8 @@ test("representative resume email preserves the prior decision and directs the n
     accessPurpose: "resume",
   });
   assert.match(message.subject, /fresh secure access link/i);
-  assert.match(message.text, /continue the requested evidence and certification steps/i);
-  assert.match(message.text, /prior authority decision remains saved/i);
+  assert.match(message.text, /finish the remaining requirements/i);
+  assert.match(message.text, /earlier answers are still saved/i);
   assert.match(message.html, /Resume secure request/);
   assert.doesNotMatch(message.text, /accept or decline/i);
 });
@@ -69,7 +69,7 @@ test("participant receipt email directs both roles to the institution decision w
     accessPurpose: "receipt",
   });
   assert.match(message.subject, /recorded a decision/i);
-  assert.match(message.text, /outcome, accepted scope, limits, and current lifecycle status/i);
+  assert.match(message.text, /outcome, accepted actions, any limits, and later changes/i);
   assert.match(message.html, /View decision receipt/);
   assert.doesNotMatch(message.text, /Passage (approved|verified|granted)/i);
 });

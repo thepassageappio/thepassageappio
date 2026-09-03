@@ -38,12 +38,12 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>Organization workspace</p><h1>{access.organization.displayName}</h1><p>Coordinate authority requests with clear ownership, institution-defined requirements, and a durable decision record.</p></div>
+      <div><p className={styles.eyebrow}>Institution workspace</p><h1>{access.organization.displayName}</h1><p>Start requests, see what needs attention, and review every saved decision.</p></div>
       {mayCreate ? <Link className={styles.primary} href="/app/requests/new">Start a request</Link> : null}
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
-    <section className={styles.metricGrid} aria-label="Evaluation status">
-      <div className={styles.metric}><span>Activated requests</span><strong>{activated} of {transactionLimit}</strong></div>
+    <section className={styles.metricGrid} aria-label="Workspace status">
+      <div className={styles.metric}><span>Requests used</span><strong>{activated} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Draft requests</span><strong>{drafts}</strong></div>
       <div className={styles.metric}><span>Needs institution action</span><strong>{needsAction}</strong></div>
     </section>
@@ -65,12 +65,12 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
         </table></div>}
       </section>
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>Workspace foundation</h2><p>The organization controls that protect every request.</p></div></div>
+        <div className={styles.panelHead}><div><h2>Workspace setup</h2><p>The basic controls for this evaluation.</p></div></div>
         <ul className={styles.checklist}>
           <li>Verified organization owner</li>
-          <li>Versioned evaluation agreements</li>
-          <li>New York financial POA policy selected</li>
-          <li>Organization-isolated access</li>
+          <li>Evaluation terms accepted</li>
+          <li>New York financial POA workflow selected</li>
+          <li>Access limited to your organization</li>
         </ul>
       </section>
     </div>

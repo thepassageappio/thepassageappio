@@ -53,19 +53,19 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     </div>
 
     <div className={styles.summary}>
-      <h2>Lifecycle</h2>
-      <p>{receipt.lifecycleSummary ?? "No later lifecycle change has been recorded."}</p>
+      <h2>Changes after the decision</h2>
+      <p>{receipt.lifecycleSummary ?? "Nothing has changed since the institution recorded its decision."}</p>
       {receipt.lifecycleReason ? <p>{receipt.lifecycleReason}</p> : null}
       {receipt.lifecycleEffectiveAt ? <p>Effective {dateTime(receipt.lifecycleEffectiveAt)}</p> : null}
     </div>
 
-    <div className={styles.summary}>
-      <h2>Receipt integrity</h2>
-      <p>Receipt {receipt.receiptCode}, saved at decision version {receipt.decisionVersion}. Current request version: {receipt.currentVersion}.</p>
+    <details className={styles.summary}>
+      <summary>Receipt verification details</summary>
+      <p>Receipt {receipt.receiptCode}. Decision record {receipt.decisionVersion}; current record {receipt.currentVersion}.</p>
       <p style={{ overflowWrap: "anywhere" }}>{receipt.receiptSha256}</p>
-    </div>
+    </details>
 
-    <div className={styles.notice} role="note">The institution made this decision under its own policy. Passage preserved the request, evidence references, decision, and lifecycle. Passage did not create legal authority or provide a legal opinion.</div>
+    <div className={styles.notice} role="note">The institution made this decision under its own rules. Passage saved the request, supporting information, decision, and later changes. Passage did not create legal authority or provide a legal opinion.</div>
     <Link className={styles.secondary} href={`/request/${encodeURIComponent(id)}/overview`}>Return to request summary</Link>
   </AccountFrame>;
 }

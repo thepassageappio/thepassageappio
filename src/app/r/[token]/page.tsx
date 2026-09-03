@@ -58,9 +58,9 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     description={waiting
       ? "Your access is prepared, but the person granting authority must confirm the request before your responsibilities open."
       : viewingReceipt
-        ? "The institution recorded its decision. Open a secure session to view the outcome, exact accepted scope, limits, and current lifecycle status."
+        ? "The institution recorded its decision. Open the secure receipt to see the outcome, accepted actions, any limits, and later changes."
         : resuming
-        ? "Your prior authority decision remains saved. Open a new secure session to continue the evidence and certification steps."
+        ? "Your earlier choice is still saved. Open a new secure session to finish the remaining requirements."
         : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
   >
     <div className={styles.summary}>
@@ -78,7 +78,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
       <input name="token" type="hidden" value={token!} />
       <input name="idempotencyKey" type="hidden" value={randomUUID()} />
       <button className={styles.primary} type="submit">{viewingReceipt ? "View decision receipt" : resuming ? "Resume secure request" : "Open secure request"}</button>
-      <p className={styles.legal}>This one-time link creates a 30-minute session for this request and this role only.</p>
+      <p className={styles.legal}>This link can be used once and gives you 30 minutes of access to this request.</p>
     </form> : null}
   </AccountFrame>;
 }
