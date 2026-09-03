@@ -38,3 +38,12 @@ For each step record the profile/device, URL, start and finish time, visible sta
 ## Reset requirement
 
 The reset action must create a fresh synthetic organization, owner, account holder, representative, sample account boundary, two harmless test files, and unused invitation links. It must not reuse a prior participant session, touch production customer data, or require a manual SQL edit. Until that action exists, the demo remains engineering-assisted.
+
+### Current reset evidence
+
+- The institution workspace now exposes **Start a sample request** as a first-class action.
+- The sample form preloads fictional participant names, account boundary, actions, and end date while leaving both inboxes blank so the presenter must choose controlled inboxes.
+- Saving creates a new durable request and activation creates new role-bound invitation records; it does not reuse a prior participant session.
+- The public site has no horizontal overflow at 390px or 360px across the homepage, About, Contact, Resources and all three articles, Integrations, Security, Pricing, Pilot, Templates, and evaluation entry.
+- Two approved fictional PDFs are downloadable from the sample form and match its preloaded participants and account boundary.
+- Remaining before this gate passes: create a fresh evaluation entitlement without database work and rehearse the timed story with independent profiles.

@@ -39,7 +39,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   return <>
     <header className={styles.pageHeader}>
       <div><p className={styles.eyebrow}>Institution workspace</p><h1>{access.organization.displayName}</h1><p>Start requests, see what needs attention, and review every saved decision.</p></div>
-      {mayCreate ? <Link className={styles.primary} href="/app/requests/new">Start a request</Link> : null}
+      {mayCreate ? <div className={styles.headerActions}><Link className={styles.secondary} href="/app/requests/new?sample=1">Start a sample request</Link><Link className={styles.primary} href="/app/requests/new">Start a request</Link></div> : null}
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     <section className={styles.metricGrid} aria-label="Workspace status">
