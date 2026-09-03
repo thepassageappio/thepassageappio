@@ -19,6 +19,7 @@
 | 11 | `CUSTOMER-JOURNEY-AND-GTM.md` | Prospect-to-pilot journey, ICP hypothesis, pilot offer, and later CRM gate |
 | 12 | `SELLING-AND-PRICING-DECISION-BRIEF.md` | Pitch, market rationale, differentiation, discovery, qualification, objections, and pricing hypotheses |
 | 13 | `BILLING-AND-GO-TO-MARKET-PLAN.md` | Approved billing boundary, offer ladder, payment architecture, and commercial sequencing |
+| 14 | `OWNER-UAT-RUNBOOK.md` | Independent four-session demo script, negative checks, evidence capture, and pass/fail rule |
 
 When documents conflict, the lower order number controls.
 

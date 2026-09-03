@@ -123,4 +123,15 @@ The homepage, templates, integrations, security, pricing, pilot, institution que
 
 This release uses fictional records and synthetic evidence. It does not contact an institution, validate a live legal instrument, provide a legal opinion, or claim production security certification. Earlier hosted invitation tests used controlled owner mailboxes; provider acceptance and inbox placement remain separate from the authority decision.
 
-Production readiness still requires tenant isolation, production authentication, reviewed Postgres row-level security, real evidence-provider integrations, key management, retention and recovery controls, observability, security testing, legal review, and a named institution pilot.
+Controlled-pilot readiness still requires an independent organization-isolation replay, reviewed security and key-management evidence, retention and recovery controls, observability, security testing, legal review, approved provider boundaries, and a named institution pilot. The hosted authentication and Postgres row-level-security foundation has passed the synthetic transaction but is not a production certification.
+
+## September 3 demo-readiness update
+
+- Every current public route passed a live horizontal-overflow check at both 390px and 360px. The set covers the homepage, About, Contact, Resources, all three resource articles, Integrations, Security, Pricing, Pilot, Templates, and evaluation entry.
+- A visual review of the 360px Integrations page showed readable hierarchy, one-column cards, complete navigation, and a 44px-or-larger target for every link.
+- The institution workspace now exposes **Start a sample request** alongside the standard request path.
+- The sample form preloads Parker Quinn, Casey Quinn, the synthetic deposit relationship ending 4405, two limited actions, and a future end date. Both controlled inboxes remain deliberately blank.
+- The form links two matching fictional PDFs. Both files returned HTTP 200 with `application/pdf` from the public domain and explicitly state that they are synthetic and create or prove no authority.
+- A live authenticated Chrome check showed the sample notice, both downloads, matching form values, and no console error. No draft was saved and no invitation or message was created during verification.
+- Mail DNS has a Resend receiving MX record, published Resend DKIM, sending-subdomain SPF, and DMARC monitoring. The application key is correctly restricted to sending only. Delivery or forwarding for `hello@thepassageapp.io` is not independently proven, so the Contact page mailbox remains an operating gap.
+- GitHub `main` and `authority-launch` include the repeatable sample-demo entry at commit `7d6e47f`; the corresponding Vercel production deployment is aliased to `thepassageapp.io`.
