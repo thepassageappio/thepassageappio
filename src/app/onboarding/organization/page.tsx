@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createOrganizationAction } from "@/app/account-actions";
+import { createOrganizationAction, signOutAction } from "@/app/account-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
@@ -22,7 +22,12 @@ export default async function OrganizationOnboardingPage({ searchParams }: Props
         <div className={styles.alert} role="alert">
           No information from the previous organization is available to this account.
         </div>
-        <Link className={styles.secondary} href="/">Return to Passage Authority</Link>
+        <div className={styles.actions}>
+          <Link className={styles.secondary} href="/">Return to Passage Authority</Link>
+          <form action={signOutAction}>
+            <button className={styles.primary} type="submit">Sign out</button>
+          </form>
+        </div>
       </AccountFrame>
     );
   }

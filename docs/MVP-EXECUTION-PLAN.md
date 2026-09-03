@@ -138,7 +138,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 
 | Workstream | Start gate | Current readiness | Next action |
 | --- | --- | --- | --- |
-| User accounts | Hosted organization signup, sign-in, onboarding, membership, and recovery happy path | Ready for final hardening now | Move Auth callbacks to the public domain; close expiry, wrong-person, revoke, and recovery tests |
+| User accounts | Hosted organization signup, sign-in, onboarding, membership, and recovery happy path | Production-domain magic-link redirect and session persistence passed | Create a fresh synthetic organization; close expiry, wrong-person, revoke, and recovery replay |
 | End-to-end persona UAT | One hosted transaction reaches a matching three-party receipt and lifecycle change | Engineering-assisted flow passed | Owner independently repeats institution → principal → representative → reviewer → receipt → revocation on the public domain |
 | Demo | Stable public entry, resettable approved test data, and a seven-minute script | Product is demonstrable with engineering guidance | Create one resettable hosted demo record and rehearse without developer intervention |
 | ICP and positioning | Narrow problem, workflow, buyer, and honest product boundary are documented | Ready to begin now | Interview regional-bank and credit-union operations/compliance leaders; test problem urgency and buying process before scaling outbound |
@@ -165,7 +165,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 | Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
 | Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
 
-The public-domain cutover, responsive smoke test, and rollback capture are complete. The remaining path to the MVP release candidate is one focused closeout: independent replay and negative-path evidence, branded Auth callback migration, and owner-run public-domain UAT. Pilot readiness still follows with deliverability, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
+The public-domain cutover, responsive smoke test, rollback capture, and production Auth callback migration are complete. The remaining path to the MVP release candidate is one focused closeout: fresh synthetic organization setup, independent replay and negative-path evidence, and owner-run public-domain UAT. Pilot readiness still follows with deliverability, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
 
 External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
 

@@ -47,7 +47,10 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 - No Authority runtime error was present in the 30-minute post-cutover log check.
 - Legacy rollback remains available at deployment `dpl_CJUFCYSw9GZBuK4Wy98z6tTbqa4A`; rollback requires reassigning both public aliases to that deployment.
 - GitHub `main` was fast-forwarded without history rewriting and now contains public-site quality commit `efd881d`, preventing a later main deployment from restoring the retired product source.
-- Secure email and participant links intentionally continue to use `https://passage-authority-uat.vercel.app` until the public domain is added to the Supabase Auth redirect allowlist and retested.
+- Supabase Auth now uses `https://thepassageapp.io` as its Site URL. The exact production callback `https://thepassageapp.io/auth/confirm` is allowed, while the isolated UAT and local callbacks remain available for regression testing.
+- A fresh production magic link for the synthetic owner account redirected to `https://thepassageapp.io/onboarding/organization` without an Auth error. The authenticated session survived a reload and a direct `/app` visit on the production domain.
+- The synthetic owner account then received the expected access-recovery boundary: its previous organization membership had been removed, so no former organization information was exposed. This is a membership state to replace for the next UAT run, not an Auth or cookie failure.
+- That replay also exposed a trapped-account recovery defect: the removed-member screen did not offer sign-out. The release candidate now includes an explicit sign-out action on that denial screen; deployment verification remains required.
 
 ## Complete browser transaction
 

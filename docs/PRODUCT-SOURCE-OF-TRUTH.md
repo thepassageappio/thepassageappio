@@ -1028,6 +1028,7 @@ For one independently created request, preserve evidence of:
 - A participant invitation cannot access another record.
 - An expired, revoked, malformed, or reused token does not grant new access.
 - A removed member loses access immediately.
+- A removed member can sign out from the denial screen without regaining access to the former organization.
 - Storage object access follows the same organization and record boundary.
 - Server authorization ignores role or organization values supplied by the browser.
 - Support cannot impersonate an authority decision maker.

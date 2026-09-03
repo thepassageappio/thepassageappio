@@ -142,6 +142,6 @@ Progress is measured by complete vertical slices, not the number of pages or int
 
 ## 6. Next controlled build action
 
-Close the hosted release candidate without touching legacy Passage data: independently replay the hosted event chain and negative direct-access cases, add the public domain to the Supabase Auth redirect allowlist, switch `AUTHORITY_APP_URL` after verification, and complete the owner-run public-domain UAT. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
+Close the hosted release candidate without touching legacy Passage data: create a fresh synthetic organization, independently replay the hosted event chain and negative direct-access cases, and complete the owner-run public-domain UAT. The public Auth callback allowlist, production Site URL, and `AUTHORITY_APP_URL` cutover are verified. New authority types, broad AI features, real customer data, and live Stripe remain blocked.
 
 The controlled fictional MVP remains available throughout as the regression and demonstration harness.
