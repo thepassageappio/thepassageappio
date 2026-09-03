@@ -754,7 +754,7 @@ sequenceDiagram
 | Queue | Status, next owner, age, assignee | Opens priority item | Access event if required | None |
 | Review | Policy result, source, evidence, page citation, exceptions | Reviews | No decision yet | No false completion |
 | Remediate | Requirement and missing information | Requests information | RFI event | Representative receives exact task |
-| Decide | Allowed actions, reason, limits, policy version | Accepts, limits, or rejects | Decision and receipt event | All authorized parties see matching outcome |
+| Decide | Allowed actions, reason, limits, policy version | Accepts, limits, or rejects | Decision, receipt event, and two role-bound receipt invitations | Both participants receive separate links to the same immutable outcome; failed delivery remains recoverable by the institution |
 | Monitor | Expiry, revocation, webhook result | Investigates exceptions | Audit event | Institution system remains synchronized |
 
 ## 13. Notification contract

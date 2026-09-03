@@ -582,7 +582,7 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
       acknowledged: checkbox(formData, "acknowledged"),
     });
     const admin = createAuthorityAdminClient();
-    const { error } = await admin.rpc("record_institution_decision_service_v1", {
+    const { data, error } = await admin.rpc("record_institution_decision_service_v1", {
       p_actor_user_id: access.user.id,
       p_organization_id: access.membership.organizationId,
       p_authority_record_id: recordId,
@@ -594,10 +594,95 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
       p_idempotency_key: textField(formData, "idempotencyKey"),
     });
     if (error) throw error;
+    const decisionResult = data as { replayed?: boolean; status?: string; version?: number };
+    let receiptDeliveryComplete = true;
+
+    if (!decisionResult.replayed) {
+      const supabase = await createClient();
+      const [{ data: record }, { data: invitations }] = await Promise.all([
+        supabase
+          .from("authority_records")
+          .select("version, status, principal_name, representative_name, purpose, account_boundary")
+          .eq("organization_id", access.membership.organizationId)
+          .eq("id", recordId)
+          .maybeSingle(),
+        supabase
+          .from("authority_participant_invitations")
+          .select("participant_role, version")
+          .eq("organization_id", access.membership.organizationId)
+          .eq("authority_record_id", recordId),
+      ]);
+
+      receiptDeliveryComplete = Boolean(record && invitations?.length === 2);
+      if (record && invitations?.length === 2) {
+        for (const participantRole of ["principal", "representative"] as const) {
+          const invitation = invitations.find((item) => item.participant_role === participantRole);
+          if (!invitation) {
+            receiptDeliveryComplete = false;
+            continue;
+          }
+
+          const { data: reissued, error: reissueError } = await supabase.rpc("reissue_participant_invitation_v1", {
+            p_organization_id: access.membership.organizationId,
+            p_authority_record_id: recordId,
+            p_participant_role: participantRole,
+            p_expected_record_version: Number(record.version),
+            p_expected_invitation_version: Number(invitation.version),
+            p_idempotency_key: crypto.randomUUID(),
+          });
+          const receiptInvitation = reissued as {
+            invitation_id?: string;
+            invitation_version?: number;
+            invitation_token?: string;
+            email?: string;
+            expires_at?: string;
+          } | null;
+          if (reissueError || !receiptInvitation?.invitation_id || !receiptInvitation.invitation_version || !receiptInvitation.invitation_token || !receiptInvitation.email || !receiptInvitation.expires_at) {
+            receiptDeliveryComplete = false;
+            continue;
+          }
+
+          const submission = await deliverParticipantInvitation({
+            invitationId: receiptInvitation.invitation_id,
+            invitationVersion: Number(receiptInvitation.invitation_version),
+            participantRole,
+            email: receiptInvitation.email,
+            institutionName: access.organization.displayName,
+            participantName: participantRole === "principal" ? String(record.principal_name) : String(record.representative_name),
+            otherPersonName: participantRole === "principal" ? String(record.representative_name) : String(record.principal_name),
+            purpose: String(record.purpose),
+            accountBoundary: String(record.account_boundary),
+            expiresAt: receiptInvitation.expires_at,
+            secureUrl: new URL(`/r/${receiptInvitation.invitation_token}`, getAuthorityAppUrl()).toString(),
+            accessPurpose: "receipt",
+          });
+          const { error: deliveryError } = await admin.rpc("record_operator_participant_delivery_service_v1", {
+            p_actor_user_id: access.user.id,
+            p_organization_id: access.membership.organizationId,
+            p_invitation_id: receiptInvitation.invitation_id,
+            p_expected_invitation_version: Number(receiptInvitation.invitation_version),
+            p_delivery_status: submission.accepted ? "delivered" : "failed",
+            p_provider: "resend",
+            p_provider_message_id: submission.accepted ? submission.messageId : "",
+            p_error_code: submission.accepted ? "" : submission.reason,
+            p_idempotency_key: crypto.randomUUID(),
+          });
+          if (!submission.accepted || deliveryError) receiptDeliveryComplete = false;
+        }
+      }
+    }
     revalidatePath("/app");
     revalidatePath(`/app/requests/${recordId}`);
     revalidatePath(`/app/requests/${recordId}/receipt`);
-    destination = withMessage(`/app/requests/${recordId}/receipt`, "notice", "institution_decision_saved");
+    destination = withMessage(
+      `/app/requests/${recordId}/receipt`,
+      "notice",
+      decisionResult.replayed
+        ? "institution_decision_saved"
+        : receiptDeliveryComplete
+          ? "institution_decision_saved_receipts_submitted"
+          : "institution_decision_saved_receipts_pending",
+    );
   } catch (error) {
     destination = withMessage(destination, "error", errorCode(error));
   }

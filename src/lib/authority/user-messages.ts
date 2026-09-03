@@ -79,6 +79,8 @@ const noticeMessages: Record<string, string> = {
   participant_invitation_delivery_pending: "The fresh secure invitation is ready, but the email provider did not accept it.",
   evidence_review_saved: "The evidence review was saved and the representative can see the current result.",
   institution_decision_saved: "The institution decision and scoped receipt were saved together.",
+  institution_decision_saved_receipts_submitted: "The decision was saved and both participant receipt emails were submitted for delivery.",
+  institution_decision_saved_receipts_pending: "The decision was saved. One or more receipt emails need attention; send a fresh receipt link below.",
   authority_revocation_saved: "The revocation notice was saved and the receipt now shows that future reliance has ended.",
   authority_expiration_saved: "The request expiration was saved to the receipt.",
   information_requested: "The information request was saved and is visible to the representative.",

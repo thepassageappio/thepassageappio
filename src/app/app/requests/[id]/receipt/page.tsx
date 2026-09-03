@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { recordAuthorityLifecycleAction } from "@/app/account-actions";
+import { recordAuthorityLifecycleAction, reissueParticipantInvitationAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
@@ -29,14 +29,17 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     { data: recordRow, error: recordError },
     { data: decisionRow, error: decisionError },
     { data: eventRows, error: eventError },
+    { data: invitationRows, error: invitationError },
   ] = await Promise.all([
     supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
     supabase.from("authority_institution_decisions").select("id, receipt_code, authority_record_id, record_version, outcome, reason, accepted_action_keys, limitations, decided_by, decided_by_role, decided_at, receipt_sha256, receipt_snapshot").eq("organization_id", access.organization.id).eq("authority_record_id", id).maybeSingle(),
     supabase.from("authority_events").select("event_id, authority_record_id, sequence, event_type, summary, detail, occurred_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("sequence", { ascending: true }),
+    supabase.from("authority_participant_invitations").select("participant_role, version").eq("organization_id", access.organization.id).eq("authority_record_id", id),
   ]);
   if (recordError) throw recordError;
   if (decisionError) throw decisionError;
   if (eventError) throw eventError;
+  if (invitationError) throw invitationError;
   if (!recordRow || !decisionRow) notFound();
 
   const record = mapHostedAuthorityRecord(recordRow as never);
@@ -45,6 +48,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
   const lifecycleEvent = events.slice().reverse().find((event) => event.eventType === "authority.revocation_recorded" || event.eventType === "authority.expiration_recorded");
   const canChangeLifecycle = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "") && ["accepted", "accepted_with_limits"].includes(record.status);
   const canExpire = canChangeLifecycle && new Date(record.validUntil) <= new Date();
+  const canSendReceipts = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
   const roleLabels: Record<string, string> = { owner: "Institution owner", admin: "Institution administrator", reviewer: "Institution reviewer" };
   const notice = userNoticeMessage(query.notice);
   const error = userErrorMessage(query.error);
@@ -64,6 +68,26 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
 
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
+        {canSendReceipts ? <section className={styles.panel}>
+          <div className={styles.panelHead}><div><h2>Participant receipt links</h2><p>Each person receives separate access to this same saved decision.</p></div></div>
+          <div className={styles.panelActions}>
+            {(["principal", "representative"] as const).map((participantRole) => {
+              const invitation = invitationRows?.find((item) => item.participant_role === participantRole);
+              if (!invitation) return null;
+              const participantName = participantRole === "principal" ? record.principalName : record.representativeName;
+              return <form action={reissueParticipantInvitationAction} key={participantRole}>
+                <input type="hidden" name="recordId" value={record.id} />
+                <input type="hidden" name="participantRole" value={participantRole} />
+                <input type="hidden" name="expectedRecordVersion" value={record.version} />
+                <input type="hidden" name="expectedInvitationVersion" value={Number(invitation.version)} />
+                <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+                <button className={styles.secondary} type="submit">Send fresh receipt link to {participantName}</button>
+              </form>;
+            })}
+          </div>
+          <p className={styles.supportingCopy}>A fresh link ends that person&apos;s prior session without changing the saved decision.</p>
+        </section> : null}
+
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Institution decision</h2><p>This is the saved outcome for this request.</p></div><span className={styles.badge}>{hostedDecisionLabel(decision.outcome)}</span></div>
           <p className={receiptStyles.reason}>{decision.reason}</p>
