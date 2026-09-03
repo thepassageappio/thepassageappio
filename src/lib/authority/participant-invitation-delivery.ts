@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
 
 export type ParticipantInvitationDelivery = {
   invitationId: string;
@@ -17,7 +18,7 @@ export type ParticipantInvitationDelivery = {
 
 export type ParticipantDeliveryResult =
   | { accepted: true; provider: "resend"; messageId: string }
-  | { accepted: false; provider: "disabled" | "resend"; reason: "configuration_missing" | "provider_rejected" };
+  | { accepted: false; provider: "disabled" | "resend"; reason: "configuration_missing" | "provider_rejected" | "recipient_not_allowed" };
 
 function escapeHtml(value: string) {
   return value
@@ -112,6 +113,10 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
 }
 
 export async function deliverParticipantInvitation(delivery: ParticipantInvitationDelivery): Promise<ParticipantDeliveryResult> {
+  if (!isDemoEmailRecipientAllowed(delivery.email)) {
+    return { accepted: false, provider: "disabled", reason: "recipient_not_allowed" };
+  }
+
   const provider = process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY?.trim().toLowerCase();
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.AUTHORITY_EMAIL_FROM?.trim();

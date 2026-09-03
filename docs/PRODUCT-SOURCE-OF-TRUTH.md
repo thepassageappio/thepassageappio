@@ -844,6 +844,8 @@ Required controls:
 
 Resend sends transactional invitation, reminder, information-request, decision, revocation, and billing notices.
 
+The isolated Demo environment is fail-closed: every team or participant recipient must exactly match the server-side `PASSAGE_EMAIL_RECIPIENT_ALLOWLIST` before provider submission. A missing allowlist denies all Demo delivery, and the guard does not permit domains or wildcard addresses.
+
 Required controls:
 
 - dedicated verified sending domain;

@@ -1,6 +1,7 @@
 import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { Resend } from "resend";
+import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
 
 export type TeamInvitationDelivery = {
   invitationId: string;
@@ -13,7 +14,7 @@ export type TeamInvitationDelivery = {
 
 type DeliveryResult =
   | { delivered: true; provider: "local" | "resend"; messageId?: string }
-  | { delivered: false; provider: "disabled" | "resend"; reason: "configuration_missing" | "provider_rejected" };
+  | { delivered: false; provider: "disabled" | "resend"; reason: "configuration_missing" | "provider_rejected" | "recipient_not_allowed" };
 
 function escapeHtml(value: string) {
   return value
@@ -132,6 +133,10 @@ async function deliverTeamInvitationWithResend(delivery: TeamInvitationDelivery)
 }
 
 export async function deliverTeamInvitation(delivery: TeamInvitationDelivery): Promise<DeliveryResult> {
+  if (!isDemoEmailRecipientAllowed(delivery.email)) {
+    return { delivered: false, provider: "disabled", reason: "recipient_not_allowed" };
+  }
+
   const provider = process.env.AUTHORITY_TEAM_INVITATION_DELIVERY?.trim().toLowerCase();
   if (provider === "local") return deliverTeamInvitationLocally(delivery);
   if (provider === "resend") return deliverTeamInvitationWithResend(delivery);
