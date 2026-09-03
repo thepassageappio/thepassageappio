@@ -51,6 +51,11 @@ Receipt fingerprint: `fe936f322f2865755d31bd9c4e5b81ea1c9ab3a0db968661c0d0949184
 - A fresh production magic link for the synthetic owner account redirected to `https://thepassageapp.io/onboarding/organization` without an Auth error. The authenticated session survived a reload and a direct `/app` visit on the production domain.
 - The synthetic owner account then received the expected access-recovery boundary: its previous organization membership had been removed, so no former organization information was exposed. This is a membership state to replace for the next UAT run, not an Auth or cookie failure.
 - That replay also exposed a trapped-account recovery defect: the removed-member screen did not offer sign-out. The release candidate now includes an explicit sign-out action on that denial screen; deployment verification remains required.
+- Production deployment `passage-authority-frbugiahz-thepassageappio-7018s-projects.vercel.app` added that sign-out action and was aliased to `thepassageapp.io`. Chrome verification proved the denied account could sign out and reach the unauthenticated production sign-in screen without regaining former organization access.
+- Supabase Auth custom SMTP is enabled through the existing verified Resend sender. A fresh synthetic-owner magic link was accepted, delivered from `noreply@thepassageapp.io`, and exchanged on the production callback.
+- The new synthetic owner completed organization profile, evaluation terms, and policy selection in Chrome. `Passage UAT Credit Union` opened with zero of five activations used.
+- The first fresh request was saved as a draft with zero usage, then activated once as `PA-1C3C4DABBD`; the institution view showed one of five activations, principal-only action, held representative access, append-only activation and submission activity, and final provider delivery confirmation.
+- Gmail placed the first participant invitation in Spam even though the receiving server and Resend confirmed delivery. Inbox placement is therefore still an explicit pre-pilot deliverability gap.
 
 ## Complete browser transaction
 
