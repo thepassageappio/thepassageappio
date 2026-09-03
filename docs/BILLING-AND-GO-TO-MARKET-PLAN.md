@@ -54,10 +54,12 @@ The initial pricing hypothesis is:
 
 - fixed-price paid pilot to prove value and implementation fit;
 - annual platform price with an included authority-request allowance;
-- volume bands or contracted overage after real buyer discovery establishes expected volume, support burden, risk, procurement preference, and willingness to pay;
+- graduated overage or pre-purchased request packs after real buyer discovery establishes expected volume, support burden, risk, procurement preference, and willingness to pay;
 - professional services, custom integrations, or enhanced support priced separately when scoped.
 
 Exact annual volume bands and per-request overage rates remain deliberately unset until at least ten qualified buyer interviews and the first design-partner pilot produce evidence.
+
+The researched model comparison, comparable-product evidence, CRM lifecycle, and future platform vision are recorded in [PRICING-AND-PACKAGING-RESEARCH.md](./PRICING-AND-PACKAGING-RESEARCH.md).
 
 ## Future product-led growth lane
 

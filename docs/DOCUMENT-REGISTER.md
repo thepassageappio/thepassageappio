@@ -20,6 +20,7 @@
 | 12 | `SELLING-AND-PRICING-DECISION-BRIEF.md` | Pitch, market rationale, differentiation, discovery, qualification, objections, and pricing hypotheses |
 | 13 | `BILLING-AND-GO-TO-MARKET-PLAN.md` | Approved billing boundary, offer ladder, payment architecture, and commercial sequencing |
 | 14 | `OWNER-UAT-RUNBOOK.md` | Independent four-session demo script, negative checks, evidence capture, and pass/fail rule |
+| 15 | `PRICING-AND-PACKAGING-RESEARCH.md` | Evidence-backed pricing model, offer ladder, billable unit, Stripe boundary, CRM lifecycle, and future product vision |
 
 When documents conflict, the lower order number controls.
 

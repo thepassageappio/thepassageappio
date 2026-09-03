@@ -1,7 +1,7 @@
 # Passage Authority MVP execution plan
 
 **Launched:** August 28, 2026
-**Current score:** 9.2 of 10 to a fully functioning MVP
+**Current score:** 9.3 of 10 to a fully functioning hosted synthetic MVP
 **Controlled MVP threshold:** Achieved on the approved public domain with a hosted synthetic transaction; independent owner replay and commercial entitlement remain release-candidate gates
 **Active work limit:** One complete vertical slice
 
@@ -17,7 +17,7 @@ Work proceeds in this order. A later gate may be designed early, but it does not
 | P1 | Enterprise trust and volume proof | Organization isolation, least privilege, private-file denial, signed-delivery replay, retry/idempotency, backup/restore, monitoring, and incident evidence pass. A documented synthetic load test meets an approved concurrency, latency, and error budget without duplicate transitions or mismatched receipts. Claims on the site match collected evidence. | Core transaction controls passed; operating and load evidence remain |
 | P1 | Integration proof | A buyer can choose hosted or API-led adoption. A sandbox quickstart, sample request, authenticated API example, signed webhook example, retry instructions, and system diagram are published. A developer reaches the first complete synthetic request from clean credentials against a measured time target. | Product boundary exists; public quickstart and measured integration replay remain |
 | P1 | Controlled-pilot operations | Email authentication and inbox placement, accessibility, performance, retention/deletion, support ownership, incident response, security review, legal terms, and pilot exit criteria are documented and tested. | Partially complete |
-| P2 | Billing and revenue operations | Stripe test invoices and entitlement webhooks pass signature, duplicate, ordering, failure, refund, cancellation, and reconciliation tests. HubSpot fields, lifecycle stages, inbound routing, ICP qualification, outbound sequences, and reporting use only verified product claims. | Deliberately queued after P0/P1 readiness |
+| P2 | Billing and revenue operations | Stripe test invoices and entitlement webhooks pass signature, duplicate, ordering, failure, refund, cancellation, and reconciliation tests. HubSpot fields, lifecycle stages, inbound routing, ICP qualification, outbound sequences, and reporting use only verified product claims. | Institution plan/usage view and evidence-backed commercial blueprint complete; provider implementation remains queued after P0/P1 readiness |
 
 ### Demo-ready definition
 
@@ -147,7 +147,8 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Archive superseded Passage Stripe products without touching historical records.
 - Create clean Passage Authority pilot and annual products in Stripe test mode first.
 - Default the $5,000 founding proof-of-concept pilot to a sales-assisted Stripe invoice or Hosted Invoice Page; credit it toward year one when converted and do not require a consumer-style checkout.
-- Model the annual relationship as a contracted base price with included authority-request volume. Validate exact bands and overage pricing before encoding them.
+- Model the annual relationship as a contracted base price with included authority-request volume and graduated overage. Validate exact bands and overage pricing before encoding them.
+- Passed: authenticated institution workspace now shows organization identity, role, offer, status, usage, period, payment approach, and the evaluation-to-pilot path in plain language.
 - Store Stripe customer, invoice, payment, and optional subscription mapping by organization.
 - Treat the existing Passage activation ledger as canonical usage; send a derived meter event to Stripe only if usage billing is later approved.
 - Verify signature, duplicate delivery, out-of-order event, failed payment, cancellation, and reconciliation behavior.
@@ -155,6 +156,8 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 - Do not add Plaid to the billing flow; Stripe-hosted card and bank-payment surfaces are the first payment boundary.
 - Promote to live mode only after the complete test transaction and entitlement replay pass.
 - After controlled pilots and low-touch operations pass, test a separate PLG entitlement of one free activation per verified organization per calendar month. This is not part of the current controlled evaluation or MVP release gate.
+
+Research and architecture reference: [pricing, packaging, and commercial-system recommendation](./PRICING-AND-PACKAGING-RESEARCH.md).
 
 ## Product, commercial, and testing readiness
 

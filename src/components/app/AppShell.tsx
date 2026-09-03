@@ -23,6 +23,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           <Link href="/app">Overview</Link>
           <Link href="/app/requests/new">Start a request</Link>
           <Link href="/app/team">People and access</Link>
+          <Link href="/app/organization">Organization and plan</Link>
           <Link href="/app/policies">Authority policy</Link>
         </nav>
         <div className={styles.sidebarFooter}>

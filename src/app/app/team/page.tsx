@@ -58,6 +58,17 @@ export default async function TeamPage({ searchParams }: Props) {
       </header>
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
+      <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+        <summary>What each role can do</summary>
+        <div className={styles.roleGrid}>
+          <div><strong>Owner</strong><p>Manages the organization, plan, team access, requests, evidence review, and institution decisions.</p></div>
+          <div><strong>Administrator</strong><p>Manages day-to-day access, requests, evidence review, and decisions. Only an owner can add another administrator.</p></div>
+          <div><strong>Operations staff</strong><p>Starts and coordinates requests. Cannot manage team access or record the institution&apos;s final decision.</p></div>
+          <div><strong>Institution reviewer</strong><p>Reviews evidence, requests more information, and records the institution&apos;s decision.</p></div>
+          <div><strong>Auditor</strong><p>Reads organization requests, receipts, and access history without changing them.</p></div>
+          <div><strong>Developer</strong><p>Supports integration setup without access to participant records in this release.</p></div>
+        </div>
+      </details>
       {canManage ? (
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Invite a team member</h2><p>The invitation expires after seven days and only the invited email can accept it.</p></div></div>
