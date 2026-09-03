@@ -174,3 +174,10 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Both receipt messages reached the controlled Gmail Inbox. Principal and representative views matched receipt `PAR-79DC9AAB1F39`, decision/current version 11, status, scope, limitation, and SHA-256 fingerprint `6fcda462ec7b2b43c65d49f933ebd39bdb16100ed6f2ab2e5dd614ddb9464ff6`.
 - A subsequent synthetic revocation preserved the original limited decision while changing the institution, principal, and representative current status to Revoked. Both participant views showed “Revocation notice recorded.”
 - The initial invitation and resume messages still landed in Gmail Spam while both final receipt messages landed in Inbox. Invitation deliverability remains a controlled-pilot operating gap, not a product-state failure.
+
+## September 3 participant email mobile hardening
+
+- The participant decision email now uses the shorter subject and heading “Decision receipt ready,” a compact outcome summary, and the plain-language label “Financial power of attorney request.”
+- The responsive template fixes iPhone text inflation, reduces mobile spacing, and keeps its primary action at least 44px high.
+- A headless Chrome render at 390 × 844 measured the complete email card at 382px high and the primary action bottom at 298px, placing the decision context and action inside the first mobile viewport.
+- The full release gate passed: 78 of 78 domain tests, TypeScript, ESLint, and the optimized 23-page production build.

@@ -22,7 +22,7 @@ test("participant invitation explains the sender, role, other person, scope, exp
     delivery.institutionName,
     "person granting authority",
     delivery.otherPersonName,
-    delivery.purpose,
+    "Financial power of attorney request",
     delivery.accountBoundary,
     delivery.secureUrl,
     "final decision",
@@ -68,8 +68,13 @@ test("participant receipt email directs both roles to the institution decision w
     ...delivery,
     accessPurpose: "receipt",
   });
-  assert.match(message.subject, /recorded a decision/i);
-  assert.match(message.text, /outcome, accepted actions, any limits, and later changes/i);
+  assert.match(message.subject, /decision receipt ready/i);
+  assert.match(message.text, /outcome, accepted actions, and any limits/i);
+  assert.match(message.text, /Financial power of attorney request/i);
+  assert.doesNotMatch(message.text, /request recognition of limited financial power of attorney authority/i);
   assert.match(message.html, /View decision receipt/);
+  assert.match(message.html, /-webkit-text-size-adjust: 100%/);
+  assert.match(message.html, /@media only screen and \(max-width: 480px\)/);
+  assert.match(message.html, /min-height: 44px/);
   assert.doesNotMatch(message.text, /Passage (approved|verified|granted)/i);
 });

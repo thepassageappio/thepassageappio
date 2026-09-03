@@ -852,6 +852,8 @@ Required controls:
 - idempotency key per logical message;
 - stored send and delivery events;
 - no sensitive evidence in email;
+- concise participant copy that names the request in ordinary language and puts the primary action in the first mobile viewport;
+- responsive email presentation at 390px and 360px with controlled text sizing, compact spacing, and a 44px minimum primary action;
 - role-bound destination link;
 - webhook handling for delivery, bounce, and complaint;
 - safe resend and suppression behavior.
