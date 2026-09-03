@@ -57,7 +57,7 @@ export default async function OrganizationPage() {
         </div>
       </header>
 
-      <section className={styles.metricGrid} aria-label="Plan summary">
+      <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Plan summary">
         <div className={styles.metric}><span>Current plan</span><strong>{offerLabels[offer] ?? "Custom plan"}</strong></div>
         <div className={styles.metric}><span>Plan status</span><strong>{statusLabels[String(plan?.status ?? "not_started")] ?? "Contact support"}</strong></div>
         <div className={styles.metric}><span>Requests used</span><strong>{limit == null ? used : `${used} of ${limit}`}</strong></div>
@@ -89,14 +89,15 @@ export default async function OrganizationPage() {
         </section>
       </div>
 
-      <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>What happens after the evaluation</h2><p>A founding pilot proves one workflow with a defined team, success criteria, and request allowance before an annual commitment.</p></div></div>
+      <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+        <summary>What happens after the evaluation</summary>
+        <p>A founding pilot proves one workflow with a defined team, success criteria, and request allowance before an annual commitment.</p>
         <div className={styles.stepGrid}>
           <div><span>1</span><strong>Review results</strong><p>Confirm completion, user feedback, and operational fit.</p></div>
           <div><span>2</span><strong>Agree on the pilot</strong><p>Set scope, volume, support, security review, and success measures.</p></div>
           <div><span>3</span><strong>Invoice the institution</strong><p>The organization owner receives an invoice; participant access stays free.</p></div>
         </div>
-      </section>
+      </details>
     </>
   );
 }
