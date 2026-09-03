@@ -201,3 +201,9 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Rejection writes one immutable no-authority decision and one event; exact idempotent replay writes nothing else. Expiration preserves the accepted decision and appends exactly one lifecycle event. Withdrawal remains a single terminal transition on exact replay.
 - Recovery revokes the prior participant session, prepares and exchanges one new role-bound link, preserves request state and usage, and leaves three explicit access/recovery events.
 - Both SQL scripts use fictional local fixtures inside transactions and end with `ROLLBACK`; they do not send email, access providers, or touch Demo, UAT, or Production. Hosted browser copy, message delivery, cross-persona receipt comparison for rejection/withdrawal/expiration, and scheduled expiration initiation remain manual UAT cases.
+
+## September 3 public-route parity check
+
+- Sixteen public routes returned HTTP 200 in both Production (`https://thepassageapp.io`) and the isolated Demo (`https://passage-authority-demo.vercel.app`), for 32 successful live responses.
+- Coverage included the homepage, About, Contact, Integrations, Pricing, Pilot, Resources index, all three resource articles, Security, Templates, Privacy, Terms, Authorized Use, and the sign-in/evaluation entry page.
+- The live Demo homepage also rendered the current Passage Authority positioning, institution decision boundary, sample request, navigation, and primary evaluation actions in a real browser.
