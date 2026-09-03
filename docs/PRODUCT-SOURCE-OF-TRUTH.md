@@ -1,9 +1,9 @@
 # Passage Authority product source of truth
 
-**Version:** 1.6  
-**Date:** August 31, 2026  
+**Version:** 1.7
+**Date:** September 3, 2026
 **Status:** Active build and release contract  
-**Owner decision:** Gates 0, 1, and 2 are complete in the hosted Authority environment. Gate 3 participant entry, principal confirmation, representative acceptance, secure session recovery, immutable participant decisions, institution visibility, and independent replay have passed. Gate 4 evidence is active: the private foundation and representative certification pass, while source upload and reviewer replay await Chrome local-file access. Gate 5 institution decision, immutable scoped receipt, role-bound participant receipt delivery, revocation, and due-date expiration are deployed behind the evidence-complete guard. Positive browser proof remains after Gate 4.
+**Owner decision:** The hosted synthetic flow has passed organization onboarding, request activation, separate participant decisions, private sample-file upload, human review, clarification and response, institution acceptance with limits, matching three-party receipt, secure-session recovery, and revocation on the public domain. Remaining demo gates are independent browser-profile replay, the negative-path matrix, reset hardening, deliverability, and operating evidence. Stripe and CRM automation follow those gates.
 
 This document replaces contradictory product, pricing, onboarding, persona, and roadmap assumptions in earlier Passage Authority plans. If another document conflicts with this one, this document controls until an explicit decision updates it.
 
@@ -124,15 +124,15 @@ This differentiation is a hypothesis until an external institution confirms that
 
 ### 5.1 Approved offer ladder
 
-| Offer | Price | Duration | Real authority transactions | Payment and entitlement |
+| Offer | Price | Duration | Included requests | Payment and entitlement |
 | --- | ---: | ---: | ---: | --- |
-| Try Passage Authority | $0 | 10 calendar days from first activation | 5 | No card. Passage entitlement only. |
+| Try Passage Authority | $0 | 10 calendar days from first activation | 5 synthetic evaluation requests | No card. Passage entitlement only. |
 | Founding proof-of-concept pilot | $5,000 | 60 to 90 days | Defined in the signed pilot scope | Paid by Stripe invoice or approved checkout. Credited toward year one when converted under the pilot agreement. |
 | Institution relationship | Custom after pilot evidence | Contracted term | Included volume and any overage terms are set after pilot evidence | Activated only from a verified Stripe payment or subscription event. |
 
 ### 5.2 What counts as a transaction
 
-A real authority transaction counts when the first participant invitation is issued for a request.
+An evaluation request counts when its first participant invitation is issued.
 
 - Draft creation does not count.
 - Previewing a request does not count.
@@ -146,7 +146,7 @@ A real authority transaction counts when the first participant invitation is iss
 
 ### 5.3 Trial clock
 
-The 10-day trial clock begins at the same moment the first real request is activated. Account creation, organization setup, template preview, and fictional sandbox use do not start the clock.
+The 10-day evaluation clock begins when the first sample request is activated. Account creation, organization setup, template preview, and saved drafts do not start the clock.
 
 ### 5.4 Paid access rule
 
@@ -154,7 +154,7 @@ The product never trusts a browser redirect as proof of payment. Paid entitlemen
 
 ### 5.5 Commercial boundaries
 
-- Free evaluation requires organization verification, terms acceptance, privacy notice, authorized-use attestation, and secure data controls before real information is accepted.
+- The current free evaluation uses approved synthetic information only. Real institution or participant information requires a separately approved pilot boundary.
 - No anonymous public checkout grants product access.
 - The $5,000 founding pilot is a defined proof-of-concept engagement, not a self-serve commodity purchase.
 - Annual included volume remains a commercial decision to be set from real pilot usage. The website must not invent a limit or overage fee.

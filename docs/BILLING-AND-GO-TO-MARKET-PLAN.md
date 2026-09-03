@@ -14,7 +14,7 @@ Only an organization owner or authorized administrator may begin or manage a pai
 
 | Offer | Price | Payment approach | Usage treatment |
 | --- | --- | --- | --- |
-| Controlled evaluation | $0 | No card and no bank account | Five activated authority requests over 10 days |
+| Controlled evaluation | $0 | No card and no bank account | Five activated synthetic requests over 10 days |
 | Founding proof-of-concept pilot | $5,000 for 60 to 90 days, credited toward year one when converted under the pilot agreement | Sales-assisted Stripe invoice or Hosted Invoice Page; card or supported bank transfer | Agreed pilot allowance; no per-participant charge |
 | Institution relationship | Custom after pilot evidence | Contract plus Stripe invoice; subscription and customer portal only when operationally approved | Base price with included authority-request volume; contracted overage or tier changes only after validation |
 
@@ -101,6 +101,7 @@ Sequence:
 - Public-domain Supabase Auth callback is verified.
 - Owner completes the full persona flow without developer intervention.
 - Remaining expiry, wrong-person, recovery, direct-document denial, information-request, withdrawal, and expiration tests close.
+- Demo, trust, and integration proof are clear enough that billing work will not delay a sellable pilot story.
 - Owner approves the clean Authority test products and prices.
 
 ### Before live payment
@@ -112,12 +113,13 @@ Sequence:
 
 ## Remaining roadmap order
 
-1. Branded public-domain Auth callback.
-2. Owner-run end-to-end persona UAT.
-3. Hosted negative-path and independent replay closeout.
-4. Stable resettable seven-minute demo.
-5. Stripe test-mode invoice/Checkout, webhook, entitlement, billing view, and reconciliation.
-6. Deliverability, observability, accessibility, CSP, security, legal, retention, recovery, and support closeout.
-7. Controlled design-partner pilot.
-8. Evidence-based annual pricing and broader selling.
-9. Verified-organization self-service experiment with one free activation per calendar month.
+1. Owner-run end-to-end persona UAT in independent browser profiles.
+2. Hosted negative-path and independent replay closeout.
+3. Stable resettable seven-minute demo and plain-language copy closeout.
+4. Enterprise trust, deliverability, observability, accessibility, retention, recovery, and support evidence.
+5. Hosted-first integration quickstart and measured time-to-first-complete-request.
+6. ICP interviews, pilot qualification, discovery, objection, and security materials.
+7. Stripe test-mode invoice, webhook, entitlement, billing view, and reconciliation.
+8. HubSpot fields, stages, inbound routing, and outbound automation based on the validated journey.
+9. Controlled design-partner pilot and evidence-based annual pricing.
+10. Verified-organization self-service experiment with one free activation per calendar month.
