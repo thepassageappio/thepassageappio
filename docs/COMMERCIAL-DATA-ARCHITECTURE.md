@@ -369,35 +369,37 @@ Passage service roles, Stripe secrets, webhook signing secrets, and HubSpot toke
 
 Backfill never sends participant messages, changes authority records, consumes allowance twice, or grants access. Every batch has manifest, code version, start/end cursor, counts, errors, and rollback-by-projection procedure.
 
-## Phased implementation plan
+## Strict implementation backlog after demo and pilot readiness
 
-### Phase 0 — decisions and sandbox provisioning
+Commercial architecture may be researched and documented early. Implementation does not begin merely because the design exists. Every P0 and P1 gate in `MVP-EXECUTION-PLAN.md` must first be marked passed with linked evidence: clear journeys/copy, repeatable enterprise demo, independent persona UAT, enterprise trust/volume proof, integration proof, and controlled-pilot operations. A provider sandbox, schema migration, live CRM connection, payment connection, or automated write is not permitted to displace those gates.
 
-Approve currency, invoice terms, tax/PO policy, allowance expiry/rollover, refund-to-allowance behavior, grace period, forecast method, product catalog, HubSpot subscription level/capabilities, owners, and service objectives. Exit: signed field dictionary and sandbox IDs.
+After that release boundary passes, execute exactly in the following order. Work on a later item may not enter an environment until the preceding item's exit evidence is recorded.
 
-### Phase 1 — Passage commercial foundation
+| Order | Backlog item | Deliverable | Exit evidence |
+| ---: | --- | --- | --- |
+| C01 | Freeze commercial policy | Approve currency, invoice/tax/PO terms, catalog/SKUs, allowances, top-up policy, rollover, refunds, grace, owners, HubSpot capabilities, reporting timezone, and accounting definitions. | Versioned decision record and field dictionary have no silent defaults; finance, product, commercial, and security owners sign off. |
+| C02 | Build Passage commercial foundation | Add account/workspace hierarchy, catalog, contract, subscription/items, allowance lots/allocations, orders, adjustments, provider links, and entitlement projection behind authorized command services. | Migration/RLS review, transaction tests, stale/unauthorized/idempotent replay tests, and audit events pass without Stripe or HubSpot. |
+| C03 | Build canonical usage and term projections | Mirror activation and first institution decision into append-only commercial usage, backfill existing events, and produce daily/term/lifetime snapshots and burn forecasts. | Unique source counts reconcile exactly; replay produces no duplicates; sampled Company metrics and historical snapshots reproduce from source queries. |
+| C04 | Build integration control plane | Add signed provider inbox, commercial event ledger, destination outbox, provider sync state, dead-letter/replay workflow, and reconciliation runs/items. | Duplicate, delayed, out-of-order, invalid-signature, timeout, and destination-outage tests pass; no destination can alter product authority. |
+| C05 | Provision HubSpot sandbox model | Create `pa_*` unique properties, approved enums, associations, three deal pipelines, two ticket pipelines, owners, permissions, and deterministic upsert configuration. | Dry-run then sandbox backfill matches Passage counts; associations and roles are correct; privacy scan is clean; a second run is a no-op. |
+| C06 | Implement Stripe test paid-pilot flow | Create sandbox catalog/customer/invoice mapping and verified invoice-paid, failure, refund, dispute, cancellation, and grace handling. | Signed test event drives one Passage payment/entitlement transition and one reconciled New Business result; browser return and unsigned/duplicate events grant nothing. |
+| C07 | Enable HubSpot customer lifecycle projection | Project qualified New Business, onboarding/support Tickets, membership summaries, Company subscription/usage summaries, and billing state through the outbox. | HubSpot outage cannot block Passage/Stripe; retry creates one correct record; reverse HubSpot edits cannot grant access; freshness targets are measured. |
+| C08 | Implement self-service top-ups | Add hosted top-up purchase, paid allowance lot, one Closed Won Expansion deal per payment, threshold actions, customer history, refund handling, and last-unit concurrency control. | Two payments create two deals/lots; duplicate creates none; spend/allowance reconcile; wrong-account and concurrent last-unit tests pass. |
+| C09 | Implement renewals | Close immutable prior-term snapshot; create one Renewal 120 days before end; carry baseline/spend/usage; create successor subscription; classify expansion/flat/downgrade/churn. | All four classifications and net ARR/MRR deltas reconcile to the preceding term; historical top-ups remain permanently non-recurring. |
+| C10 | Release commercial reporting | Publish funnel, bookings, contract spend, ARR/MRR bridge, GRR/NRR, usage/burn, top-up, renewal, billing, onboarding/support, health, and reconciliation dashboards. | Dashboard totals reproduce from Passage, Stripe, and HubSpot source queries for a fixed fixture and sampled terms; undefined values remain blank. |
+| C11 | Authorize controlled live rollout | Complete shadow sync, retention/security review, operational runbook, alert ownership, backfill manifest, accounting export, and production rollback rehearsal. | Seven consecutive daily reconciliations have zero unexplained high-severity variance and named owners approve live provider credentials separately. |
 
-Implement commercial accounts/workspace links, versioned catalog, contracts/subscriptions/items/lots/orders/adjustments, commercial events, usage completion event, projections, RLS, command service, and negative/replay tests. Exit: local and UAT evidence chain passes without Stripe or HubSpot.
+### Five-part definition of done for every commercial item
 
-### Phase 2 — HubSpot prospect and customer projection
+Every item from C02 through C11 is incomplete unless its evidence states all five of the following explicitly:
 
-Implement unique-property upserts, associations, New Business pipeline, onboarding/support tickets, membership role sync, and Company usage summary via durable outbox. Exit: sandbox backfill and retries reconcile with no prohibited data.
+1. **Source of truth:** the owning Passage, Stripe, HubSpot, or accounting field/object is named; no destination projection is treated as canonical.
+2. **Durable event:** the versioned event, aggregate id, occurred time, causation/correlation id, and non-sensitive payload are committed with the successful business change.
+3. **Idempotency:** the command/provider/destination key and same-key/different-payload behavior are tested; duplicate and out-of-order delivery cannot duplicate or regress state.
+4. **Reconciliation:** expected and actual cross-system values, tolerance, schedule, failure severity, repair owner, and replay evidence are recorded.
+5. **Reporting:** the metric definition, dimensional grain, contract/period attribution, freshness timestamp, null behavior, and reproducible source query are approved.
 
-### Phase 3 — Stripe paid pilot
-
-Implement sandbox customer/invoice/payment/refund lifecycle, signed inbox, approved payment-to-entitlement command, New Business Closed Won, billing ticket, and daily reconciliation. Exit: first-paid-pilot acceptance matrix passes in test mode.
-
-### Phase 4 — self-service top-ups
-
-Implement top-up orders, Stripe-hosted payment, allowance lots, one Closed Won Expansion deal per payment, thresholds, refunds, customer purchase history, and reconciliation. Exit: top-up matrix passes including wrong-org and concurrency attacks.
-
-### Phase 5 — renewals and recurring reporting
-
-Implement immutable term close snapshots, 120-day renewal seeding, renewal workflow, successor subscriptions, classifications, ARR/MRR bridge, GRR/NRR, churn/downgrade, and top-up conversion reporting. Exit: all four renewal scenarios reconcile.
-
-### Phase 6 — scale intelligence
-
-Add health, unit cost, gross margin, provider capacity, seasonality/cohort models, multi-workspace pooling rules, API-led product segmentation, and accounting export. Exit: segment dashboards reproduce from Passage snapshots.
+These five checks are release criteria, not post-launch cleanup. C05 through C11 also require an automated prohibited-data scan of every Stripe and HubSpot payload fixture.
 
 ## Acceptance-test matrix
 

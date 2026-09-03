@@ -2,7 +2,7 @@
 
 **Launched:** August 28, 2026
 **Current score:** 9.8 of 10 to a fully functioning hosted synthetic MVP
-**Controlled MVP threshold:** Achieved on the approved public domain with a hosted synthetic transaction; independent owner replay and commercial entitlement remain release-candidate gates
+**Controlled MVP threshold:** Achieved on the approved public domain with a hosted synthetic transaction; independent owner replay remains the release-candidate gate, and commercial implementation begins only after all P0/P1 gates pass
 **Active work limit:** One complete vertical slice
 
 ## Release path and measurable success gates
@@ -17,7 +17,7 @@ Work proceeds in this order. A later gate may be designed early, but it does not
 | P1 | Enterprise trust and volume proof | Organization isolation, least privilege, private-file denial, signed-delivery replay, retry/idempotency, backup/restore, monitoring, and incident evidence pass. A documented synthetic load test meets an approved concurrency, latency, and error budget without duplicate transitions or mismatched receipts. Claims on the site match collected evidence. | Core transaction controls passed. The legacy SQLite UI, mutation actions, and sandbox API are denied on the public deployment; live probes confirmed generic 404 responses and private no-store/no-index headers. Hosted negative-access, operating, and load evidence remain |
 | P1 | Integration proof | A buyer can choose hosted or API-led adoption. A sandbox quickstart, sample request, authenticated API example, signed webhook example, retry instructions, and system diagram are published. A developer reaches the first complete synthetic request from clean credentials against a measured time target. | Product boundary exists; public quickstart and measured integration replay remain |
 | P1 | Controlled-pilot operations | Email authentication and inbox placement, accessibility, performance, retention/deletion, support ownership, incident response, security review, legal terms, and pilot exit criteria are documented and tested. | Partially complete |
-| P2 | Billing and revenue operations | Stripe test invoices and entitlement webhooks pass signature, duplicate, ordering, failure, refund, cancellation, and reconciliation tests. Each paid top-up creates one Closed Won Expansion deal; Company current-contract spend rolls up paid base and expansion; Renewal is seeded from that value. Company segmentation, contact roles, subscription bucket, activated/completed usage, daily snapshots, seasonality, burn rate, expansion, and recurring-revenue reporting reconcile to Passage. | Institution plan/usage view, pricing model, CRM segmentation, usage intelligence, three-pipeline requirements, rollups, renewal rules, and acceptance tests documented; provider implementation remains queued after P0/P1 readiness |
+| P2 | Billing and revenue operations | Stripe test invoices and entitlement webhooks pass signature, duplicate, ordering, failure, refund, cancellation, and reconciliation tests. Each paid top-up creates one Closed Won Expansion deal; Company current-contract spend rolls up paid base and expansion; Renewal is seeded from that value. Company segmentation, contact roles, subscription bucket, activated/completed usage, daily snapshots, seasonality, burn rate, expansion, and recurring-revenue reporting reconcile to Passage. | Requirements and architecture are documented. The strict C01–C11 backlog in `COMMERCIAL-DATA-ARCHITECTURE.md` remains queued until every P0/P1 gate is marked passed with evidence. |
 
 ### Demo-ready definition
 
@@ -29,7 +29,7 @@ Execution references: [product vision and onboarding](./PRODUCT-VISION-AND-ONBOA
 
 An authenticated institution can create and activate a New York financial power of attorney request. The principal, representative, and institution reviewer can complete their separate steps. Every action produces durable organization-isolated state, an append-only event, a matching receipt, and an observable notification or integration outcome.
 
-The hosted product has completed this synthetic story through correction recovery, matching receipts, and revocation, with an independent database read matching the browser result. The local sandbox remains a regression harness; owner-operated independent-profile timing, hosted negative-access evidence, deliverability hardening, and Stripe test entitlement remain before a commercial release candidate.
+The hosted product has completed this synthetic story through correction recovery, matching receipts, and revocation, with an independent database read matching the browser result. The local sandbox remains a regression harness; owner-operated independent-profile timing, hosted negative-access evidence, deliverability hardening, and the remaining P1 controls precede commercial implementation.
 
 ## Critical path
 
@@ -41,8 +41,8 @@ The hosted product has completed this synthetic story through correction recover
 | 4 | Evidence boundary | Representative completes hosted requirements using private test evidence, separated provider results, source-linked findings, and human confirmation. | Core passed with two browser uploads, certification, and institution review; negative direct-access replay remains |
 | 5 | Review and lifecycle | Reviewer requests information, decides, and observes withdrawal, revocation, and expiration. | Hosted RFI, response, limited decision, and revocation passed; withdrawal/expiration negative-path closeout remains |
 | 6 | Receipt and events | Shared receipt, durable outbox, signed webhook, retry, and replay agree with canonical state. | Hosted three-party receipt and lifecycle synchronization passed; an independent hosted read matched the final record, decision, fingerprint, event sequence, and usage. Delivery retry and inbox-placement evidence remain |
-| 7 | Stripe test entitlement | Verified Stripe test events activate the correct pilot or annual entitlement once. Browser redirects never grant access. | Data-model and negative-path test design may begin; payment connection follows owner-run UAT |
-| 8 | Independent UAT | Owner completes signup through revocation in the browser without developer intervention and with no critical or high defects. | Engineering-operated fresh Demo replay passed end to end without database edits; owner-run timed replay across independent profiles remains |
+| 7 | Independent UAT and P1 closeout | Owner completes signup through revocation in the browser without developer intervention; trust, integration, load, and controlled-pilot operating evidence have no critical or high defects. | Engineering-operated fresh Demo replay passed end to end without database edits; owner-run timed replay and remaining P1 evidence remain. |
+| 8 | Commercial foundation | After P0/P1 pass, the C01–C11 backlog implements Passage commercial truth, Stripe test billing, HubSpot projections, top-ups, renewals, and reporting in strict order. | Requirements and architecture complete; implementation queued. |
 
 ## Slice 1 acceptance contract
 
@@ -168,7 +168,7 @@ Research and architecture reference: [pricing, packaging, and commercial-system 
 | Demo | Stable public entry, resettable approved test data, and a seven-minute script | Dedicated isolated app/database and namespaced fresh-run provisioning are live at the stable Vercel fallback; authenticated three-size verification passed | Add the Cloudflare record and rehearse without developer intervention |
 | ICP and positioning | Narrow problem, workflow, buyer, and honest product boundary are documented | Ready to begin now | Interview regional-bank and credit-union operations/compliance leaders; test problem urgency and buying process before scaling outbound |
 | Sales strategy | ICP evidence plus a repeatable demo and pilot offer | Discovery and design-partner outreach can begin; broad selling is premature | Build qualification, discovery, objection, security, pilot-success, and follow-up materials from verified claims only |
-| Stripe test payments | Public Auth callback and owner-run UAT pass; entitlement mapping is approved | Ready for schema and negative-path tests; do not connect payment activation until owner replay passes | Build test-mode invoice/Checkout, verified webhook-to-organization entitlement, and reconciliation |
+| Stripe test payments | Every P0/P1 gate is marked passed with linked evidence and commercial policy C01 is approved | Requirements and architecture ready; all implementation remains queued | Begin C02, then follow the strict commercial backlog through Stripe test-mode work at C06 |
 | Live payments | Stripe duplicate, signature, ordering, failure, cancellation, refund, and reconciliation tests pass | Blocked | Owner explicitly approves live Stripe products, prices, tax, terms, and customer-support operations |
 | Controlled pilot | Legal, security, retention, support, monitoring, deliverability, and institution acceptance are approved | Not ready | Complete the pilot-readiness control package after MVP UAT and Stripe test entitlement |
 
@@ -189,9 +189,9 @@ Research and architecture reference: [pricing, packaging, and commercial-system 
 | Days 4 to 6 | Activation, five-free entitlement, and participant invitation foundation. Command, data, test, and UI evidence passed; browser closeout active. | Continue only when count and invitation are atomic |
 | Days 7 to 10 | Principal, representative, reviewer, receipt, and lifecycle parity | Continue only when another persona completes each received action |
 | Days 11 to 12 | Signed events, replay, monitoring, and failure recovery | Continue only when state, receipt, and delivery match |
-| Days 13 to 15 | Stripe test entitlement and independent browser UAT | MVP release candidate only with no critical or high defect |
+| Days 13 to 15 | Independent browser UAT and P1 evidence closeout | Commercial backlog starts only when all P0/P1 gates pass with no critical or high defect |
 
-The public-domain cutover, responsive smoke test, rollback capture, production Auth callback migration, branded SMTP, revoked-account recovery, fresh synthetic organization setup, and engineering-assisted hosted transaction through revocation are complete. The remaining path to the release candidate is focused: independently replay hosted events and negative access, then perform owner-run public-domain UAT. Stripe test schema and failure tests can begin in parallel, but payment-driven entitlement must wait for that owner replay. Pilot readiness still follows with inbox placement, legal, security, support, monitoring, retention, payment, and written institution acceptance requirements.
+The public-domain cutover, responsive smoke test, rollback capture, production Auth callback migration, branded SMTP, revoked-account recovery, fresh synthetic organization setup, and engineering-assisted hosted transaction through revocation are complete. The remaining path to the release candidate is focused: independently replay hosted events and negative access, perform owner-run public-domain UAT, and close the remaining P1 trust, integration, load, deliverability, legal, security, support, monitoring, retention, and written institution-acceptance requirements. Commercial schema and provider implementation do not run in parallel with that closeout; they begin at C01 only after every P0/P1 gate passes.
 
 External identity, document intelligence, bank integration, legal review, penetration testing, and formal compliance readiness are pilot and enterprise dependencies. They do not justify weakening the hosted MVP evidence chain.
 
