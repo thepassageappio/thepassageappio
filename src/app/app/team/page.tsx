@@ -22,6 +22,7 @@ const activityLabels: Record<string, string> = {
   "organization.terms_accepted": "Evaluation terms accepted",
   "organization.template_selected": "Authority policy selected",
   "authorized_use.attested": "Authorized use confirmed",
+  "demo.run_provisioned": "Fresh demo prepared",
 };
 
 function formatTime(value: string) {

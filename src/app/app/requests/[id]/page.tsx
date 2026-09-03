@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage, userErrorMessage } from "@/lib/authority/user-messages";
@@ -12,14 +13,14 @@ import styles from "@/components/app/app-shell.module.css";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ notice?: string; error?: string }>;
+  searchParams: Promise<{ notice?: string; error?: string; demo?: string }>;
 };
 
 export default async function HostedAuthorityRequestPage({ params, searchParams }: Props) {
   const access = await getAuthorityAccessContext();
   if (!access?.organization) return null;
   const { id } = await params;
-  const { notice, error } = await searchParams;
+  const { notice, error, demo } = await searchParams;
   const supabase = await createClient();
   const [
     { data: recordRow, error: recordError },
@@ -117,6 +118,9 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     : null;
   const savedNotice = hostedRequestNoticeMessage(notice, activeDeliveryStatus);
   const canReviewEvidence = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
+  const isDemoRunView = demo === "1" && Boolean(
+    access.membership && mayProvisionDemoRun(access.user.email, access.membership.role),
+  );
   const canRecordDecision = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
   const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
@@ -139,6 +143,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
       <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
     </header>
     {savedNotice ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
+    {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Review the controlled inboxes and sample scope below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     <section className={styles.metricGrid} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>

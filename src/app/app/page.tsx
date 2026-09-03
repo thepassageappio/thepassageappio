@@ -1,16 +1,20 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
+import { provisionHostedDemoRunAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { hostedStatusLabel, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
-import { userNoticeMessage } from "@/lib/authority/user-messages";
+import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
 
-type Props = { searchParams: Promise<{ notice?: string }> };
+type Props = { searchParams: Promise<{ notice?: string; error?: string }> };
 
 export default async function OrganizationHomePage({ searchParams }: Props) {
   const access = await getAuthorityAccessContext();
-  const { notice: noticeCode } = await searchParams;
+  const { notice: noticeCode, error: errorCode } = await searchParams;
   const notice = userNoticeMessage(noticeCode);
+  const errorMessage = userErrorMessage(errorCode);
   if (!access?.membership || !access.organization) return null;
 
   const supabase = await createClient();
@@ -35,13 +39,23 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   const drafts = records.filter((record) => record.status === "draft").length;
   const needsAction = records.filter((record) => ["under_review", "information_requested"].includes(record.status)).length;
   const mayCreate = ["owner", "admin", "staff", "reviewer"].includes(access.membership.role);
+  const mayPrepareDemo = mayProvisionDemoRun(access.user.email, access.membership.role);
 
   return <>
     <header className={styles.pageHeader}>
       <div><p className={styles.eyebrow}>Institution workspace</p><h1>{access.organization.displayName}</h1><p>Start requests, see what needs attention, and review every saved decision.</p></div>
-      {mayCreate ? <div className={styles.headerActions}><Link className={styles.secondary} href="/app/requests/new?sample=1">Start a sample request</Link><Link className={styles.primary} href="/app/requests/new">Start a request</Link></div> : null}
+      {mayCreate ? <div className={styles.headerActions}>
+        {mayPrepareDemo && entitlement ? <form action={provisionHostedDemoRunAction}>
+          <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
+          <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+          <button className={styles.primary} type="submit">Prepare a fresh demo</button>
+        </form> : null}
+        <Link className={styles.secondary} href="/app/requests/new?sample=1">Start a sample request</Link>
+        <Link className={styles.primary} href="/app/requests/new">Start a request</Link>
+      </div> : null}
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
+    {errorMessage ? <div className={styles.alert} role="alert">{errorMessage}</div> : null}
     <section className={styles.metricGrid} aria-label="Workspace status">
       <div className={styles.metric}><span>Requests used</span><strong>{activated} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Draft requests</span><strong>{drafts}</strong></div>

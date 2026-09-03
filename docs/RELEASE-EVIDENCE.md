@@ -182,3 +182,11 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - A headless Chrome render at 390 × 844 measured the complete email card at 382px high and the primary action bottom at 298px, placing the decision context and action inside the first mobile viewport.
 - The legacy purpose phrase is also normalized at every institution and participant projection while the durable source value remains unchanged. Purpose-specific institution language is preserved.
 - The full release gate passed: 80 of 80 domain tests, TypeScript, ESLint, and the optimized 23-page production build.
+
+## September 3 namespaced Demo-run candidate
+
+- An authenticated Demo organization owner or administrator whose exact email appears in `PASSAGE_DEMO_PRESENTER_ALLOWLIST` can prepare a fresh synthetic run in one click. The server, not the browser, selects the two exact controlled participant inboxes.
+- A service-only database command verifies the active membership, organization, selected template, entitlement version and capacity, fixture version, idempotency key, and organization namespace before writing anything.
+- One transaction creates the `demo_run`, sample draft request, request event, run event, organization audit entry, and command receipt. It sends no message, consumes no activation, changes no membership, deletes no evidence, and leaves prior runs intact.
+- A local Postgres replay proved exact idempotent replay, payload-mismatch rejection, unauthorized-role rejection, stale-version rejection, append-only enforcement, and isolation between two simultaneous presenter organizations.
+- The app/domain suite proves the exact presenter and recipient allowlists fail closed for missing, wildcard, wrong-role, and non-Demo configurations. Applying the migration and allowlists to hosted Demo, then authenticated browser verification at desktop, 390px, and 360px, remain release gates.

@@ -1,7 +1,7 @@
 # Passage Authority demo environment architecture
 
 **Decision date:** September 3, 2026  
-**Status:** Core Demo boundary provisioned; deterministic run provisioning and provider sandboxes remain
+**Status:** Core Demo boundary provisioned; deterministic run provisioning is implemented and awaiting Demo deployment verification
 **Objective:** Maintain a client-ready demonstration instance that is isolated from production while running the same released product.
 
 ## Decision
@@ -71,11 +71,11 @@ This makes Demo the release proving ground while ensuring that a production rele
 
 The reset unit is a `demo_run`, not the entire environment and not a production tenant.
 
-1. The presenter chooses **Prepare a fresh demo**.
-2. One authenticated server command creates a new isolated synthetic organization, owner/reviewer memberships, five-request evaluation entitlement, approved workflow configuration, fictional participants, sample files, and unused role-bound access records.
-3. State and an immutable provisioning event commit together with an idempotency key and fixture-version identifier.
-4. The new run receives a short human-readable label and becomes the presenter's active run.
-5. Older runs become read-only and expire under a short documented retention period; asynchronous cleanup may remove only expired Demo-classified data.
+1. The presenter chooses **Prepare a fresh demo** from an already isolated Demo organization.
+2. One authenticated server command creates a new organization-scoped synthetic `demo_run` and draft with the approved workflow, fictional participants, controlled recipient inboxes, account boundary, and fixture version. Activation creates unused role-bound access records through the canonical request command.
+3. State and immutable request/run events commit together with an idempotency key and expected entitlement version.
+4. The new run receives a short human-readable label and opens as a fresh draft without changing membership, entitlement history, or another organization.
+5. Older runs remain intact for diagnosis. A later retention command may make expired runs read-only and remove only expired Demo-classified data under the approved retention policy.
 
 Creating a new namespaced run is safer than truncating a shared demo database: two presenters cannot reset each other's meeting, prior evidence remains available for diagnosis, and a failed seed does not destroy the last known-good demo.
 
@@ -121,4 +121,4 @@ Creating a new namespaced run is safer than truncating a shared demo database: t
 - The obsolete Vercel project `thepassageappio` was removed after confirming it served no active alias and was not the current Production project. The current `passage-authority-uat` project remains the Production host.
 - Demo email delivery now fails closed unless each exact recipient is present in the server-side production-environment allowlist. Four controlled Passage addresses are configured; wildcard and domain-wide matches are not supported.
 - Demo now uses a dedicated Resend sending-only key restricted to `thepassageapp.io`, plus a separate signed webhook endpoint for delivery, delay, failure, and bounce receipts. The Demo Vercel environment stores both secrets independently from Production/UAT.
-- Still required for the full target: namespaced `demo_run` provisioning, a presenter allowlist for reset/provision commands, a separately authenticated reviewer in the four-profile persona UAT, the remaining negative-path matrix, and a timed seven-minute rehearsal.
+- The release candidate now includes namespaced `demo_run` state, an owner/admin-only service command, exact presenter and recipient allowlists, optimistic version checks, idempotent replay, and append-only run/audit evidence. Its local database replay passes without deleting prior evidence, sending messages, consuming an activation, changing membership, or crossing organization boundaries. Still required: configure the presenter allowlist and migration in Demo, verify the control in authenticated browsers at desktop/390px/360px, add a separately authenticated reviewer, complete the remaining negative-path matrix, and rehearse the seven-minute story.

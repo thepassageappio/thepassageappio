@@ -63,6 +63,7 @@ const errorMessages: Record<string, string> = {
   information_request_not_available: "More information can be requested only while the institution is reviewing the request.",
   information_request_requirement_invalid: "Choose a current policy requirement.",
   information_request_already_open: "This request already has an unanswered information request.",
+  demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
 };
 
 const noticeMessages: Record<string, string> = {
@@ -84,6 +85,7 @@ const noticeMessages: Record<string, string> = {
   authority_revocation_saved: "The revocation notice was saved and the receipt now shows that future reliance has ended.",
   authority_expiration_saved: "The request expiration was saved to the receipt.",
   information_requested: "The information request was saved and is visible to the representative.",
+  demo_run_prepared: "A fresh sample request is ready. Nothing was sent or counted, and earlier demo runs were not changed.",
 };
 
 export function userErrorMessage(code: string | undefined) {

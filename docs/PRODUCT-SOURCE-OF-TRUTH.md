@@ -846,6 +846,8 @@ Resend sends transactional invitation, reminder, information-request, decision, 
 
 The isolated Demo environment is fail-closed: every team or participant recipient must exactly match the server-side `PASSAGE_EMAIL_RECIPIENT_ALLOWLIST` before provider submission. A missing allowlist denies all Demo delivery, and the guard does not permit domains or wildcard addresses.
 
+Demo presenters use a separate server-only boundary. **Prepare a fresh demo** is rendered and accepted only when `PASSAGE_ENVIRONMENT=demo`, the signed-in institution member is an owner or administrator, and the member's exact normalized email appears in `PASSAGE_DEMO_PRESENTER_ALLOWLIST`. The command selects two exact recipients from the Demo delivery allowlist, creates one new namespaced synthetic `demo_run` and one draft authority request inside the presenter's current organization, and writes both request and run events atomically. It does not delete or edit an earlier run, reset entitlement history, activate a request, send a message, or change organization membership. The command requires the current entitlement version and an idempotency key; replay returns the original run, stale context fails without a partial seed, and Production returns a generic not-found response before database access.
+
 Required controls:
 
 - dedicated verified sending domain;

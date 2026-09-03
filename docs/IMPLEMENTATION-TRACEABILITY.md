@@ -25,6 +25,7 @@ This document is the build checklist. A feature is not complete when a screen ex
 | S-13 Integration | D-01 through D-05 | D-01 through D-04, I-10 | Versioned REST commands, webhook delivery, replay, credential rotation | API request IDs, events, deliveries, attempts, key events | Customer endpoint receives signed event | Signature, retry, dedupe, ordering, endpoint failure, rotated key denial |
 | S-14 Billing and entitlement | OA-05 through OA-07 | I-09, W-04 | `create_billing_session`, Stripe webhook, portal session | Billing event, customer mapping, entitlement state | Organization activation limit changes only after confirmation | Redirect spoof, invalid signature, duplicate event, failed payment, cancellation, reconciliation |
 | S-15 Audit and support | OA-10, A-01, A-02 | I-11, I-06 | `list_audit_events`, `export_audit`, `start_support_session` | Read-only access and export events | Authorized auditor sees complete chain | Support cannot decide, export scope, access logging, revoked auditor |
+| S-16 Namespaced Demo run | Demo presenter | I-01 | `provision_demo_run` | New organization-scoped `demo_run`, synthetic draft, request event, run event, and command receipt in one transaction | Presenter opens a fresh draft; earlier runs and every other organization remain unchanged | Production 404, exact presenter allowlist, owner/admin only, stale entitlement version, idempotent replay, cross-organization and simultaneous-run isolation |
 
 ## 2. Screen interaction contract
 

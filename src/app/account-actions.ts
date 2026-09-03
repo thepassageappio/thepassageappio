@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { prepareHostedAuthorityDraft } from "@/lib/authority/hosted-records";
@@ -10,6 +10,11 @@ import { prepareHostedInformationRequest } from "@/lib/authority/hosted-informat
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
 import { participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { deliverTeamInvitation } from "@/lib/authority/team-invitation-delivery";
+import {
+  demoParticipantRecipientPair,
+  isDemoEnvironment,
+  mayProvisionDemoRun,
+} from "@/lib/authority/demo-boundary";
 import {
   getAuthorityAppUrl,
   getSupabasePublicConfig,
@@ -101,6 +106,10 @@ function errorCode(error: unknown) {
     information_request_not_available: "information_request_not_available",
     information_request_requirement_invalid: "information_request_requirement_invalid",
     information_request_already_open: "information_request_already_open",
+    stale_demo_context: "request_changed",
+    demo_entitlement_unavailable: "evaluation_unavailable",
+    demo_recipient_configuration_invalid: "demo_recipient_configuration_invalid",
+    demo_fixture_not_available: "request_failed",
     "Choose the requirement that needs more information.": "information_request_requirement_invalid",
     "Explain what information is still needed.": "information_request_message_required",
     "Confirm that this is the institution's decision for this request.": "institution_decision_acknowledgment_required",
@@ -364,6 +373,45 @@ export async function revokeMemberInvitationAction(formData: FormData) {
     revalidatePath("/app/team");
   } catch (error) {
     destination = withMessage("/app/team", "error", errorCode(error));
+  }
+  redirect(destination);
+}
+
+export async function provisionHostedDemoRunAction(formData: FormData) {
+  if (!isDemoEnvironment()) notFound();
+
+  const access = await getAuthorityAccessContext();
+  if (
+    !access?.membership
+    || !access.organization
+    || !mayProvisionDemoRun(access.user.email, access.membership.role)
+  ) {
+    notFound();
+  }
+
+  let destination = "/app";
+  try {
+    const recipients = demoParticipantRecipientPair();
+    if (!recipients) throw new Error("demo_recipient_configuration_invalid");
+
+    const admin = createAuthorityAdminClient();
+    const { data, error } = await admin.rpc("provision_demo_run_v1", {
+      p_organization_id: access.organization.id,
+      p_presenter_user_id: access.user.id,
+      p_principal_email: recipients[0],
+      p_representative_email: recipients[1],
+      p_expected_entitlement_version: Number(textField(formData, "expectedEntitlementVersion")),
+      p_fixture_version: "financial-poa-demo-2026.1",
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+
+    const result = data as { authority_record_id: string };
+    revalidatePath("/app");
+    revalidatePath(`/app/requests/${result.authority_record_id}`);
+    destination = withMessage(`/app/requests/${result.authority_record_id}?demo=1`, "notice", "demo_run_prepared");
+  } catch (error) {
+    destination = withMessage("/app", "error", errorCode(error));
   }
   redirect(destination);
 }
