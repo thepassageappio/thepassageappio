@@ -14,6 +14,93 @@ Passage uses three HubSpot deal pipelines:
 
 The HubSpot Company is the commercial account summary. Contacts represent people involved in buying, administration, billing, security review, or success. Deals represent revenue events. Stripe is the source of truth for invoices and payments; Passage is the source of truth for product access and activated-request usage.
 
+## Company segmentation and customer 360
+
+Each Company must have explicit segmentation fields that do not depend on free-text company names or individual contacts:
+
+| Company field | Purpose |
+| --- | --- |
+| Institution category | Regional bank, community bank, credit union, elder-law firm, authorized service organization, fintech/platform partner, or other |
+| ICP fit | ICP A, ICP B, ICP C, non-ICP, or unassessed |
+| ICP reason | Standardized reason the organization fits or does not fit the current POA wedge |
+| Size segment | Standardized employee, asset, member/customer, or servicing-volume band as appropriate |
+| Geography | Headquarters and operating regions relevant to the supported policy |
+| Current process | Email/manual, branch handoff, ticketing, document platform, existing vendor, or other |
+| Estimated annual authority volume | Discovery estimate, stored separately from measured Passage usage |
+| Current subscription bucket | Evaluation, founding pilot, Core, Scale, Enterprise, expired, suspended, or churned |
+| Current contract start/end | Active commercial service period |
+| Customer lifecycle | Prospect, evaluating, pilot, customer, at risk, renewing, churned, or former customer |
+
+Institution category, ICP fit, subscription bucket, and customer lifecycle are separate dimensions. For example, a credit union may be ICP A, on a founding pilot, and currently renewing.
+
+## Contact role separation
+
+Every Contact may carry multiple clearly separated role dimensions:
+
+| Contact dimension | Examples |
+| --- | --- |
+| Job function | Deposit operations, compliance, legal, digital servicing, IT/security, finance, procurement, executive |
+| Buying role | Champion, economic buyer, decision maker, influencer, technical evaluator, security reviewer, procurement, billing contact |
+| Customer role | Executive sponsor, day-to-day owner, administrator, success contact, support contact |
+| Passage product role | Owner, administrator, operations staff, institution reviewer, developer, auditor, or no product access |
+| Relationship status | Active, former, unresponsive, or do-not-contact |
+
+Job title must not be used as a substitute for buying role or product permission. Passage product role comes from authenticated membership data; HubSpot cannot grant or change product access. Multiple Contacts can hold the same buying or customer role, and one Contact can hold several commercial roles.
+
+## Usage definitions and Company summary
+
+Use **authority request** in customer-facing and commercial reporting. Avoid generic “platform transaction.” Two different metrics are required:
+
+- **Activated authority request:** counted once when the first participant invitation is issued. This is the allowance-consuming and potentially billable unit.
+- **Completed authority request:** an activated request that reaches a saved final institution decision and matching decision receipt. This is the primary outcome and adoption metric.
+
+The Company record stores the current summary, synchronized from Passage:
+
+| Company usage field | Definition |
+| --- | --- |
+| Lifetime activated authority requests | All activated requests since organization creation |
+| Lifetime completed authority requests | All requests with a final institution decision receipt |
+| Activated requests this contract term | Billable/allowance usage within the active term |
+| Completed requests this contract term | Outcomes completed within the active term |
+| Activated requests trailing 12 months | Rolling 12-month activity independent of contract boundaries |
+| Completed requests trailing 12 months | Rolling 12-month completed outcomes |
+| Purchased allowance this term | Base allowance plus paid top-up units |
+| Remaining allowance | Purchased allowance minus activated requests this term |
+| Allowance utilization | Activated requests this term ÷ purchased allowance |
+| Completion rate | Completed requests ÷ activated requests for the selected period |
+| Current 30-day burn rate | Activated requests per day over the trailing 30 days |
+| Current 90-day burn rate | Activated requests per day over the trailing 90 days |
+| Forecast term-end usage | Projected activated requests by contract end using the approved forecast method |
+| Forecast allowance exhaustion date | Projected date remaining allowance reaches zero |
+| Peak usage month/quarter | Highest measured activated-request period |
+| Last activation/completion date | Most recent usage and outcome milestones |
+
+Undefined or insufficient-history values remain blank and display as “Not enough history”; they are never replaced with zero or an invented forecast.
+
+## Usage history and segmentation architecture
+
+HubSpot Company fields show the current account summary; they are not the historical analytics ledger. Passage must preserve:
+
+1. The append-only event for every activation and completion.
+2. A daily organization usage snapshot containing organization, contract, subscription bucket, ICP bucket, activated count, completed count, purchased allowance, remaining allowance, utilization, 30/90-day burn, and forecast exhaustion date.
+3. Historical contract-term snapshots that do not change when a customer renews or changes tier.
+4. A reporting model that joins usage to institution category, ICP fit, size band, geography, plan, cohort, acquisition source, contract term, and account owner.
+
+This supports monthly, quarterly, annual, cohort, and seasonal reporting without overwriting history in HubSpot. Only approved Company-level aggregates and milestone dates synchronize to HubSpot; participant or request-level sensitive data does not.
+
+### Required usage reporting
+
+- Activated and completed authority requests by day, week, month, quarter, and year.
+- Activation-to-completion rate and median completion time.
+- Usage by institution category, ICP fit, size segment, geography, subscription bucket, cohort, and contract year.
+- Seasonal and month-of-year patterns by segment.
+- Allowance utilization, remaining allowance, 30/90-day burn, forecast exhaustion, and forecast term-end usage.
+- Top-up frequency, time to first top-up, units purchased, and top-up-to-renewal conversion.
+- Underutilized customers, inactive customers, fast-burn customers, and customers forecast to exceed allowance.
+- Renewal expansion, flat, downgrade, and churn outcomes against prior usage and spend.
+
+Usage alerts create customer-success or expansion actions at approved thresholds. The initial standard is 70%, 90%, and 100% allowance utilization, projected exhaustion before contract end, unexpected inactivity, and materially lower usage than the prior comparable period.
+
 ## Approved top-up behavior
 
 Every successfully paid self-service top-up creates or updates one distinct HubSpot Expansion deal. Deal volume is intentional evidence of product adoption and must not be consolidated merely to reduce record count.
@@ -247,3 +334,7 @@ The integration is working only when test-mode replays prove all of the followin
 10. A top-up converted into the next committed allowance increases renewed ARR without changing the historical top-up classification.
 11. Stripe, HubSpot, Passage, and the reconciliation report agree.
 12. No prohibited participant data appears in Stripe or HubSpot.
+13. Company segmentation distinguishes institution category, ICP fit, subscription bucket, and customer lifecycle.
+14. Contact job function, buying role, customer role, and Passage product role remain independently reportable.
+15. Activated and completed authority-request totals reconcile to the Passage event ledger for current term, trailing 12 months, and lifetime.
+16. Daily snapshots reproduce segment, seasonality, burn-rate, utilization, exhaustion, expansion, and renewal reports without relying on overwritten HubSpot fields.

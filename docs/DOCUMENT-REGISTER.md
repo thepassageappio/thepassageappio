@@ -21,7 +21,7 @@
 | 13 | `BILLING-AND-GO-TO-MARKET-PLAN.md` | Approved billing boundary, offer ladder, payment architecture, and commercial sequencing |
 | 14 | `OWNER-UAT-RUNBOOK.md` | Independent four-session demo script, negative checks, evidence capture, and pass/fail rule |
 | 15 | `PRICING-AND-PACKAGING-RESEARCH.md` | Evidence-backed pricing model, offer ladder, billable unit, Stripe boundary, CRM lifecycle, and future product vision |
-| 16 | `STRIPE-HUBSPOT-REQUIREMENTS.md` | Approved three-pipeline CRM model, top-up deals, company contract-spend rollups, renewal seeding, reconciliation, and acceptance evidence |
+| 16 | `STRIPE-HUBSPOT-REQUIREMENTS.md` | Approved CRM segmentation, contact roles, subscription and usage intelligence, three-pipeline revenue model, top-ups, renewal calculations, reconciliation, and acceptance evidence |
 
 When documents conflict, the lower order number controls.
 
