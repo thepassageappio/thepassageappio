@@ -49,7 +49,8 @@ The preparation action must create a fresh namespaced run and request inside the
 - The public site has no horizontal overflow at 390px or 360px across the homepage, About, Contact, Resources and all three articles, Integrations, Security, Pricing, Pilot, Templates, and evaluation entry.
 - Two approved fictional PDFs are downloadable from the sample form and match its preloaded participants and account boundary.
 - The hosted action, migration, and exact presenter allowlist are deployed. An authenticated owner created a fresh draft at desktop width and verified the notice, next action, session recovery, and controls at 390px and 360px.
-- Remaining before this gate passes: rehearse the timed story with independent profiles.
+- A complete fresh hosted run now passes activation, principal confirmation, representative acceptance, two browser uploads, institution correction, replacement upload, representative disclosure, institution decision, matching three-party receipts, and revocation. The database independently matches the browser result and usage count.
+- Remaining before presenter sign-off: the owner rehearses the same story in seven minutes or less with independent browser profiles or devices and records inbox placement. No product-state blocker remains in the tested happy path.
 - The older SQLite demonstration UI and API are now code-gated to development and test mode. The enterprise demo must use the authenticated hosted organization flow; a production request cannot switch synthetic roles, reset the shared SQLite store, or open its local review queue.
 
 ### P0 negative-path status

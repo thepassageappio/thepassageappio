@@ -208,3 +208,16 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Coverage included the homepage, About, Contact, Integrations, Pricing, Pilot, Resources index, all three resource articles, Security, Templates, Privacy, Terms, Authorized Use, and the sign-in/evaluation entry page.
 - The live Demo homepage also rendered the current Passage Authority positioning, institution decision boundary, sample request, navigation, and primary evaluation actions in a real browser.
 - The repeatable `pnpm verify:public-release` gate checks those 32 responses plus invalid-link, consumed-link, expired-link, and unavailable-session guidance in both environments. The four recovery views were also rendered and read in the hosted Demo browser.
+
+## September 3 full isolated Demo rehearsal
+
+- An authenticated Demo owner prepared fresh run `PA-F66EAE5D1C` from the one-click presenter control. Earlier runs remained available and organization usage stayed unchanged until activation.
+- Activation advanced usage exactly once, from one to two of five. The principal confirmed the exact request, and the representative accepted only the representative role.
+- The representative uploaded both approved fictional PDFs through the browser, saved the required certification, and received the institution's exact correction note: “Please confirm that this fictional identity sample is current for the demonstration.”
+- A replacement identity upload preserved the completed POA review and certification. The representative then acknowledged the disclosure and sent the completed request for institution review.
+- The institution recorded `Accepted with limits` for the two requested actions. Institution, principal, and representative views matched receipt `PAR-C86C321F984C`, decision record version 13, exact scope, three recorded limits, and SHA-256 `df6e952c0e8b56ac763dd79ac5259fee1a5a2ddb363b8c19782be1cddb473f9a`.
+- A synthetic revocation notice advanced the canonical request to version 14 while preserving the original decision and fingerprint. Both participant projections showed Revoked, the same reason, and the same effective time.
+- An independent service-side read confirmed status `revoked`, record version 14, decision version 13, 34 ordered append-only events, one activation event for this request, and organization usage of two of five.
+- The product-state story passed without a manual database edit. Participant roles were verified sequentially because the available in-app browser shares one role-bound participant cookie; a timed owner rehearsal across independent profiles or devices remains the final presenter sign-off.
+- Receipt delivery was submitted successfully by the application, but inbox placement was not inspected during this run. Deliverability remains a controlled-pilot readiness item rather than part of the saved authority-state proof.
+- Post-rehearsal gates passed: 86 domain tests, TypeScript, ESLint, the optimized 23-page build, 32 live Production/Demo public-route checks, and eight hosted recovery-state checks.
