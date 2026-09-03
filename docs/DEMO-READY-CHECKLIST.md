@@ -37,16 +37,17 @@ For each step record the profile/device, URL, start and finish time, visible sta
 
 ## Fresh-run requirement
 
-The preparation action must create a fresh namespaced run and request inside the presenter's existing isolated Demo organization, with a fictional account holder, representative, sample account boundary, two harmless test files, and unused invitation links. It must not change organization membership, reuse a prior participant session, delete earlier evidence, touch production customer data, or require a manual SQL edit. Until the hosted action is deployed and verified, the demo remains engineering-assisted.
+The preparation action must create a fresh namespaced run and request inside the presenter's existing isolated Demo organization, with a fictional account holder, representative, sample account boundary, two harmless test files, and unused invitation links. It must not change organization membership, reuse a prior participant session, delete earlier evidence, touch production customer data, or require a manual SQL edit.
 
 ### Current reset evidence
 
-- The hosted Demo release candidate offers **Prepare a fresh demo** only to an authenticated owner or administrator whose exact email is in the server-side presenter allowlist. Outside Demo, the control is absent and the command returns the same generic not-found boundary as a nonexistent route.
+- The hosted Demo offers **Prepare a fresh demo** only to an authenticated owner or administrator whose exact email is in the server-side presenter allowlist. Outside Demo, the control is absent and the command returns the same generic not-found boundary as a nonexistent route.
 - One command creates a new organization-scoped run, sample request, and immutable evidence without sending messages, consuming usage, deleting an earlier run, changing membership, or affecting another presenter's organization.
 - The institution workspace now exposes **Start a sample request** as a first-class action.
 - The sample form preloads fictional participant names, account boundary, actions, and end date while leaving both inboxes blank so the presenter must choose controlled inboxes.
 - Saving creates a new durable request and activation creates new role-bound invitation records; it does not reuse a prior participant session.
 - The public site has no horizontal overflow at 390px or 360px across the homepage, About, Contact, Resources and all three articles, Integrations, Security, Pricing, Pilot, Templates, and evaluation entry.
 - Two approved fictional PDFs are downloadable from the sample form and match its preloaded participants and account boundary.
-- Remaining before this gate passes: apply and configure the new command in hosted Demo, verify its authenticated desktop/390px/360px experience, and rehearse the timed story with independent profiles.
+- The hosted action, migration, and exact presenter allowlist are deployed. An authenticated owner created a fresh draft at desktop width and verified the notice, next action, session recovery, and controls at 390px and 360px.
+- Remaining before this gate passes: rehearse the timed story with independent profiles.
 - The older SQLite demonstration UI and API are now code-gated to development and test mode. The enterprise demo must use the authenticated hosted organization flow; a production request cannot switch synthetic roles, reset the shared SQLite store, or open its local review queue.

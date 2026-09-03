@@ -183,10 +183,13 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - The legacy purpose phrase is also normalized at every institution and participant projection while the durable source value remains unchanged. Purpose-specific institution language is preserved.
 - The full release gate passed: 80 of 80 domain tests, TypeScript, ESLint, and the optimized 23-page production build.
 
-## September 3 namespaced Demo-run candidate
+## September 3 namespaced Demo run
 
 - An authenticated Demo organization owner or administrator whose exact email appears in `PASSAGE_DEMO_PRESENTER_ALLOWLIST` can prepare a fresh synthetic run in one click. The server, not the browser, selects the two exact controlled participant inboxes.
 - A service-only database command verifies the active membership, organization, selected template, entitlement version and capacity, fixture version, idempotency key, and organization namespace before writing anything.
 - One transaction creates the `demo_run`, sample draft request, request event, run event, organization audit entry, and command receipt. It sends no message, consumes no activation, changes no membership, deletes no evidence, and leaves prior runs intact.
 - A local Postgres replay proved exact idempotent replay, payload-mismatch rejection, unauthorized-role rejection, stale-version rejection, append-only enforcement, and isolation between two simultaneous presenter organizations.
-- The app/domain suite proves the exact presenter and recipient allowlists fail closed for missing, wildcard, wrong-role, and non-Demo configurations. Applying the migration and allowlists to hosted Demo, then authenticated browser verification at desktop, 390px, and 360px, remain release gates.
+- The app/domain suite proves the exact presenter and recipient allowlists fail closed for missing, wildcard, wrong-role, and non-Demo configurations.
+- Migration `20260903120000_authority_demo_runs.sql` and the exact presenter allowlist were applied to the isolated Demo environment. Demo deployment `dpl_79LiZy9cSY4SfhpHcErFupu1z7rG` and Production deployment `dpl_38EmoExZd9n3su3vpbnmo8TMSgaG` reached Ready; Production retains the generic not-found boundary for Demo-only commands.
+- The authenticated Demo owner prepared fresh run `PA-3C6EE04048`. The new request opened as Draft, prior run `PA-F37BFD7EBF` remained intact, usage remained 1 of 5, no message was sent, and the activity count began at one.
+- The signed-in workspace and new draft preserved the preparation notice, primary action, owner role, and Sign out recovery at desktop, 390px, and 360px.

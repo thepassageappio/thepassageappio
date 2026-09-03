@@ -3,7 +3,7 @@
 **Version:** 1.7
 **Date:** September 3, 2026
 **Status:** Active build and release contract  
-**Owner decision:** The hosted synthetic flow has passed organization onboarding, request activation, separate participant decisions, private sample-file upload, human review, clarification and response, institution acceptance with limits, matching three-party receipt, secure-session recovery, and revocation on the public domain. Remaining demo gates are independent browser-profile replay, the negative-path matrix, reset hardening, deliverability, and operating evidence. Stripe and CRM automation follow those gates.
+**Owner decision:** The hosted synthetic flow has passed organization onboarding, namespaced fresh-run preparation, request activation, separate participant decisions, private sample-file upload, human review, clarification and response, institution acceptance with limits, matching three-party receipt, secure-session recovery, and revocation on the public domain. Remaining demo gates are independent browser-profile replay, the negative-path matrix, deliverability, and operating evidence. Stripe and CRM automation follow those gates.
 
 This document replaces contradictory product, pricing, onboarding, persona, and roadmap assumptions in earlier Passage Authority plans. If another document conflicts with this one, this document controls until an explicit decision updates it.
 
