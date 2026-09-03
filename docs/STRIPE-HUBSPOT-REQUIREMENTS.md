@@ -105,6 +105,44 @@ Expansion deals additionally store: expansion type, revenue type, top-up quantit
 
 Renewal deals additionally store: renewal baseline amount, prior base value, prior top-up revenue, prior other expansion, prior refunds/credits, prior total contract spend, prior usage, prior allowance, utilization, recommended tier, proposed allowance, renewal risk, churn/contraction reason, and final renewed ARR.
 
+## Renewal recurring-revenue calculation
+
+Every Renewal deal must calculate the net recurring-revenue impact of the new subscription against the immediately preceding subscription term. Total contract spend and non-recurring top-ups inform the renewal proposal, but they are not included in the prior recurring baseline.
+
+| Renewal property | Calculation |
+| --- | --- |
+| Prior subscription ARR | Normalized recurring value of the immediately preceding subscription term |
+| Prior subscription MRR | Prior subscription ARR ÷ 12 |
+| Renewed subscription ARR | Normalized recurring value committed for the new subscription term |
+| Renewed subscription MRR | Renewed subscription ARR ÷ 12 |
+| Net renewal ARR impact | Renewed subscription ARR − prior subscription ARR |
+| Net renewal MRR impact | Renewed subscription MRR − prior subscription MRR |
+| Prior-term non-recurring top-ups | Informational total only; excluded from prior ARR and MRR |
+| Top-up demand converted to recurring | Portion of prior top-up-supported volume included in the new recurring commitment |
+
+For a standard 12-month agreement, contracted recurring value equals ARR. For a term that is not 12 months, normalize the recurring service value to a 12-month equivalent and keep total contract value in a separate field. Currency conversions, if introduced, must use a documented reporting currency and effective-date exchange-rate policy.
+
+### Renewal deal classification
+
+Each Renewal deal receives exactly one reporting classification when it closes:
+
+- **Renewal — expansion:** renewed ARR is greater than prior ARR. Net renewal ARR and MRR impact are positive.
+- **Renewal — flat:** renewed ARR equals prior ARR to currency precision. Net renewal ARR and MRR impact are zero.
+- **Renewal — downgrade:** renewed ARR is greater than zero but less than prior ARR. Net renewal ARR and MRR impact are negative contraction.
+- **Renewal — churn:** renewed ARR is zero because the customer does not renew. The full prior ARR and MRR become churn.
+
+A renewal that converts prior non-recurring top-up demand into committed allowance is classified from the resulting ARR comparison. The historical top-ups remain non-recurring; the increased commitment appears as positive renewal ARR impact.
+
+### Recurring-revenue reporting
+
+The monthly recurring revenue report must roll forward:
+
+`Beginning MRR + new-business MRR + expansion MRR + renewal expansion MRR − downgrade MRR − churned MRR = ending MRR`
+
+Required companion metrics are beginning ARR, ending ARR, gross revenue retention, net revenue retention, logo renewal rate, logo churn, renewal expansion, renewal downgrade, and top-up-to-recurring conversion. Reports must be filterable by cohort, plan, institution type, owner, contract start month, and renewal month.
+
+MRR and ARR are recurring-revenue operating metrics. They remain separate from bookings, invoiced amounts, cash collected, non-recurring revenue, deferred revenue, and accounting revenue recognized during the month.
+
 ## Reconciliation and failure requirements
 
 - Stripe and HubSpot are reconciled at least daily for paid, failed, refunded, disputed, and canceled invoice states.
@@ -127,5 +165,7 @@ The integration is working only when test-mode replays prove all of the followin
 6. A top-up reports booked and non-recurring revenue with zero ARR impact.
 7. The final renewal records retained, expanded, contracted, or churned recurring revenue correctly without rewriting historical top-ups.
 8. The ARR bridge excludes one-time top-ups while the contract-spend report includes them.
-9. Stripe, HubSpot, Passage, and the reconciliation report agree.
-10. No prohibited participant data appears in Stripe or HubSpot.
+9. Renewal expansion, flat, downgrade, and churn scenarios calculate the correct net ARR and MRR impact against the preceding subscription.
+10. A top-up converted into the next committed allowance increases renewed ARR without changing the historical top-up classification.
+11. Stripe, HubSpot, Passage, and the reconciliation report agree.
+12. No prohibited participant data appears in Stripe or HubSpot.
