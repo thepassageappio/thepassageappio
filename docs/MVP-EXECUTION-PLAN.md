@@ -48,7 +48,7 @@ The hosted product has completed this synthetic story through correction recover
 
 ### User story
 
-An authenticated organization owner, administrator, staff member, or reviewer starts a request from the selected New York financial power of attorney template, saves it as a draft, and sees it in the organization queue.
+An authenticated organization owner, administrator, or staff member starts a request from the selected New York financial power of attorney template, saves it as a draft, and sees it in the organization queue. A reviewer enters only after the representative submits evidence for institution review.
 
 ### Durable results
 
@@ -61,7 +61,7 @@ An authenticated organization owner, administrator, staff member, or reviewer st
 
 ### Authorization
 
-- Owner, administrator, staff, and reviewer may create a draft.
+- Owner, administrator, and staff may create and activate a draft. Reviewer access begins with submitted evidence and excludes request creation and activation.
 - Auditor may read authorized organization records but may not create or change them.
 - Developer has no personal-data access in the first hosted slice.
 - A non-member, revoked member, or member of another organization receives no record existence signal.

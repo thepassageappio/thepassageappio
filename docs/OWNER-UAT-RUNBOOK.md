@@ -8,6 +8,7 @@
 - Open four isolated sessions: Institution owner, Account holder, Representative, and Institution reviewer. Use separate Chrome profiles, private windows that do not share cookies, or separate devices.
 - Confirm access to two controlled inboxes. One inbox acts as Parker Quinn; the other acts as Casey Quinn.
 - Sign the owner and reviewer into the same synthetic institution workspace with separate institution accounts.
+- Confirm the reviewer sees **Review queue**, no **Start a request** control, and plain guidance that an owner or operations staff member sends drafts. Opening `/app/requests/new` directly must return the reviewer to that guidance without creating a record.
 - From the owner workspace, choose **Prepare a fresh demo**. Confirm that a new Draft opens with a unique Demo run code, prior runs remain available, usage does not change, and no message is sent.
 - Download the two fictional files linked above the form. They are visibly marked as synthetic and create no authority.
 - Start a screen recording or note the start time. Keep this sheet available outside the four product sessions.

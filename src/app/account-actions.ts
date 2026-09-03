@@ -15,6 +15,7 @@ import {
   isDemoEnvironment,
   mayProvisionDemoRun,
 } from "@/lib/authority/demo-boundary";
+import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import {
   getAuthorityAppUrl,
   getSupabasePublicConfig,
@@ -59,6 +60,7 @@ function errorCode(error: unknown) {
     invitation_expired: "invitation_expired",
     invitation_email_mismatch: "invitation_email_mismatch",
     authority_request_creation_not_allowed: "request_creation_not_allowed",
+    authority_request_activation_not_allowed: "request_activation_not_allowed",
     organization_not_ready: "organization_not_ready",
     authority_template_not_selected: "template_unavailable",
     participant_name_invalid: "participant_name_invalid",
@@ -421,6 +423,7 @@ export async function createHostedAuthorityDraftAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_creation_not_allowed");
 
     const input = prepareHostedAuthorityDraft({
       principalName: textField(formData, "principalName"),
@@ -462,6 +465,7 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_activation_not_allowed");
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("activate_authority_request_v1", {
       p_organization_id: access.membership.organizationId,

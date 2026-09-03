@@ -3,6 +3,7 @@ import Link from "next/link";
 import { provisionHostedDemoRunAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
+import { canCoordinateAuthorityRequests, institutionWorkspacePresentation } from "@/lib/authority/role-capabilities";
 import { hostedStatusLabel, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
@@ -38,12 +39,13 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   const transactionLimit = Number(entitlement?.transaction_limit ?? 5);
   const drafts = records.filter((record) => record.status === "draft").length;
   const needsAction = records.filter((record) => ["under_review", "information_requested"].includes(record.status)).length;
-  const mayCreate = ["owner", "admin", "staff", "reviewer"].includes(access.membership.role);
+  const mayCreate = canCoordinateAuthorityRequests(access.membership.role);
   const mayPrepareDemo = mayProvisionDemoRun(access.user.email, access.membership.role);
+  const presentation = institutionWorkspacePresentation(access.membership.role);
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>Institution workspace</p><h1>{access.organization.displayName}</h1><p>Start requests, see what needs attention, and review every saved decision.</p></div>
+      <div><p className={styles.eyebrow}>{presentation.eyebrow}</p><h1>{presentation.title ?? access.organization.displayName}</h1><p>{presentation.description}</p></div>
       {mayCreate ? <div className={styles.headerActions}>
         {mayPrepareDemo && entitlement ? <form action={provisionHostedDemoRunAction}>
           <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
@@ -65,8 +67,8 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
       <section className={styles.panel}>
         <div className={styles.panelHead}><div><h2>Authority requests</h2><p>Every request shows its status, scope, policy, and next action.</p></div><span className={styles.badge}>{records.length} total</span></div>
         {records.length === 0 ? <div className={styles.empty}>
-          <strong>Your request queue is empty</strong>
-          <p>Create a draft to review the participants and scope. Nothing is sent or counted until activation.</p>
+          <strong>{presentation.emptyTitle}</strong>
+          <p>{presentation.emptyDescription}</p>
         </div> : <div className={styles.tableWrap}><table className={styles.table}>
           <thead><tr><th>Request</th><th>Status</th><th>Scope</th><th>Updated</th><th>Action</th></tr></thead>
           <tbody>{records.map((record) => <tr key={record.id}>
@@ -79,13 +81,23 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
         </table></div>}
       </section>
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>Workspace setup</h2><p>The basic controls for this evaluation.</p></div></div>
-        <ul className={styles.checklist}>
-          <li>Verified organization owner</li>
-          <li>Evaluation terms accepted</li>
-          <li>New York financial POA workflow selected</li>
-          <li>Access limited to your organization</li>
-        </ul>
+        {access.membership.role === "reviewer" ? <>
+          <div className={styles.panelHead}><div><h2>Your reviewer access</h2><p>Your role is separated from request setup.</p></div></div>
+          <ul className={styles.checklist}>
+            <li>Review submitted evidence and source files</li>
+            <li>Ask the representative for a specific correction</li>
+            <li>Record the institution&apos;s decision and limits</li>
+            <li>An owner or operations staff member starts and sends requests</li>
+          </ul>
+        </> : <>
+          <div className={styles.panelHead}><div><h2>Workspace setup</h2><p>The basic controls for this evaluation.</p></div></div>
+          <ul className={styles.checklist}>
+            <li>Verified organization owner</li>
+            <li>Evaluation terms accepted</li>
+            <li>New York financial POA workflow selected</li>
+            <li>Access limited to your organization</li>
+          </ul>
+        </>}
       </section>
     </div>
   </>;

@@ -205,8 +205,8 @@ The server derives organization, record, role, and allowed commands. The browser
 | Accept organization terms | Yes | No | No | No | No | No | No | No | No |
 | Invite team members | Yes | Yes | No | No | No | No | No | No | No |
 | Configure policy | Yes | Yes | View | View | No | No | No | No | View |
-| Create draft request | Yes | Yes | Yes | Yes if allowed | No | No | No | API only | No |
-| Activate and send request | Yes | Yes | Yes if allowed | Yes if allowed | No | No | No | API if allowed | No |
+| Create draft request | Yes | Yes | Yes | No | No | No | No | API only | No |
+| Activate and send request | Yes | Yes | Yes | No | No | No | No | API if allowed | No |
 | Confirm grant | No | No | No | No | Yes | No | No | No | No |
 | Accept or decline responsibility | No | No | No | No | No | Yes | No | No | No |
 | Complete representative evidence | No | No | No | No | No | Yes | No | No | No |
@@ -254,6 +254,7 @@ stateDiagram-v2
 - Activation is a first-class command, entitlement decision, event, and notification boundary.
 - Participant sessions do not exist before activation.
 - Failed commands do not advance the record, consume another transaction, emit a success notification, or create a success event.
+- In the controlled MVP, owners, administrators, and operations staff coordinate drafts and activation. Institution reviewers receive a review queue and cannot create or activate a request; their write access begins with evidence review and the institution decision.
 - Every accepted, limited, rejected, declined, withdrawn, revoked, and expired outcome keeps a readable receipt.
 - Expiration is a durable lifecycle event, not a visual calculation only.
 - A reviewer information request is requirement-linked, versioned, and append-only. Only one request may remain open for a record, and a representative response resolves that exact request before review resumes.

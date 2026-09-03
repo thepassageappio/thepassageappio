@@ -2,10 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOutAction } from "@/app/account-actions";
 import { roleLabel, type AuthorityAccessContext } from "@/lib/authority/access";
+import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import styles from "./app-shell.module.css";
 
 export function AppShell({ access, children }: { access: AuthorityAccessContext; children: ReactNode }) {
   if (!access.membership || !access.organization) return null;
+  const canCoordinate = canCoordinateAuthorityRequests(access.membership.role);
+  const overviewLabel = access.membership.role === "reviewer" ? "Review queue" : "Overview";
 
   return (
     <div className={styles.shell}>
@@ -20,8 +23,8 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           <small>{roleLabel(access.membership.role)}</small>
         </div>
         <nav aria-label="Organization workspace">
-          <Link href="/app">Overview</Link>
-          <Link href="/app/requests/new">Start a request</Link>
+          <Link href="/app">{overviewLabel}</Link>
+          {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
           <Link href="/app/team">People and access</Link>
           <Link href="/app/organization">Plan and billing</Link>
           <Link href="/app/policies">Authority policy</Link>

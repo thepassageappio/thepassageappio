@@ -64,3 +64,11 @@ The preparation action must create a fresh namespaced run and request inside the
 | Withdrawn | Acknowledged representative withdrawal writes one terminal state and event; exact replay creates no duplicate and usage remains unchanged. | Verify the other personas see the same terminal status and no active next action. |
 | Expired | Expiration preserves the original accepted decision, appends one lifecycle event, advances once, and does not change usage. | Verify scheduled/operator initiation and all three receipt projections in hosted Demo. |
 | Session recovery | Reissue revokes the old session, prepares one new role-bound link, preserves the request version/status and usage, and records both recovery events. | Verify message delivery and continuation in a fresh profile without losing saved work. |
+
+### Independent reviewer boundary
+
+- Reviewer navigation is a **Review queue** and does not expose request creation.
+- A reviewer who opens the new-request route is returned to the queue with a plain explanation of who can start the request.
+- A reviewer who opens an existing Draft sees no activation control and is told to ask an owner, administrator, or operations staff member to send it.
+- Server actions and the database independently deny reviewer creation and activation. Local transactional replay proves the denials preserve the draft version, event history, invitations, and usage.
+- Still manual in hosted Demo: sign in as a separate reviewer, verify these three browser projections at desktop, 390px, and 360px, then complete evidence review and decision from that isolated profile.

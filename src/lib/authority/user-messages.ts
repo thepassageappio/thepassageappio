@@ -1,3 +1,5 @@
+import { requestCoordinatorRecoveryMessage } from "./role-capabilities.ts";
+
 const errorMessages: Record<string, string> = {
   access_unavailable: "Account access is temporarily unavailable. Please try again shortly.",
   access_revoked: "Your previous organization access was removed. Contact an organization owner if you believe access should be restored.",
@@ -21,7 +23,8 @@ const errorMessages: Record<string, string> = {
   invitation_expired: "This invitation has expired. Ask the organization to send a new one.",
   invitation_email_mismatch: "Sign in with the same email address that received this invitation.",
   request_failed: "We could not complete that action. Nothing was changed. Please try again.",
-  request_creation_not_allowed: "Your role cannot create authority requests.",
+  request_creation_not_allowed: requestCoordinatorRecoveryMessage,
+  request_activation_not_allowed: requestCoordinatorRecoveryMessage,
   organization_not_ready: "Complete organization setup before creating a request.",
   participant_name_invalid: "Enter the full name of each person.",
   participant_email_invalid: "Enter a valid email address for each person.",

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
+import { canCoordinateAuthorityRequests, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage, userErrorMessage } from "@/lib/authority/user-messages";
@@ -64,7 +65,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   const transactionLimit = Number(entitlement?.transaction_limit ?? 5);
   const periodEndsAt = entitlement?.period_ends_at ? String(entitlement.period_ends_at) : null;
   const evaluationLimitReached = activatedCount >= transactionLimit;
-  const canActivate = !evaluationLimitReached;
+  const canCoordinate = Boolean(access.membership && canCoordinateAuthorityRequests(access.membership.role));
+  const canActivate = canCoordinate && !evaluationLimitReached;
   const nextCount = activatedCount + 1;
   const invitationStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
@@ -177,7 +179,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <button className={styles.primary} type="submit">Send to the account holder</button>
-          </form> : <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link>}
+          </form> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
         </section> : <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Participant access</h2><p>{participantAccessDescription}</p></div><span className={styles.badge}>{invitations?.length ?? 0} people</span></div>
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {

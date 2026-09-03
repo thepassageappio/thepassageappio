@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createHostedAuthorityDraftAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import { userErrorMessage } from "@/lib/authority/user-messages";
 import styles from "@/components/app/app-shell.module.css";
 import requestStyles from "./request.module.css";
@@ -11,8 +12,8 @@ type Props = { searchParams: Promise<{ error?: string; sample?: string }> };
 
 export default async function NewHostedAuthorityRequest({ searchParams }: Props) {
   const access = await getAuthorityAccessContext();
-  if (!access?.membership || !["owner", "admin", "staff", "reviewer"].includes(access.membership.role)) {
-    redirect("/app");
+  if (!access?.membership || !canCoordinateAuthorityRequests(access.membership.role)) {
+    redirect("/app?error=request_creation_not_allowed");
   }
   const { error, sample } = await searchParams;
   const message = userErrorMessage(error);
