@@ -143,6 +143,84 @@ Required companion metrics are beginning ARR, ending ARR, gross revenue retentio
 
 MRR and ARR are recurring-revenue operating metrics. They remain separate from bookings, invoiced amounts, cash collected, non-recurring revenue, deferred revenue, and accounting revenue recognized during the month.
 
+## Day-one operating requirements
+
+The three deal pipelines are necessary but not sufficient. The following controls complete the commercial operating baseline.
+
+### Product catalog and deal governance
+
+- One versioned catalog defines the evaluation, founding pilot, annual tiers, top-up packs, and approved add-ons.
+- Every price has a stable product/price reference, currency, billing cadence, activated-request allowance, effective date, and retirement date.
+- Discounts require a reason, approver, approved range, and expiration. Discounted deals retain list price, discount amount, and net price separately.
+- Quotes and order forms use the same product names, units, service periods, and totals as Stripe and HubSpot.
+- Deal stage entry/exit criteria, forecast category, required next step, owner, and close-date rules are written for every pipeline stage.
+- Lost, churned, and downgraded deals require standardized reason codes plus optional notes.
+
+### Billing policy
+
+- Decide supported currency, card and bank-payment methods, invoice terms, tax handling, billing contact requirements, and purchase-order handling before the first real invoice.
+- Define whether allowances expire at term end, whether unused units roll over, and how mid-term upgrades, top-ups, downgrades, cancellation, refunds, credits, disputes, and proration behave.
+- Define payment-failure reminders, retry schedule, grace period, escalation owner, and the exact point at which new activations stop.
+- Never stop an in-progress authority request or remove historical receipts because of billing status.
+- The institution workspace must show plan, allowance, usage, purchased top-ups, renewal date, invoice/payment state, billing contact, and the next available action.
+- Manual billing or entitlement exceptions require an owner, reason, expiration, and immutable audit entry.
+
+### Funnel and attribution
+
+- Contacts and Companies require normalized acquisition source, original source, latest source, campaign when known, ICP status, disqualification reason, territory, commercial owner, and customer-success owner.
+- Duplicate Companies are controlled by verified organization domain plus Passage organization reference; duplicate Contacts are controlled by normalized work email.
+- Buying roles are explicit: champion, economic buyer, technical/security reviewer, legal/procurement, billing contact, executive sponsor, and administrator.
+- Lead-response and opportunity follow-up service levels have a named owner and overdue escalation.
+- Product-qualified status comes from verified product behavior and never replaces the standard Company/contact lifecycle stage.
+
+### Post-sale operations without a fourth deal pipeline
+
+- Customer onboarding is managed through a dedicated HubSpot ticket pipeline or implementation object, not through an additional revenue pipeline.
+- Required onboarding milestones are agreement complete, invoice state confirmed, organization verified, owner activated, team invited, policy selected, sample completed, integration path selected, security items closed, first production request approved, and success review scheduled.
+- Support uses a separate ticket pipeline with inquiry type, severity, response target, affected organization, product area, owner, status, resolution, and root-cause category.
+- Billing issue, product request, security inquiry, and general inquiry submissions route to the correct owner and preserve consent/source context.
+- Customer health combines product adoption, request completion, support burden, payment state, stakeholder engagement, and renewal readiness. It never includes participant-sensitive content.
+
+### Automation reliability
+
+- Stripe events enter a durable inbox; HubSpot writes leave through a durable outbox with idempotency, retry, replay, and a visible failure queue.
+- A daily reconciliation compares Stripe payments, Passage entitlements and usage, HubSpot deals, Company rollups, and renewal records.
+- Every automated commercial change records source event, prior value, new value, timestamp, result, and correction history.
+- Alerts cover failed payment sync, missing deal association, unmatched Company, incorrect rollup, renewal not created, stale opportunity, and reconciliation variance.
+- Backfill tools can recreate CRM projections from Stripe and Passage without duplicating deals or changing authority records.
+
+### Minimum dashboards
+
+1. Funnel conversion and velocity by source, ICP, owner, and stage.
+2. New business, expansion, renewal, and churn bookings.
+3. ARR/MRR bridge, gross retention, net retention, logo retention, and churn.
+4. Contract-term spend split into recurring base, non-recurring top-ups, other expansion, refunds, and net total.
+5. Usage, allowance, top-up frequency, utilization, completion, and expansion signals.
+6. Renewal forecast, baseline versus proposed versus booked value, and top-up-to-recurring conversion.
+7. Invoice aging, failed payments, refunds, disputes, and Stripe/Passage/HubSpot reconciliation status.
+8. Onboarding progress, time to first activation, time to first completed receipt, support response, and unresolved risks.
+
+## Commercial launch gates
+
+### Before the first real paid pilot
+
+- Approved pilot SKU, success criteria, agreement, service period, invoice terms, refund/cancellation policy, tax/accounting review, billing contact, support owner, and data boundary.
+- New Business Company, Contacts, and Deal associated correctly.
+- Stripe test invoice-to-paid-to-entitlement replay passes before the equivalent live workflow is authorized.
+- Institution workspace and internal reconciliation show the same paid state.
+- Customer onboarding and support tickets route to named owners.
+
+### Before self-service top-ups
+
+- Approved top-up products and allowance behavior.
+- Verified payment webhook, idempotent Closed Won Expansion creation, Company rollups, receipts, refunds, replay, reconciliation, usage alerts, and visible customer purchase history.
+- No purchase can exceed an approved quantity or create access for the wrong organization.
+
+### Before the first renewal
+
+- Renewal generation, prior-term snapshots, spend baseline, ARR/MRR calculations, classification, forecast stages, reminders, approval rules, contraction/churn handling, and close-won/closed-lost tests all pass.
+- Finance and the commercial owner approve bookings, recurring-revenue, deferred-revenue, and recognized-revenue definitions.
+
 ## Reconciliation and failure requirements
 
 - Stripe and HubSpot are reconciled at least daily for paid, failed, refunded, disputed, and canceled invoice states.
