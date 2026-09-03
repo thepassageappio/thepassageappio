@@ -23,7 +23,7 @@ Work proceeds in this order. A later gate may be designed early, but it does not
 
 The product is ready for enterprise demonstrations when the first three P0 gates pass and the demo uses only approved synthetic data. It is ready for a controlled institution pilot only when the P1 trust, integration, and operating gates also pass. Stripe, HubSpot, CRM automation, scaled inbound, and scaled outbound follow those gates so commercial traffic does not outrun the product and support system.
 
-Execution checklists: [demo and persona UAT](./DEMO-READY-CHECKLIST.md) and [prospect-to-pilot journey](./CUSTOMER-JOURNEY-AND-GTM.md).
+Execution references: [product vision and onboarding](./PRODUCT-VISION-AND-ONBOARDING.md), [demo and persona UAT](./DEMO-READY-CHECKLIST.md), [prospect-to-pilot journey](./CUSTOMER-JOURNEY-AND-GTM.md), and [selling and pricing decisions](./SELLING-AND-PRICING-DECISION-BRIEF.md).
 
 ## Outcome
 

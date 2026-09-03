@@ -6,6 +6,8 @@ Passage Authority helps a financial institution move a power of attorney request
 
 The first wedge is New York financial POA servicing for regional banks and credit unions. No second use case enters build priority until this journey is independently repeatable, demo ready, and accepted by early design partners.
 
+The role and onboarding model is fixed in [Product vision and onboarding](./PRODUCT-VISION-AND-ONBOARDING.md). Institution teams use persistent role-based workspaces; account holders and representatives use request-specific secure links without accounts.
+
 ## Customer journey
 
 | Stage | Prospect question | Experience | Success measure | CRM event later |
@@ -53,3 +55,5 @@ HubSpot should mirror this journey only after the copy, demo, UAT, trust, and in
 2. Rehearse the seven-minute demo and mark confusing language or dead time.
 3. Choose pilot success thresholds and the year-one pricing hypothesis to test in interviews.
 4. Approve CRM fields and stage definitions only after those conversations validate the buying path.
+
+Use the [selling and pricing decision brief](./SELLING-AND-PRICING-DECISION-BRIEF.md) for the initial pitch, discovery questions, qualification, objections, and pilot framing.

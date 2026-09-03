@@ -1,6 +1,6 @@
 # Passage Authority document register
 
-**Date:** August 30, 2026
+**Date:** September 3, 2026
 
 ## Authoritative build documents
 
@@ -14,6 +14,11 @@
 | 6 | `RELEASE-EVIDENCE.md` | Evidence already produced for the fictional controlled MVP |
 | 7 | `GATE-1-EVIDENCE.md` | Local account, organization, access-control, receiving-member, defect, and remaining hosted release evidence |
 | 8 | `MVP-EXECUTION-PLAN.md` | Current gate order, working-MVP score, release criteria, and active build slice |
+| 9 | `PRODUCT-VISION-AND-ONBOARDING.md` | Decided account model, first-use journey, product promise, demo moments, and onboarding success criteria |
+| 10 | `DEMO-READY-CHECKLIST.md` | Seven-minute demonstration and independent persona UAT acceptance checklist |
+| 11 | `CUSTOMER-JOURNEY-AND-GTM.md` | Prospect-to-pilot journey, ICP hypothesis, pilot offer, and later CRM gate |
+| 12 | `SELLING-AND-PRICING-DECISION-BRIEF.md` | Pitch, market rationale, differentiation, discovery, qualification, objections, and pricing hypotheses |
+| 13 | `BILLING-AND-GO-TO-MARKET-PLAN.md` | Approved billing boundary, offer ladder, payment architecture, and commercial sequencing |
 
 When documents conflict, the lower order number controls.
 
@@ -29,7 +34,7 @@ When documents conflict, the lower order number controls.
 | Data environment | New isolated Authority Supabase environment | Reuse or migrate the legacy Passage production schema |
 | Product wedge | New York financial POA intake and limited account servicing | Broad death-care, family, vendor, estate, or universal delegated-authority scope |
 | Build sequence | Product contract and traceability before production feature code | Screen-first expansion |
-| Commercial website | Authority-first site is live on the isolated UAT domain; main Passage domain cutover waits for Gate 5 and full UAT | Treat the legacy Passage domain as already migrated |
+| Commercial website | Passage Authority is live on the main Passage domain for synthetic evaluation and demonstrations; controlled-pilot readiness still requires the P1 gates | Treat a domain cutover as evidence of enterprise production readiness |
 
 ## Historical strategy and deliverables
 
