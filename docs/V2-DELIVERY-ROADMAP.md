@@ -1,7 +1,7 @@
 # Passage Authority V2 delivery roadmap
 
 **Status:** Active delivery contract  
-**Updated:** September 3, 2026  
+**Updated:** September 3, 2026, post-foundation release  
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
 
 The supporting evidence review and explicit non-priorities are maintained in [V2-BEST-PRACTICE-REVIEW.md](./V2-BEST-PRACTICE-REVIEW.md).
@@ -31,14 +31,30 @@ Every provider command is idempotent. Duplicate and out-of-order events do not d
 | Gate | Scope | Pass criteria | Status |
 | --- | --- | --- | --- |
 | V2-0 | Research and operating contract | Source ownership, offer, activation milestone, revenue classification, failure policy, and scorecard documented | Passed |
-| V2-1 | Commercial persistence | Account/workspace mapping, contract, subscription, order, allowance, usage allocation, provider inbox, outbox, and immutable event history migrate and replay | In progress |
+| V2-1 | Commercial persistence | Account/workspace mapping, contract, subscription, order, allowance, usage allocation, provider inbox, outbox, and immutable event history migrate and replay | Implemented in Demo and Production; provider-command replay remains |
 | V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Queued |
-| V2-3 | Evaluation activation | Signup resumes correctly; no more than five pre-value fields; workspace shows one next action, allowance, days, and progress to first matching receipt | Queued |
+| V2-3 | Evaluation activation | Signup resumes correctly; no more than five pre-value fields; workspace shows one next action, allowance, days, and progress to first matching receipt | Partial: live workspace guidance passed; signup/resume field audit remains |
 | V2-4 | Stripe test billing | Pilot invoice uses a hosted Stripe page and explicit service period; verified `invoice.paid` grants one entitlement; duplicate, failure, refund, and disorder tests pass | Blocked on app credentials after V2-1 |
 | V2-5 | HubSpot revenue operations | New Business, Expansion, Renewal, and onboarding/support ticket workflows receive deterministic projections with no participant data | Blocked on app credentials after V2-1 |
 | V2-6 | Reconciliation | Passage, Stripe, and HubSpot match for seven consecutive daily test runs; variances enter a visible repair queue | Queued |
 | V2-7 | Enterprise admin | Organization, users/roles, billing contacts, usage, invoice state, audit export, integration health, and recovery paths pass owner/admin/reviewer tests | Queued |
-| V2-8 | Release sign-off | Desktop, 390px, 360px, keyboard, error/replay, four-persona, Demo reset, and complete provider test matrix pass independently | Queued |
+| V2-8 | Release sign-off | Desktop, 390px, 360px, keyboard, error/replay, four-persona, Demo reset, and complete provider test matrix pass independently | Core product matrix passed; commercial provider matrix remains |
+
+## Delivery forecast from the current state
+
+These dates assume the separate Stripe sandbox and HubSpot test application credentials are available to the deployed Demo project by September 4, 2026. They are evidence gates, not calendar-only promises.
+
+| Target | Earliest credible date | Included evidence |
+| --- | --- | --- |
+| Authority sales demonstration | Ready now | Public site, isolated Demo, fresh Demo run, complete authority journey, matching receipt, mobile/public route verification |
+| Outbound and live discovery demonstrations | September 4, 2026 | Approved positioning, pricing hypothesis, ICP discovery fields, repeatable seven-minute authority story |
+| V2 conversion and CRM intake | September 7, 2026 | Structured demo/pilot/support intake, deterministic Company/Contact/Deal/Ticket creation, confirmation and retry evidence |
+| Stripe sandbox pilot UAT | September 9, 2026 | Hosted pilot invoice, verified paid event, one entitlement, duplicate/failure/refund/disorder replay |
+| Complete commercial persona UAT | September 12, 2026 | Prospect, owner, admin, reviewer, participants, billing owner, support/onboarding, CRM and Stripe journey agree |
+| Commercial automation sign-off | No earlier than September 19, 2026 | Seven consecutive clean Passage/Stripe/HubSpot reconciliation runs plus resolved P0 defects |
+| Real-data enterprise pilot approval | Target September 21–25, 2026, subject to external review | Privileged MFA, advisor closeout, retention/restore/incident evidence, legal/privacy package and scoped independent security review |
+
+The external security assessment and customer procurement are not fully controllable engineering dates. A buyer demonstration and commercial conversation should not wait for them; production customer data and an enterprise-security claim must.
 
 ## Current configuration truth
 
