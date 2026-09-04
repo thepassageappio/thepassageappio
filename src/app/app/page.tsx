@@ -3,6 +3,7 @@ import Link from "next/link";
 import { provisionHostedDemoRunAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
+import { evaluationProgress } from "@/lib/authority/evaluation-progress";
 import { canCoordinateAuthorityRequests, institutionWorkspacePresentation } from "@/lib/authority/role-capabilities";
 import { hostedStatusLabel, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
@@ -38,12 +39,10 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   const records = (data ?? []).map((row) => mapHostedAuthorityRecord(row as never));
   const activated = Number(entitlement?.activated_count ?? 0);
   const transactionLimit = Number(entitlement?.transaction_limit ?? 5);
-  const drafts = records.filter((record) => record.status === "draft").length;
-  const needsAction = records.filter((record) => record.status === "under_review").length;
-  const waitingOnRepresentative = records.filter((record) => record.status === "information_requested").length;
   const mayCreate = canCoordinateAuthorityRequests(access.membership.role);
   const mayPrepareDemo = mayProvisionDemoRun(access.user.email, access.membership.role);
   const presentation = institutionWorkspacePresentation(access.membership.role);
+  const progress = evaluationProgress(records, entitlement?.period_ends_at ?? null);
 
   return <>
     <header className={styles.pageHeader}>
@@ -62,9 +61,22 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
     {errorMessage ? <div className={styles.alert} role="alert">{errorMessage}</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Workspace status">
       <div className={styles.metric}><span>Evaluation usage</span><strong>{activated} of {transactionLimit}</strong></div>
-      <div className={styles.metric}><span>{access.membership.role === "reviewer" ? "Needs your review" : "Draft requests"}</span><strong>{access.membership.role === "reviewer" ? needsAction : drafts}</strong></div>
-      <div className={styles.metric}><span>{access.membership.role === "reviewer" ? "Waiting on representative" : "Needs institution action"}</span><strong>{access.membership.role === "reviewer" ? waitingOnRepresentative : needsAction}</strong></div>
+      <div className={styles.metric}><span>Complete results</span><strong>{progress.completedCount}</strong></div>
+      <div className={styles.metric}><span>{progress.daysRemaining == null ? "Evaluation timing" : "Days remaining"}</span><strong>{progress.daysRemaining == null ? "Starts on send" : progress.daysRemaining}</strong></div>
     </section>
+    {mayCreate ? <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="evaluation-next-step">
+      <div className={styles.progressCopy}>
+        <p className={styles.eyebrow}>Your next step · {progress.milestone} of 3</p>
+        <h2 id="evaluation-next-step">{progress.nextTitle}</h2>
+        <p>{progress.nextDescription}</p>
+      </div>
+      <ol className={styles.progressSteps} aria-label="Evaluation progress">
+        <li data-complete={progress.milestone > 1}>Send</li>
+        <li data-complete={progress.milestone > 2}>Complete</li>
+        <li data-current={progress.milestone === 3}>Review receipt</li>
+      </ol>
+      <Link className={styles.primary} href={progress.nextHref}>{progress.nextLabel}</Link>
+    </section> : null}
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <section className={styles.panel}>
         <div className={styles.panelHead}><div><h2>Authority requests</h2><p>Every request shows its status, scope, policy, and next action.</p></div><span className={styles.badge}>{records.length} total</span></div>
