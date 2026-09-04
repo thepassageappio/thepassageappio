@@ -232,3 +232,12 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - A separately authenticated Demo reviewer saw the review-only workspace at desktop, 390px, and 360px. Direct navigation to the new-request route returned plain role guidance, and an existing Draft exposed no activation control.
 - Hosted reviewer RPC attempts to create and activate were denied with the request remaining `draft`, version remaining 1, event count remaining 1, invitation count remaining 0, and organization usage remaining 2. No token or credential is part of this evidence record.
 - Post-deployment public verification passed 32 Production/Demo routes and eight recovery states. The remaining manual reviewer gate is to complete evidence review and institution decision from the isolated reviewer profile during the owner-timed four-persona rehearsal.
+
+## September 3 demo-product polish deployment
+
+- The public journey now separates `Book a demo`, `Sign in`, and `Explore a sample workflow` so an enterprise buyer can request a guided walkthrough without being forced into cold self-service signup.
+- The founding-pilot, contact, security, and integration pages use one consistent, evidence-bounded story: a $5,000 narrow pilot, synthetic evaluation data, explicit pre-pilot assurance work, and hosted-first integration before any live connection.
+- Institution mobile navigation stays on one horizontal row. The request queue renders readable cards instead of a 720px desktop table, and the three workspace measures stay in one compact mobile row.
+- Reviewer request pages surface the next evidence-review or decision action near the top. Participant pages surface the role-specific decision first, and completed requirements lead directly to `Review and send`.
+- The complete gate passed with 92 domain tests, TypeScript, ESLint, and the optimized 23-page build. Local desktop, 390px, and 360px browser checks showed the updated public journey without an error overlay; hosted Demo at 360px showed the reviewer queue as mobile cards with the correct usage, review, and waiting measures.
+- Demo deployment `dpl_G3RBcWb3MZ2UmA91ysHNaKdZwUU3` and Production deployment `dpl_BMTgwaYqD23FeRXSquBApizhE78D` reached `READY`. Production and Demo then passed all 32 public-route checks and eight recovery-state checks.
