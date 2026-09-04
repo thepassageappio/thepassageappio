@@ -222,10 +222,13 @@ Controlled-pilot readiness still requires an independent organization-isolation 
 - Receipt delivery was submitted successfully by the application, but inbox placement was not inspected during this run. Deliverability remains a controlled-pilot readiness item rather than part of the saved authority-state proof.
 - Post-rehearsal gates passed: 86 domain tests, TypeScript, ESLint, the optimized 23-page build, 32 live Production/Demo public-route checks, and eight hosted recovery-state checks.
 
-## September 3 reviewer least-privilege candidate
+## September 3 reviewer least-privilege deployment
 
 - The reviewer workspace is now a review queue with reviewer-specific next steps. It hides request creation, and a direct new-request URL returns to plain recovery guidance.
 - Draft pages expose activation only to an owner, administrator, or operations staff member. Reviewers see who must send the draft instead of an unrelated pilot action.
 - Server actions enforce the same boundary, and migration `20260903234403_reviewer_least_privilege.sql` adds a database trigger that denies reviewer draft creation and activation before mutation.
 - Transactional local Postgres replay proved both denials preserve the original Draft at version 1 with zero events, invitations, or usage. The domain suite also verifies the shared role capability and exact reviewer presentation language.
-- This is local release-candidate evidence only. The migration and interface changes have not been deployed; a separately authenticated hosted reviewer check at desktop, 390px, and 360px remains required.
+- Migration `20260903234403_reviewer_least_privilege.sql` is installed in the isolated Demo and Production Supabase projects. The same commit is live in Demo deployment `dpl_BwJT1riwqjTNpCxEJuRTRgU4MVE7` and Production deployment `dpl_5odbY9PktWC3tvs3FUoayL3qjAkx`; both deployments reached `READY`.
+- A separately authenticated Demo reviewer saw the review-only workspace at desktop, 390px, and 360px. Direct navigation to the new-request route returned plain role guidance, and an existing Draft exposed no activation control.
+- Hosted reviewer RPC attempts to create and activate were denied with the request remaining `draft`, version remaining 1, event count remaining 1, invitation count remaining 0, and organization usage remaining 2. No token or credential is part of this evidence record.
+- Post-deployment public verification passed 32 Production/Demo routes and eight recovery states. The remaining manual reviewer gate is to complete evidence review and institution decision from the isolated reviewer profile during the owner-timed four-persona rehearsal.

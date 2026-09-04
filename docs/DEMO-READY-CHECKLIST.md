@@ -71,4 +71,5 @@ The preparation action must create a fresh namespaced run and request inside the
 - A reviewer who opens the new-request route is returned to the queue with a plain explanation of who can start the request.
 - A reviewer who opens an existing Draft sees no activation control and is told to ask an owner, administrator, or operations staff member to send it.
 - Server actions and the database independently deny reviewer creation and activation. Local transactional replay proves the denials preserve the draft version, event history, invitations, and usage.
-- Still manual in hosted Demo: sign in as a separate reviewer, verify these three browser projections at desktop, 390px, and 360px, then complete evidence review and decision from that isolated profile.
+- Hosted Demo proof passed with a separately authenticated reviewer at desktop, 390px, and 360px: review-only navigation, direct new-request recovery, hidden Draft activation, database denial, and unchanged state/version/events/invitations/usage.
+- Still manual: complete evidence review and institution decision from that isolated reviewer profile as part of the owner-timed four-persona rehearsal.
