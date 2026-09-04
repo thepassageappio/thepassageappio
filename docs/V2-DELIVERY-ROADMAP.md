@@ -32,7 +32,7 @@ Every provider command is idempotent. Duplicate and out-of-order events do not d
 | --- | --- | --- | --- |
 | V2-0 | Research and operating contract | Source ownership, offer, activation milestone, revenue classification, failure policy, and scorecard documented | Passed |
 | V2-1 | Commercial persistence | Account/workspace mapping, contract, subscription, order, allowance, usage allocation, provider inbox, outbox, and immutable event history migrate and replay | Implemented in Demo and Production; provider-command replay remains |
-| V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Partial: live private intake, reference confirmation, immutable event, and HubSpot outbox passed; provider delivery awaits app credentials |
+| V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Partial: live intake, confirmation, immutable event, leased HubSpot worker, privacy scan, retry, and replay passed; end-to-end provider write awaits a current private-app token |
 | V2-3 | Evaluation activation | Signup resumes correctly; no more than five pre-value fields; workspace shows one next action, allowance, days, and progress to first matching receipt | Partial: live workspace guidance passed; signup/resume field audit remains |
 | V2-4 | Stripe test billing | Pilot invoice uses a hosted Stripe page and explicit service period; verified `invoice.paid` grants one entitlement; duplicate, failure, refund, and disorder tests pass | Blocked on app credentials after V2-1 |
 | V2-5 | HubSpot revenue operations | New Business, Expansion, Renewal, and onboarding/support ticket workflows receive deterministic projections with no participant data | Blocked on app credentials after V2-1 |
@@ -59,7 +59,7 @@ The external security assessment and customer procurement are not fully controll
 ## Current configuration truth
 
 - HubSpot operator connection: connected with Company, Contact, Deal, Ticket, Product, and Line Item read/write capability.
-- Deployed application: no `STRIPE_*` or `HUBSPOT_*` server credentials are configured in the current Production Vercel project.
+- Deployed application: protected commercial workers are configured, but no `STRIPE_*` or `HUBSPOT_*` provider credentials are configured in the current Production or Demo Vercel projects.
 - Therefore the CRM and Stripe consoles may exist, but the product-to-provider loop is not yet connected and must not be described as working.
 
 ## V2 scorecard
