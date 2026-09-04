@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createAuthorityAdminClient } from "@/lib/supabase/admin";
 import { COMMERCIAL_CONSENT_VERSION, prepareCommercialInquiry } from "@/lib/authority/commercial-inquiry";
+import { deliverHubSpotInquiryOutbox } from "@/lib/commercial/hubspot-inquiry";
 
 function textField(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -39,6 +40,7 @@ export async function createCommercialInquiryAction(formData: FormData) {
     });
     if (error) throw error;
     reference = typeof data?.reference_code === "string" ? data.reference_code : "received";
+    await deliverHubSpotInquiryOutbox(1).catch(() => undefined);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("rate_limited")) contactRedirect({ error: "rate" });
