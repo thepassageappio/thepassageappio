@@ -26,3 +26,11 @@ test("CRM projection excludes free text and scans prohibited payload keys", () =
   assert.match(worker, /pa_prospect_key/);
   assert.match(worker, /hasUniqueValue:\s*true/);
 });
+
+test("HubSpot delivery fails closed until the audited schema and routing are configured", () => {
+  assert.match(worker, /hubspot_schema_missing_/);
+  assert.doesNotMatch(worker, /crm\/v3\/properties\/\$\{definition\.objectType\}`,[\s\S]*method:\s*"POST"/);
+  assert.match(worker, /hubspot_\$\{objectType\}_routing_not_configured/);
+  assert.match(worker, /stages\.find\(item => item\.id === configuredStage\)/);
+  assert.doesNotMatch(worker, /results\.sort\(/);
+});

@@ -56,21 +56,15 @@ async function hubspotFetch<T>(token: string, path: string, init?: RequestInit):
 }
 
 let schemaReady: Promise<void> | undefined;
-async function ensureInquirySchema(token: string) {
+async function validateInquirySchema(token: string) {
   schemaReady ??= (async () => {
     for (const definition of propertyDefinitions) {
       const existing = await fetch(`${HUBSPOT_BASE}/crm/v3/properties/${definition.objectType}/${definition.name}`, {
         headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000),
       });
       if (existing.ok) continue;
-      if (existing.status !== 404) throw new HubSpotError(existing.status, existing.status === 403 ? "hubspot_schema_scope_missing" : "hubspot_schema_unavailable");
-      await hubspotFetch(token, `/crm/v3/properties/${definition.objectType}`, {
-        method: "POST",
-        body: JSON.stringify({
-          groupName: definition.groupName, name: definition.name, label: definition.label,
-          type: "string", fieldType: "text", hasUniqueValue: definition.hasUniqueValue ?? false,
-        }),
-      });
+      if (existing.status === 404) throw new HubSpotError(422, `hubspot_schema_missing_${definition.name}`);
+      throw new HubSpotError(existing.status, existing.status === 403 ? "hubspot_schema_scope_missing" : "hubspot_schema_unavailable");
     }
   })().catch(error => { schemaReady = undefined; throw error; });
   return schemaReady;
@@ -113,12 +107,12 @@ async function upsert(token: string, objectType: string, uniqueProperty: string,
 }
 
 async function firstStage(token: string, objectType: "deals" | "tickets", configuredPipeline?: string, configuredStage?: string) {
-  if (configuredPipeline && configuredStage) return { pipeline: configuredPipeline, stage: configuredStage };
+  if (!configuredPipeline || !configuredStage) throw new HubSpotError(422, `hubspot_${objectType}_routing_not_configured`);
   const response = await hubspotFetch<{ results: Array<{ id: string; stages: Array<{ id: string; displayOrder: number }> }> }>(token, `/crm/v3/pipelines/${objectType}`);
-  const pipeline = response.results.find(item => item.id === configuredPipeline) ?? response.results.sort((a, b) => a.id.localeCompare(b.id))[0];
-  const stage = pipeline?.stages.sort((a, b) => a.displayOrder - b.displayOrder)[0];
-  if (!pipeline || !stage) throw new HubSpotError(422, "hubspot_pipeline_missing");
-  return { pipeline: pipeline.id, stage: configuredStage ?? stage.id };
+  const pipeline = response.results.find(item => item.id === configuredPipeline);
+  const stage = pipeline?.stages.find(item => item.id === configuredStage);
+  if (!pipeline || !stage) throw new HubSpotError(422, `hubspot_${objectType}_routing_invalid`);
+  return { pipeline: pipeline.id, stage: stage.id };
 }
 
 async function associate(token: string, fromType: string, fromId: string, toType: string, toId: string) {
@@ -161,7 +155,7 @@ export async function projectCommercialInquiry(token: string, payload: HubSpotIn
 export async function deliverHubSpotInquiryOutbox(maxJobs = 1) {
   const token = process.env.HUBSPOT_PRIVATE_APP_TOKEN?.trim();
   if (!token || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) return { configured: false, applied: 0, failed: 0 };
-  await ensureInquirySchema(token);
+  await validateInquirySchema(token);
   const admin = createAuthorityAdminClient();
   let applied = 0;
   let failed = 0;

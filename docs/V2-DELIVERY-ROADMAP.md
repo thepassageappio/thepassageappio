@@ -1,7 +1,7 @@
 # Passage Authority V2 delivery roadmap
 
 **Status:** Active delivery contract  
-**Updated:** September 3, 2026, conversion-intake release  
+**Updated:** September 3, 2026, Passage HubSpot target confirmed  
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
 
 The supporting evidence review and explicit non-priorities are maintained in [V2-BEST-PRACTICE-REVIEW.md](./V2-BEST-PRACTICE-REVIEW.md).
@@ -32,10 +32,10 @@ Every provider command is idempotent. Duplicate and out-of-order events do not d
 | --- | --- | --- | --- |
 | V2-0 | Research and operating contract | Source ownership, offer, activation milestone, revenue classification, failure policy, and scorecard documented | Passed |
 | V2-1 | Commercial persistence | Account/workspace mapping, contract, subscription, order, allowance, usage allocation, provider inbox, outbox, and immutable event history migrate and replay | Implemented in Demo and Production; provider-command replay remains |
-| V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Partial: live intake, confirmation, immutable event, leased HubSpot worker, privacy scan, retry, and replay passed; end-to-end provider write awaits a current private-app token |
+| V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Partial: live intake, confirmation, immutable event, leased HubSpot worker, privacy scan, retry, and replay passed; Passage HubSpot portal `246159600` is confirmed, but its schema audit and private-app connection remain |
 | V2-3 | Evaluation activation | Signup resumes correctly; no more than five pre-value fields; workspace shows one next action, allowance, days, and progress to first matching receipt | Partial: live workspace guidance passed; signup/resume field audit remains |
 | V2-4 | Stripe test billing | Pilot invoice uses a hosted Stripe page and explicit service period; verified `invoice.paid` grants one entitlement; duplicate, failure, refund, and disorder tests pass | Blocked on app credentials after V2-1 |
-| V2-5 | HubSpot revenue operations | New Business, Expansion, Renewal, and onboarding/support ticket workflows receive deterministic projections with no participant data | Blocked on app credentials after V2-1 |
+| V2-5 | HubSpot revenue operations | New Business, Expansion, Renewal, and onboarding/support ticket workflows receive deterministic projections with no participant data | Passage portal `246159600` confirmed; read-only schema audit, approved additive migration, private-app connection, and provider replay remain |
 | V2-6 | Reconciliation | Passage, Stripe, and HubSpot match for seven consecutive daily test runs; variances enter a visible repair queue | Queued |
 | V2-7 | Enterprise admin | Organization, users/roles, billing contacts, usage, invoice state, audit export, integration health, and recovery paths pass owner/admin/reviewer tests | Queued |
 | V2-8 | Release sign-off | Desktop, 390px, 360px, keyboard, error/replay, four-persona, Demo reset, and complete provider test matrix pass independently | Core product matrix passed; commercial provider matrix remains |
@@ -58,7 +58,8 @@ The external security assessment and customer procurement are not fully controll
 
 ## Current configuration truth
 
-- HubSpot operator connection: connected with Company, Contact, Deal, Ticket, Product, and Line Item read/write capability.
+- Passage HubSpot target: portal `246159600`, visibly confirmed as the Thepassageapp account. The installed HubSpot connector is attached to the unrelated Go Ideally portal and is prohibited for this work.
+- Passage HubSpot operator state: the owner is signed in through Chrome, but the browser extension has not yet yielded a controllable tab for the read-only schema audit. No Passage HubSpot records or settings have been modified.
 - Deployed application: protected commercial workers are configured, but no `STRIPE_*` or `HUBSPOT_*` provider credentials are configured in the current Production or Demo Vercel projects.
 - Therefore the CRM and Stripe consoles may exist, but the product-to-provider loop is not yet connected and must not be described as working.
 
