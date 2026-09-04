@@ -5,6 +5,7 @@
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
 
 The supporting evidence review and explicit non-priorities are maintained in [V2-BEST-PRACTICE-REVIEW.md](./V2-BEST-PRACTICE-REVIEW.md).
+For a fresh-chat operational restart, use [NEW-CHAT-HANDOFF.md](./NEW-CHAT-HANDOFF.md) and the phrase `AUTHORITY PUMPKIN 246159600`.
 
 ## Product strategy
 

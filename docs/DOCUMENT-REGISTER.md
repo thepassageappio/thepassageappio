@@ -6,6 +6,7 @@
 
 | Order | Document | Purpose |
 | ---: | --- | --- |
+| 0 | `NEW-CHAT-HANDOFF.md` | Current operational state, live environments, correct HubSpot portal, prohibited portal, verified commits, blockers, and exact restart sequence for a fresh chat |
 | 1 | `PRODUCT-SOURCE-OF-TRUTH.md` | Current mission, wedge, pricing, personas, access, use cases, screens, wireframes, provider boundaries, enterprise target, and roadmap |
 | 2 | `IMPLEMENTATION-TRACEABILITY.md` | Screen controls, server commands, durable results, receiving-person effects, state rules, negative tests, and release evidence |
 | 3 | `CURRENT-STATE-GAP-MAP.md` | Exact difference between the fictional controlled MVP and the UAT product, with gate ownership |

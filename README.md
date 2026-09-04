@@ -1,5 +1,7 @@
 # Passage Authority controlled MVP
 
+> Continuing this project in a new chat? Start with `docs/NEW-CHAT-HANDOFF.md` and the phrase `AUTHORITY PUMPKIN 246159600`.
+
 Passage Authority turns one narrowly bounded request to act for another person into a policy-driven transaction with named parties, explicit permissions, sourced evidence results, institutional review, an append-only receipt, and observable webhook delivery.
 
 This repository is a greenfield local sandbox. It does not modify or deploy the legacy Passage product.
@@ -68,5 +70,6 @@ Production feature development is gated by the August 27 product plan:
 - `docs/CURRENT-STATE-GAP-MAP.md` identifies what the controlled MVP already proves and what remains for UAT.
 - `docs/DOCUMENT-REGISTER.md` identifies authoritative and historical documents and resolves earlier pricing and roadmap conflicts.
 - `docs/MVP-EXECUTION-PLAN.md` is the active critical path from the hosted Gate 1 foundation to a complete hosted MVP.
+- `docs/NEW-CHAT-HANDOFF.md` is the compact current-state, environment, CRM boundary, and next-action handoff for a fresh Codex chat.
 
 The fictional controlled MVP remains the regression and demonstration harness. It is not the production identity, tenancy, billing, email, or document-storage implementation.
