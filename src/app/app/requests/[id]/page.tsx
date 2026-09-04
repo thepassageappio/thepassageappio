@@ -138,6 +138,11 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   };
   const responseByRequest = new Map((informationResponses ?? []).map((item) => [String(item.information_request_id), item]));
   const openInformationRequest = (informationRequests ?? []).find((item) => !responseByRequest.has(String(item.id)));
+  const reviewerNextStep = access.membership?.role === "reviewer" && record.status === "under_review"
+    ? requirementsComplete
+      ? { href: "#institution-decision", label: "Record the institution decision", description: "All required information is complete." }
+      : { href: "#required-information", label: "Review the required information", description: "Check each submitted item before deciding." }
+    : null;
 
   return <>
     <header className={styles.pageHeader}>
@@ -147,9 +152,10 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     {savedNotice ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Review the controlled inboxes and sample scope below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
-    <section className={styles.metricGrid} aria-label="Request status">
+    {reviewerNextStep ? <div className={styles.notice}><strong>Your next step: </strong>{reviewerNextStep.description} <a href={reviewerNextStep.href}>{reviewerNextStep.label}</a>.</div> : null}
+    <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
-      <div className={styles.metric}><span>Requests used</span><strong>{activatedCount} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(record.validUntil))}</strong></div>
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
@@ -201,7 +207,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           })}</ul>
           <Link className={styles.secondary} href="/app">Return to request queue</Link>
         </section>}
-        {(requirements ?? []).length > 0 ? <section className={styles.panel}>
+        {(requirements ?? []).length > 0 ? <section className={styles.panel} id="required-information">
           <div className={styles.panelHead}><div><h2>Required information</h2><p>Review each file or confirmation before making a decision.</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
           <ul className={styles.activity}>{(requirements ?? []).map((requirement) => {
             const artifact = (evidenceArtifacts ?? []).find((item) => String(item.requirement_id) === String(requirement.id));
@@ -257,7 +263,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <button className={styles.secondary} type="submit">Send information request</button>
           </form> : null}
         </section> : null}
-        <section className={styles.panel}>
+        <section className={styles.panel} id="institution-decision">
           <div className={styles.panelHead}><div><h2>Institution decision</h2><p>Record the outcome after every required review step is complete.</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : decisionReady ? "Ready" : "Not ready"}</span></div>
           {decision ? <>
             <dl className={styles.policyFacts}>

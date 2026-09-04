@@ -38,6 +38,7 @@ export default async function ParticipantRequirementsPage({ params, searchParams
   }
 
   const completed = evidence.requirements.filter((item) => item.status === "completed").length;
+  const allComplete = completed === evidence.requirements.length;
   return <AccountFrame
     eyebrow={`${participant.institutionName} · ${participant.referenceCode}`}
     title="Complete the requirements"
@@ -77,6 +78,6 @@ export default async function ParticipantRequirementsPage({ params, searchParams
       </section>)}
     </div>
     <div className={styles.rule}>The institution can review anything you upload for this request. Passage does not decide whether a document is legally valid or guarantee that the institution will accept it.</div>
-    <Link className={styles.secondary} href={`/request/${encodeURIComponent(id)}/overview`}>Return to request status</Link>
+    <Link className={allComplete ? styles.primary : styles.secondary} href={`/request/${encodeURIComponent(id)}/overview`}>{allComplete ? "Review and send" : "Return to request status"}</Link>
   </AccountFrame>;
 }

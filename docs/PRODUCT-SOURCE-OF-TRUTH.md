@@ -956,7 +956,7 @@ The interface says "Passage prepared" or "Needs review," never "legally verified
 ### 18.1 Seven-minute story
 
 1. Homepage: explain the category, wedge, and boundary in 45 seconds.
-2. Pricing: show five real requests free, the founding pilot, and annual relationship in 30 seconds.
+2. Pricing: show five synthetic evaluation requests, the founding pilot, and annual relationship in 30 seconds.
 3. Organization home: show a real-looking queue and the trial meter in 30 seconds.
 4. Start request: create a draft from the New York financial POA template in 60 seconds.
 5. Preview: show what each participant receives and activate the request in 30 seconds.
@@ -975,6 +975,10 @@ The interface says "Passage prepared" or "Needs review," never "legally verified
 - All parties see the same current decision, limits, and lifecycle.
 - A revocation changes the product, receipt, and integration event together.
 - The product can be tested before an institution commits to a large implementation.
+- Public pages offer both a guided walkthrough and a separate product-evaluation path; enterprise buyers are not forced into cold self-service signup.
+- Mobile navigation stays on one compact row, institution request lists become readable cards, and no page creates horizontal document scrolling at 390px or 360px.
+- The institution and participant next action appears before supporting detail. Review evidence, scope, messages, and history remain available without burying the action that advances the request.
+- Marketing copy distinguishes controls available today from assurance required before a controlled pilot. Integration copy describes the hosted workflow and planned sandbox proof without implying an unverified live connection.
 
 ### 18.3 Demo truth rule
 

@@ -8,6 +8,7 @@ import { hostedStatusLabel, mapHostedAuthorityRecord } from "@/lib/authority/hos
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
+import polish from "@/components/app/workspace-polish.module.css";
 
 type Props = { searchParams: Promise<{ notice?: string; error?: string }> };
 
@@ -38,7 +39,8 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   const activated = Number(entitlement?.activated_count ?? 0);
   const transactionLimit = Number(entitlement?.transaction_limit ?? 5);
   const drafts = records.filter((record) => record.status === "draft").length;
-  const needsAction = records.filter((record) => ["under_review", "information_requested"].includes(record.status)).length;
+  const needsAction = records.filter((record) => record.status === "under_review").length;
+  const waitingOnRepresentative = records.filter((record) => record.status === "information_requested").length;
   const mayCreate = canCoordinateAuthorityRequests(access.membership.role);
   const mayPrepareDemo = mayProvisionDemoRun(access.user.email, access.membership.role);
   const presentation = institutionWorkspacePresentation(access.membership.role);
@@ -52,16 +54,16 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
           <input type="hidden" name="idempotencyKey" value={randomUUID()} />
           <button className={styles.primary} type="submit">Prepare a fresh demo</button>
         </form> : null}
-        <Link className={styles.secondary} href="/app/requests/new?sample=1">Start a sample request</Link>
-        <Link className={styles.primary} href="/app/requests/new">Start a request</Link>
+        {!mayPrepareDemo ? <Link className={styles.secondary} href="/app/requests/new?sample=1">Start with sample details</Link> : null}
+        <Link className={mayPrepareDemo ? styles.secondary : styles.primary} href="/app/requests/new">Start a blank request</Link>
       </div> : null}
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     {errorMessage ? <div className={styles.alert} role="alert">{errorMessage}</div> : null}
-    <section className={styles.metricGrid} aria-label="Workspace status">
-      <div className={styles.metric}><span>Requests used</span><strong>{activated} of {transactionLimit}</strong></div>
-      <div className={styles.metric}><span>Draft requests</span><strong>{drafts}</strong></div>
-      <div className={styles.metric}><span>Needs institution action</span><strong>{needsAction}</strong></div>
+    <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Workspace status">
+      <div className={styles.metric}><span>Evaluation usage</span><strong>{activated} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span>{access.membership.role === "reviewer" ? "Needs your review" : "Draft requests"}</span><strong>{access.membership.role === "reviewer" ? needsAction : drafts}</strong></div>
+      <div className={styles.metric}><span>{access.membership.role === "reviewer" ? "Waiting on representative" : "Needs institution action"}</span><strong>{access.membership.role === "reviewer" ? waitingOnRepresentative : needsAction}</strong></div>
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <section className={styles.panel}>
@@ -69,14 +71,14 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
         {records.length === 0 ? <div className={styles.empty}>
           <strong>{presentation.emptyTitle}</strong>
           <p>{presentation.emptyDescription}</p>
-        </div> : <div className={styles.tableWrap}><table className={styles.table}>
+        </div> : <div className={`${styles.tableWrap} ${polish.tableWrap}`}><table className={`${styles.table} ${polish.table}`}>
           <thead><tr><th>Request</th><th>Status</th><th>Scope</th><th>Updated</th><th>Action</th></tr></thead>
           <tbody>{records.map((record) => <tr key={record.id}>
-            <td><strong>{record.principalName} to {record.representativeName}</strong><small>{record.referenceCode}</small></td>
-            <td><span className={styles.badge}>{hostedStatusLabel(record.status)}</span></td>
-            <td><strong>{record.accountBoundary}</strong><small>{record.allowedActionKeys.length} permitted {record.allowedActionKeys.length === 1 ? "action" : "actions"}</small></td>
-            <td>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(record.updatedAt))}</td>
-            <td><Link className={styles.smallButton} href={`/app/requests/${record.id}`}>Open</Link></td>
+            <td data-label="People"><strong>{record.principalName} to {record.representativeName}</strong><small>{record.referenceCode}</small></td>
+            <td data-label="Status"><span className={styles.badge}>{hostedStatusLabel(record.status)}</span></td>
+            <td data-label="Scope"><strong>{record.accountBoundary}</strong><small>{record.allowedActionKeys.length} permitted {record.allowedActionKeys.length === 1 ? "action" : "actions"}</small></td>
+            <td data-label="Updated">{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(record.updatedAt))}</td>
+            <td data-label="Action"><Link className={styles.smallButton} href={`/app/requests/${record.id}`}>Open request</Link></td>
           </tr>)}</tbody>
         </table></div>}
       </section>
@@ -90,7 +92,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
             <li>An owner or operations staff member starts and sends requests</li>
           </ul>
         </> : <>
-          <div className={styles.panelHead}><div><h2>Workspace setup</h2><p>The basic controls for this evaluation.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Ready to demonstrate</h2><p>Your workspace is configured for a safe product walkthrough.</p></div></div>
           <ul className={styles.checklist}>
             <li>Verified organization owner</li>
             <li>Evaluation terms accepted</li>

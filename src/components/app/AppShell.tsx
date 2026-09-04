@@ -4,6 +4,7 @@ import { signOutAction } from "@/app/account-actions";
 import { roleLabel, type AuthorityAccessContext } from "@/lib/authority/access";
 import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import styles from "./app-shell.module.css";
+import polish from "./workspace-polish.module.css";
 
 export function AppShell({ access, children }: { access: AuthorityAccessContext; children: ReactNode }) {
   if (!access.membership || !access.organization) return null;
@@ -22,7 +23,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           <strong>{access.organization.displayName}</strong>
           <small>{roleLabel(access.membership.role)}</small>
         </div>
-        <nav aria-label="Organization workspace">
+        <nav className={polish.navigation} aria-label="Organization workspace">
           <Link href="/app">{overviewLabel}</Link>
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
           <Link href="/app/team">People and access</Link>

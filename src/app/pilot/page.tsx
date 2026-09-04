@@ -9,10 +9,10 @@ export const metadata: Metadata = { title: "$5,000 Founding Pilot", description:
 export default function Pilot() {
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>$5,000 founding proof-of-concept</p><h1>Prove one authority workflow in 60 to 90 days.</h1><p>We configure one narrow policy with one named team, measure the full journey, and make a clear production decision from evidence. The pilot fee is credited toward year one if you continue.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>$5,000 founding pilot</p><h1>Prove one New York financial POA workflow in 60 to 90 days.</h1><p>Before any approved case, we agree the scope, success measures, data boundary, and owners. You receive a configured workflow, weekly operating reviews, and a written go-or-no-go readout. The fee is credited toward year one if you continue.</p><Link className={styles.secondary} href="/contact">Discuss a founding pilot</Link></section>
     <div className={styles.content}>
       <section className={styles.grid3}><article className={styles.card}><span>Days 1 to 15</span><h2>Define acceptance</h2><p>Agree policy, evidence, limits, participants, systems, security constraints, and success measures.</p></article><article className={styles.card}><span>Days 16 to 60</span><h2>Run controlled cases</h2><p>Complete test and approved pilot transactions with weekly review of completion, exceptions, and operations.</p></article><article className={styles.card}><span>Days 61 to 90</span><h2>Decide from proof</h2><p>Compare cycle time, handoffs, missing information, decision consistency, and downstream receipt accuracy.</p></article></section>
-      <section className={styles.callout}><div><h2>Experience the complete workflow.</h2><p>Start as the institution, then move through every participant, reviewer, receipt, revocation, and integration state.</p></div><Link className={styles.cta} href="/start">Explore the product</Link></section>
+      <section className={styles.callout}><div><h2>Experience the complete workflow.</h2><p>See the institution, account holder, representative, reviewer, receipt, and revocation experience in one guided walkthrough.</p></div><Link className={styles.cta} href="/contact">Book a walkthrough</Link></section>
     </div>
     <CommercialFooter />
   </main>;

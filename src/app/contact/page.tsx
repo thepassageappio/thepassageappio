@@ -11,10 +11,10 @@ const contactHref = (subject: string) => `mailto:hello@thepassageapp.io?subject=
 export default function ContactPage() {
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>Contact Passage</p><h1>Tell us what you need.</h1><p>Choose a topic so your message reaches the right conversation. Do not include customer account numbers, legal documents, or other sensitive information.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Talk with Passage</p><h1>Book a Passage Authority walkthrough.</h1><p>Tell us your institution, role, current POA process, and what you want to improve. Do not include customer information, account numbers, or legal documents.</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>
-        <article className={styles.card}><span>See the product</span><h2>Request a demo</h2><p>Walk through the institution, account holder, representative, reviewer, receipt, and revocation experience.</p><a className={styles.secondary} href={contactHref("Passage Authority demo request")}>Email a demo request</a></article>
+        <article className={styles.card}><span>See the product</span><h2>Request a 20-minute walkthrough</h2><p>See one POA request move from intake to a scoped institution decision while every participant stays current.</p><a className={styles.secondary} href={contactHref("Passage Authority 20-minute walkthrough")}>Request a walkthrough</a></article>
         <article className={styles.card}><span>Product question</span><h2>General inquiry</h2><p>Ask about the workflow, evaluation, pilot, security review, or integration path.</p><a className={styles.secondary} href={contactHref("Passage Authority inquiry")}>Email Passage</a></article>
         <article className={styles.card}><span>Account help</span><h2>Billing or access</h2><p>Get help with an institution workspace, evaluation access, pilot invoice, or account question.</p><a className={styles.secondary} href={contactHref("Passage Authority billing or access help")}>Request help</a></article>
         <article className={styles.card}><span>Help us improve</span><h2>Feature request</h2><p>Describe the role, current process, and outcome you need. Please use fictional examples only.</p><a className={styles.secondary} href={contactHref("Passage Authority feature request")}>Share an idea</a></article>

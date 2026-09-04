@@ -25,15 +25,15 @@ export default function Home() {
           <h1>Get every power of attorney request to a clear decision.</h1>
           <p className={styles.lede}>Passage guides the account holder, representative, and your review team through one shared process. Your institution makes the decision. Everyone sees the same current result.</p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="/start">Try Passage free <span>→</span></Link>
-            <Link className={styles.secondary} href="#how-it-works">See how it works</Link>
+            <Link className={styles.primary} href="/contact">Book a 20-minute walkthrough <span>→</span></Link>
+            <Link className={styles.secondary} href="/start">Explore a sample workflow</Link>
           </div>
           <p className={styles.boundary}>Passage does not create a power of attorney or decide whether one is legally valid. Your institution keeps that responsibility.</p>
         </div>
 
         <div className={styles.transaction} aria-label="Sample power of attorney request">
           <div className={styles.transactionTop}>
-            <div><span>Authority request</span><strong>PA-8BCADF1416</strong></div>
+            <div><span>Power of attorney request</span><strong>Eleanor Carter and Maya Carter</strong></div>
             <b>Ready for review</b>
           </div>
           <div className={styles.participants}>
@@ -49,7 +49,7 @@ export default function Home() {
             <div><span>Representative certification</span><b>Complete</b></div>
             <div><span>Institution review</span><b data-pending="true">Next</b></div>
           </div>
-          <div className={styles.transactionFoot}><span><i /> Current status shared by permission</span><strong>Complete activity history</strong></div>
+          <div className={styles.transactionFoot}><span><i /> Everyone sees the same decision</span><strong>Full history saved</strong></div>
         </div>
       </section>
 
@@ -103,7 +103,7 @@ export default function Home() {
           <span>Use sample records to experience the institution, account holder, representative, reviewer, decision, and revocation steps.</span>
         </div>
         <div className={styles.ctaActions}>
-          <Link className={styles.lightCta} href="/start">Explore the product</Link>
+          <Link className={styles.lightCta} href="/contact">Book a walkthrough</Link>
           <Link className={styles.textCta} href="/pricing">View pricing</Link>
         </div>
       </section>

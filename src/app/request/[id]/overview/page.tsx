@@ -95,6 +95,13 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
     title={`Welcome, ${context.participantName}`}
     description={description}
   >
+    <div className={styles.notice} role="status">{notice && NOTICE_MESSAGES[notice] ? NOTICE_MESSAGES[notice] : "Secure access is open. Nothing changes until you choose an action."}</div>
+    {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
+    {canDecide ? <div className={styles.summary}>
+      <h2>{isPrincipal ? "Your next step: review and decide" : "Your next step: review the responsibility"}</h2>
+      <p>{isPrincipal ? "Confirm only if the people, requested actions, and account description are correct." : "Accept only if you understand the requested actions and limits."}</p>
+      <Link className={styles.primary} href={nextPath}>{isPrincipal ? "Review and decide" : "Review responsibilities"}</Link>
+    </div> : null}
     <div className={styles.summary}>
       <h2>{authorityPurposeLabel(context.purpose)}</h2>
       <p>{context.accountBoundary}</p>
@@ -111,9 +118,6 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <summary>What is not included</summary>
       <ul className={decisionStyles.prohibited}>{context.prohibitedActionKeys.map((key) => <li key={key}>{PROHIBITED_ACTIONS[key] ?? key}</li>)}</ul>
     </details>
-    <div className={styles.notice} role="status">{notice && NOTICE_MESSAGES[notice] ? NOTICE_MESSAGES[notice] : "Opening secure access was saved. Your authority decision has not changed."}</div>
-    {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
-    {canDecide ? <Link className={styles.primary} href={nextPath}>{isPrincipal ? "Review and decide" : "Review responsibilities"}</Link> : null}
     {context.status === "evidence_required" && !isPrincipal ? <div className={styles.summary}><h2>Next: complete the requirements</h2><p>Your responsibility decision is saved. Complete one clear requirement at a time and see why the institution needs it.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/requirements`}>Continue to requirements</Link></div> : null}
     {context.status === "ready_to_submit" && !isPrincipal ? <div className={styles.summary}>
       <h2>Review and send to the institution</h2>
