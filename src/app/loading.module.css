@@ -18,15 +18,15 @@
   animation: progress 900ms ease-in-out infinite alternate;
 }
 
-.label {
-  padding: 10px 14px;
-  border: 1px solid #d8e0dc;
-  border-radius: 999px;
-  background: #fff;
-  color: #1d5b4d;
-  box-shadow: 0 12px 35px rgba(34, 65, 56, 0.13);
-  font-size: 12px;
-  font-weight: 800;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes progress {

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { InteractionFeedback } from "@/components/InteractionFeedback";
 import "./globals.css";
 import "./brand.css";
 import "./interaction-feedback.css";
@@ -37,7 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}><InteractionFeedback /></Suspense>
+        {children}
+      </body>
     </html>
   );
 }

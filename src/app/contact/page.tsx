@@ -66,7 +66,7 @@ export default async function ContactPage({ searchParams }: Props) {
             <option value="" disabled>Select one</option><option value="email_and_documents">Email and shared documents</option><option value="branch_or_call_center">Branch or call center</option><option value="case_management">Case management system</option><option value="document_platform">Document platform</option><option value="existing_vendor">Existing vendor</option><option value="other">Another process</option>
           </select></label>
           <label><span>Anything useful for the walkthrough? <em>Optional</em></span><textarea name="message" rows={3} maxLength={1200} /></label>
-          <label className={contact.consent}><input type="checkbox" name="contactConsent" required /><span>Passage may contact me about this request. See our <Link href="/privacy">Privacy Policy</Link>.</span></label>
+          <label className={contact.consent}><input type="checkbox" name="contactConsent" required /><span>Passage may contact me about this request. See our <Link href="/legal/privacy">Privacy Policy</Link>.</span></label>
           <button className={contact.submit} type="submit">Request walkthrough</button>
         </form> : <Link className={styles.secondary} href="/contact">Send another request</Link>}
       </section>
