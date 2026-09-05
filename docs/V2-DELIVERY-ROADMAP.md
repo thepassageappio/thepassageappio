@@ -101,7 +101,7 @@ The external security assessment and customer procurement are not fully controll
 
 ## Outbound launch control
 
-The customer-facing message, verified claims, asset checklist, target-account sequence, and stop/go rules are maintained in [SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md](./SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md). Website, deck, one-pager, demo script, outbound copy, and CRM fields must use that file and the selling brief as their shared source of truth.
+The customer-facing message, verified claims, asset checklist, target-account sequence, and stop/go rules are maintained in [SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md](./SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md). The buyer-ready [sales one-pager](./SALES-ONE-PAGER-2026-09-05.md) and [seven-minute demo script](./SEVEN-MINUTE-DEMO-SCRIPT-2026-09-05.md) are drafted from the verified hosted flow. Website, deck, one-pager, demo script, outbound copy, and CRM fields must use those files and the selling brief as their shared source of truth.
 
 ## V2 scorecard
 

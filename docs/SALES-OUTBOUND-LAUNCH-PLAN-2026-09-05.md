@@ -15,9 +15,9 @@ Do not claim that Passage validates legal authority, replaces identity verificat
 | --- | --- | --- |
 | Website | Plain-language homepage and About, FAQ, Security, Pricing, Blog, demo CTA, consistent category language | Live; final copy consistency audit remains |
 | Seven-minute demo | Owner, account holder, representative, reviewer, matching receipt; synthetic data only | Functional hosted replay passed; timed four-profile rehearsal remains |
-| One-page overview | Problem, workflow, buyer, outcome, boundaries, $5,000 founding pilot, CTA | Create next |
+| One-page overview | Problem, workflow, buyer, outcome, boundaries, $5,000 founding pilot, CTA | Draft complete; buyer review remains |
 | Buyer deck | 8–10 slides using only verified claims and the live receipt story | Create after one-page approval |
-| Demo script | Exact clicks, talk track, backup screenshots, recovery plan | Draft from the verified run |
+| Demo script | Exact clicks, talk track, backup screenshots, recovery plan | Draft complete; timed rehearsal remains |
 | Security and procurement FAQ | Data boundary, roles, encryption, retention, incident response, subprocessors, current limitations | Product FAQ exists; procurement evidence pack remains |
 | Outbound sequence | Three short emails plus LinkedIn version, each tied to one operational pain and one discovery question | Draft after target roles are locked |
 | CRM fields | Institution, segment, geography, buyer role, source, pain, volume, stage, next step, pilot fit | Schema/migration proposed; provider writeback remains gated |
