@@ -24,17 +24,17 @@ Do not claim that Passage validates legal authority, replaces identity verificat
 
 ## Initial outbound motion
 
-1. Build a first list of 20 New York regional banks and credit unions, with one likely operations buyer and one compliance/legal influencer per account.
-2. Lead with the operational problem: POA requests crossing branches, inboxes, documents, and review teams without one current record.
+1. Build a first list of 20 New York community banks and credit unions, with one likely operations buyer, one compliance/legal influencer, and one warm introduction, referral, association, or innovation-channel path per account. Rank warm paths first; use cold outreach only where no credible path exists.
+2. Lead with the defensibility problem: POA requests cross branches, inboxes, documents, and review teams without one current institution decision, scope, or lifecycle record. Do not claim a legal safe harbor or guaranteed risk reduction.
 3. Ask for a 20-minute workflow interview, not a purchase. Offer the seven-minute synthetic demo when the problem is confirmed.
 4. Qualify on request volume, elapsed time, handoffs, missing-information loops, reviewer effort, complaints, systems touched, and executive ownership.
-5. Offer the $5,000, 60–90 day founding pilot only after agreeing on a narrow team, data boundary, success thresholds, and security review path.
+5. Offer the $5,000, 60–90 day founding proof of concept only after agreeing on a narrow team, data boundary, success thresholds, and security review path. Describe $5,000 as a capped, scoped POC fee credited toward year one—not Passage's annual price or general list price.
 
 ## Immediate launch order
 
 1. While independent QA runs, triage every finding into critical, high, medium or low and record it in the demo checklist. Any open critical or high finding stops live demos.
 2. Give the one-pager, seven-minute script and three-touch sequence one buyer/sender review; update these source files before changing downstream copy.
-3. Build the 20-account New York list, then personalize only the first five accounts around one evidenced operating pain and one discovery question.
+3. Build the 20-account New York community-bank and credit-union list, rank warm/referral and innovation-channel paths, then personalize only the first five accounts around one evidenced operating pain and one discovery question.
 4. Connect the Passage HubSpot private app and apply the approved additive, no-delete schema before loading reviewed contacts. Keep all participant and authority-request data out of HubSpot.
 5. Start the five-account batch once the timed demo passes. P1 permits discovery conversations and synthetic demonstrations only: do not accept real POA, participant, account or authority data, onboard live business, or claim production-enterprise readiness.
 
@@ -50,7 +50,7 @@ Do not claim that Passage validates legal authority, replaces identity verificat
 
 - Day 1: approve the one-sentence pitch, one-page outline, ICP roles, and 20-account criteria.
 - Day 2: finish the timed demo script, backup screenshots, and first two outreach variants.
-- Day 3: load only reviewed contacts into the Passage HubSpot portal and start a five-account pilot batch.
+- Day 3: load only reviewed contacts into the Passage HubSpot portal and start a five-account discovery batch.
 - Days 4–5: run discovery, record objections verbatim, and revise the one-pager and demo talk track once—not ad hoc per prospect.
 
 Every public claim must trace to the selling brief, the live product, or recorded QA evidence. Update the source document first, then propagate the same approved language to the website, deck, one-pager, email sequence, and CRM templates.

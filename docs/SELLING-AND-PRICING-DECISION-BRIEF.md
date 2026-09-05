@@ -23,7 +23,7 @@ Sources: [CFPB financial caregiver guides](https://www.consumerfinance.gov/consu
 
 ## Initial ICP
 
-Start with regional banks and credit unions that:
+Start with community and regional banks and credit unions that:
 
 - service consumer deposit accounts in New York;
 - receive enough POA requests for branch and back-office inconsistency to be visible;
@@ -33,17 +33,22 @@ Start with regional banks and credit unions that:
 
 Do not lead with the largest banks, institutions demanding an immediate core replacement, or buyers seeking automated legal opinions. The fastest design partner has a painful manual process, an executive sponsor, and permission to run a tightly bounded synthetic or controlled pilot.
 
+For first access, rank credible personal and professional introductions, referrals, associations, and credit-union innovation channels ahead of cold outbound. Treat specific programs as candidates until eligibility, fit, timing, and evidence are confirmed; do not imply a partnership or endorsement.
+
 ## Differentiation
 
 | Alternative | What it does well | Passage difference |
 | --- | --- | --- |
 | Email, tickets, shared drives, spreadsheets | Familiar and already available | Passage gives every role a guided next action, preserves one current request, and produces a matching receipt |
 | Document intake or OCR | Captures and extracts documents | Passage coordinates the decision workflow before and after document review, including questions, limits, and lifecycle changes |
+| Document creation, e-signature, identity, or notarization | Helps prepare a document or prove a point-in-time execution event | Passage's proposed lane is the institution's own review, scoped decision, current status, and later lifecycle changes; confirm each named competitor's boundary from primary evidence before using this comparison externally |
 | Identity verification | Establishes facts about a person | Passage keeps identity proof separate from evidence of authority and the institution's acceptance decision |
 | Broad delegated-authority infrastructure | Issues or governs reusable identity and authorization credentials | Passage starts with a complete institution-operated financial-POA workflow that nontechnical participants can finish |
 | Core or servicing-system customization | Keeps the final customer/account system authoritative | Passage is hosted-first and designed to hand off a scoped result without requiring a core replacement |
 
 TrustElevate's public positioning demonstrates that delegated authority is becoming a broader infrastructure category—verified, scoped, revocable, and auditable. Passage should not imitate its broad AI-agent and identity claims. Passage wins the initial wedge by making one institution workflow complete and easy to operate. Source: [TrustElevate](https://www.trustelevate.com/).
+
+The long-term hypothesis is a persistent authority-status layer that institution channels can query for the same current decision, scope, limits, effective period, and later revocation. This is not a V2 product claim. It depends on buyer proof, reliable lifecycle operations, and demonstrated core/call-center/digital-banking integration depth. A signing, identity, or notarization provider extending into institution decisions is a strategic threat; Passage must earn separation through current-state accuracy and propagation, not feature-count positioning.
 
 ## Ten discovery questions
 
@@ -86,7 +91,7 @@ TrustElevate's public positioning demonstrates that delegated authority is becom
 
 ## Founding pilot offer
 
-- $5,000 fixed fee for 60–90 days, credited toward year one if the institution converts under the pilot agreement.
+- $5,000 capped, scoped proof-of-concept fee for 60–90 days, credited toward year one if the institution converts under the pilot agreement. This is not Passage's annual price or general list price.
 - One institution, one New York financial-POA workflow, one named team, and one approved information boundary.
 - Success measures agreed before configuration: completion rate, elapsed time, number of handoffs, missing-information loops, reviewer effort, decision consistency, receipt accuracy, and support burden.
 - Sales-assisted agreement and invoice. No signup credit card, participant charge, or per-screen fee.
