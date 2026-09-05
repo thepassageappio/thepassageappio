@@ -95,6 +95,10 @@ function errorCode(error: unknown) {
     institution_decision_limit_invalid: "institution_decision_limit_invalid",
     institution_decision_limit_required: "institution_decision_limit_required",
     institution_decision_limit_not_allowed: "institution_decision_limit_not_allowed",
+    institution_decision_scope_invalid: "institution_decision_scope_invalid",
+    institution_decision_scope_not_allowed: "institution_decision_scope_not_allowed",
+    institution_decision_scope_required: "institution_decision_scope_required",
+    institution_decision_full_scope_required: "institution_decision_full_scope_required",
     institution_decision_not_allowed: "institution_decision_not_allowed",
     institution_decision_not_ready: "institution_decision_not_ready",
     institution_decision_request_expired: "institution_decision_request_expired",
@@ -124,6 +128,9 @@ function errorCode(error: unknown) {
     "Use no more than 10 limits, with 240 characters or fewer for each limit.": "institution_decision_limit_invalid",
     "List at least one limit for a limited acceptance.": "institution_decision_limit_required",
     "Limits can be recorded only when the institution accepts with limits.": "institution_decision_limit_not_allowed",
+    "Choose only actions included in this authority workflow.": "institution_decision_scope_invalid",
+    "A rejected request cannot include accepted actions.": "institution_decision_scope_not_allowed",
+    "Choose at least one action the institution accepts.": "institution_decision_scope_required",
     "Choose an available lifecycle action.": "authority_lifecycle_action_invalid",
     "Lifecycle changes are available only after an accepted institution decision.": "authority_lifecycle_not_available",
     "Confirm that this lifecycle change should be saved to the receipt.": "authority_lifecycle_acknowledgment_required",
@@ -698,17 +705,19 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
     const decision = prepareHostedInstitutionDecision({
       outcome: textField(formData, "outcome"),
       reason: textField(formData, "reason"),
+      acceptedActionKeys: formData.getAll("acceptedActionKeys").filter((value): value is string => typeof value === "string"),
       limitations: textField(formData, "limitations").split("\n"),
       acknowledged: checkbox(formData, "acknowledged"),
     });
     const admin = createAuthorityAdminClient();
-    const { data, error } = await admin.rpc("record_institution_decision_service_v1", {
+    const { data, error } = await admin.rpc("record_institution_decision_service_v2", {
       p_actor_user_id: access.user.id,
       p_organization_id: access.membership.organizationId,
       p_authority_record_id: recordId,
       p_expected_version: Number(textField(formData, "expectedVersion")),
       p_outcome: decision.outcome,
       p_reason: decision.reason,
+      p_accepted_action_keys: decision.acceptedActionKeys,
       p_limitations: decision.limitations,
       p_acknowledged: true,
       p_idempotency_key: textField(formData, "idempotencyKey"),

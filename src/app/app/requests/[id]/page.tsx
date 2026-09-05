@@ -283,6 +283,13 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
               <option value="accepted">Accept as submitted</option>
               <option value="rejected">Do not accept</option>
             </select>
+            <fieldset>
+              <legend>Accepted actions</legend>
+              <p>Keep only the actions this decision accepts. Written limits do not remove an action from the receipt.</p>
+              {record.allowedActionKeys.map((key) => <label className={styles.confirmation} key={key}>
+                <input type="checkbox" name="acceptedActionKeys" value={key} defaultChecked /> <span>{HOSTED_ACTIONS[key]}</span>
+              </label>)}
+            </fieldset>
             <label htmlFor="decision-reason">Reason</label>
             <textarea id="decision-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain why the institution reached this decision." />
             <label htmlFor="decision-limitations">Limits, one per line</label>
