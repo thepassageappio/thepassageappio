@@ -1,11 +1,18 @@
 # Passage Authority V2 delivery roadmap
 
 **Status:** Active delivery contract  
-**Updated:** September 4, 2026, enterprise-organization benchmark and delivery slices incorporated
+**Updated:** September 5, 2026, owner authentication follow-ups added
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
 
 The supporting evidence review and explicit non-priorities are maintained in [V2-BEST-PRACTICE-REVIEW.md](./V2-BEST-PRACTICE-REVIEW.md).
 For a fresh-chat operational restart, use [NEW-CHAT-HANDOFF.md](./NEW-CHAT-HANDOFF.md) and the phrase `AUTHORITY PUMPKIN 246159600`.
+
+## Owner to-do list — no due date
+
+- [ ] Enable 2-step verification for the Passage Google account so Google Cloud Console access is restored.
+- [ ] Authorize creation of the Passage Authority web OAuth credential and connect it to the Demo Supabase Google provider.
+- [ ] Authorize connecting the existing Passage Resend credential to Supabase Auth custom SMTP for reliable email sign-in delivery.
+- [ ] After both connections are enabled, run one Demo Google sign-in and one email-link sign-in through onboarding and recovery before enabling Google sign-in publicly.
 
 ## Product strategy
 
