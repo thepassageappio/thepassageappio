@@ -52,8 +52,8 @@ At an explicit 360px viewport, the homepage, Pricing, owner dashboard, People an
 3. Complete manual hosted negative-path browser checks for wrong-role denial, stale form recovery, rejection, withdrawal, expiration, and fresh-link session recovery.
 4. Complete Stripe failure/refund/out-of-order replay and the Passage/Stripe/HubSpot reconciliation sequence.
 
-## Mobile email compatibility defect
+## Mobile email compatibility result
 
-During the September 5 hosted replay, the receipt CTA rendered in mobile Gmail but was reported as not tappable. Resend delivery and preview both recognized the underlying receipt URL, isolating the defect to email-client CTA compatibility rather than token generation or delivery. The template now uses a table-based full-width anchor with an explicit new-window target and a second plain secure-link fallback; publication and a fresh mobile Gmail receipt remain the closure evidence.
+During the September 5 hosted replay, the receipt CTA rendered in mobile Gmail but was initially reported as not tappable. The template was hardened with a table-based full-width anchor, explicit new-window target, and a second plain secure-link fallback. A replacement receipt email was delivered, and the recipient then confirmed the CTA opened from mobile Gmail. Opening the earlier 4:59 PM link after a newer 5:05 PM receipt had been issued correctly produced the plain-language “This link is no longer active” recovery screen. Mobile CTA compatibility and superseded-link fail-closed behavior therefore pass; opening the newest receipt remains the final matching-receipt phone check.
 
 The outbound sign-in and participant messages require action-time owner confirmation before they are sent.
