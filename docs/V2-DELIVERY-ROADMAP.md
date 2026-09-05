@@ -14,6 +14,19 @@ For a fresh-chat operational restart, use [NEW-CHAT-HANDOFF.md](./NEW-CHAT-HANDO
 - [x] Configure a dedicated, sending-only Resend credential for Supabase Auth custom SMTP and verify delivery to the Passage inbox.
 - [x] Complete one real Demo Google sign-in and one fresh principal-to-representative email-link journey. Google sign-in reached the institution workspace; the saved Chrome site rule was corrected; both participant links opened on `demo.thepassageapp.io`.
 
+## Execution priority — September 5, 2026
+
+The roadmap is sequenced by the next customer commitment, not by feature breadth. Discovery outreach and synthetic demonstrations can start now. Production customer data and an enterprise-ready claim remain gated.
+
+| Priority | Window | Outcome | Exit evidence |
+| --- | --- | --- | --- |
+| P0 — prove and package | Now, during independent QA | A repeatable buyer demonstration with no critical or high defects | Independent QA findings triaged; zero open critical/high defects; timed four-profile run under seven minutes; invitation, receipt, newest-link and recovery behavior confirmed; one-pager, demo script and outbound sequence receive final buyer/sender review |
+| P1 — open controlled pipeline | Next 2–3 business days | Five-account discovery batch operating from one source of truth | Twenty-account New York target list with buyer roles; first five accounts personalized; Passage HubSpot private app connected; additive no-delete schema applied; demo/pilot/support intake proves Company, Contact, Deal or Ticket creation plus confirmation and retry |
+| P2 — qualify a real-data pilot | Before accepting customer data | A narrow founding pilot can pass security, billing and operating review | Stripe failure/refund/out-of-order replay; remaining hosted negative paths; seven clean daily reconciliation runs; privileged MFA; retention, restore and incident evidence; legal/privacy and scoped security review |
+| P3 — customer-gated expansion | After a qualified buyer requires it | Enterprise identity and integration scope follows evidenced demand | SAML/SSO, SCIM, custom roles, hierarchy, SIEM, broad core integrations and published annual pricing remain deferred until a qualified pilot supplies requirements |
+
+Current decision: **go** for targeted research, discovery outreach and live synthetic demos; **no-go** for production customer data or a full-enterprise-readiness claim. Working readiness is **8.5/10 for the demo**, **8/10 for controlled outbound**, and **5/10 for production enterprise use**. Independent QA may move these scores only when its evidence is recorded in the release checklist.
+
 ## Product strategy
 
 V2 is a hybrid journey, not anonymous card-first PLG:
@@ -42,7 +55,7 @@ Every provider command is idempotent. Duplicate and out-of-order events do not d
 | V2-1 | Commercial persistence | Account/workspace mapping, contract, subscription, order, allowance, usage allocation, provider inbox, outbox, and immutable event history migrate and replay | Implemented in Demo and Production; provider-command replay remains |
 | V2-2 | Conversion intake | One short demo/pilot/support form creates deduplicated HubSpot Company, Contact, Deal or Ticket with attribution and a visible confirmation | Partial: live intake, confirmation, immutable event, leased HubSpot worker, privacy scan, retry, and replay passed; Passage HubSpot portal `246159600` and its current schema are audited, and the exact additive migration awaits approval, provisioning, and private-app connection |
 | V2-3 | Evaluation activation | Signup resumes correctly; no more than five pre-value fields; workspace shows one next action, allowance, days, and progress to first matching receipt | Partial: live workspace guidance passed; signup/resume field audit remains |
-| V2-4 | Stripe test billing | Pilot invoice uses a hosted Stripe page and explicit service period; verified `invoice.paid` grants one entitlement; duplicate, failure, refund, and disorder tests pass | Positive path passed in Demo: owner command and outbox are idempotent; real $5,000 hosted test invoice `NFYSMYD4-0001` was paid; signed event `evt_1UCAbnRteXSJR0llBnw5VkEm` was durably received and applied; duplicate replay left exactly one 100-request allowance and one activation audit. Green Vercel code publication, failure/refund/disorder replay, reconciliation, and custom-domain repair remain |
+| V2-4 | Stripe test billing | Pilot invoice uses a hosted Stripe page and explicit service period; verified `invoice.paid` grants one entitlement; duplicate, failure, refund, and disorder tests pass | Positive path passed in Demo and the green artifact is published on the ready custom domain: owner command and outbox are idempotent; real $5,000 hosted test invoice `NFYSMYD4-0001` was paid; signed event `evt_1UCAbnRteXSJR0llBnw5VkEm` was durably received and applied; duplicate replay left exactly one 100-request allowance and one activation audit. Failure/refund/disorder replay and reconciliation remain |
 | V2-5 | HubSpot revenue operations | New Business, Expansion, Renewal, and onboarding/support ticket workflows receive deterministic projections with no participant data | Passage portal `246159600` audit complete; exact no-delete migration proposed. Current free tier supports only one Deal pipeline and locks Workflows, so a developer test account or suitably licensed target, approved migration, private-app connection, and provider replay remain |
 | V2-6 | Reconciliation | Passage, Stripe, and HubSpot match for seven consecutive daily test runs; variances enter a visible repair queue | Queued |
 | V2-7 | Enterprise admin | Organization, users/roles, billing contacts, usage, invoice state, audit export, integration health, and recovery paths pass owner/admin/reviewer tests | In progress: owner/admin/reviewer production authorization replay passed September 5; remaining pilot controls are explicit below |
@@ -50,14 +63,14 @@ Every provider command is idempotent. Duplicate and out-of-order events do not d
 
 ## Delivery forecast from the current state
 
-These dates assume the separate Stripe sandbox and HubSpot test application credentials are available to the deployed Demo project by September 4, 2026. They are evidence gates, not calendar-only promises.
+These dates are evidence gates, not calendar-only promises. Stripe is connected in Demo; HubSpot provider credentials and an appropriate test or licensed target remain dependencies for CRM provider replay.
 
 | Target | Earliest credible date | Included evidence |
 | --- | --- | --- |
 | Authority sales demonstration | Ready now | Public site, isolated Demo, fresh Demo run, complete authority journey, matching receipt, mobile/public route verification |
-| Outbound and live discovery demonstrations | September 4, 2026 | Approved positioning, pricing hypothesis, ICP discovery fields, repeatable seven-minute authority story |
+| Outbound and live discovery demonstrations | Ready for a controlled five-account batch after final sender review | Approved positioning, pricing hypothesis, ICP discovery fields, repeatable seven-minute authority story |
 | V2 conversion and CRM intake | Passage intake live; provider target September 7, 2026 | Structured demo/pilot/support intake, deterministic Company/Contact/Deal/Ticket creation, confirmation and retry evidence |
-| Stripe sandbox pilot UAT | Positive path passed; release target within 24 hours of restored publication path | Real hosted $5,000 test invoice, signed paid event, one entitlement, and idempotent duplicate passed. Publish the green Vercel artifact, then finish failure/refund/disorder browser replay |
+| Stripe sandbox pilot UAT | Positive path and publication passed; negative-path completion is next | Real hosted $5,000 test invoice, signed paid event, one entitlement, idempotent duplicate and green Vercel publication passed. Finish failure/refund/disorder browser replay |
 | Complete commercial persona UAT | September 12, 2026 | Prospect, owner, admin, reviewer, participants, billing owner, support/onboarding, CRM and Stripe journey agree |
 | Commercial automation sign-off | No earlier than September 19, 2026 | Seven consecutive clean Passage/Stripe/HubSpot reconciliation runs plus resolved P0 defects |
 | Real-data enterprise pilot approval | Target September 21–25, 2026, subject to external review | Privileged MFA, advisor closeout, retention/restore/incident evidence, legal/privacy package and scoped independent security review |
@@ -97,7 +110,7 @@ The external security assessment and customer procurement are not fully controll
 - Fresh hosted transaction evidence, September 5: request `PA-6C4FF6F2DB` completed principal confirmation, delivered and opened the representative invitation, saved representative acceptance and certification, uploaded the two approved fictional files, completed institution evidence review, submitted the disclosure, and recorded accepted-with-limits receipt `PAR-470074AA96BC`. Both participant receipt emails were submitted for delivery. This proves the happy path with real hosted sessions; an independently timed four-profile rehearsal and hosted negative paths remain release gates.
 - Mobile receipt-link evidence, September 5: the hardened email CTA opened successfully from mobile Gmail. An earlier receipt email opened the correct superseded-link recovery page after a newer receipt had been issued, proving both click compatibility and fail-closed replacement behavior.
 - Enterprise persona evidence, September 5: the Passage Demo Credit Union workspace visibly contains active Owner, Administrator, and Institution Reviewer identities. Production authorization replay proved reviewer request visibility, zero cross-tenant rows, denied reviewer invite and request-create mutations, denied administrator owner creation, zero rows from denied mutations, and append-only membership lifecycle events.
-- HubSpot provider credentials remain unconfigured in the deployed projects. The Stripe positive path is proven in Demo, but the complete commercial loop must not be described as release-complete until the green artifact is published and failure/refund/disorder plus reconciliation coverage pass.
+- HubSpot provider credentials remain unconfigured in the deployed projects. The Stripe positive path and green Demo publication are proven, but the complete commercial loop must not be described as release-complete until failure/refund/disorder plus reconciliation coverage pass.
 
 ## Outbound launch control
 
