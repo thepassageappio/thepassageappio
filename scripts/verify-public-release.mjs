@@ -1,12 +1,15 @@
-const origins = [
+const defaultOrigins = [
   "https://thepassageapp.io",
   "https://passage-authority-demo.vercel.app",
 ];
+
+const origins = process.argv.length > 2 ? process.argv.slice(2) : defaultOrigins;
 
 const publicPaths = [
   "/",
   "/about",
   "/contact",
+  "/faq",
   "/integrations",
   "/pricing",
   "/pilot",
