@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The current Passage Authority release passed the non-destructive commercial, platform, responsive, recovery, and cross-persona checks completed in this run. No new critical or high product-state defect was found. Hosted Demo presenter sign-in and fresh outbound message delivery remain the next manual gate.
+The current Passage Authority release passed the non-destructive commercial, platform, responsive, recovery, and cross-persona checks completed in this run. No new critical or high product-state defect was found. Hosted Demo Google sign-in, fresh participant delivery, secure-link access, and a complete operator-assisted happy path now pass. A timed independent four-profile rehearsal, hosted negative paths, and commercial-provider reconciliation remain the next gates.
 
 ## Product story under test
 
@@ -31,6 +31,7 @@ An institution buyer moves from the public product story into a controlled evalu
 - Existing institution receipt `PAR-AD9AD8C0ED49` rendered the original limited acceptance, two recorded limits, current Revoked status, decision record 15, and verification fingerprint `9ef9742deae3c0d4a0575320215ba3535c41eff460b9973cedad98eff6e5abf0`.
 - A consumed participant receipt link failed closed with plain-language reused-link recovery. Direct receipt access without a current role-bound session failed closed with plain-language session recovery.
 - The only browser-console error observed came from the Codex browser extension, not Passage.
+- Fresh hosted request `PA-6C4FF6F2DB` completed on September 5 from principal confirmation through representative acceptance, two approved fictional uploads, institution review, representative disclosure, and accepted-with-limits receipt `PAR-470074AA96BC`. Resend reported both participant invitations delivered, and the application submitted both receipt emails for delivery.
 
 ## Persona evidence
 
@@ -46,11 +47,13 @@ At an explicit 360px viewport, the homepage, Pricing, owner dashboard, People an
 
 ## Remaining gates
 
-1. Reauthenticate the allowlisted presenter in the isolated Demo environment.
-2. Prepare a fresh namespaced Demo run without database access.
-3. Send the principal and representative invitations to the approved controlled Passage test inboxes.
-4. Time the four-profile owner/account-holder/representative/reviewer rehearsal to seven minutes or less.
-5. Record inbox versus spam placement for initial invitations, clarification/resume, and final receipt messages.
-6. Complete manual hosted negative-path browser checks for wrong-role denial, stale form recovery, rejection, withdrawal, expiration, and fresh-link session recovery.
+1. Time the four-profile owner/account-holder/representative/reviewer rehearsal to seven minutes or less.
+2. Record inbox versus spam placement for initial invitations, clarification/resume, and final receipt messages; Resend delivery alone is not inbox-placement proof.
+3. Complete manual hosted negative-path browser checks for wrong-role denial, stale form recovery, rejection, withdrawal, expiration, and fresh-link session recovery.
+4. Complete Stripe failure/refund/out-of-order replay and the Passage/Stripe/HubSpot reconciliation sequence.
+
+## Mobile email compatibility defect
+
+During the September 5 hosted replay, the receipt CTA rendered in mobile Gmail but was reported as not tappable. Resend delivery and preview both recognized the underlying receipt URL, isolating the defect to email-client CTA compatibility rather than token generation or delivery. The template now uses a table-based full-width anchor with an explicit new-window target and a second plain secure-link fallback; publication and a fresh mobile Gmail receipt remain the closure evidence.
 
 The outbound sign-in and participant messages require action-time owner confirmation before they are sent.

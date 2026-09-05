@@ -12,7 +12,7 @@ For a fresh-chat operational restart, use [NEW-CHAT-HANDOFF.md](./NEW-CHAT-HANDO
 - [x] Enable 2-step verification for the Passage Google account so Google Cloud Console access is restored.
 - [x] Connect the existing Passage Web OAuth client to the Demo Supabase callback and enable the Google provider.
 - [x] Configure a dedicated, sending-only Resend credential for Supabase Auth custom SMTP and verify delivery to the Passage inbox.
-- [ ] User-complete one Demo Google sign-in and open the latest email link through onboarding and recovery. Configuration and email delivery are verified; the controlled Chrome session blocked the Google authorization endpoint locally before the account prompt.
+- [x] Complete one real Demo Google sign-in and one fresh principal-to-representative email-link journey. Google sign-in reached the institution workspace; the saved Chrome site rule was corrected; both participant links opened on `demo.thepassageapp.io`.
 
 ## Product strategy
 
@@ -94,8 +94,13 @@ The external security assessment and customer procurement are not fully controll
 - Stripe positive-pilot evidence, September 4: real test invoice `in_1UCAZqRteXSJR0llmqI675C4` / `NFYSMYD4-0001` was finalized for $5,000 and marked paid; signed event `evt_1UCAbnRteXSJR0llBnw5VkEm` was durably received and applied in Demo. Passage recorded one paid order, active contract/subscription, one 100-request allowance lot, one activation audit, and a `pilot / active` entitlement; duplicate replay did not add a second grant.
 - Release state, September 5: 131 domain and security tests, TypeScript, ESLint, optimized production build, 44 public routes, and eight participant-link recovery states pass. Commit `d89fd86` is published and Vercel production deployment `dpl_7bVM8RDYQE2dhkctWDNQnR1SNb25` is ready.
 - Domain and authentication state, September 5: `demo.thepassageapp.io` is a ready Vercel production alias and the configured Supabase site/callback origin. Google OAuth redirects through the configured Supabase callback and a real Passage-account sign-in reached the institution workspace. Email magic-link delivery was separately accepted and confirmed by Resend.
+- Fresh hosted transaction evidence, September 5: request `PA-6C4FF6F2DB` completed principal confirmation, delivered and opened the representative invitation, saved representative acceptance and certification, uploaded the two approved fictional files, completed institution evidence review, submitted the disclosure, and recorded accepted-with-limits receipt `PAR-470074AA96BC`. Both participant receipt emails were submitted for delivery. This proves the happy path with real hosted sessions; an independently timed four-profile rehearsal and hosted negative paths remain release gates.
 - Enterprise persona evidence, September 5: the Passage Demo Credit Union workspace visibly contains active Owner, Administrator, and Institution Reviewer identities. Production authorization replay proved reviewer request visibility, zero cross-tenant rows, denied reviewer invite and request-create mutations, denied administrator owner creation, zero rows from denied mutations, and append-only membership lifecycle events.
 - HubSpot provider credentials remain unconfigured in the deployed projects. The Stripe positive path is proven in Demo, but the complete commercial loop must not be described as release-complete until the green artifact is published and failure/refund/disorder plus reconciliation coverage pass.
+
+## Outbound launch control
+
+The customer-facing message, verified claims, asset checklist, target-account sequence, and stop/go rules are maintained in [SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md](./SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md). Website, deck, one-pager, demo script, outbound copy, and CRM fields must use that file and the selling brief as their shared source of truth.
 
 ## V2 scorecard
 
