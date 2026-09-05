@@ -1,7 +1,7 @@
 # Passage Authority V2 delivery roadmap
 
 **Status:** Active delivery contract  
-**Updated:** September 5, 2026, owner authentication follow-ups added
+**Updated:** September 5, 2026, Google OAuth, custom SMTP, and Demo DNS configured
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
 
 The supporting evidence review and explicit non-priorities are maintained in [V2-BEST-PRACTICE-REVIEW.md](./V2-BEST-PRACTICE-REVIEW.md).
@@ -9,10 +9,10 @@ For a fresh-chat operational restart, use [NEW-CHAT-HANDOFF.md](./NEW-CHAT-HANDO
 
 ## Owner to-do list — no due date
 
-- [ ] Enable 2-step verification for the Passage Google account so Google Cloud Console access is restored.
-- [ ] Authorize creation of the Passage Authority web OAuth credential and connect it to the Demo Supabase Google provider.
-- [ ] Authorize connecting the existing Passage Resend credential to Supabase Auth custom SMTP for reliable email sign-in delivery.
-- [ ] After both connections are enabled, run one Demo Google sign-in and one email-link sign-in through onboarding and recovery before enabling Google sign-in publicly.
+- [x] Enable 2-step verification for the Passage Google account so Google Cloud Console access is restored.
+- [x] Connect the existing Passage Web OAuth client to the Demo Supabase callback and enable the Google provider.
+- [x] Configure a dedicated, sending-only Resend credential for Supabase Auth custom SMTP and verify delivery to the Passage inbox.
+- [ ] User-complete one Demo Google sign-in and open the latest email link through onboarding and recovery. Configuration and email delivery are verified; the controlled Chrome session blocked the Google authorization endpoint locally before the account prompt.
 
 ## Product strategy
 
