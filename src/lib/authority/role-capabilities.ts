@@ -22,6 +22,29 @@ export const organizationCapabilities = [
   "integrations.manage",
 ] as const;
 
+export const organizationAccessEventTypes = [
+  "organization.created",
+  "membership.activated",
+  "membership.invited",
+  "membership.role_changed",
+  "membership.revoked",
+  "membership.invitation_revoked",
+] as const;
+
+const organizationAccessActivityLabels: Record<(typeof organizationAccessEventTypes)[number], string> = {
+  "organization.created": "Organization created",
+  "membership.activated": "Organization access activated",
+  "membership.invited": "Team invitation created",
+  "membership.role_changed": "Member role changed",
+  "membership.revoked": "Member access revoked",
+  "membership.invitation_revoked": "Team invitation revoked",
+};
+
+export function organizationAccessActivityLabel(eventType: string) {
+  return organizationAccessActivityLabels[eventType as keyof typeof organizationAccessActivityLabels]
+    ?? "Organization access updated";
+}
+
 export type OrganizationCapability = (typeof organizationCapabilities)[number];
 
 const allCapabilities = [...organizationCapabilities];

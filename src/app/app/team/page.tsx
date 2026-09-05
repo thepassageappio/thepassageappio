@@ -12,6 +12,8 @@ import {
   canManageTargetMember,
   canViewOrganizationAudit,
   invitableRolesFor,
+  organizationAccessActivityLabel,
+  organizationAccessEventTypes,
   roleDefinitions,
 } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
@@ -19,19 +21,6 @@ import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
 
 type Props = { searchParams: Promise<{ error?: string; notice?: string }> };
-
-const activityLabels: Record<string, string> = {
-  "organization.created": "Organization created",
-  "membership.activated": "Organization access activated",
-  "membership.invited": "Team invitation created",
-  "membership.role_changed": "Member role changed",
-  "membership.revoked": "Member access revoked",
-  "membership.invitation_revoked": "Team invitation revoked",
-  "organization.terms_accepted": "Evaluation terms accepted",
-  "organization.template_selected": "Authority policy selected",
-  "authorized_use.attested": "Authorized use confirmed",
-  "demo.run_provisioned": "Fresh demo prepared",
-};
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
@@ -47,7 +36,15 @@ export default async function TeamPage({ searchParams }: Props) {
   const [membershipResult, invitationResult, auditResult] = await Promise.all([
     supabase.from("organization_memberships").select("id, user_id, email_normalized, role, status, version, activated_at, revoked_at").eq("organization_id", membership.organizationId).order("created_at"),
     canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
-    canViewAudit ? supabase.from("organization_audit_events").select("event_id, event_type, occurred_at").eq("organization_id", membership.organizationId).order("sequence_id", { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
+    canViewAudit
+      ? supabase
+        .from("organization_audit_events")
+        .select("event_id, event_type, occurred_at")
+        .eq("organization_id", membership.organizationId)
+        .in("event_type", [...organizationAccessEventTypes])
+        .order("sequence_id", { ascending: false })
+        .limit(10)
+      : Promise.resolve({ data: [] }),
   ]);
   const members = membershipResult.data ?? [];
   const activeMemberCount = members.filter((member) => member.status === "active").length;
@@ -150,7 +147,7 @@ export default async function TeamPage({ searchParams }: Props) {
       {activity.length ? (
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Recent access activity</h2><p>Organization access changes are preserved in order.</p></div></div>
-          <ul className={styles.activity}>{activity.map((event) => <li key={event.event_id}><strong>{activityLabels[event.event_type] ?? "Organization access updated"}</strong><span>{formatTime(event.occurred_at)}</span></li>)}</ul>
+          <ul className={styles.activity}>{activity.map((event) => <li key={event.event_id}><strong>{organizationAccessActivityLabel(event.event_type)}</strong><span>{formatTime(event.occurred_at)}</span></li>)}</ul>
         </section>
       ) : null}
     </>

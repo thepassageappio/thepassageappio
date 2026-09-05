@@ -15,9 +15,24 @@ import {
   institutionWorkspacePresentation,
   invitableRolesFor,
   organizationCapabilities,
+  organizationAccessActivityLabel,
+  organizationAccessEventTypes,
   requestCoordinatorRecoveryMessage,
   roleCapabilityMap,
 } from "./role-capabilities.ts";
+
+test("the people page audit feed is limited to legible access lifecycle events", () => {
+  assert.deepEqual(organizationAccessEventTypes, [
+    "organization.created",
+    "membership.activated",
+    "membership.invited",
+    "membership.role_changed",
+    "membership.revoked",
+    "membership.invitation_revoked",
+  ]);
+  assert.equal(organizationAccessActivityLabel("membership.invited"), "Team invitation created");
+  assert.equal(organizationAccessActivityLabel("institution.decision_recorded"), "Organization access updated");
+});
 
 const migration = readFileSync(
   new URL("../../../supabase/migrations/20260903234403_reviewer_least_privilege.sql", import.meta.url),
