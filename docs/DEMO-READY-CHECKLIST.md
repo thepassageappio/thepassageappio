@@ -6,6 +6,7 @@
 ## Demo-ready exit criteria
 
 - A presenter can prepare and complete a fresh demo run without database access or developer help.
+- The presenter starts at `https://demo.thepassageapp.io`, signs in with Google, and can show separate Owner, Administrator, and Institution Reviewer access before opening a request.
 - The core story takes seven minutes or less, excluding optional questions.
 - Institution owner, account holder, representative, and reviewer use separate browser profiles or devices.
 - Every page states the current status and next action in plain language.
@@ -51,6 +52,7 @@ The preparation action must create a fresh namespaced run and request inside the
 - The hosted action, migration, and exact presenter allowlist are deployed. An authenticated owner created a fresh draft at desktop width and verified the notice, next action, session recovery, and controls at 390px and 360px.
 - A complete fresh hosted run now passes activation, principal confirmation, representative acceptance, two browser uploads, institution correction, replacement upload, representative disclosure, institution decision, matching three-party receipts, and revocation. The database independently matches the browser result and usage count.
 - Remaining before presenter sign-off: the owner rehearses the same story in seven minutes or less with independent browser profiles or devices and records inbox placement. No product-state blocker remains in the tested happy path.
+- Production organization-role replay passed with active Owner, Administrator, and Institution Reviewer identities. Reviewer request visibility, cross-tenant denial, reviewer mutation denial, administrator owner-creation denial, zero denied-mutation rows, and access audit events were independently checked on September 5, 2026.
 - The live sales path now separates guided demo, sign-in, and sample evaluation; the $5,000 pilot, security boundary, and hosted-first integration story use consistent plain language.
 - At 390px and 360px, commercial navigation remains one row, institution metrics remain compact, and request records render as cards instead of forcing a desktop-width table.
 - Reviewer and participant next actions appear before supporting detail; completed participant requirements lead directly to review and send.
