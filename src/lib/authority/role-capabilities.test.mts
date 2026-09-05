@@ -2,9 +2,21 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  assignableRolesFor,
+  canManageBilling,
+  canManageMembers,
+  canManageTargetMember,
   canCoordinateAuthorityRequests,
+  canRecordAuthorityDecision,
+  canReviewAuthorityEvidence,
+  canViewOrganizationAudit,
+  capabilitiesForRole,
+  hasOrganizationCapability,
   institutionWorkspacePresentation,
+  invitableRolesFor,
+  organizationCapabilities,
   requestCoordinatorRecoveryMessage,
+  roleCapabilityMap,
 } from "./role-capabilities.ts";
 
 const migration = readFileSync(
@@ -19,6 +31,40 @@ test("only organization coordinators can create or activate requests", () => {
   for (const role of ["reviewer", "developer", "auditor"] as const) {
     assert.equal(canCoordinateAuthorityRequests(role), false);
   }
+});
+
+test("every organization role has an explicit, duplicate-free capability template", () => {
+  assert.deepEqual(Object.keys(roleCapabilityMap).sort(), ["admin", "auditor", "developer", "owner", "reviewer", "staff"]);
+  for (const capabilities of Object.values(roleCapabilityMap)) {
+    assert.equal(new Set(capabilities).size, capabilities.length);
+    assert.equal(capabilities.every((capability) => organizationCapabilities.includes(capability)), true);
+  }
+  assert.deepEqual(capabilitiesForRole("owner"), organizationCapabilities);
+});
+
+test("role templates preserve least privilege and separation of duties", () => {
+  assert.equal(canManageMembers("owner"), true);
+  assert.equal(canManageMembers("admin"), true);
+  assert.equal(canManageMembers("staff"), false);
+  assert.equal(canManageBilling("admin"), true);
+  assert.equal(canManageBilling("auditor"), false);
+  assert.equal(canReviewAuthorityEvidence("reviewer"), true);
+  assert.equal(canRecordAuthorityDecision("reviewer"), true);
+  assert.equal(hasOrganizationCapability("reviewer", "requests.create"), false);
+  assert.equal(hasOrganizationCapability("developer", "requests.view"), false);
+  assert.equal(hasOrganizationCapability("developer", "integrations.manage"), true);
+  assert.equal(canViewOrganizationAudit("auditor"), true);
+});
+
+test("owner and administrator protections are explicit", () => {
+  assert.deepEqual(assignableRolesFor("admin"), ["staff", "reviewer", "developer", "auditor"]);
+  assert.deepEqual(invitableRolesFor("owner"), ["admin", "staff", "reviewer", "developer", "auditor"]);
+  assert.equal(invitableRolesFor("reviewer").length, 0);
+  assert.equal(canManageTargetMember({ actorRole: "owner", targetRole: "admin", targetIsSoleOwner: false }), true);
+  assert.equal(canManageTargetMember({ actorRole: "owner", targetRole: "owner", targetIsSoleOwner: true }), false);
+  assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "owner", targetIsSoleOwner: false }), false);
+  assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "admin", targetIsSoleOwner: false }), false);
+  assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "reviewer", targetIsSoleOwner: false }), true);
 });
 
 test("the reviewer workspace names the review job and recovery owner plainly", () => {

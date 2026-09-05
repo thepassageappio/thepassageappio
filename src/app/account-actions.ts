@@ -15,7 +15,7 @@ import {
   isDemoEnvironment,
   mayProvisionDemoRun,
 } from "@/lib/authority/demo-boundary";
-import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
+import { canCoordinateAuthorityRequests, hasOrganizationCapability } from "@/lib/authority/role-capabilities";
 import {
   getAuthorityAppUrl,
   getSupabasePublicConfig,
@@ -203,7 +203,7 @@ export async function acceptTermsAction(formData: FormData) {
   let destination = "/onboarding/template";
   try {
     const access = await getAuthorityAccessContext();
-    if (!access?.membership || access.membership.role !== "owner") {
+    if (!access?.membership || !hasOrganizationCapability(access.membership.role, "organization.manage")) {
       throw new Error("terms_acceptance_requires_owner");
     }
 
@@ -255,6 +255,7 @@ export async function inviteTeamMemberAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.invite")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("invite_member_v1", {
       p_organization_id: access.membership.organizationId,
@@ -320,6 +321,7 @@ export async function changeMemberRoleAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.role_manage")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("change_member_role_v1", {
       p_organization_id: access.membership.organizationId,
@@ -342,6 +344,7 @@ export async function revokeMemberAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.revoke")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("revoke_member_v1", {
       p_organization_id: access.membership.organizationId,
@@ -363,6 +366,7 @@ export async function revokeMemberInvitationAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.revoke")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("revoke_member_invitation_v1", {
       p_organization_id: access.membership.organizationId,
@@ -601,6 +605,7 @@ export async function reviewEvidenceArtifactAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.review_evidence")) throw new Error("evidence_review_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("review_evidence_artifact_v1", {
       p_organization_id: access.membership.organizationId,
@@ -627,6 +632,7 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.decide")) throw new Error("institution_decision_not_allowed");
     const decision = prepareHostedInstitutionDecision({
       outcome: textField(formData, "outcome"),
       reason: textField(formData, "reason"),
@@ -747,6 +753,7 @@ export async function requestHostedAuthorityInformationAction(formData: FormData
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.request_information")) throw new Error("information_request_not_allowed");
     const input = prepareHostedInformationRequest({
       requirementKey: textField(formData, "requirementKey"),
       message: textField(formData, "message"),
@@ -777,6 +784,7 @@ export async function recordAuthorityLifecycleAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.decide")) throw new Error("authority_lifecycle_not_allowed");
     const lifecycle = prepareHostedLifecycleChange({
       action: textField(formData, "lifecycleAction"),
       reason: textField(formData, "reason"),

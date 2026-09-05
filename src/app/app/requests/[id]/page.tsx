@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
-import { canCoordinateAuthorityRequests, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
+import { canCoordinateAuthorityRequests, canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage, userErrorMessage } from "@/lib/authority/user-messages";
@@ -119,11 +119,11 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     ? notifications.find((item) => item.participant_role === activeDeliveryRole)?.delivery_status
     : null;
   const savedNotice = hostedRequestNoticeMessage(notice, activeDeliveryStatus);
-  const canReviewEvidence = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
+  const canReviewEvidence = Boolean(access.membership && canReviewAuthorityEvidence(access.membership.role));
   const isDemoRunView = demo === "1" && Boolean(
     access.membership && mayProvisionDemoRun(access.user.email, access.membership.role),
   );
-  const canRecordDecision = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
+  const canRecordDecision = Boolean(access.membership && canRecordAuthorityDecision(access.membership.role));
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
   const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
   const decisionReady = requirementsComplete && record.status === "under_review" && !decision;

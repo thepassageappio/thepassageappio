@@ -6,6 +6,14 @@ import {
   revokeMemberInvitationAction,
 } from "@/app/account-actions";
 import { getAuthorityAccessContext, roleLabel, type OrganizationRole } from "@/lib/authority/access";
+import {
+  assignableRolesFor,
+  canManageMembers,
+  canManageTargetMember,
+  canViewOrganizationAudit,
+  invitableRolesFor,
+  roleDefinitions,
+} from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
@@ -33,12 +41,13 @@ export default async function TeamPage({ searchParams }: Props) {
   const access = await getAuthorityAccessContext();
   if (!access?.membership || !access.organization) return null;
   const membership = access.membership;
-  const canManage = membership.role === "owner" || membership.role === "admin";
+  const canManage = canManageMembers(membership.role);
+  const canViewAudit = canViewOrganizationAudit(membership.role);
   const supabase = await createClient();
   const [membershipResult, invitationResult, auditResult] = await Promise.all([
     supabase.from("organization_memberships").select("id, user_id, email_normalized, role, status, version, activated_at, revoked_at").eq("organization_id", membership.organizationId).order("created_at"),
     canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
-    canManage || membership.role === "auditor" ? supabase.from("organization_audit_events").select("event_id, event_type, occurred_at").eq("organization_id", membership.organizationId).order("sequence_id", { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
+    canViewAudit ? supabase.from("organization_audit_events").select("event_id, event_type, occurred_at").eq("organization_id", membership.organizationId).order("sequence_id", { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
   ]);
   const members = membershipResult.data ?? [];
   const activeMemberCount = members.filter((member) => member.status === "active").length;
@@ -48,9 +57,8 @@ export default async function TeamPage({ searchParams }: Props) {
   const query = await searchParams;
   const error = userErrorMessage(query.error);
   const notice = userNoticeMessage(query.notice);
-  const roles: OrganizationRole[] = membership.role === "owner"
-    ? ["admin", "staff", "reviewer", "developer", "auditor"]
-    : ["staff", "reviewer", "developer", "auditor"];
+  const roles = invitableRolesFor(membership.role);
+  const currentRole = roleDefinitions.find((definition) => definition.role === membership.role);
 
   return (
     <>
@@ -59,15 +67,16 @@ export default async function TeamPage({ searchParams }: Props) {
       </header>
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
+      {currentRole ? (
+        <section className={styles.accessSummary} aria-label="Your effective access">
+          <div><p className={styles.eyebrow}>Your effective access</p><h2>{roleLabel(currentRole.role)}</h2><p>{currentRole.access}</p></div>
+          <span className={styles.badge}>Active role</span>
+        </section>
+      ) : null}
       <details className={`${styles.panel} ${styles.disclosurePanel}`}>
         <summary>What each role can do</summary>
         <div className={styles.roleGrid}>
-          <div><strong>Owner</strong><p>Manages the organization, plan, team access, requests, evidence review, and institution decisions.</p></div>
-          <div><strong>Administrator</strong><p>Manages day-to-day access, requests, evidence review, and decisions. Only an owner can add another administrator.</p></div>
-          <div><strong>Operations staff</strong><p>Starts and coordinates requests. Cannot manage team access or record the institution&apos;s final decision.</p></div>
-          <div><strong>Institution reviewer</strong><p>Reviews evidence, requests more information, and records the institution&apos;s decision.</p></div>
-          <div><strong>Auditor</strong><p>Reads organization requests, receipts, and access history without changing them.</p></div>
-          <div><strong>Developer</strong><p>Supports integration setup without access to participant records in this release.</p></div>
+          {roleDefinitions.map((definition) => <div key={definition.role}><strong>{roleLabel(definition.role)}</strong><span>{definition.purpose}</span><p>{definition.access}</p></div>)}
         </div>
       </details>
       {canManage ? (
@@ -89,12 +98,8 @@ export default async function TeamPage({ searchParams }: Props) {
             <tbody>{members.map((member) => {
               const memberRole = member.role as OrganizationRole;
               const isSoleOwner = memberRole === "owner" && activeOwnerCount === 1;
-              const canEditTarget = canManage
-                && !isSoleOwner
-                && !(membership.role === "admin" && ["owner", "admin"].includes(memberRole));
-              const availableRoles: OrganizationRole[] = membership.role === "owner"
-                ? ["owner", "admin", "staff", "reviewer", "developer", "auditor"]
-                : ["staff", "reviewer", "developer", "auditor"];
+              const canEditTarget = canManageTargetMember({ actorRole: membership.role, targetRole: memberRole, targetIsSoleOwner: isSoleOwner });
+              const availableRoles: OrganizationRole[] = assignableRolesFor(membership.role);
               return (
                 <tr key={member.id}>
                   <td><strong>{member.email_normalized}</strong><small>{member.user_id === access.user.id ? "You" : "Organization member"}</small></td>
@@ -130,12 +135,14 @@ export default async function TeamPage({ searchParams }: Props) {
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Expires</th><th>Action</th></tr></thead>
-              <tbody>{invitations.map((invitation) => (
-                <tr key={invitation.id}>
-                  <td><strong>{invitation.email_normalized}</strong></td><td>{roleLabel(invitation.role as OrganizationRole)}</td><td>{invitation.status}</td><td>{formatTime(invitation.expires_at)}</td>
+              <tbody>{invitations.map((invitation) => {
+                const expired = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date();
+                const availability = expired ? "Expired — send a new invitation" : invitation.status === "pending" ? "Ready for the invited email" : invitation.status === "accepted" ? "Accepted" : "Revoked";
+                return <tr key={invitation.id}>
+                  <td><strong>{invitation.email_normalized}</strong></td><td>{roleLabel(invitation.role as OrganizationRole)}</td><td><span className={styles.badge}>{availability}</span></td><td>{formatTime(invitation.expires_at)}</td>
                   <td>{invitation.status === "pending" ? <form action={revokeMemberInvitationAction}><input name="invitationId" type="hidden" value={invitation.id} /><input name="expectedVersion" type="hidden" value={invitation.version} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><button className={styles.dangerButton} type="submit">Revoke</button></form> : "Complete"}</td>
-                </tr>
-              ))}</tbody>
+                </tr>;
+              })}</tbody>
             </table>
           </div>
         </section>

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAuthorityAdminClient();
-  const { data, error } = await supabase.rpc("ingest_stripe_event_v1", {
+  const { data, error } = await supabase.rpc("ingest_and_apply_stripe_event_v2", {
     p_provider_event_id: event.id,
     p_provider_created_at: new Date(event.created * 1000).toISOString(),
     p_body_sha256: createHash("sha256").update(payload).digest("hex"),
