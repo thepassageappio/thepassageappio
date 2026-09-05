@@ -36,7 +36,7 @@ Do not claim that Passage validates legal authority, replaces identity verificat
 2. Give the one-pager, seven-minute script and three-touch sequence one buyer/sender review; update these source files before changing downstream copy.
 3. Build the 20-account New York list, then personalize only the first five accounts around one evidenced operating pain and one discovery question.
 4. Connect the Passage HubSpot private app and apply the approved additive, no-delete schema before loading reviewed contacts. Keep all participant and authority-request data out of HubSpot.
-5. Start the five-account batch once the timed demo passes. Use early calls to test problem, buyer, urgency and pilot fit—not to claim production-enterprise readiness.
+5. Start the five-account batch once the timed demo passes. P1 permits discovery conversations and synthetic demonstrations only: do not accept real POA, participant, account or authority data, onboard live business, or claim production-enterprise readiness.
 
 ## Stop/go rules
 
@@ -44,7 +44,7 @@ Do not claim that Passage validates legal authority, replaces identity verificat
 
 **Do not promise yet:** production customer data, automated legal validation, SSO/SCIM, broad core integration, published annual pricing, or full enterprise readiness.
 
-**Before a controlled real-data pilot:** close privileged MFA, retention/restore/incident evidence, legal/privacy review, scoped security assessment, remaining hosted negative paths, and provider reconciliation.
+**Before a controlled real-data pilot:** close privileged MFA, retention/restore/incident evidence, privacy review, scoped security assessment, remaining hosted negative paths, provider reconciliation, and counsel-led review of product claims, target-state POA formalities, institution decision responsibilities, and applicable electronic-signature/record requirements. Passage currently coordinates review of authority evidence; it does not create, validate, or make a POA legally binding. Any future POA creation or execution capability requires a separate jurisdiction-specific legal gate.
 
 ## This week's operating cadence
 
