@@ -26,6 +26,8 @@ test("participant invitation explains the sender, role, other person, scope, exp
     delivery.accountBoundary,
     delivery.secureUrl,
     "final decision",
+    "newest Passage email",
+    "every earlier link stops working",
   ]) {
     assert.match(message.text, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }

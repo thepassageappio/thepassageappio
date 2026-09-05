@@ -41,6 +41,9 @@ function errorCode(error: unknown) {
   const message = String(error.message);
   const map: Record<string, string> = {
     authority_access_unavailable: "access_unavailable",
+    authority_app_url_insecure: "invitation_configuration_invalid",
+    authority_app_url_mismatch: "invitation_configuration_invalid",
+    authority_public_site_url_missing: "invitation_configuration_invalid",
     authorized_use_required: "authorized_use_required",
     organization_details_incomplete: "organization_details_incomplete",
     active_organization_already_exists: "organization_exists",
@@ -148,8 +151,15 @@ export async function requestSignInAction(formData: FormData) {
     redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "access_unavailable"));
   }
 
+  let authorityAppUrl: string;
+  try {
+    authorityAppUrl = getAuthorityAppUrl();
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "invitation_configuration_invalid"));
+  }
+
   const supabase = await createClient();
-  const confirmUrl = new URL("/auth/confirm", getAuthorityAppUrl());
+  const confirmUrl = new URL("/auth/confirm", authorityAppUrl);
   confirmUrl.searchParams.set("next", next);
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -253,6 +263,7 @@ export async function selectTemplateAction(formData: FormData) {
 export async function inviteTeamMemberAction(formData: FormData) {
   let destination = "/app/team";
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     if (!hasOrganizationCapability(access.membership.role, "members.invite")) throw new Error("member_management_not_allowed");
@@ -275,7 +286,7 @@ export async function inviteTeamMemberAction(formData: FormData) {
 
     let delivered = false;
     if (result.token) {
-      const secureUrl = new URL("/team/accept", getAuthorityAppUrl());
+      const secureUrl = new URL("/team/accept", authorityAppUrl);
       secureUrl.searchParams.set("invitation", result.invitation_id);
       secureUrl.searchParams.set("token", result.token);
       const delivery = await deliverTeamInvitation({
@@ -467,6 +478,7 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_activation_not_allowed");
@@ -502,7 +514,7 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
           purpose: String(record.purpose),
           accountBoundary: String(record.account_boundary),
           expiresAt: result.invitation_expires_at,
-          secureUrl: new URL(`/r/${result.principal_token}`, getAuthorityAppUrl()).toString(),
+          secureUrl: new URL(`/r/${result.principal_token}`, authorityAppUrl).toString(),
         });
         const admin = createAuthorityAdminClient();
         const { error: deliveryError } = await admin.rpc("record_operator_participant_delivery_service_v1", {
@@ -532,6 +544,7 @@ export async function reissueParticipantInvitationAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     const participantRole = textField(formData, "participantRole") as "principal" | "representative";
@@ -574,7 +587,7 @@ export async function reissueParticipantInvitationAction(formData: FormData) {
       purpose: String(record.purpose),
       accountBoundary: String(record.account_boundary),
       expiresAt: result.expires_at,
-      secureUrl: new URL(`/r/${result.invitation_token}`, getAuthorityAppUrl()).toString(),
+      secureUrl: new URL(`/r/${result.invitation_token}`, authorityAppUrl).toString(),
       accessPurpose: participantAccessPurpose(participantRole, record.status),
     });
     const admin = createAuthorityAdminClient();
@@ -630,6 +643,7 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     if (!hasOrganizationCapability(access.membership.role, "requests.decide")) throw new Error("institution_decision_not_allowed");
@@ -711,7 +725,7 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
             purpose: String(record.purpose),
             accountBoundary: String(record.account_boundary),
             expiresAt: receiptInvitation.expires_at,
-            secureUrl: new URL(`/r/${receiptInvitation.invitation_token}`, getAuthorityAppUrl()).toString(),
+            secureUrl: new URL(`/r/${receiptInvitation.invitation_token}`, authorityAppUrl).toString(),
             accessPurpose: "receipt",
           });
           const { error: deliveryError } = await admin.rpc("record_operator_participant_delivery_service_v1", {

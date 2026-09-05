@@ -1,0 +1,39 @@
+.feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.bar {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 42%;
+  height: 4px;
+  border-radius: 0 999px 999px 0;
+  background: #1d5b4d;
+  box-shadow: 0 0 18px rgba(29, 91, 77, 0.45);
+  animation: progress 900ms ease-in-out infinite alternate;
+}
+
+.label {
+  padding: 10px 14px;
+  border: 1px solid #d8e0dc;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d5b4d;
+  box-shadow: 0 12px 35px rgba(34, 65, 56, 0.13);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@keyframes progress {
+  from { transform: translateX(-25%); }
+  to { transform: translateX(165%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar { animation: none; width: 100%; }
+}

@@ -26,15 +26,15 @@ const fakeToken = "0".repeat(64);
 const recoveryCases = [
   {
     path: `/r/${fakeToken}`,
-    expected: "This secure link is not available. Ask the institution to send a new invitation.",
+    expected: "This link is no longer active. A newer email may have replaced it, or the request may have closed.",
   },
   {
     path: `/r/${fakeToken}?error=link_used`,
-    expected: "This one-time link has already been used. Continue from the device where it was opened or ask the institution for a new invitation.",
+    expected: "This one-time link was already opened. Continue from that device, or ask the institution for a fresh invitation.",
   },
   {
     path: `/r/${fakeToken}?error=link_expired`,
-    expected: "This secure link has expired. Ask the institution to send a new invitation.",
+    expected: "This link has expired. Ask the institution to send a fresh invitation.",
   },
   {
     path: "/request/00000000-0000-4000-8000-000000000000/overview",

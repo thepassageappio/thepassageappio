@@ -16,11 +16,11 @@ type Props = {
 };
 
 const errorCopy: Record<string, string> = {
-  link_unavailable: "This secure link is not available. Ask the institution to send a new invitation.",
-  link_expired: "This secure link has expired. Ask the institution to send a new invitation.",
-  link_used: "This one-time link has already been used. Continue from the device where it was opened or ask the institution for a new invitation.",
+  link_unavailable: "This link is no longer active. A newer email may have replaced it, or the request may have closed.",
+  link_expired: "This link has expired. Ask the institution to send a fresh invitation.",
+  link_used: "This one-time link was already opened. Continue from that device, or ask the institution for a fresh invitation.",
   not_ready: "The person granting authority must confirm the request before representative access can open.",
-  session_unavailable: "The secure session could not be opened. Ask the institution to send a new invitation.",
+  session_unavailable: "The secure session could not be opened. Ask the institution to send a fresh invitation.",
 };
 
 export default async function ParticipantInvitationPage({ params, searchParams }: Props) {
@@ -47,8 +47,12 @@ export default async function ParticipantInvitationPage({ params, searchParams }
 
   if (unavailable || preview.entryStatus === "unavailable" || error || expired || used) {
     const message = error ?? (expired ? errorCopy.link_expired : used ? errorCopy.link_used : errorCopy.link_unavailable);
-    return <AccountFrame eyebrow="Secure request" title="This link cannot open the request" description="Participant access is protected by expiring, one-time links.">
+    return <AccountFrame eyebrow="Secure request" title="This link is no longer active" description="Passage uses one-time links, and a fresh invitation turns earlier links off.">
       <div className={styles.alert} role="alert">{message}</div>
+      <div className={styles.summary}>
+        <h2>What to do now</h2>
+        <p>Open the newest Passage email for this request. If that link also fails, ask the financial institution to send a fresh link.</p>
+      </div>
       <Link className={styles.secondary} href="/security">How Passage protects access</Link>
     </AccountFrame>;
   }

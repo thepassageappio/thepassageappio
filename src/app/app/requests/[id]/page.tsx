@@ -203,6 +203,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
                 <input type="hidden" name="idempotencyKey" value={randomUUID()} />
                 <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send decision receipt" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
               </form> : null}
+              {canReissue ? <span>Sending a fresh link turns every earlier link for this person off.</span> : null}
             </li>;
           })}</ul>
           <Link className={styles.secondary} href="/app">Return to request queue</Link>

@@ -67,6 +67,7 @@ const errorMessages: Record<string, string> = {
   information_request_requirement_invalid: "Choose a current policy requirement.",
   information_request_already_open: "This request already has an unanswered information request.",
   demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
+  invitation_configuration_invalid: "Secure-link delivery is not connected to this site. Nothing was changed or sent. Ask a Passage administrator to check the deployment settings.",
 };
 
 const noticeMessages: Record<string, string> = {

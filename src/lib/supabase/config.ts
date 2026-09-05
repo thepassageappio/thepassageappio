@@ -23,7 +23,25 @@ export function requireSupabasePublicConfig(): SupabasePublicConfig {
 }
 
 export function getAuthorityAppUrl() {
-  return (process.env.AUTHORITY_APP_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
+  const configuredUrl = (process.env.AUTHORITY_APP_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
+  const appUrl = new URL(configuredUrl);
+  const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (process.env.NODE_ENV === "production") {
+    if (appUrl.protocol !== "https:") {
+      throw new Error("authority_app_url_insecure");
+    }
+
+    if (!publicSiteUrl) {
+      throw new Error("authority_public_site_url_missing");
+    }
+
+    if (appUrl.origin !== new URL(publicSiteUrl).origin) {
+      throw new Error("authority_app_url_mismatch");
+    }
+  }
+
+  return appUrl.origin;
 }
 
 export function safeAppPath(value: string | null | undefined, fallback = "/app") {

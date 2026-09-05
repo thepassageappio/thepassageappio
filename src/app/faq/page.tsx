@@ -26,8 +26,8 @@ export default function FaqPage() {
 
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Frequently asked questions</p>
-        <h1>Understand what Passage does—and who stays in control.</h1>
-        <p>Start with the basics, then review how an organization, its team, and each request work. These answers describe the current controlled evaluation honestly.</p>
+        <h1>Plain answers about what Passage does.</h1>
+        <p>Start with the real-life use case, then see how identity checks, institution decisions, organizations, roles, and the current evaluation work.</p>
         <nav className={styles.jumpLinks} aria-label="FAQ topics">
           <a href="#product">Product</a>
           <a href="#responsibility">Responsibility</a>
@@ -45,7 +45,11 @@ export default function FaqPage() {
           <div className={styles.questions}>
             <article>
               <h3>What is Passage Authority?</h3>
-              <p>Passage is a guided operating workflow for financial power of attorney requests. It brings the account holder, representative, and financial institution into one process for collecting information, reviewing evidence, recording the institution’s scoped decision, and keeping the current result clear.</p>
+              <p>Passage helps an account holder, the person helping them, and a financial institution complete one power of attorney request. It keeps the questions, documents, checks, institution decision, and current result in one place.</p>
+            </article>
+            <article>
+              <h3>Is this for me if I am my grandmother&apos;s power of attorney?</h3>
+              <p><strong>That is a core example.</strong> If her bank or credit union uses Passage, the institution starts a request and invites both of you. Your grandmother confirms the request, you complete the representative steps, and the institution decides whether it will recognize the power of attorney and what it will let you do. You cannot use Passage alone to make a bank accept it.</p>
             </article>
             <article>
               <h3>Why is this important?</h3>
@@ -73,6 +77,10 @@ export default function FaqPage() {
               <p><strong>No.</strong> Passage organizes the request and evidence for review. The receiving institution applies its legal, fraud, identity, risk, and policy requirements and records its own decision.</p>
             </article>
             <article>
+              <h3>How does the institution know the people are who they say they are?</h3>
+              <p>The institution must use its own required identity process for the account holder and representative. A Passage email link gives one person access to one role in one request; it is not, by itself, proof of identity. The current evaluation demonstrates the workflow with sample data. Identity verification must be selected, integrated, and approved with an institution before customer data is used.</p>
+            </article>
+            <article>
               <h3>Does Passage grant account access or move money?</h3>
               <p><strong>No.</strong> Passage does not create or notarize a power of attorney, grant credentials, change ownership, open credit, or move funds. A recorded decision tells permitted people and connected systems what the institution decided; it is not itself account access.</p>
             </article>
@@ -83,6 +91,14 @@ export default function FaqPage() {
             <article>
               <h3>What record is kept?</h3>
               <p>Saved actions are added to an ordered activity history. The resulting decision receipt describes the participants, request scope, institution outcome, limits, and current status so permitted people and systems can reconcile the same result.</p>
+            </article>
+            <article>
+              <h3>What does a completed request look like?</h3>
+              <p>The institution records one of three outcomes: accepted, accepted with limits, or rejected. The receipt shows the people, account boundary, requested and accepted actions, limits, reason, decision date, and whether the result later changed or ended. The receipt records the institution&apos;s answer; it does not itself create login access or move money.</p>
+            </article>
+            <article>
+              <h3>Why would an emailed secure link stop working?</h3>
+              <p>Participant links are one-time and expire. When the institution sends a fresh link, every earlier link for that person stops working. Open the newest Passage email. If that link also fails, ask the institution to send another.</p>
             </article>
           </div>
         </section>
