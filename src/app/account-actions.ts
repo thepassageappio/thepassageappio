@@ -19,6 +19,7 @@ import { canCoordinateAuthorityRequests, hasOrganizationCapability } from "@/lib
 import {
   getAuthorityAppUrl,
   getSupabasePublicConfig,
+  isGoogleSignInEnabled,
   safeAppPath,
 } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -171,8 +172,55 @@ export async function requestSignInAction(formData: FormData) {
     },
   });
 
-  const destination = error ? "/start/check-email?status=unavailable" : "/start/check-email?status=sent";
+  const destination = error
+    ? `/start/check-email?status=unavailable&next=${encodeURIComponent(next)}`
+    : `/start/check-email?status=requested&next=${encodeURIComponent(next)}`;
   redirect(destination);
+}
+
+export async function signInWithGoogleAction(formData: FormData) {
+  const next = safeAppPath(textField(formData, "next"), "/onboarding/organization");
+  const config = getSupabasePublicConfig();
+
+  if (!config || !isGoogleSignInEnabled()) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "access_unavailable"));
+  }
+
+  let authorityAppUrl: string;
+  try {
+    authorityAppUrl = getAuthorityAppUrl();
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "invitation_configuration_invalid"));
+  }
+
+  const callbackUrl = new URL("/auth/confirm", authorityAppUrl);
+  callbackUrl.searchParams.set("next", next);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl.toString(),
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error || !data.url) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  let authorizationUrl: URL;
+  try {
+    authorizationUrl = new URL(data.url);
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  if (authorizationUrl.origin !== new URL(config.url).origin) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  redirect(authorizationUrl.toString());
 }
 
 export async function signOutAction() {

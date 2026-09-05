@@ -8,6 +8,11 @@ const origins = process.argv.length > 2 ? process.argv.slice(2) : defaultOrigins
 const publicPaths = [
   "/",
   "/about",
+  "/blog",
+  "/blog/how-a-bank-verifies-a-power-of-attorney-request",
+  "/blog/can-i-use-a-power-of-attorney-to-talk-to-a-bank-for-family",
+  "/blog/what-a-completed-authority-request-looks-like",
+  "/blog/feed.xml",
   "/contact",
   "/faq",
   "/integrations",

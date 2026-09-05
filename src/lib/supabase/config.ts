@@ -44,6 +44,10 @@ export function getAuthorityAppUrl() {
   return appUrl.origin;
 }
 
+export function isGoogleSignInEnabled() {
+  return process.env.GOOGLE_AUTH_ENABLED === "true";
+}
+
 export function safeAppPath(value: string | null | undefined, fallback = "/app") {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
     return fallback;

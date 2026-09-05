@@ -7,6 +7,7 @@ export function CommercialFooter() {
       <span>Passage Authority · Controlled evaluation</span>
       <nav aria-label="Site information">
         <Link href="/faq">FAQ</Link>
+        <Link href="/blog">Blog</Link>
         <Link href="/resources">Resources</Link>
         <Link href="/contact">Contact</Link>
         <Link href="/templates">Templates</Link>

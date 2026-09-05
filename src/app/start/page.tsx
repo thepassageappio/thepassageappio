@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { requestSignInAction } from "@/app/account-actions";
+import { requestSignInAction, signInWithGoogleAction } from "@/app/account-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import authStyles from "@/components/account/auth-buttons.module.css";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { userErrorMessage } from "@/lib/authority/user-messages";
-import { safeAppPath } from "@/lib/supabase/config";
+import { isGoogleSignInEnabled, safeAppPath } from "@/lib/supabase/config";
 
 type Props = {
   searchParams: Promise<{ intent?: string; next?: string; error?: string }>;
@@ -25,16 +26,26 @@ export default async function StartPage({ searchParams }: Props) {
   const returning = query.intent === "sign-in";
   const next = safeAppPath(query.next, "/onboarding/organization");
   const error = userErrorMessage(query.error);
+  const googleSignInEnabled = isGoogleSignInEnabled();
 
   return (
     <AccountFrame
       eyebrow={returning ? "Welcome back" : "Try Passage Authority"}
       title={returning ? "Sign in securely" : "Create your evaluation workspace"}
       description={returning
-        ? "Enter your work email and we will send a one-time secure link."
+        ? googleSignInEnabled
+          ? "Use Google for immediate access, or request a one-time link by email."
+          : "Request a one-time sign-in link using your work email."
         : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
+      {googleSignInEnabled ? <>
+        <form action={signInWithGoogleAction} className={authStyles.oauthForm}>
+          <input name="next" type="hidden" value={next} />
+          <button className={authStyles.googleButton} type="submit">Continue with Google</button>
+        </form>
+        <div className={authStyles.divider}><span>or use email</span></div>
+      </> : null}
       <form action={requestSignInAction} className={styles.form}>
         <input name="next" type="hidden" value={next} />
         {!returning ? (
@@ -48,7 +59,7 @@ export default async function StartPage({ searchParams }: Props) {
           <input autoComplete="email" id="email" name="email" placeholder="alex@institution.com" required type="email" />
           <small>Use the email address your organization will recognize.</small>
         </div>
-        <button className={styles.primary} type="submit">Email me a secure link</button>
+        <button className={styles.primary} type="submit">Send me a one-time email link</button>
         <p className={styles.legal}>
           By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
         </p>

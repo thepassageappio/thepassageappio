@@ -4,6 +4,7 @@ const errorMessages: Record<string, string> = {
   access_unavailable: "Account access is temporarily unavailable. Please try again shortly.",
   access_revoked: "Your previous organization access was removed. Contact an organization owner if you believe access should be restored.",
   email_invalid: "Enter a valid work email address.",
+  google_sign_in_unavailable: "Google sign-in is not connected yet. Use the email option or ask a Passage administrator to finish the Google connection.",
   link_unavailable: "This sign-in link is no longer available. Request a new secure link.",
   authorized_use_required: "Confirm that you are authorized to evaluate Passage Authority for this organization.",
   organization_details_incomplete: "Complete each required organization field.",

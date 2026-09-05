@@ -3,7 +3,7 @@ import Link from "next/link";
 import styles from "@/app/commercial.module.css";
 import polish from "./commercial-header-polish.module.css";
 
-export function CommercialHeader({ active }: { active?: "integrations" | "security" | "pricing" | "about" }) {
+export function CommercialHeader({ active }: { active?: "integrations" | "security" | "pricing" | "about" | "blog" }) {
   return (
     <header className={styles.header}>
       <Link className={`${styles.brand} ${polish.brand}`} href="/" aria-label="Passage Authority home">
@@ -14,6 +14,7 @@ export function CommercialHeader({ active }: { active?: "integrations" | "securi
         <Link data-active={active === "integrations"} href="/integrations">Integrations</Link>
         <Link data-active={active === "security"} href="/security">Security</Link>
         <Link data-active={active === "pricing"} href="/pricing">Pricing</Link>
+        <Link data-active={active === "blog"} href="/blog">Blog</Link>
         <Link data-active={active === "about"} href="/about">About</Link>
       </nav>
       <div className={polish.headerActions}>
