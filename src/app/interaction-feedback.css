@@ -31,6 +31,27 @@ footer a {
   opacity: 1;
 }
 
+.interaction-feedback[data-tone="error"] .interaction-feedback__bar {
+  width: 100%;
+  background: #9d4437;
+  box-shadow: none;
+  animation: none;
+}
+
+.interaction-feedback[data-tone="error"] .interaction-feedback__label {
+  border-color: #e3beb5;
+  background: #faeae6;
+  color: #833d31;
+  white-space: normal;
+}
+
+input[data-validation-error="true"],
+select[data-validation-error="true"],
+textarea[data-validation-error="true"] {
+  border-color: #9d4437 !important;
+  outline: 3px solid rgba(157, 68, 55, 0.16) !important;
+}
+
 .interaction-feedback__bar {
   position: absolute;
   inset: 0 auto auto 0;

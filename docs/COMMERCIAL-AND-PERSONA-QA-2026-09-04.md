@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The current Passage Authority release passed the non-destructive commercial, platform, responsive, recovery, and cross-persona checks completed in this run. No new critical or high product-state defect was found. Hosted Demo Google sign-in, fresh participant delivery, secure-link access, and a complete operator-assisted happy path now pass. A timed independent four-profile rehearsal, hosted negative paths, and commercial-provider reconciliation remain the next gates.
+The current Passage Authority release passed the non-destructive commercial, platform, responsive, recovery, and cross-persona checks completed in this run. Independent live QA also passed real production signup/onboarding, the sixth-activation free-tier gate, same-day Gmail inbox placement, Demo consumed-link recovery, and the public claims boundary. Hosted Demo Google sign-in, fresh participant delivery, secure-link access, and a complete operator-assisted happy path pass. A timed independent four-profile rehearsal, one authenticated valid-input production form replay, remaining hosted negative paths, and commercial-provider reconciliation remain the next gates.
 
 ## Product story under test
 
@@ -17,10 +17,20 @@ An institution buyer moves from the public product story into a controlled evalu
 
 ### Founding-pilot billing addendum
 
-- The expanded suite now passes 122/122 domain tests, including pilot date/allowance validation, service-only provider boundaries, permanent event deduplication, and exactly-one allowance semantics.
+- The expanded suite now passes 131/131 domain tests, including pilot date/allowance validation, service-only provider boundaries, permanent event deduplication, and exactly-one allowance semantics.
 - ESLint and TypeScript pass, and the optimized Next.js 16.1.6 production build passes with the new `/api/internal/stripe/process` and `/api/webhooks/stripe` routes.
 - Demo owner command replay, a real $5,000 hosted Stripe test invoice, signed paid-event ingestion, one entitlement activation, and duplicate-event replay passed against the isolated Demo database.
-- The clickable organization billing surface is implemented but not yet published. Current-host deployment approval is unavailable and direct shell networking is blocked, so publication remains an operational release gate.
+- The clickable organization billing surface and current green artifact are published on the ready Demo custom domain. Stripe failure/refund/disorder replay and provider reconciliation remain.
+
+## Independent live QA addendum — September 5, 2026
+
+- **Passed:** real production evaluation signup from email confirmation through organization profile, legal/authorized-use acceptance, policy selection, and workspace readiness.
+- **Passed:** the seeded organization's sixth activation remains saved as a draft and renders no send control.
+- **Passed:** every Passage sign-in, confirmation, invitation, and decision-receipt email inspected across three test organizations landed in Gmail Inbox; none appeared in Spam. Inbox placement is no longer an open same-day QA item, although ongoing deliverability monitoring remains an operating requirement.
+- **Passed in Demo:** a consumed one-time participant link failed closed with the correct recovery guidance. Production negative-path parity remains separately gated.
+- **Passed:** Home, Security, Pricing, About, Terms, Pilot, institution decision-review copy, and the current sales materials consistently describe Passage as workflow coordination and institutional review—not legal validation.
+- **Diagnosed, usability fix deployed:** production `Save draft` and team `Send invitation` appeared inert because required email fields were empty. Native browser validation stopped submission before a network request or server action, matching the observed zero requests and zero console errors. Sample details intentionally leave inboxes blank to prevent accidental delivery. Deployment `dpl_BWHK6ZdbLB7UivCd3L3jppvNFyFY` now highlights the missing field and displays `Complete the highlighted required field before continuing.` Browser verification passed with no framework overlay or console error. One authenticated valid-input replay of both production actions remains before closing this finding completely.
+- **Rollback gap confirmed:** the Vercel team currently exposes only `passage-authority-demo` and `passage-authority-uat`. The expected legacy `thepassageappio.vercel.app` URL is not active, and no separate funeral-home rollback project is present in the accessible project inventory. Reconstructing or documenting a legacy rollback is a separate continuity task, not an Authority synthetic-demo blocker.
 
 ## Live Production evidence
 
@@ -48,7 +58,7 @@ At an explicit 360px viewport, the homepage, Pricing, owner dashboard, People an
 ## Remaining gates
 
 1. Time the four-profile owner/account-holder/representative/reviewer rehearsal to seven minutes or less.
-2. Record inbox versus spam placement for initial invitations, clarification/resume, and final receipt messages; Resend delivery alone is not inbox-placement proof.
+2. Replay production `Save draft` and team `Send invitation` with valid controlled email input and confirm the server actions, redirects, saved state, and visible notices.
 3. Complete manual hosted negative-path browser checks for wrong-role denial, stale form recovery, rejection, withdrawal, expiration, and fresh-link session recovery.
 4. Complete Stripe failure/refund/out-of-order replay and the Passage/Stripe/HubSpot reconciliation sequence.
 
