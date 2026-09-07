@@ -159,6 +159,19 @@ The customer-facing message, verified claims, asset checklist, target-account se
 - No participant identity, evidence, request content, account reference, decision, or receipt content enters Stripe or HubSpot.
 - Payment problems may stop a future activation only under the documented grace policy. They never interrupt active work or remove receipts.
 
+## Persona/role audit fixes — September 6, 2026
+
+An institution-side persona audit across all six org roles (owner, admin, staff, reviewer, developer, auditor) found two small, non-blocking gaps. Both are fixed on `agent/founding-pilot-billing`:
+
+1. **Team-size count bug.** `memberships_authorized_select` (see `20260828211255_authority_gate_1_foundation.sql`) intentionally limits staff/reviewer/developer to seeing only their own `organization_memberships` row. The `/app/team` page counted from that same row-limited query, so staff and reviewer saw an inaccurate, undercounted "team size" instead of the true active member count. Fixed with a new `organization_member_count_v1` SECURITY DEFINER RPC (`20260906190000_organization_member_count_summary.sql`) that returns the true active-member count to any active org member without exposing other members' individual rows. `/app/team` now uses this RPC for the "N people currently have access" summary. Verified by comparing the count a staff/reviewer viewer sees against the true member count visible to an owner/admin for the same organization.
+2. **Dead Developer role / integrations capability.** The `developer` org role and its `integrations.view`/`integrations.manage` capabilities exist in the data model but have no integrations UI anywhere in the product (the only related routes are the public `/integrations` marketing page and a `NODE_ENV`-gated local API sandbox at `/developer`, neither of which is the org-role feature). Selecting "Developer" for a teammate would dead-end them, and could confuse or embarrass in front of a demo prospect who lands on that role. Fixed by hiding `developer` from role-selection UI only: a new `hiddenOrganizationRoles` allow-list in `role-capabilities.ts` filters it out of `assignableRolesFor`, `invitableRolesFor`, and the "what each role can do" disclosure panel (`visibleRoleDefinitions`). The role, its capabilities, and its `roleCapabilityMap` entry remain fully intact in the data model — only the invite/role-change dropdowns and the role-description panel are affected, per the team's explicit no-build-integrations-yet scope. Verified by walking each of the six roles' rendered navigation and role-selection options after the change: no role's UI links to or offers a page that doesn't exist.
+
+Both fixes are additive/UI-scoped; no existing role, membership, or capability was removed from the schema.
+
+## Backlog — not gating the demo
+
+- **Organization branding/customization is a fully missing feature.** The persona audit found no UI anywhere for an institution to set a logo, color, or any other white-label/branding element for its workspace. This is not a current priority and should not block the demo or pilot timeline, but is recorded here so it isn't lost: a future gate (likely alongside V2-7C/V2-7D enterprise-administration work) should scope organization branding/customization once a buyer asks for it.
+
 ## Research basis
 
 - [Stripe Hosted Invoice Page](https://docs.stripe.com/invoicing/hosted-invoice-page)
