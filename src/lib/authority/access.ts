@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { mfaGateDecision, type MfaFactorSummary, type MfaGate } from "@/lib/authority/mfa-policy";
 
 export type OrganizationRole = "owner" | "admin" | "staff" | "reviewer" | "developer" | "auditor";
 
@@ -21,7 +22,28 @@ export type AuthorityAccessContext = {
     onboardingStatus: "terms_required" | "template_required" | "ready";
     status: "active" | "suspended" | "closed";
   } | null;
+  /**
+   * Whether this request may proceed given the account's current MFA state.
+   * Only "owner" and "admin" are required to satisfy this today (see
+   * lib/authority/mfa-policy.ts). Every branch below reports "allow" unless
+   * we have an active membership in a ready organization, since that is the
+   * earliest point a role-based requirement can even apply.
+   */
+  mfaGate: MfaGate;
 };
+
+async function currentMfaState(supabase: Awaited<ReturnType<typeof createClient>>): Promise<MfaFactorSummary> {
+  const [{ data: aal }, { data: factors }] = await Promise.all([
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+    supabase.auth.mfa.listFactors(),
+  ]);
+
+  return {
+    hasVerifiedTotp: Boolean(factors?.totp?.some((factor) => factor.status === "verified")),
+    currentLevel: aal?.currentLevel === "aal2" ? "aal2" : "aal1",
+    nextLevel: aal?.nextLevel === "aal2" ? "aal2" : "aal1",
+  };
+}
 
 export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccessContext | null> => {
   if (!getSupabasePublicConfig()) {
@@ -45,7 +67,7 @@ export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccess
     .maybeSingle();
 
   if (membershipError || !membershipData) {
-    return { user, membership: null, organization: null };
+    return { user, membership: null, organization: null, mfaGate: "allow" };
   }
 
   const membership = {
@@ -57,7 +79,7 @@ export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccess
   };
 
   if (membership.status === "revoked") {
-    return { user, membership, organization: null };
+    return { user, membership, organization: null, mfaGate: "allow" };
   }
 
   const { data: organizationData, error: organizationError } = await supabase
@@ -67,8 +89,10 @@ export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccess
     .maybeSingle();
 
   if (organizationError || !organizationData) {
-    return { user, membership: null, organization: null };
+    return { user, membership: null, organization: null, mfaGate: "allow" };
   }
+
+  const mfa = await currentMfaState(supabase);
 
   return {
     user,
@@ -83,6 +107,7 @@ export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccess
         : never,
       status: organizationData.status as "active" | "suspended" | "closed",
     },
+    mfaGate: mfaGateDecision(membership.role, mfa),
   };
 });
 
