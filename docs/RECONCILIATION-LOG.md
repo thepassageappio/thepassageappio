@@ -54,11 +54,70 @@ Manual (used for today's run, via direct database access):
 select public.run_daily_reconciliation_v1();
 ```
 
-Scripted (for local/CI use once Supabase credentials are available as environment variables):
+Scripted (for local/CI use, added today at `scripts/run-daily-reconciliation.mjs`):
 
 ```bash
 SUPABASE_URL=... SUPABASE_SECRET_KEY=... SUPABASE_ENVIRONMENT_LABEL=uat \
   node scripts/run-daily-reconciliation.mjs
 ```
 
-Automated: `.github/workflows/daily-reconciliation.yml` runs this daily via GitHub Actions for both environments, but **requires four repository secrets that are not yet configured**: `RECONCILIATION_UAT_SUPABASE_URL`, `RECONCILIATION_UAT_SUPABASE_SECRET_KEY`, `RECONCILIATION_DEMO_SUPABASE_URL`, `RECONCILIATION_DEMO_SUPABASE_SECRET_KEY` (each project's API URL and `service_role` secret key, from Supabase Project Settings -> API). Until Steve adds those secrets in GitHub repo settings, the scheduled workflow will run and fail with a clear "required" error rather than silently doing nothing -- the workflow's `workflow_dispatch` trigger also allows a manual run once secrets are set. Each new day's result should be appended to this log, and the streak table above updated, whether run manually or by the workflow.
+**Automated (not yet committed -- needs manual setup):** a GitHub Actions workflow was written to run this daily for both environments, but the GitHub API token available for this task does **not** have the `workflow` permission scope, so GitHub rejected the write to `.github/workflows/` (`403 Resource not accessible by integration`). This is a real limitation, not a skipped step -- someone with a token that has `workflow` scope (or pushing from a local git client, which has no such restriction) needs to add the file below as `.github/workflows/daily-reconciliation.yml`. It also needs four repository secrets that are separately not yet configured: `RECONCILIATION_UAT_SUPABASE_URL`, `RECONCILIATION_UAT_SUPABASE_SECRET_KEY`, `RECONCILIATION_DEMO_SUPABASE_URL`, `RECONCILIATION_DEMO_SUPABASE_SECRET_KEY` (each project's API URL and `service_role` secret key, from Supabase Project Settings -> API). Until both the file and the secrets exist, each day must be run manually (via the SQL or script above) and logged here.
+
+```yaml
+name: Daily Reconciliation
+
+# Runs the P2 gate V2-6 reconciliation job (docs/RECONCILIATION-LOG.md) once a
+# day against both live Supabase projects. Requires four repository secrets:
+#   RECONCILIATION_UAT_SUPABASE_URL, RECONCILIATION_UAT_SUPABASE_SECRET_KEY,
+#   RECONCILIATION_DEMO_SUPABASE_URL, RECONCILIATION_DEMO_SUPABASE_SECRET_KEY
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # ~9am ET / 8am EST daily; adjust if a different time is preferred
+  workflow_dispatch: {}
+
+jobs:
+  reconcile:
+    name: Run daily reconciliation (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: uat
+            url_secret: RECONCILIATION_UAT_SUPABASE_URL
+            key_secret: RECONCILIATION_UAT_SUPABASE_SECRET_KEY
+          - environment: demo
+            url_secret: RECONCILIATION_DEMO_SUPABASE_URL
+            key_secret: RECONCILIATION_DEMO_SUPABASE_SECRET_KEY
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v9
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run reconciliation
+        env:
+          SUPABASE_URL: ${{ secrets[matrix.url_secret] }}
+          SUPABASE_SECRET_KEY: ${{ secrets[matrix.key_secret] }}
+          SUPABASE_ENVIRONMENT_LABEL: ${{ matrix.environment }}
+        run: node scripts/run-daily-reconciliation.mjs
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reconciliation-evidence-${{ matrix.environment }}-${{ github.run_id }}
+          path: work/evidence/reconciliation/
+          retention-days: 90
+```
+
+Each new day's result should be appended to this log, and the streak table above updated, whether run manually or (once set up) by the workflow.
