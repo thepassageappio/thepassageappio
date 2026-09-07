@@ -12,6 +12,7 @@ export default async function OrganizationLayout({ children }: { children: React
   if (access.organization.status !== "active") redirect("/start?error=access_unavailable");
   if (access.organization.onboardingStatus === "terms_required") redirect("/onboarding/terms");
   if (access.organization.onboardingStatus === "template_required") redirect("/onboarding/template");
+  if (access.mfaGate !== "allow") redirect("/mfa");
 
   return <AppShell access={access}>{children}</AppShell>;
 }
