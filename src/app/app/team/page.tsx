@@ -15,6 +15,7 @@ import {
   organizationAccessActivityLabel,
   organizationAccessEventTypes,
   roleDefinitions,
+  visibleRoleDefinitions,
 } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
@@ -80,7 +81,7 @@ export default async function TeamPage({ searchParams }: Props) {
       <details className={`${styles.panel} ${styles.disclosurePanel}`}>
         <summary>What each role can do</summary>
         <div className={styles.roleGrid}>
-          {roleDefinitions.map((definition) => <div key={definition.role}><strong>{roleLabel(definition.role)}</strong><span>{definition.purpose}</span><p>{definition.access}</p></div>)}
+          {visibleRoleDefinitions().map((definition) => <div key={definition.role}><strong>{roleLabel(definition.role)}</strong><span>{definition.purpose}</span><p>{definition.access}</p></div>)}
         </div>
       </details>
       {canManage ? (

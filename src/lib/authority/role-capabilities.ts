@@ -117,6 +117,26 @@ export const roleDefinitions: ReadonlyArray<{
   { role: "developer", purpose: "Integration operations", access: "Integration configuration without participant-request or billing access." },
 ];
 
+// The "developer" org role and its integrations.* capability are real,
+// functioning entries in the data model (role-capability map, database role
+// check-constraint, audit trail, etc.), but there is no integrations UI
+// built anywhere in the product yet -- see docs/V2-DELIVERY-ROADMAP.md
+// backlog. Offering the role for selection, or describing it in "what each
+// role can do", would dead-end a real user or a demo prospect on a role
+// that does nothing. Hide it from those UI surfaces only; do not delete it
+// from roleCapabilityMap, roleDefinitions, or the database schema. Remove
+// this list (or the individual entry) once a real integrations feature
+// ships for that role.
+export const hiddenOrganizationRoles: readonly OrganizationRole[] = ["developer"];
+
+export function isRoleAssignmentVisible(role: OrganizationRole) {
+  return !hiddenOrganizationRoles.includes(role);
+}
+
+export function visibleRoleDefinitions() {
+  return roleDefinitions.filter((definition) => isRoleAssignmentVisible(definition.role));
+}
+
 export function hasOrganizationCapability(role: OrganizationRole, capability: OrganizationCapability) {
   return roleCapabilityMap[role].includes(capability);
 }
@@ -153,19 +173,21 @@ export function canManageBilling(role: OrganizationRole) {
 }
 
 export function assignableRolesFor(role: OrganizationRole): OrganizationRole[] {
-  return role === "owner"
+  const roles = role === "owner"
     ? ["owner", "admin", "staff", "reviewer", "developer", "auditor"]
     : role === "admin"
       ? ["staff", "reviewer", "developer", "auditor"]
       : [];
+  return (roles as OrganizationRole[]).filter(isRoleAssignmentVisible);
 }
 
 export function invitableRolesFor(role: OrganizationRole): OrganizationRole[] {
-  return role === "owner"
+  const roles = role === "owner"
     ? ["admin", "staff", "reviewer", "developer", "auditor"]
     : role === "admin"
       ? ["staff", "reviewer", "developer", "auditor"]
       : [];
+  return (roles as OrganizationRole[]).filter(isRoleAssignmentVisible);
 }
 
 export function canManageTargetMember(input: {

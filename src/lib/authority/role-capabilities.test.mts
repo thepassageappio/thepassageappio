@@ -12,13 +12,17 @@ import {
   canViewOrganizationAudit,
   capabilitiesForRole,
   hasOrganizationCapability,
+  hiddenOrganizationRoles,
   institutionWorkspacePresentation,
   invitableRolesFor,
+  isRoleAssignmentVisible,
   organizationCapabilities,
   organizationAccessActivityLabel,
   organizationAccessEventTypes,
   requestCoordinatorRecoveryMessage,
   roleCapabilityMap,
+  roleDefinitions,
+  visibleRoleDefinitions,
 } from "./role-capabilities.ts";
 
 test("the people page audit feed is limited to legible access lifecycle events", () => {
@@ -72,14 +76,28 @@ test("role templates preserve least privilege and separation of duties", () => {
 });
 
 test("owner and administrator protections are explicit", () => {
-  assert.deepEqual(assignableRolesFor("admin"), ["staff", "reviewer", "developer", "auditor"]);
-  assert.deepEqual(invitableRolesFor("owner"), ["admin", "staff", "reviewer", "developer", "auditor"]);
+  assert.deepEqual(assignableRolesFor("admin"), ["staff", "reviewer", "auditor"]);
+  assert.deepEqual(invitableRolesFor("owner"), ["admin", "staff", "reviewer", "auditor"]);
   assert.equal(invitableRolesFor("reviewer").length, 0);
   assert.equal(canManageTargetMember({ actorRole: "owner", targetRole: "admin", targetIsSoleOwner: false }), true);
   assert.equal(canManageTargetMember({ actorRole: "owner", targetRole: "owner", targetIsSoleOwner: true }), false);
   assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "owner", targetIsSoleOwner: false }), false);
   assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "admin", targetIsSoleOwner: false }), false);
   assert.equal(canManageTargetMember({ actorRole: "admin", targetRole: "reviewer", targetIsSoleOwner: false }), true);
+});
+
+test("the unbuilt developer/integrations role is hidden from selection but not deleted", () => {
+  assert.deepEqual(hiddenOrganizationRoles, ["developer"]);
+  assert.equal(isRoleAssignmentVisible("developer"), false);
+  assert.equal(isRoleAssignmentVisible("auditor"), true);
+  assert.equal(assignableRolesFor("owner").includes("developer"), false);
+  assert.equal(invitableRolesFor("owner").includes("developer"), false);
+  assert.equal(visibleRoleDefinitions().some((definition) => definition.role === "developer"), false);
+  // Still present in the underlying data model: capability map, role
+  // definitions (for an existing developer member's own summary), and the
+  // capability set itself are untouched.
+  assert.ok(roleCapabilityMap.developer);
+  assert.ok(roleDefinitions.some((definition) => definition.role === "developer"));
 });
 
 test("the reviewer workspace names the review job and recovery owner plainly", () => {
