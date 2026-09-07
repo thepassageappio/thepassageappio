@@ -130,6 +130,8 @@ The external security assessment and customer procurement are not fully controll
 
 The customer-facing message, verified claims, asset checklist, target-account sequence, and stop/go rules are maintained in [SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md](./SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md). The buyer-ready [sales one-pager](./SALES-ONE-PAGER-2026-09-05.md), [seven-minute demo script](./SEVEN-MINUTE-DEMO-SCRIPT-2026-09-05.md), and [controlled outbound sequence](./OUTBOUND-SEQUENCE-2026-09-05.md) are drafted from the verified hosted flow. Website, deck, one-pager, demo script, outbound copy, and CRM fields must use those files and the selling brief as their shared source of truth.
 
+**Cold-outreach and LinkedIn content status, September 6, 2026:** an expanded 4-email cold outreach sequence and LinkedIn thought-leadership drafts (three short posts plus one long-form post) are drafted in [OUTBOUND-CONTENT-DRAFT-2026-09-06.md](./OUTBOUND-CONTENT-DRAFT-2026-09-06.md), built only from claims already approved in the selling brief, one-pager, and outbound sequence. This content is drafted and held. It must not be sent or published until the product is confirmed 100% demo-ready (P0 exit evidence above, zero open critical/high defects) and the buyer/sender review in SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md is complete. That draft also flags one open positioning question for Steve: whether the V3-only "defensible, not just faster" framing above should be promoted to an approved public claim before any send/publish.
+
 ## V2 scorecard
 
 - Visitor to demo request
