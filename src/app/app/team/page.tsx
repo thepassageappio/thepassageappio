@@ -27,6 +27,19 @@ function formatTime(value: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
+// Mirrors what the Resend webhook can actually confirm: 'processing' means
+// the provider accepted the send but final delivery is unconfirmed -- it is
+// deliberately never labeled "Delivered" until the email.delivered webhook
+// event lands. See 20260906193000_team_invitation_delivery_tracking.sql.
+function deliveryStatusLabel(invitation: { delivery_status?: string | null; delivery_error_code?: string | null }) {
+  const status = invitation.delivery_status ?? "pending";
+  if (status === "delivered") return "Delivered";
+  if (status === "processing") return "Sending… confirming delivery";
+  if (status === "retrying") return "Delivery delayed";
+  if (status === "failed") return invitation.delivery_error_code ? `Not delivered (${invitation.delivery_error_code})` : "Not delivered";
+  return "Not sent yet";
+}
+
 export default async function TeamPage({ searchParams }: Props) {
   const access = await getAuthorityAccessContext();
   if (!access?.membership || !access.organization) return null;
@@ -36,7 +49,7 @@ export default async function TeamPage({ searchParams }: Props) {
   const supabase = await createClient();
   const [membershipResult, invitationResult, auditResult, memberCountResult] = await Promise.all([
     supabase.from("organization_memberships").select("id, user_id, email_normalized, role, status, version, activated_at, revoked_at").eq("organization_id", membership.organizationId).order("created_at"),
-    canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at, delivery_status, delivery_error_code, delivery_confirmed_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
     canViewAudit
       ? supabase
         .from("organization_audit_events")
@@ -139,12 +152,14 @@ export default async function TeamPage({ searchParams }: Props) {
           <div className={styles.panelHead}><div><h2>Invitations</h2><p>Pending and completed access invitations.</p></div></div>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
-              <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Expires</th><th>Action</th></tr></thead>
+              <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Delivery</th><th>Expires</th><th>Action</th></tr></thead>
               <tbody>{invitations.map((invitation) => {
                 const expired = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date();
                 const availability = expired ? "Expired — send a new invitation" : invitation.status === "pending" ? "Ready for the invited email" : invitation.status === "accepted" ? "Accepted" : "Revoked";
                 return <tr key={invitation.id}>
-                  <td><strong>{invitation.email_normalized}</strong></td><td>{roleLabel(invitation.role as OrganizationRole)}</td><td><span className={styles.badge}>{availability}</span></td><td>{formatTime(invitation.expires_at)}</td>
+                  <td><strong>{invitation.email_normalized}</strong></td><td>{roleLabel(invitation.role as OrganizationRole)}</td><td><span className={styles.badge}>{availability}</span></td>
+                  <td><span className={styles.badge}>{deliveryStatusLabel(invitation)}</span></td>
+                  <td>{formatTime(invitation.expires_at)}</td>
                   <td>{invitation.status === "pending" ? <form action={revokeMemberInvitationAction}><input name="invitationId" type="hidden" value={invitation.id} /><input name="expectedVersion" type="hidden" value={invitation.version} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><button className={styles.dangerButton} type="submit">Revoke</button></form> : "Complete"}</td>
                 </tr>;
               })}</tbody>

@@ -353,6 +353,26 @@ export async function inviteTeamMemberAction(formData: FormData) {
         secureUrl: secureUrl.toString(),
       });
       delivered = delivery.delivered;
+
+      // Persist the Resend submission result so /app/team can show delivery
+      // status and the /api/webhooks/resend handler can later confirm (or
+      // flag) final delivery by provider_message_id. Only "resend" sends are
+      // trackable this way -- "local" (dev file-based delivery) and
+      // "disabled" have no provider message to correlate a webhook to. See
+      // 20260906193000_team_invitation_delivery_tracking.sql.
+      if (delivery.provider === "resend") {
+        const admin = createAuthorityAdminClient();
+        await admin.rpc("record_team_invitation_delivery_service_v1", {
+          p_actor_user_id: access.user.id,
+          p_organization_id: access.membership.organizationId,
+          p_invitation_id: result.invitation_id,
+          p_delivery_status: delivery.delivered ? "delivered" : "failed",
+          p_provider: "resend",
+          p_provider_message_id: delivery.delivered ? delivery.messageId ?? "" : "",
+          p_error_code: delivery.delivered ? "" : delivery.reason,
+          p_idempotency_key: crypto.randomUUID(),
+        });
+      }
     }
 
     destination = withMessage("/app/team", "notice", delivered ? "invitation_sent" : "invitation_created");
