@@ -4,7 +4,8 @@
 
 ## Before the clock starts
 
-- Open the isolated Demo workspace at `https://passage-authority-demo.vercel.app` and sign in with the allowlisted Demo owner account. The owner lands in the institution workspace with owner/admin controls; no developer console or database access is required.
+- Open the isolated Demo workspace at `https://demo.thepassageapp.io` and sign in with Google using the allowlisted Passage owner account. The owner lands in the institution workspace with owner/admin controls; no developer console or database access is required.
+- Open **Organization administration**, then **People and roles**. Confirm the workspace shows separate Owner, Administrator, and Institution Reviewer identities, accepted invitations, and readable access-lifecycle events before beginning the transaction story.
 - Open four isolated sessions: Institution owner, Account holder, Representative, and Institution reviewer. Use separate Chrome profiles, private windows that do not share cookies, or separate devices.
 - Confirm access to two controlled inboxes. One inbox acts as Parker Quinn; the other acts as Casey Quinn.
 - Sign the owner and reviewer into the same synthetic institution workspace with separate institution accounts.
@@ -19,7 +20,7 @@ Stop immediately if any session shows another persona's private action, a real c
 
 | Target | Persona | Action | Pass evidence |
 | --- | --- | --- | --- |
-| 0:00–0:45 | Buyer | Open the homepage and explain the problem in one sentence | “Passage gets a POA request to a clear institution decision.” |
+| 0:00–0:45 | Buyer | Open the homepage and organization readiness view; explain the problem in one sentence | “Passage gets a POA request to a clear institution decision, with each institution user limited to their assigned job.” |
 | 0:45–1:30 | Owner | Open the prepared Draft, confirm the controlled inboxes, save, review, and send | Draft is saved before sending; usage changes exactly once after sending |
 | 1:30–2:15 | Account holder | Open the first secure message and confirm | Correct people, purpose, account boundary, actions, end date, and institution are visible; no account is required |
 | 2:15–3:30 | Representative | Open the separately delivered message, accept, upload both fictional PDFs, and complete the certification | Only representative actions are available; both filenames and requirement states persist after refresh |

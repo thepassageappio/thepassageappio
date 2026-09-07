@@ -15,10 +15,11 @@ import {
   isDemoEnvironment,
   mayProvisionDemoRun,
 } from "@/lib/authority/demo-boundary";
-import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
+import { canCoordinateAuthorityRequests, hasOrganizationCapability } from "@/lib/authority/role-capabilities";
 import {
   getAuthorityAppUrl,
   getSupabasePublicConfig,
+  isGoogleSignInEnabled,
   safeAppPath,
 } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -41,6 +42,9 @@ function errorCode(error: unknown) {
   const message = String(error.message);
   const map: Record<string, string> = {
     authority_access_unavailable: "access_unavailable",
+    authority_app_url_insecure: "invitation_configuration_invalid",
+    authority_app_url_mismatch: "invitation_configuration_invalid",
+    authority_public_site_url_missing: "invitation_configuration_invalid",
     authorized_use_required: "authorized_use_required",
     organization_details_incomplete: "organization_details_incomplete",
     active_organization_already_exists: "organization_exists",
@@ -91,6 +95,10 @@ function errorCode(error: unknown) {
     institution_decision_limit_invalid: "institution_decision_limit_invalid",
     institution_decision_limit_required: "institution_decision_limit_required",
     institution_decision_limit_not_allowed: "institution_decision_limit_not_allowed",
+    institution_decision_scope_invalid: "institution_decision_scope_invalid",
+    institution_decision_scope_not_allowed: "institution_decision_scope_not_allowed",
+    institution_decision_scope_required: "institution_decision_scope_required",
+    institution_decision_full_scope_required: "institution_decision_full_scope_required",
     institution_decision_not_allowed: "institution_decision_not_allowed",
     institution_decision_not_ready: "institution_decision_not_ready",
     institution_decision_request_expired: "institution_decision_request_expired",
@@ -120,6 +128,9 @@ function errorCode(error: unknown) {
     "Use no more than 10 limits, with 240 characters or fewer for each limit.": "institution_decision_limit_invalid",
     "List at least one limit for a limited acceptance.": "institution_decision_limit_required",
     "Limits can be recorded only when the institution accepts with limits.": "institution_decision_limit_not_allowed",
+    "Choose only actions included in this authority workflow.": "institution_decision_scope_invalid",
+    "A rejected request cannot include accepted actions.": "institution_decision_scope_not_allowed",
+    "Choose at least one action the institution accepts.": "institution_decision_scope_required",
     "Choose an available lifecycle action.": "authority_lifecycle_action_invalid",
     "Lifecycle changes are available only after an accepted institution decision.": "authority_lifecycle_not_available",
     "Confirm that this lifecycle change should be saved to the receipt.": "authority_lifecycle_acknowledgment_required",
@@ -148,8 +159,15 @@ export async function requestSignInAction(formData: FormData) {
     redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "access_unavailable"));
   }
 
+  let authorityAppUrl: string;
+  try {
+    authorityAppUrl = getAuthorityAppUrl();
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "invitation_configuration_invalid"));
+  }
+
   const supabase = await createClient();
-  const confirmUrl = new URL("/auth/confirm", getAuthorityAppUrl());
+  const confirmUrl = new URL("/auth/confirm", authorityAppUrl);
   confirmUrl.searchParams.set("next", next);
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -161,8 +179,55 @@ export async function requestSignInAction(formData: FormData) {
     },
   });
 
-  const destination = error ? "/start/check-email?status=unavailable" : "/start/check-email?status=sent";
+  const destination = error
+    ? `/start/check-email?status=unavailable&next=${encodeURIComponent(next)}`
+    : `/start/check-email?status=requested&next=${encodeURIComponent(next)}`;
   redirect(destination);
+}
+
+export async function signInWithGoogleAction(formData: FormData) {
+  const next = safeAppPath(textField(formData, "next"), "/onboarding/organization");
+  const config = getSupabasePublicConfig();
+
+  if (!config || !isGoogleSignInEnabled()) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "access_unavailable"));
+  }
+
+  let authorityAppUrl: string;
+  try {
+    authorityAppUrl = getAuthorityAppUrl();
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "invitation_configuration_invalid"));
+  }
+
+  const callbackUrl = new URL("/auth/confirm", authorityAppUrl);
+  callbackUrl.searchParams.set("next", next);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl.toString(),
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error || !data.url) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  let authorizationUrl: URL;
+  try {
+    authorizationUrl = new URL(data.url);
+  } catch {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  if (authorizationUrl.origin !== new URL(config.url).origin) {
+    redirect(withMessage(`/start?next=${encodeURIComponent(next)}`, "error", "google_sign_in_unavailable"));
+  }
+
+  redirect(authorizationUrl.toString());
 }
 
 export async function signOutAction() {
@@ -203,7 +268,7 @@ export async function acceptTermsAction(formData: FormData) {
   let destination = "/onboarding/template";
   try {
     const access = await getAuthorityAccessContext();
-    if (!access?.membership || access.membership.role !== "owner") {
+    if (!access?.membership || !hasOrganizationCapability(access.membership.role, "organization.manage")) {
       throw new Error("terms_acceptance_requires_owner");
     }
 
@@ -253,8 +318,10 @@ export async function selectTemplateAction(formData: FormData) {
 export async function inviteTeamMemberAction(formData: FormData) {
   let destination = "/app/team";
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.invite")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("invite_member_v1", {
       p_organization_id: access.membership.organizationId,
@@ -274,7 +341,7 @@ export async function inviteTeamMemberAction(formData: FormData) {
 
     let delivered = false;
     if (result.token) {
-      const secureUrl = new URL("/team/accept", getAuthorityAppUrl());
+      const secureUrl = new URL("/team/accept", authorityAppUrl);
       secureUrl.searchParams.set("invitation", result.invitation_id);
       secureUrl.searchParams.set("token", result.token);
       const delivery = await deliverTeamInvitation({
@@ -286,6 +353,26 @@ export async function inviteTeamMemberAction(formData: FormData) {
         secureUrl: secureUrl.toString(),
       });
       delivered = delivery.delivered;
+
+      // Persist the Resend submission result so /app/team can show delivery
+      // status and the /api/webhooks/resend handler can later confirm (or
+      // flag) final delivery by provider_message_id. Only "resend" sends are
+      // trackable this way -- "local" (dev file-based delivery) and
+      // "disabled" have no provider message to correlate a webhook to. See
+      // 20260906193000_team_invitation_delivery_tracking.sql.
+      if (delivery.provider === "resend") {
+        const admin = createAuthorityAdminClient();
+        await admin.rpc("record_team_invitation_delivery_service_v1", {
+          p_actor_user_id: access.user.id,
+          p_organization_id: access.membership.organizationId,
+          p_invitation_id: result.invitation_id,
+          p_delivery_status: delivery.delivered ? "delivered" : "failed",
+          p_provider: "resend",
+          p_provider_message_id: delivery.delivered ? delivery.messageId ?? "" : "",
+          p_error_code: delivery.delivered ? "" : delivery.reason,
+          p_idempotency_key: crypto.randomUUID(),
+        });
+      }
     }
 
     destination = withMessage("/app/team", "notice", delivered ? "invitation_sent" : "invitation_created");
@@ -320,6 +407,7 @@ export async function changeMemberRoleAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.role_manage")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("change_member_role_v1", {
       p_organization_id: access.membership.organizationId,
@@ -342,6 +430,7 @@ export async function revokeMemberAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.revoke")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("revoke_member_v1", {
       p_organization_id: access.membership.organizationId,
@@ -363,6 +452,7 @@ export async function revokeMemberInvitationAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "members.revoke")) throw new Error("member_management_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("revoke_member_invitation_v1", {
       p_organization_id: access.membership.organizationId,
@@ -463,6 +553,7 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_activation_not_allowed");
@@ -498,7 +589,7 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
           purpose: String(record.purpose),
           accountBoundary: String(record.account_boundary),
           expiresAt: result.invitation_expires_at,
-          secureUrl: new URL(`/r/${result.principal_token}`, getAuthorityAppUrl()).toString(),
+          secureUrl: new URL(`/r/${result.principal_token}`, authorityAppUrl).toString(),
         });
         const admin = createAuthorityAdminClient();
         const { error: deliveryError } = await admin.rpc("record_operator_participant_delivery_service_v1", {
@@ -528,6 +619,7 @@ export async function reissueParticipantInvitationAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
     const participantRole = textField(formData, "participantRole") as "principal" | "representative";
@@ -570,7 +662,7 @@ export async function reissueParticipantInvitationAction(formData: FormData) {
       purpose: String(record.purpose),
       accountBoundary: String(record.account_boundary),
       expiresAt: result.expires_at,
-      secureUrl: new URL(`/r/${result.invitation_token}`, getAuthorityAppUrl()).toString(),
+      secureUrl: new URL(`/r/${result.invitation_token}`, authorityAppUrl).toString(),
       accessPurpose: participantAccessPurpose(participantRole, record.status),
     });
     const admin = createAuthorityAdminClient();
@@ -601,6 +693,7 @@ export async function reviewEvidenceArtifactAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.review_evidence")) throw new Error("evidence_review_not_allowed");
     const supabase = await createClient();
     const { error } = await supabase.rpc("review_evidence_artifact_v1", {
       p_organization_id: access.membership.organizationId,
@@ -625,22 +718,26 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
   const recordId = textField(formData, "recordId");
   let destination = `/app/requests/${recordId}`;
   try {
+    const authorityAppUrl = getAuthorityAppUrl();
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.decide")) throw new Error("institution_decision_not_allowed");
     const decision = prepareHostedInstitutionDecision({
       outcome: textField(formData, "outcome"),
       reason: textField(formData, "reason"),
+      acceptedActionKeys: formData.getAll("acceptedActionKeys").filter((value): value is string => typeof value === "string"),
       limitations: textField(formData, "limitations").split("\n"),
       acknowledged: checkbox(formData, "acknowledged"),
     });
     const admin = createAuthorityAdminClient();
-    const { data, error } = await admin.rpc("record_institution_decision_service_v1", {
+    const { data, error } = await admin.rpc("record_institution_decision_service_v2", {
       p_actor_user_id: access.user.id,
       p_organization_id: access.membership.organizationId,
       p_authority_record_id: recordId,
       p_expected_version: Number(textField(formData, "expectedVersion")),
       p_outcome: decision.outcome,
       p_reason: decision.reason,
+      p_accepted_action_keys: decision.acceptedActionKeys,
       p_limitations: decision.limitations,
       p_acknowledged: true,
       p_idempotency_key: textField(formData, "idempotencyKey"),
@@ -705,7 +802,7 @@ export async function recordInstitutionDecisionAction(formData: FormData) {
             purpose: String(record.purpose),
             accountBoundary: String(record.account_boundary),
             expiresAt: receiptInvitation.expires_at,
-            secureUrl: new URL(`/r/${receiptInvitation.invitation_token}`, getAuthorityAppUrl()).toString(),
+            secureUrl: new URL(`/r/${receiptInvitation.invitation_token}`, authorityAppUrl).toString(),
             accessPurpose: "receipt",
           });
           const { error: deliveryError } = await admin.rpc("record_operator_participant_delivery_service_v1", {
@@ -747,6 +844,7 @@ export async function requestHostedAuthorityInformationAction(formData: FormData
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.request_information")) throw new Error("information_request_not_allowed");
     const input = prepareHostedInformationRequest({
       requirementKey: textField(formData, "requirementKey"),
       message: textField(formData, "message"),
@@ -777,6 +875,7 @@ export async function recordAuthorityLifecycleAction(formData: FormData) {
   try {
     const access = await getAuthorityAccessContext();
     if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    if (!hasOrganizationCapability(access.membership.role, "requests.decide")) throw new Error("authority_lifecycle_not_allowed");
     const lifecycle = prepareHostedLifecycleChange({
       action: textField(formData, "lifecycleAction"),
       reason: textField(formData, "reason"),

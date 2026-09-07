@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
-import { canCoordinateAuthorityRequests, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
+import { canCoordinateAuthorityRequests, canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage, userErrorMessage } from "@/lib/authority/user-messages";
@@ -119,11 +119,11 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     ? notifications.find((item) => item.participant_role === activeDeliveryRole)?.delivery_status
     : null;
   const savedNotice = hostedRequestNoticeMessage(notice, activeDeliveryStatus);
-  const canReviewEvidence = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
+  const canReviewEvidence = Boolean(access.membership && canReviewAuthorityEvidence(access.membership.role));
   const isDemoRunView = demo === "1" && Boolean(
     access.membership && mayProvisionDemoRun(access.user.email, access.membership.role),
   );
-  const canRecordDecision = ["owner", "admin", "reviewer"].includes(access.membership?.role ?? "");
+  const canRecordDecision = Boolean(access.membership && canRecordAuthorityDecision(access.membership.role));
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
   const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
   const decisionReady = requirementsComplete && record.status === "under_review" && !decision;
@@ -203,6 +203,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
                 <input type="hidden" name="idempotencyKey" value={randomUUID()} />
                 <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send decision receipt" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
               </form> : null}
+              {canReissue ? <span>Sending a fresh link turns every earlier link for this person off.</span> : null}
             </li>;
           })}</ul>
           <Link className={styles.secondary} href="/app">Return to request queue</Link>
@@ -282,6 +283,13 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
               <option value="accepted">Accept as submitted</option>
               <option value="rejected">Do not accept</option>
             </select>
+            <fieldset>
+              <legend>Accepted actions</legend>
+              <p>Keep only the actions this decision accepts. Written limits do not remove an action from the receipt.</p>
+              {record.allowedActionKeys.map((key) => <label className={styles.confirmation} key={key}>
+                <input type="checkbox" name="acceptedActionKeys" value={key} defaultChecked /> <span>{HOSTED_ACTIONS[key]}</span>
+              </label>)}
+            </fieldset>
             <label htmlFor="decision-reason">Reason</label>
             <textarea id="decision-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain why the institution reached this decision." />
             <label htmlFor="decision-limitations">Limits, one per line</label>

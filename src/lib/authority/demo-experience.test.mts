@@ -15,6 +15,31 @@ test("the public journey offers a guided demo without hiding product evaluation"
   assert.doesNotMatch(home, /Current status shared by permission|Complete activity history/);
 });
 
+test("the public story explains the real-life use case, identity boundary, and completed result plainly", () => {
+  const home = source("../../app/page.tsx");
+  const about = source("../../app/about/page.tsx");
+  const security = source("../../app/security/page.tsx");
+  const faq = source("../../app/faq/page.tsx");
+
+  assert.match(home, /If you help a parent or grandparent manage money/);
+  assert.match(home, /Accepted with limits/);
+  assert.match(home, /Decision receipt shared/);
+  assert.match(about, /Maya helps her grandmother Eleanor/);
+  assert.match(about, /The institution starts the Passage request today/);
+  assert.match(security, /A private link protects access\. It does not prove identity/);
+  assert.match(faq, /Is this for me if I am my grandmother/);
+  assert.match(faq, /What does a completed request look like/);
+});
+
+test("an unavailable participant link explains replacement and recovery", () => {
+  const invitation = source("../../app/r/[token]/page.tsx");
+  const delivery = source("participant-invitation-delivery.ts");
+
+  assert.match(invitation, /Open the newest Passage email/);
+  assert.match(invitation, /ask the financial institution to send a fresh link/);
+  assert.match(delivery, /every earlier link stops working/);
+});
+
 test("mobile institution navigation and request rows do not require a desktop-width canvas", () => {
   const app = source("../../app/app/page.tsx");
   const shell = source("../../components/app/AppShell.tsx");

@@ -26,6 +26,8 @@ test("participant invitation explains the sender, role, other person, scope, exp
     delivery.accountBoundary,
     delivery.secureUrl,
     "final decision",
+    "newest Passage email",
+    "every earlier link stops working",
   ]) {
     assert.match(message.text, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
@@ -76,5 +78,9 @@ test("participant receipt email directs both roles to the institution decision w
   assert.match(message.html, /-webkit-text-size-adjust: 100%/);
   assert.match(message.html, /@media only screen and \(max-width: 480px\)/);
   assert.match(message.html, /min-height: 44px/);
+  assert.match(message.html, /role="presentation" width="100%"/);
+  assert.match(message.html, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(message.html, /If the button does not open/);
+  assert.equal(message.html.match(new RegExp(delivery.secureUrl, "g"))?.length, 2);
   assert.doesNotMatch(message.text, /Passage (approved|verified|granted)/i);
 });

@@ -26,9 +26,9 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
         <nav className={polish.navigation} aria-label="Organization workspace">
           <Link href="/app">{overviewLabel}</Link>
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
-          <Link href="/app/team">People and access</Link>
-          <Link href="/app/organization">Plan and billing</Link>
-          <Link href="/app/policies">Authority policy</Link>
+          <Link href="/app/organization">Organization administration</Link>
+          <Link href="/app/team">People and roles</Link>
+          <Link href="/app/policies">Policies and workflow</Link>
         </nav>
         <div className={styles.sidebarFooter}>
           <span>{access.user.email}</span>

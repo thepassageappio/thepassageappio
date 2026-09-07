@@ -47,10 +47,12 @@ function normalizedLines(values: string[]) {
 export function prepareHostedInstitutionDecision(input: {
   outcome: string;
   reason: string;
+  acceptedActionKeys: string[];
   limitations: string[];
   acknowledged: boolean;
 }) {
   const reason = input.reason.trim();
+  const acceptedActionKeys = normalizedLines(input.acceptedActionKeys);
   const limitations = normalizedLines(input.limitations);
   if (!input.acknowledged) invalid("Confirm that this is the institution's decision for this request.");
   if (!["accepted", "accepted_with_limits", "rejected"].includes(input.outcome)) {
@@ -58,6 +60,15 @@ export function prepareHostedInstitutionDecision(input: {
   }
   if (reason.length < 3 || reason.length > 500) {
     invalid("Record a clear decision reason using 3 to 500 characters.");
+  }
+  if (acceptedActionKeys.some((key) => !["receive_duplicate_statements", "discuss_service_issues"].includes(key))) {
+    invalid("Choose only actions included in this authority workflow.");
+  }
+  if (input.outcome === "rejected" && acceptedActionKeys.length > 0) {
+    invalid("A rejected request cannot include accepted actions.");
+  }
+  if (input.outcome !== "rejected" && acceptedActionKeys.length === 0) {
+    invalid("Choose at least one action the institution accepts.");
   }
   if (limitations.length > 10 || limitations.some((item) => item.length > 240)) {
     invalid("Use no more than 10 limits, with 240 characters or fewer for each limit.");
@@ -71,6 +82,7 @@ export function prepareHostedInstitutionDecision(input: {
   return {
     outcome: input.outcome as HostedDecisionOutcome,
     reason,
+    acceptedActionKeys: acceptedActionKeys as HostedActionKey[],
     limitations,
   };
 }

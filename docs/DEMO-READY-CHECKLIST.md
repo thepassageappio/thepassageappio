@@ -6,6 +6,7 @@
 ## Demo-ready exit criteria
 
 - A presenter can prepare and complete a fresh demo run without database access or developer help.
+- The presenter starts at `https://demo.thepassageapp.io`, signs in with Google, and can show separate Owner, Administrator, and Institution Reviewer access before opening a request.
 - The core story takes seven minutes or less, excluding optional questions.
 - Institution owner, account holder, representative, and reviewer use separate browser profiles or devices.
 - Every page states the current status and next action in plain language.
@@ -50,11 +51,17 @@ The preparation action must create a fresh namespaced run and request inside the
 - Two approved fictional PDFs are downloadable from the sample form and match its preloaded participants and account boundary.
 - The hosted action, migration, and exact presenter allowlist are deployed. An authenticated owner created a fresh draft at desktop width and verified the notice, next action, session recovery, and controls at 390px and 360px.
 - A complete fresh hosted run now passes activation, principal confirmation, representative acceptance, two browser uploads, institution correction, replacement upload, representative disclosure, institution decision, matching three-party receipts, and revocation. The database independently matches the browser result and usage count.
-- Remaining before presenter sign-off: the owner rehearses the same story in seven minutes or less with independent browser profiles or devices and records inbox placement. No product-state blocker remains in the tested happy path.
+- A fresh hosted operator-assisted replay completed September 5 as request `PA-6C4FF6F2DB`: principal confirmation, representative delivery and secure-link opening, representative acceptance, two approved fictional uploads, institution evidence review, disclosure submission, accepted-with-limits decision, and receipt `PAR-470074AA96BC`. Both receipt emails were submitted for delivery.
+- Mobile Gmail CTA proof passed after the email-safe button update. The older receipt link also failed closed with the correct “newer email may have replaced it” recovery message after a fresh link was issued.
+- Independent Gmail inspection confirmed that all same-day sign-in, confirmation, invitation, and receipt messages across three test organizations landed in Inbox and none in Spam.
+- Independent production onboarding and the seeded sixth-activation gate passed. The reported inert `Save draft` and team `Send invitation` controls were traced to empty required email fields, which correctly prevented any network request. Demo deployment `dpl_BWHK6ZdbLB7UivCd3L3jppvNFyFY` and production deployment `dpl_7FodJEgiNqg2sGA8kRMz9syD6iGz` now provide a visible validation alert and field highlight. Public forms passed browser verification on both aliases without console or runtime errors; an authenticated valid-input production replay remains before the finding is fully closed.
+- Remaining before presenter sign-off: the owner rehearses the same story in seven minutes or less with independent browser profiles or devices, completes the valid-input production form replay, and completes the hosted negative-path set. No product-state blocker remains in the tested Demo happy path.
+- Production organization-role replay passed with active Owner, Administrator, and Institution Reviewer identities. Reviewer request visibility, cross-tenant denial, reviewer mutation denial, administrator owner-creation denial, zero denied-mutation rows, and access audit events were independently checked on September 5, 2026.
 - The live sales path now separates guided demo, sign-in, and sample evaluation; the $5,000 pilot, security boundary, and hosted-first integration story use consistent plain language.
 - At 390px and 360px, commercial navigation remains one row, institution metrics remain compact, and request records render as cards instead of forcing a desktop-width table.
 - Reviewer and participant next actions appear before supporting detail; completed participant requirements lead directly to review and send.
 - The older SQLite demonstration UI and API are now code-gated to development and test mode. The enterprise demo must use the authenticated hosted organization flow; a production request cannot switch synthetic roles, reset the shared SQLite store, or open its local review queue.
+- Vercel currently lists only the Authority Demo and UAT projects. No active legacy funeral-home rollback project or `thepassageappio.vercel.app` alias was found; continuity for that retired application must be handled separately if it is still required.
 
 ### P0 negative-path status
 

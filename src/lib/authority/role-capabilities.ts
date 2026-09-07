@@ -1,13 +1,215 @@
 import type { OrganizationRole } from "./access.ts";
 
-const requestCoordinatorRoles = new Set<OrganizationRole>(["owner", "admin", "staff"]);
+export const organizationCapabilities = [
+  "organization.view",
+  "organization.manage",
+  "members.view",
+  "members.invite",
+  "members.role_manage",
+  "members.revoke",
+  "requests.view",
+  "requests.create",
+  "requests.activate",
+  "requests.review_evidence",
+  "requests.request_information",
+  "requests.decide",
+  "policy.view",
+  "policy.manage",
+  "audit.view",
+  "billing.view",
+  "billing.manage",
+  "integrations.view",
+  "integrations.manage",
+] as const;
+
+export const organizationAccessEventTypes = [
+  "organization.created",
+  "membership.activated",
+  "membership.invited",
+  "membership.invitation_submitted",
+  "membership.invitation_delivered",
+  "membership.invitation_delivery_failed",
+  "membership.invitation_delivery_delayed",
+  "membership.role_changed",
+  "membership.revoked",
+  "membership.invitation_revoked",
+] as const;
+
+const organizationAccessActivityLabels: Record<(typeof organizationAccessEventTypes)[number], string> = {
+  "organization.created": "Organization created",
+  "membership.activated": "Organization access activated",
+  "membership.invited": "Team invitation created",
+  "membership.invitation_submitted": "Team invitation submitted to email provider",
+  "membership.invitation_delivered": "Team invitation delivered",
+  "membership.invitation_delivery_failed": "Team invitation delivery failed",
+  "membership.invitation_delivery_delayed": "Team invitation delivery delayed",
+  "membership.role_changed": "Member role changed",
+  "membership.revoked": "Member access revoked",
+  "membership.invitation_revoked": "Team invitation revoked",
+};
+
+export function organizationAccessActivityLabel(eventType: string) {
+  return organizationAccessActivityLabels[eventType as keyof typeof organizationAccessActivityLabels]
+    ?? "Organization access updated";
+}
+
+export type OrganizationCapability = (typeof organizationCapabilities)[number];
+
+const allCapabilities = [...organizationCapabilities];
+
+export const roleCapabilityMap: Record<OrganizationRole, readonly OrganizationCapability[]> = {
+  owner: allCapabilities,
+  admin: [
+    "organization.view",
+    "members.view",
+    "members.invite",
+    "members.role_manage",
+    "members.revoke",
+    "requests.view",
+    "requests.create",
+    "requests.activate",
+    "requests.review_evidence",
+    "requests.request_information",
+    "requests.decide",
+    "policy.view",
+    "audit.view",
+    "billing.view",
+    "billing.manage",
+    "integrations.view",
+  ],
+  staff: [
+    "organization.view",
+    "members.view",
+    "requests.view",
+    "requests.create",
+    "requests.activate",
+    "policy.view",
+  ],
+  reviewer: [
+    "organization.view",
+    "members.view",
+    "requests.view",
+    "requests.review_evidence",
+    "requests.request_information",
+    "requests.decide",
+    "policy.view",
+  ],
+  developer: [
+    "organization.view",
+    "members.view",
+    "policy.view",
+    "integrations.view",
+    "integrations.manage",
+  ],
+  auditor: [
+    "organization.view",
+    "members.view",
+    "requests.view",
+    "policy.view",
+    "audit.view",
+    "billing.view",
+    "integrations.view",
+  ],
+};
+
+export const roleDefinitions: ReadonlyArray<{
+  role: OrganizationRole;
+  purpose: string;
+  access: string;
+}> = [
+  { role: "owner", purpose: "Accountable organization owner", access: "Full organization, access, request, policy, billing, integration, and audit control." },
+  { role: "admin", purpose: "Day-to-day organization administrator", access: "Team access, requests, decisions, billing, integrations, and audit. Cannot control owners or add administrators." },
+  { role: "staff", purpose: "Request operations", access: "Creates and coordinates requests. Cannot decide, manage access, or administer billing." },
+  { role: "reviewer", purpose: "Institution decision maker", access: "Reviews evidence, requests corrections, and records decisions. Cannot create requests or manage access." },
+  { role: "auditor", purpose: "Independent oversight", access: "Read-only request, receipt, access-history, billing, and integration visibility." },
+  { role: "developer", purpose: "Integration operations", access: "Integration configuration without participant-request or billing access." },
+];
+
+// The "developer" org role and its integrations.* capability are real,
+// functioning entries in the data model (role-capability map, database role
+// check-constraint, audit trail, etc.), but there is no integrations UI
+// built anywhere in the product yet -- see docs/V2-DELIVERY-ROADMAP.md
+// backlog. Offering the role for selection, or describing it in "what each
+// role can do", would dead-end a real user or a demo prospect on a role
+// that does nothing. Hide it from those UI surfaces only; do not delete it
+// from roleCapabilityMap, roleDefinitions, or the database schema. Remove
+// this list (or the individual entry) once a real integrations feature
+// ships for that role.
+export const hiddenOrganizationRoles: readonly OrganizationRole[] = ["developer"];
+
+export function isRoleAssignmentVisible(role: OrganizationRole) {
+  return !hiddenOrganizationRoles.includes(role);
+}
+
+export function visibleRoleDefinitions() {
+  return roleDefinitions.filter((definition) => isRoleAssignmentVisible(definition.role));
+}
+
+export function hasOrganizationCapability(role: OrganizationRole, capability: OrganizationCapability) {
+  return roleCapabilityMap[role].includes(capability);
+}
+
+export function capabilitiesForRole(role: OrganizationRole) {
+  return [...roleCapabilityMap[role]];
+}
+
+export function canCoordinateAuthorityRequests(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "requests.create")
+    && hasOrganizationCapability(role, "requests.activate");
+}
+
+export function canReviewAuthorityEvidence(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "requests.review_evidence");
+}
+
+export function canRecordAuthorityDecision(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "requests.decide");
+}
+
+export function canManageMembers(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "members.invite")
+    && hasOrganizationCapability(role, "members.role_manage")
+    && hasOrganizationCapability(role, "members.revoke");
+}
+
+export function canViewOrganizationAudit(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "audit.view");
+}
+
+export function canManageBilling(role: OrganizationRole) {
+  return hasOrganizationCapability(role, "billing.manage");
+}
+
+export function assignableRolesFor(role: OrganizationRole): OrganizationRole[] {
+  const roles = role === "owner"
+    ? ["owner", "admin", "staff", "reviewer", "developer", "auditor"]
+    : role === "admin"
+      ? ["staff", "reviewer", "developer", "auditor"]
+      : [];
+  return (roles as OrganizationRole[]).filter(isRoleAssignmentVisible);
+}
+
+export function invitableRolesFor(role: OrganizationRole): OrganizationRole[] {
+  const roles = role === "owner"
+    ? ["admin", "staff", "reviewer", "developer", "auditor"]
+    : role === "admin"
+      ? ["staff", "reviewer", "developer", "auditor"]
+      : [];
+  return (roles as OrganizationRole[]).filter(isRoleAssignmentVisible);
+}
+
+export function canManageTargetMember(input: {
+  actorRole: OrganizationRole;
+  targetRole: OrganizationRole;
+  targetIsSoleOwner: boolean;
+}) {
+  if (!canManageMembers(input.actorRole) || input.targetIsSoleOwner) return false;
+  if (input.actorRole === "owner") return true;
+  return !["owner", "admin"].includes(input.targetRole);
+}
 
 export const requestCoordinatorRecoveryMessage =
   "Only an owner, administrator, or operations staff member can start and send a request. Ask one of them to prepare the draft.";
-
-export function canCoordinateAuthorityRequests(role: OrganizationRole) {
-  return requestCoordinatorRoles.has(role);
-}
 
 export function institutionWorkspacePresentation(role: OrganizationRole) {
   if (role === "reviewer") {

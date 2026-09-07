@@ -282,6 +282,7 @@ export async function submitParticipantDecisionAction(formData: FormData) {
   let destination = participantDecisionPath(recordId, decision);
 
   try {
+    const authorityAppUrl = decision === "principal_confirm" ? getAuthorityAppUrl() : null;
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
     if (!sessionToken) throw new Error("participant_session_unavailable");
@@ -337,7 +338,7 @@ export async function submitParticipantDecisionAction(formData: FormData) {
           purpose: context.purpose,
           accountBoundary: context.account_boundary,
           expiresAt: context.expires_at,
-          secureUrl: new URL(`/r/${result.representative_invitation_token}`, getAuthorityAppUrl()).toString(),
+          secureUrl: new URL(`/r/${result.representative_invitation_token}`, authorityAppUrl!).toString(),
         });
         const { error: recordError } = await admin.rpc("record_representative_delivery_v1", {
           p_session_token: sessionToken,

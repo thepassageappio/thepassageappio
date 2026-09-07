@@ -4,6 +4,7 @@ const errorMessages: Record<string, string> = {
   access_unavailable: "Account access is temporarily unavailable. Please try again shortly.",
   access_revoked: "Your previous organization access was removed. Contact an organization owner if you believe access should be restored.",
   email_invalid: "Enter a valid work email address.",
+  google_sign_in_unavailable: "Google sign-in is not connected yet. Use the email option or ask a Passage administrator to finish the Google connection.",
   link_unavailable: "This sign-in link is no longer available. Request a new secure link.",
   authorized_use_required: "Confirm that you are authorized to evaluate Passage Authority for this organization.",
   organization_details_incomplete: "Complete each required organization field.",
@@ -49,6 +50,10 @@ const errorMessages: Record<string, string> = {
   institution_decision_limit_invalid: "Use no more than 10 limits, with 240 characters or fewer for each limit.",
   institution_decision_limit_required: "List at least one limit for a limited acceptance.",
   institution_decision_limit_not_allowed: "Limits can be recorded only when the institution accepts with limits.",
+  institution_decision_scope_invalid: "Choose only actions requested in this authority workflow.",
+  institution_decision_scope_not_allowed: "A request that is not accepted cannot retain accepted actions.",
+  institution_decision_scope_required: "Choose at least one action the institution accepts.",
+  institution_decision_full_scope_required: "Accept as submitted must include every requested action.",
   institution_decision_not_allowed: "Your role cannot record the institution decision.",
   institution_decision_not_ready: "Complete every required review step before recording the institution decision.",
   institution_decision_request_expired: "This request has reached its end date and cannot be accepted.",
@@ -67,6 +72,7 @@ const errorMessages: Record<string, string> = {
   information_request_requirement_invalid: "Choose a current policy requirement.",
   information_request_already_open: "This request already has an unanswered information request.",
   demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
+  invitation_configuration_invalid: "Secure-link delivery is not connected to this site. Nothing was changed or sent. Ask a Passage administrator to check the deployment settings.",
 };
 
 const noticeMessages: Record<string, string> = {

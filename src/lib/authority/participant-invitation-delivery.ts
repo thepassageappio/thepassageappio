@@ -85,6 +85,7 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
     `Open the secure request: ${delivery.secureUrl}`,
     "",
     `This one-time link expires ${expires} Eastern Time. The receiving institution keeps the final decision.`,
+    "Use the newest Passage email for this request. If a fresh link is sent, every earlier link stops working.",
   ].join("\n");
 
   const html = `<!doctype html>
@@ -119,8 +120,13 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
             <h1 class="email-title" style="margin:0 0 14px;font-size:26px;line-height:1.2">${escapeHtml(heading)}</h1>
             <p class="email-copy" style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello, ${escapeHtml(delivery.participantName)}. ${escapeHtml(introduction)}</p>
             <p class="email-meta" style="margin:0 0 18px;color:#4e625d;font-size:14px;line-height:1.5"><strong>Other person:</strong> ${escapeHtml(delivery.otherPersonName)}<br><strong>Purpose:</strong> ${escapeHtml(purpose)}<br><strong>Account:</strong> ${escapeHtml(delivery.accountBoundary)}</p>
-            <p class="email-action" style="margin:0 0 20px"><a class="email-button" href="${escapeHtml(delivery.secureUrl)}" style="display:inline-block;min-height:44px;box-sizing:border-box;background:#12664f;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:10px">${escapeHtml(buttonLabel)}</a></p>
-            <p class="email-fine" style="margin:0;color:#4e625d;font-size:13px;line-height:1.5">This one-time link expires ${escapeHtml(expires)} Eastern Time. The receiving institution keeps the final decision.</p>
+            <table class="email-action" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px">
+              <tr><td align="center" bgcolor="#12664f" style="border-radius:10px">
+                <a class="email-button" href="${escapeHtml(delivery.secureUrl)}" target="_blank" rel="noopener noreferrer" style="display:block;min-height:44px;box-sizing:border-box;background:#12664f;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:10px;text-align:center;line-height:20px">${escapeHtml(buttonLabel)}</a>
+              </td></tr>
+            </table>
+            <p class="email-fine" style="margin:0 0 16px;color:#4e625d;font-size:13px;line-height:1.5">If the button does not open, <a href="${escapeHtml(delivery.secureUrl)}" target="_blank" rel="noopener noreferrer" style="color:#12664f;text-decoration:underline;font-weight:700">open the secure link here</a>.</p>
+            <p class="email-fine" style="margin:0;color:#4e625d;font-size:13px;line-height:1.5">This one-time link expires ${escapeHtml(expires)} Eastern Time. The receiving institution keeps the final decision.<br><br>Use the newest Passage email for this request. If a fresh link is sent, every earlier link stops working.</p>
           </td></tr>
         </table>
       </td></tr>
