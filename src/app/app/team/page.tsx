@@ -33,7 +33,7 @@ export default async function TeamPage({ searchParams }: Props) {
   const canManage = canManageMembers(membership.role);
   const canViewAudit = canViewOrganizationAudit(membership.role);
   const supabase = await createClient();
-  const [membershipResult, invitationResult, auditResult] = await Promise.all([
+  const [membershipResult, invitationResult, auditResult, memberCountResult] = await Promise.all([
     supabase.from("organization_memberships").select("id, user_id, email_normalized, role, status, version, activated_at, revoked_at").eq("organization_id", membership.organizationId).order("created_at"),
     canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
     canViewAudit
@@ -45,9 +45,16 @@ export default async function TeamPage({ searchParams }: Props) {
         .order("sequence_id", { ascending: false })
         .limit(10)
       : Promise.resolve({ data: [] }),
+    // organization_memberships row-level visibility is intentionally narrower
+    // than "every org member" for staff/reviewer/developer (see
+    // memberships_authorized_select), so counting membershipResult.data
+    // undercounts the team for those roles. organization_member_count_v1 is a
+    // summary-only RPC that returns the true count without exposing other
+    // members' individual rows to roles that can't see them.
+    supabase.rpc("organization_member_count_v1", { p_organization_id: membership.organizationId }),
   ]);
   const members = membershipResult.data ?? [];
-  const activeMemberCount = members.filter((member) => member.status === "active").length;
+  const activeMemberCount = memberCountResult.data ?? members.filter((member) => member.status === "active").length;
   const activeOwnerCount = members.filter((member) => member.status === "active" && member.role === "owner").length;
   const invitations = invitationResult.data ?? [];
   const activity = auditResult.data ?? [];
