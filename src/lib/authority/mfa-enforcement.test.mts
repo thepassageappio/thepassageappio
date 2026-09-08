@@ -47,7 +47,8 @@ test("owner and admin RPC mutations require an aal2 JWT at the database boundary
 test("backup factors are usable for challenge and the only verified factor is protected", () => {
   assert.match(mfaChallenge, /existingFactors\.map/);
   assert.match(mfaChallenge, /setSelectedFactorId/);
-  assert.match(factorManager, /friendlyName: "Backup authenticator"/);
+  assert.match(factorManager, /friendlyName: `Backup authenticator/);
+  assert.match(factorManager, /factor\.status === "unverified"/);
   assert.match(factorManager, /canRemoveVerifiedMfaFactor\(factors\.length\)/);
   assert.match(factorManager, /supabase\.auth\.mfa\.unenroll/);
 });

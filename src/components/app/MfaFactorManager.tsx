@@ -20,7 +20,24 @@ export function MfaFactorManager({ initialFactors }: { initialFactors: Factor[] 
   function startBackupEnrollment() {
     setMessage(null);
     startTransition(async () => {
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Backup authenticator" });
+      const { data: listed, error: listError } = await supabase.auth.mfa.listFactors();
+      if (listError) {
+        setMessage("Could not inspect your authenticators. Reload the page and try again.");
+        return;
+      }
+      for (const factor of listed.all) {
+        if (factor.factor_type === "totp" && factor.status === "unverified") {
+          const { error: cleanupError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+          if (cleanupError) {
+            setMessage("Could not clear an unfinished authenticator setup. Reload the page and try again.");
+            return;
+          }
+        }
+      }
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: "totp",
+        friendlyName: `Backup authenticator ${factors.length + 1}`,
+      });
       if (error || !data?.totp) {
         setMessage("Could not start backup setup. Reload the page and try again.");
         return;
