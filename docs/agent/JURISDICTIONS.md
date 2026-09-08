@@ -12,7 +12,7 @@ Load for state templates, legal claims, institution policy, acceptance/refusal, 
 
 Current product and public copy are New York only. Use “five-state validation roadmap” until counsel approves each state package.
 
-Pennsylvania-specific task: determine whether the existing `representative_certification` captures the statutory agent Acknowledgment required by 20 Pa.C.S. Chapter 56. Treat matching labels or general certification language as insufficient proof; compare the captured text, signature/affirmation, timing, attachment/association, and institution-visible receipt against the statute and counsel-approved requirements. Fix and re-run state-specific synthetic QA if any element is missing.
+Pennsylvania determination, September 8: the existing `representative_certification` does not capture the statutory agent Acknowledgment required by 20 Pa.C.S. § 5601(d). It stores a Boolean generic confirmation and text version, but no agent signature/name, execution date, substantially prescribed content, executed artifact, or proof of association with the POA. Do not relabel or reuse it as Pennsylvania compliance evidence. Implement the separate requirement only after counsel approves applicability, exceptions, content, association, retention, and receipt wording. Read [../PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md](../PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md).
 
 ## Required per state
 

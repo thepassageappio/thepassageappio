@@ -2,6 +2,8 @@
 
 > **Authority Compass update — September 8, 2026:** P0 demo readiness is closed after the real four-persona production rehearsal. PR #92 deployed audited provider repair, source-controlled notification history, reconciliation repair, release provenance, and three-layer privileged MFA. PR #93 fixed the authenticated 390px navigation defect found during release QA. P1 is prepared but not launched and P2 remains open. No outreach, LinkedIn publication, or buyer-facing demo begins until P1 and P2 are both explicitly closed. The seven-day reconciliation streak is still at zero. Read [the current checkpoint](./agent/CURRENT.md) before the historical status below.
 
+> **Pennsylvania update — September 8, 2026:** direct source inspection confirms the generic `representative_certification` is not the agent Acknowledgment required by 20 Pa.C.S. § 5601(d). A separate versioned artifact/review requirement and counsel-approved exception handling are required before `US-PA` can be enabled. See [PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md](./PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md).
+
 **Status:** Active delivery contract  
 **Updated:** September 5, 2026, Google OAuth, custom SMTP, and Demo DNS configured
 **V2 outcome:** A qualified institution can discover Passage, start a synthetic evaluation, reach a matching decision receipt, request a founding pilot, pay an invoice, receive the correct entitlement, invite its team, and enter onboarding with Passage, Stripe, and HubSpot in agreement.
@@ -140,17 +142,17 @@ All 8 passed. `supabase/tests/stripe_negative_paths.sql` reproduces the same 8 s
 2. **Free-plan availability confirmed from current Supabase documentation.** Basic app-level TOTP is free and enabled on all projects. Supabase organization-member enforcement remains a paid-plan administrative feature; the production backup decision remains separate.
 3. **Hosted database/API enforcement exercised.** The committed migration is applied to UAT and Demo. A real hosted claims-based test rejected an owner at AAL1 with `mfa_verification_required` and allowed the same owner at AAL2.
 4. **Production browser path exercised.** A new production owner completed onboarding, TOTP enrollment, and challenge. A separate fresh AAL1 sign-in with the verified factor was redirected to `/mfa`, challenged, elevated to AAL2, and allowed into `/app` on desktop and 390px Edge.
-5. **Still required:** build and verify a controlled lost-factor recovery or backup-factor path, add team-visible privileged-MFA compliance, and replay an administrator account independently before closing the full P2 MFA control.
+5. **September 8 branch update:** `agent/pa-requirements-and-mfa-recovery-20260908` adds an owner/admin-only, AAL2 sign-in-security screen for enrolling a named backup TOTP factor and selecting any verified factor during a challenge. Verified-factor removal is deliberately excluded until it can run through a separately authorized, audited recovery command. Review, deployment, a real two-factor recovery replay, team-visible compliance, and an independent administrator replay remain before closing the full P2 MFA control.
 
 **Remaining scope, not attempted this session (flagging clearly rather than leaving it vague):**
 
-- **Recovery codes / lost-factor recovery.** If an owner or admin loses their authenticator device, there is currently no self-service recovery path — they would need direct database/support intervention (e.g. an admin script calling `supabase.auth.admin.mfa.deleteFactor`). A real product needs either backup codes at enrollment or an owner-assisted reset flow before this is safe to require broadly.
+- **Backup-factor recovery is implemented on a branch, not yet released.** Supabase does not issue recovery codes but supports multiple factors. The new flow lets an already AAL2-verified owner/admin enroll a second authenticator and choose it at the next challenge. It exposes no verified-factor deletion because a browser-only last-factor check is not atomic or auditable. Losing all factors or removing a factor requires a separately approved owner-assisted or support identity-verification procedure using the server-only admin API.
 - **Command enforcement is deployed.** Post-onboarding organization Server Actions resolve an MFA-verified mutation context, and authenticated organization mutation RPCs enforce the signed JWT's AAL2 claim for owner/admin actors. Hosted and production owner replay pass; administrator replay and recovery remain.
 - **No visibility for owners into team MFA compliance.** There is no admin-facing view showing which owner/admin accounts have (or have not) completed enrollment — useful once there is more than one owner/admin per organization.
 - **No enforcement for other roles.** Scoped intentionally to owner/admin only, per the task; staff/reviewer/developer/auditor have no MFA requirement or option today. `mfa-policy.ts`'s `MFA_REQUIRED_ROLES` is the single place to widen this later.
 - **No WebAuthn/passkey or SMS second-factor option** — TOTP only, matching what Supabase Auth already ships without additional provider setup.
 
-Net: route, Server Action, and database mutation enforcement are deployed. Hosted owner enrollment, AAL1 denial, AAL2 success, re-challenge, and production replay pass. Lost-factor recovery, backup-factor handling, and independent administrator replay still determine whether the P2 MFA control closes.
+Net: route, Server Action, and database mutation enforcement are deployed. Hosted owner enrollment, AAL1 denial, AAL2 success, re-challenge, and production replay pass. Backup-factor handling is implemented on a review branch; its hosted replay, all-factors-lost operating procedure, team visibility, and independent administrator replay still determine whether the P2 MFA control closes.
 
 ## Reconciliation, recovery, and incident-response evidence — September 7, 2026
 

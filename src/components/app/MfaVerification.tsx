@@ -6,7 +6,7 @@ import styles from "@/app/mfa/mfa.module.css";
 
 type Props = {
   mode: "enroll" | "challenge";
-  existingFactorId: string | null;
+  existingFactors: Array<{ id: string; friendlyName: string }>;
 };
 
 type EnrollState =
@@ -14,10 +14,11 @@ type EnrollState =
   | { status: "ready"; factorId: string; qrSvg: string; secret: string }
   | { status: "error"; message: string };
 
-export function MfaVerification({ mode, existingFactorId }: Props) {
+export function MfaVerification({ mode, existingFactors }: Props) {
   const [supabase] = useState(() => createClient());
   const [enroll, setEnroll] = useState<EnrollState>({ status: "loading" });
   const [code, setCode] = useState("");
+  const [selectedFactorId, setSelectedFactorId] = useState(existingFactors[0]?.id ?? "");
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -46,7 +47,7 @@ export function MfaVerification({ mode, existingFactorId }: Props) {
       }
 
       if (cancelled) return;
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Primary authenticator" });
       if (cancelled) return;
       if (error || !data?.totp) {
         setEnroll({ status: "error", message: "Could not start two-factor setup. Reload this page to try again." });
@@ -61,7 +62,7 @@ export function MfaVerification({ mode, existingFactorId }: Props) {
     };
   }, [mode, supabase]);
 
-  const factorId = mode === "enroll" ? (enroll.status === "ready" ? enroll.factorId : null) : existingFactorId;
+  const factorId = mode === "enroll" ? (enroll.status === "ready" ? enroll.factorId : null) : selectedFactorId;
 
   function handleVerify() {
     if (!factorId) return;
@@ -76,7 +77,7 @@ export function MfaVerification({ mode, existingFactorId }: Props) {
     });
   }
 
-  if (mode === "challenge" && !existingFactorId) {
+  if (mode === "challenge" && existingFactors.length === 0) {
     return (
       <p className={styles.error}>
         We could not find your authenticator. Reload this page, or contact your administrator if this continues.
@@ -86,6 +87,14 @@ export function MfaVerification({ mode, existingFactorId }: Props) {
 
   return (
     <div>
+      {mode === "challenge" && existingFactors.length > 1 ? (
+        <label className={styles.fieldLabel} htmlFor="mfa-factor">
+          Authenticator
+          <select id="mfa-factor" className={styles.factorSelect} value={selectedFactorId} onChange={(event) => setSelectedFactorId(event.target.value)}>
+            {existingFactors.map((factor) => <option key={factor.id} value={factor.id}>{factor.friendlyName}</option>)}
+          </select>
+        </label>
+      ) : null}
       {mode === "enroll" && enroll.status === "loading" && <p>Preparing your authenticator setup...</p>}
       {mode === "enroll" && enroll.status === "error" && <p className={styles.error}>{enroll.message}</p>}
       {mode === "enroll" && enroll.status === "ready" && (

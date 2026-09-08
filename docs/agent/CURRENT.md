@@ -9,7 +9,7 @@ Updated September 8, 2026 UTC after the production MFA and mobile release.
 - The committed privileged-MFA migration is applied to UAT and Demo. In hosted UAT, the real database boundary denied an owner JWT at AAL1 with `mfa_verification_required` and allowed the same owner at AAL2.
 - A new production owner using `steveandashturrisi@gmail.com` completed organization onboarding, terms, the New York template, real TOTP enrollment, and the AAL2 challenge. A fresh AAL1 sign-in was then forced through the existing-factor challenge before `/app` loaded.
 - Authenticated Edge verification passed on desktop and an iPhone 13 viewport. That pass found a real 390px workspace-navigation overlap, which PR #93 fixed and merged as `b27951fda2cf22bc17d1420f74c229f4d956f6ed`.
-- Production now serves `b27951fda2cf22bc17d1420f74c229f4d956f6ed` from GitHub `main` with `provenance: verified`. The live 390px retest returned 200, kept document width at 390px, and placed all five navigation links in distinct non-overlapping positions inside a horizontal scroll row.
+- Production now serves `cabd731eca69fdf3db4769a13076cfce903b186c` from GitHub `main` with `provenance: verified`. The live 390px retest returned 200, kept document width at 390px, and placed all five then-current navigation links in distinct non-overlapping positions inside a horizontal scroll row.
 - The mobile regression test now rejects either fixed-column sidebar rule that caused the overlap. The final patch passes all 148 domain tests, TypeScript, ESLint, optimized build, and Ready Vercel checks for UAT and Demo.
 - UAT and Demo each compute `clean`: zero unresolved provider rows and zero billing, usage, or decision variances. The HubSpot and Stripe residue was resolved through service-only audited repair, and the live notification send-history fix is source controlled.
 - The real production database is Supabase `Passage Authority UAT` (`ywlrxdjibngroycwnujg`), not Demo. Demo is `bklrclpertdtmhycpqlz`.
@@ -19,10 +19,10 @@ Updated September 8, 2026 UTC after the production MFA and mobile release.
 
 1. September 7 and September 8 UTC are immutable `blocked` reconciliation days. Zero streak days are credited. Record day 1 on September 9 UTC; September 15 is the earliest possible day 7.
 2. The current reconciliation compares Passage's durable provider state. Full Passage/Stripe/HubSpot comparison still requires HubSpot credentials and live provider reads.
-3. Privileged MFA enrollment, AAL1 denial, AAL2 success, fresh-session challenge, and production replay are proven. Lost-factor recovery or backup-factor handling is still absent, so the P2 MFA control is not fully closed.
+3. Privileged MFA enrollment, AAL1 denial, AAL2 success, fresh-session challenge, and production replay are proven. A branch now adds owner/admin-only multiple-factor challenge selection and backup-factor enrollment. Verified-factor deletion remains excluded until an authorized, audited recovery command exists. The branch still needs deployment and a two-device hosted replay before the P2 MFA control closes.
 4. Supabase production remains on Free with no automated backups. A paid-plan decision and a real restore drill remain required before real data.
 5. Backup/restore/incident evidence, privacy/security/vendor-risk review, and counsel approval for New York, Pennsylvania, New Jersey, Connecticut, and Massachusetts remain open.
-6. Pennsylvania specifically requires counsel to determine whether `representative_certification` satisfies the statutory agent Acknowledgment and how that acknowledgment must be presented and retained.
+6. Pennsylvania gap analysis now confirms `representative_certification` does not satisfy the statutory agent Acknowledgment. The separate requirement, exceptions, evidence, retention, and receipt wording still need counsel approval and implementation. See `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`.
 
 ## Commercial hold
 
