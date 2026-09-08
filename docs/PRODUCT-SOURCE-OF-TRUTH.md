@@ -118,17 +118,18 @@ This differentiation is a hypothesis until an external institution confirms that
 ## 4. Product principles
 
 1. One clear next action per person.
-2. Explain the benefit and boundary before asking for data.
-3. Ask each fact once and reuse it with visible provenance.
-4. Use human terms on human screens.
-5. Keep identity, document evidence, policy completion, and institutional acceptance separate.
-6. Show allowed and prohibited actions in plain verbs.
-7. The institution owns policy and the final decision.
-8. No request counts as working until the receiving person can see and act on the result.
-9. Every material mutation creates durable state and an append-only event.
-10. Existing requests and receipts remain accessible when a trial or contract ends.
-11. No production claim appears before the corresponding control is verified.
-12. No new authority type or persona is added until the first wedge passes external UAT.
+2. Configuration is forward-only. Every request pins the effective policy, template, catalog, requirement, label, control, and mapping snapshot when the draft is created; later changes apply only to newly created requests and never rewrite history.
+3. Explain the benefit and boundary before asking for data.
+4. Ask each fact once and reuse it with visible provenance.
+5. Use human terms on human screens.
+6. Keep identity, document evidence, policy completion, and institutional acceptance separate.
+7. Show allowed and prohibited actions in plain verbs.
+8. The institution owns policy and the final decision.
+9. No request counts as working until the receiving person can see and act on the result.
+10. Every material mutation creates durable state and an append-only event.
+11. Existing requests and receipts remain accessible when a trial or contract ends.
+12. No production claim appears before the corresponding control is verified.
+13. No new authority type or persona is added until the first wedge passes external UAT.
 
 ## 5. Commercial model
 

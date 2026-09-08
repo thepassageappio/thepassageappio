@@ -54,7 +54,7 @@ Changing the meaning of a standard action is not a label edit. It requires eithe
 
 ## Request and receipt invariants
 
-Creating a draft must snapshot the selected template version, catalog version, action semantic keys, rendered labels and descriptions, channel requests, controls, and account boundary. A later catalog edit must not rewrite an existing request, event, or receipt.
+Creating a draft must snapshot the selected template version, catalog version, action semantic keys, rendered labels and descriptions, channel requests, controls, and account boundary. That creation time is the version boundary: activation does not refresh the snapshot. A later catalog edit applies only to drafts created after the new version's effective time and must not rewrite an existing draft, active request, event, decision, receipt, or replay.
 
 The institution decision must record an outcome for every requested action and channel: accepted, accepted with limits, rejected, or more information required. Accepted actions must remain a subset of requested actions. Every mutation requires authorization, expected-version checking, idempotency, tenant isolation, and an append-only event.
 

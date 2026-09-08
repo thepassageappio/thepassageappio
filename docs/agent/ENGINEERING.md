@@ -12,6 +12,15 @@ Load for product, API, database, or domain changes.
 6. Verify authorization, expected version, idempotency, tenant isolation, receipt agreement, and replay.
 7. Run focused tests, then TypeScript, lint, domain tests, and optimized build when the change is release-bound.
 
+## Forward-only policy invariant
+
+- Treat policy, template, catalog, requirement, label, control, and integration-mapping changes as new effective-dated versions.
+- Pin the complete effective snapshot when a request draft is created; activation does not silently refresh it.
+- Apply a newly published version only to requests created after its effective time.
+- Never update an existing draft, active request, event, decision, receipt, or replay merely because configuration changed.
+- Make migration backfills preserve historical meaning. If an old row lacks a snapshot, derive and record the version that actually governed it rather than assigning the newest version.
+- Test the boundary with a request created before publication and a request created after publication.
+
 ## Current structural fixes
 
 - Notification history: add immutable per-send attempts; mutable outbox remains current work only.
