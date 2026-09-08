@@ -48,7 +48,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "What Passage contributes",
         paragraphs: [
-          "Passage gives the account holder, representative, and reviewer separate secure steps. The institution defines what evidence is required. Passage shows what is missing, records what was reviewed, and preserves the institution's final decision and its limits.",
+          "Passage gives the account holder, representative, and reviewer separate secure steps. The current evaluation workflow uses a controlled evidence checklist. Passage shows what is missing, records what was reviewed, and preserves the institution's final decision and its limits.",
           "That makes the process easier to explain without pretending that software replaced the bank's legal, fraud, or compliance review.",
         ],
       },
