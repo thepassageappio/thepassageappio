@@ -44,7 +44,7 @@ export default function Home() {
           </div>
           <div className={styles.reviewCard}>
             <div><span>Permitted</span><strong>Statements and account-service discussions</strong></div>
-            <div data-excluded="true"><span>Excluded</span><strong>Money movement and ownership changes</strong></div>
+            <div data-excluded="true"><span>Not included in this example</span><strong>Money movement and ownership changes</strong></div>
           </div>
           <div className={styles.requirements}>
             <div><span>POA document</span><b>Reviewed</b></div>

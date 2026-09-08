@@ -42,6 +42,18 @@ The onboarding policy builder begins with a versioned starter set. It uses struc
 
 Free text can explain a rule but must not be the sole machine-enforced definition of an action, channel, limit, or required outcome.
 
+`Excluded` is not one machine state. Policy, request, decision, and receipt views must distinguish:
+
+- unavailable because of a locked jurisdiction rule;
+- unsupported by the institution or account/product;
+- deactivated in the current institution policy version;
+- outside the authority document as determined by the institution's human review;
+- available but not requested in this transaction;
+- requested and rejected by the institution;
+- accepted with explicit limits.
+
+Each state carries a source and reason. Public examples must say `Not included in this example` when that is all the product can truthfully establish.
+
 ## Policy-authoring workflow
 
 1. An owner or administrator starts from the current published version.
