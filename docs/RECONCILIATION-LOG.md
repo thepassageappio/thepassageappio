@@ -11,7 +11,7 @@ Both must independently reach 7 consecutive clean days; the later of the two dat
 
 ## What the job checks
 
-1. **Billing/provider state vs. app state** -- reuses the pre-existing `public.get_commercial_reconciliation_snapshot_v1()` (found already deployed in both databases; see "Pre-existing infrastructure found" below) to snapshot `authority_private.commercial_orders`, `provider_event_inbox`, and `integration_outbox`, then checks: a paid order has exactly one `billing.pilot_activated` audit event; a refunded/failed order has no active allowance lots; any unresolved (`pending`/`retrying`/`failed`/`received`/`processing`) provider inbox or outbox row makes the day `blocked`.
+1. **Billing/provider state vs. app state** -- reuses `public.get_commercial_reconciliation_snapshot_v1()` to snapshot `authority_private.commercial_orders`, `provider_event_inbox`, and `integration_outbox`, then checks: a paid order has exactly one `billing.pilot_activated` audit event; a refunded order may retain zero or one historical activation audit but has no active allowance lots; other non-paid orders have no activation audits or active allowances; any unresolved (`pending`/`retrying`/`failed`/`received`/`processing`) provider inbox or outbox row makes the day `blocked`.
 2. **Request/decision counts vs. audit log** -- per organization, `authority_usage_events` (activated-transaction count) must equal both the `authority.activated` count in `organization_audit_events` and `organization_entitlements.activated_count`; `authority_institution_decisions` (immutable decision receipts) must equal the `institution.decision_recorded` count in `organization_audit_events`.
 
 This does **not** call the live Stripe or HubSpot APIs -- it reconciles Passage's own durably recorded provider state (written by the existing Stripe webhook/outbox pipeline) against Passage's own request/decision/audit tables. Full three-way Passage/Stripe/HubSpot reconciliation additionally requires HubSpot provider credentials, which remain unconfigured as of this run (see `docs/V2-DELIVERY-ROADMAP.md`).
@@ -26,10 +26,24 @@ Today's change (`20260907153000_daily_reconciliation_check.sql`) builds a real c
 
 | Environment | Current streak | Streak start date | Last run date | Last status |
 | --- | --- | --- | --- | --- |
-| UAT | 0 | not started -- day 1 was not clean | 2026-09-07 | `blocked` |
-| Demo | 0 | not started -- day 1 was not clean | 2026-09-07 | `blocked` |
+| UAT | 0 | earliest possible start: 2026-09-09 UTC | 2026-09-08 | `blocked` (current computation clean after repair) |
+| Demo | 0 | earliest possible start: 2026-09-09 UTC | 2026-09-08 | `blocked` (current computation clean after repair) |
 
 ## Run log
+
+### 2026-09-08 -- immutable run blocked; repair complete; current computation clean
+
+Both environments recorded their once-per-day run at approximately 03:14 UTC, before repair, with the same deterministic run key `0a698a8d-fc79-99b9-2dbe-8d6844376fc2`. Those append-only records remain `blocked` and do not earn a streak day.
+
+The repair then established and recorded the reason for every unresolved row:
+
+- UAT outbox row `a8361230-d92a-4597-b3ad-6d5265ef23aa` belonged to an internal demo inquiry created while no HubSpot worker was configured. `public.cancel_integration_outbox_v1` marked it `canceled` with code `internal_demo_no_worker` and wrote one append-only `commercial.integration_outbox_canceled` event containing the prior status.
+- Demo event `evt_1UCA7SRteXSJR0llbAZL13OM` was the known pre-order synthetic invoice. Event `evt_1UCA5sRteXSJR0llBpHUoQef` was independently checked and also proved to be test residue: its $20 invoice and Stripe customer do not match Passage's real $5,000 paid demo order. `public.resolve_provider_event_v1` marked both `ignored` with code `synthetic_test_event` and wrote two append-only `commercial.provider_event_resolved` events containing their prior states.
+- The notification send-history correction already existed in both databases as a direct SQL change. Its exact applied SQL was recovered into `supabase/migrations/20260907213516_notification_outbox_send_history.sql`, closing the source-control gap.
+- Demo's missing `organization_member_count_summary` and `team_invitation_delivery_tracking` migrations were applied and verified by object presence.
+- The job itself had a false-positive invariant: a paid-then-refunded order legitimately retains one activation audit. The function now permits zero or one activation audit for a refund, while continuing to reject active allowances and duplicate activations. The existing Stripe negative-path test now asserts this behavior.
+
+After those changes, direct calls to `authority_private.compute_daily_reconciliation_v1()` returned `clean` in UAT and Demo with empty unresolved-inbox, unresolved-outbox, billing-variance, usage-variance, and decision-variance arrays. This is post-repair readiness evidence, not a credited daily run. Day 1 can be recorded on September 9 UTC.
 
 ### 2026-09-07 -- Day 1, both environments -- first real run, both `blocked`
 
@@ -41,7 +55,7 @@ This is the first time this job has ever run. It was written and executed today 
 
 **Why day 1 doesn't start the clock:** the P2 gate requires *clean* runs, and today's runs are real but not clean. Starting the streak on a blocked day would misrepresent the gate. The clock starts on the first day both environments return `clean`.
 
-**Required to reach clean (repair queue -- not performed today, needs an owner decision, not a silent code change):**
+**Repair queue at the time (completed September 8 as recorded above):**
 
 - UAT: either connect a real HubSpot outbox worker so the pending row can be claimed and applied, or make an explicit product decision to cancel/retire that outbox row (`status = 'canceled'`) with a documented reason, so it stops being a permanent false block.
 - Demo: triage `evt_1UCA5sRteXSJR0llBpHUoQef` -- determine why it never left `received` (the ingest/apply path only explicitly handles `invoice.paid` / `invoice.payment_failed` / `charge.refunded`; anything else, or a processing failure mid-apply, can leave a row stranded -- worth an engineering look at `authority_private.ingest_and_apply_stripe_event_v2`), and once `evt_1UCA7SRteXSJR0llbAZL13OM` is confirmed to be the known harmless pre-order synthetic test event, explicitly mark it `ignored` with a reason rather than leaving it `failed` indefinitely.

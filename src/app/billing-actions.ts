@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { getAuthorityMutationAccessContext } from "@/lib/authority/access";
 import { preparePilotInvoice } from "@/lib/authority/pilot-billing";
 import { canManageBilling } from "@/lib/authority/role-capabilities";
 import { deliverStripePilotInvoiceOutbox } from "@/lib/commercial/stripe-pilot";
@@ -18,6 +18,7 @@ function billingError(error: unknown) {
   if (message.includes("pilot_order_already_open")) return "invoice_open";
   if (message.includes("stale_entitlement_version")) return "plan_changed";
   if (message.includes("pilot_invoice_not_allowed")) return "not_allowed";
+  if (message.includes("mfa_verification_required")) return "mfa_required";
   if (message.includes("stripe_") || message.includes("pilot_invoice")) return "provider_unavailable";
   return "invalid";
 }
@@ -25,8 +26,7 @@ function billingError(error: unknown) {
 export async function createFoundingPilotInvoiceAction(formData: FormData) {
   let destination = "/app/organization?billing=invalid";
   try {
-    const access = await getAuthorityAccessContext();
-    if (!access?.membership || !access.organization) throw new Error("authentication_required");
+    const access = await getAuthorityMutationAccessContext();
     if (!canManageBilling(access.membership.role)) throw new Error("pilot_invoice_not_allowed");
 
     const input = preparePilotInvoice({

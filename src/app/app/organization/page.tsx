@@ -86,6 +86,7 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
   const billingMessages: Record<string, string> = {
     invoice_open: "A pilot invoice is already open. Use the hosted invoice link below.",
     plan_changed: "The plan changed while the invoice was being prepared. Review the latest status and try again.",
+    mfa_required: "Verify with your authenticator before changing billing. Open the security check and try again.",
     not_allowed: "Your role cannot prepare institution billing.",
     provider_unavailable: "The billing provider is temporarily unavailable. The request is recorded for retry.",
     invalid: "Review the pilot dates and request allowance, then try again.",

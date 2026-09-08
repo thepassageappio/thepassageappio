@@ -111,6 +111,27 @@ export const getAuthorityAccessContext = cache(async (): Promise<AuthorityAccess
   };
 });
 
+type AuthorityMutationAccessContext = AuthorityAccessContext & {
+  membership: NonNullable<AuthorityAccessContext["membership"]>;
+  organization: NonNullable<AuthorityAccessContext["organization"]>;
+};
+
+/**
+ * Resolve an authenticated organization context for a server-side mutation and
+ * enforce the same owner/admin MFA policy as the /app layout. This keeps a
+ * direct Server Action POST from bypassing the route-level MFA redirect.
+ */
+export async function getAuthorityMutationAccessContext(): Promise<AuthorityMutationAccessContext> {
+  const access = await getAuthorityAccessContext();
+  if (!access?.membership || !access.organization) {
+    throw new Error("authentication_required");
+  }
+  if (access.mfaGate !== "allow") {
+    throw new Error("mfa_verification_required");
+  }
+  return access as AuthorityMutationAccessContext;
+}
+
 export function roleLabel(role: OrganizationRole) {
   const labels: Record<OrganizationRole, string> = {
     owner: "Owner",

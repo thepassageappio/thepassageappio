@@ -26,12 +26,26 @@ export function MfaVerification({ mode, existingFactorId }: Props) {
     let cancelled = false;
 
     async function startEnrollment() {
-      const { data: existing } = await supabase.auth.mfa.listFactors();
-      const stale = existing?.totp?.filter((factor) => factor.status === "unverified") ?? [];
-      for (const factor of stale) {
-        await supabase.auth.mfa.unenroll({ factorId: factor.id });
+      const { data: existing, error: listError } = await supabase.auth.mfa.listFactors();
+      if (cancelled) return;
+      if (listError) {
+        setEnroll({ status: "error", message: "Could not check your authenticator setup. Reload this page to try again." });
+        return;
       }
 
+      const stale = existing?.all.filter(
+        (factor) => factor.factor_type === "totp" && factor.status === "unverified",
+      ) ?? [];
+      for (const factor of stale) {
+        const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        if (cancelled) return;
+        if (unenrollError) {
+          setEnroll({ status: "error", message: "Could not reset your authenticator setup. Reload this page to try again." });
+          return;
+        }
+      }
+
+      if (cancelled) return;
       const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
       if (cancelled) return;
       if (error || !data?.totp) {

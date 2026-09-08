@@ -30,11 +30,19 @@ test("the people page audit feed is limited to legible access lifecycle events",
     "organization.created",
     "membership.activated",
     "membership.invited",
+    "membership.invitation_submitted",
+    "membership.invitation_delivered",
+    "membership.invitation_delivery_failed",
+    "membership.invitation_delivery_delayed",
     "membership.role_changed",
     "membership.revoked",
     "membership.invitation_revoked",
   ]);
   assert.equal(organizationAccessActivityLabel("membership.invited"), "Team invitation created");
+  assert.equal(organizationAccessActivityLabel("membership.invitation_submitted"), "Team invitation submitted to email provider");
+  assert.equal(organizationAccessActivityLabel("membership.invitation_delivered"), "Team invitation delivered");
+  assert.equal(organizationAccessActivityLabel("membership.invitation_delivery_failed"), "Team invitation delivery failed");
+  assert.equal(organizationAccessActivityLabel("membership.invitation_delivery_delayed"), "Team invitation delivery delayed");
   assert.equal(organizationAccessActivityLabel("institution.decision_recorded"), "Organization access updated");
 });
 

@@ -23,6 +23,7 @@ const errorMessages: Record<string, string> = {
   invitation_unavailable: "This invitation is no longer available. Ask the organization to send a new one.",
   invitation_expired: "This invitation has expired. Ask the organization to send a new one.",
   invitation_email_mismatch: "Sign in with the same email address that received this invitation.",
+  mfa_required: "Verify with your authenticator before completing that action.",
   request_failed: "We could not complete that action. Nothing was changed. Please try again.",
   request_creation_not_allowed: requestCoordinatorRecoveryMessage,
   request_activation_not_allowed: requestCoordinatorRecoveryMessage,
