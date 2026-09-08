@@ -11,7 +11,18 @@ export type HubSpotInquiryPayload = {
   consent_version: string; source_path: string; company_key: string; contact_key: string;
 };
 
-type OutboxJob = { id: string; attempts: number; idempotency_key: string; payload: HubSpotInquiryPayload };
+export type HubSpotSampleAccessPayload = {
+  reference_code: string; full_name: string; email: string; consent_version: string;
+  source_path: string; contact_key: string;
+};
+
+type OutboxJob = {
+  id: string;
+  operation: "upsert_commercial_inquiry" | "upsert_sample_access_lead";
+  attempts: number;
+  idempotency_key: string;
+  payload: HubSpotInquiryPayload | HubSpotSampleAccessPayload;
+};
 type HubSpotRecord = { id: string };
 type PropertyDefinition = { objectType: string; groupName: string; name: string; label: string; hasUniqueValue?: boolean };
 
@@ -24,6 +35,7 @@ const propertyDefinitions: PropertyDefinition[] = [
   { objectType: "contacts", groupName: "contactinformation", name: "pa_prospect_key", label: "Passage prospect key", hasUniqueValue: true },
   { objectType: "contacts", groupName: "contactinformation", name: "pa_inquiry_reference", label: "Latest Passage inquiry" },
   { objectType: "contacts", groupName: "contactinformation", name: "pa_contact_consent_version", label: "Passage contact consent version" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_lead_source", label: "Passage lead source" },
   { objectType: "deals", groupName: "dealinformation", name: "pa_inquiry_reference", label: "Passage inquiry reference", hasUniqueValue: true },
   { objectType: "tickets", groupName: "ticketinformation", name: "pa_inquiry_reference", label: "Passage inquiry reference", hasUniqueValue: true },
 ];
@@ -158,6 +170,19 @@ export async function projectCommercialInquiry(token: string, payload: HubSpotIn
   return { company_id: companyId, contact_id: contactId, object_type: objectType, record_id: recordId };
 }
 
+export async function projectSampleAccessLead(token: string, payload: HubSpotSampleAccessPayload) {
+  assertCommercialPayloadSafe(payload as unknown as Record<string, unknown>);
+  const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
+    ...splitName(payload.full_name),
+    email: payload.email,
+    pa_prospect_key: payload.contact_key,
+    pa_inquiry_reference: payload.reference_code,
+    pa_contact_consent_version: payload.consent_version,
+    pa_lead_source: "sample_workflow",
+  });
+  return { contact_id: contactId, object_type: "contacts", record_id: contactId };
+}
+
 export async function deliverHubSpotInquiryOutbox(maxJobs = 1) {
   const token = process.env.HUBSPOT_PRIVATE_APP_TOKEN?.trim();
   if (!token || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) return { configured: false, applied: 0, failed: 0 };
@@ -171,7 +196,9 @@ export async function deliverHubSpotInquiryOutbox(maxJobs = 1) {
     const job = data as OutboxJob | null;
     if (!job) break;
     try {
-      const result = await projectCommercialInquiry(token, job.payload);
+      const result = job.operation === "upsert_sample_access_lead"
+        ? await projectSampleAccessLead(token, job.payload as HubSpotSampleAccessPayload)
+        : await projectCommercialInquiry(token, job.payload as HubSpotInquiryPayload);
       const completion = await admin.rpc("complete_hubspot_outbox_v1", { p_outbox_id: job.id, p_provider_result: result });
       if (completion.error) throw completion.error;
       applied += 1;

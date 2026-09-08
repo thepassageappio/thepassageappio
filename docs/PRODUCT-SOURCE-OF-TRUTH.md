@@ -381,6 +381,8 @@ Routes are proposed product contracts. Final names may change once, before imple
 
 ### 10.2 Account and organization onboarding
 
+The gated sample and institution onboarding are separate. `Explore a sample workflow` authenticates a low-risk viewer through Google or a one-time email link without creating an organization membership or requiring privileged MFA. Authentication alone is not commercial consent. A first-time viewer must then explicitly choose `Agree and view sample`; Passage stores the verified identity, exact contact-consent version, source, and timestamp in a private append-only record and queues an idempotent HubSpot Contact projection before opening `/sample`. Creating an institution workspace is a deliberate next action; its creator becomes Owner and must satisfy the Owner/Admin MFA policy before entering the workspace. See [SAMPLE-WORKFLOW-ACCESS-DECISION-2026-09-08.md](./SAMPLE-WORKFLOW-ACCESS-DECISION-2026-09-08.md).
+
 | Screen ID | Proposed route | Primary job | Primary action |
 | --- | --- | --- | --- |
 | O-01 | `/start` | Collect work email and name | Send secure sign-in link |
