@@ -10,10 +10,10 @@ export default async function PoliciesPage() {
 
   return (
     <>
-      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Authority policy</p><h1>New York financial POA</h1><p>The institution defines its requirements and keeps the final authority decision. Passage coordinates the transaction and preserves the result.</p></div><span className={styles.badge}>Active</span></header>
+      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Authority policy</p><h1>New York financial POA</h1><p>This controlled evaluation template defines the current checklist. Your institution reviews the evidence and keeps the final authority decision.</p></div><span className={styles.badge}>Active</span></header>
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Initial authority scope</h2><p>Limited, non-transactional account-service actions only.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Controlled evaluation scope</h2><p>Limited, non-transactional account-service actions only. Institution policy configuration is not yet available in this release.</p></div></div>
           <div className={styles.policyScope}>
             <div className={styles.scopeCard}><h3>May be requested</h3><ul><li>Receive duplicate statements for a named account boundary</li><li>Discuss defined account-service questions</li></ul></div>
             <div className={styles.scopeCard} data-tone="caution"><h3>Never included in this release</h3><ul><li>Move, withdraw, or transfer money</li><li>Open or close accounts</li><li>Change owners, beneficiaries, credentials, or investments</li></ul></div>

@@ -26,6 +26,7 @@ Updated September 8, 2026 UTC after the production MFA and mobile release.
 5. Backup/restore/incident evidence, privacy/security/vendor-risk review, and counsel approval for New York, Pennsylvania, New Jersey, Connecticut, and Massachusetts remain open.
 6. Pennsylvania gap analysis now confirms `representative_certification` does not satisfy the statutory agent Acknowledgment. The separate requirement, exceptions, evidence, retention, and receipt wording still need counsel approval and implementation. See `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`.
 7. The current two-action scope is a synthetic fixture, not a configurable institution catalog. Institution onboarding, action activation/deactivation, custom actions, channel entitlements, controls, immutable request snapshots, and per-action decisions remain a launch-demo product gap. See `docs/AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md`.
+8. The claim that an institution currently defines its reusable evidence requirements through Passage was too broad. Production has a fixed three-requirement synthetic checklist and a read-only policy page. The truthful copy fix and complete policy-management contract are on the implementation branch; see `docs/INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md`.
 
 ## Commercial hold
 

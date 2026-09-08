@@ -2,6 +2,8 @@
 
 **Status:** required product capability; not implemented in the current hosted release.
 
+Evidence requirements, review rules, legal locks, and publication controls are specified in [INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md](./INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md).
+
 The current two-action New York template is a deliberately narrow synthetic-evaluation fixture. It is not the intended product model for an institution launch. Passage must let each institution begin with a controlled, versioned action catalog for each authority type and configure that catalog during onboarding.
 
 ## Product boundary
