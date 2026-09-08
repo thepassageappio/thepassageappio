@@ -28,6 +28,8 @@ A later analytics increment may record a privacy-reviewed `sample_viewed` produc
 
 ## Acceptance evidence
 
+Executed September 8: the complete local email-authenticated flow reached the explicit consent screen, recorded one consent/event/outbox transaction, and opened `/sample`. The 390px Chrome replay had no console errors; a two-pixel shared marketing-header overflow found during the run was corrected and rechecked at zero document overflow. The migration was then applied to UAT and Demo, where the table, service-only grants, and sample-aware HubSpot claim were queried directly. Both hosted tables began with zero sample leads. Passage HubSpot credentials and real Contact replay remain separate open provider evidence.
+
 - Every marketing link labeled `sample workflow` routes to `/sample`.
 - An unauthenticated `/sample` visit reaches `/start?intent=sample&next=/sample`.
 - The sample gate leads with Google when Google OAuth is configured and retains one-time email as a fallback.
