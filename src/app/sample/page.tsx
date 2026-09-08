@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { CommercialFooter } from "@/components/commercial/CommercialFooter";
 import { CommercialHeader } from "@/components/commercial/CommercialHeader";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { hasSampleAccessLead } from "@/lib/authority/sample-access";
 import styles from "./sample.module.css";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ const journey = [
 export default async function SampleWorkflowPage() {
   const access = await getAuthorityAccessContext();
   if (!access?.user) redirect("/start?intent=sample&next=/sample");
+  if (!(await hasSampleAccessLead(access.user.id))) redirect("/sample/access");
 
   return (
     <main className={styles.page}>
@@ -33,7 +35,7 @@ export default async function SampleWorkflowPage() {
         <div>
           <p className={styles.eyebrow}>Read-only product sample</p>
           <h1>See one authority request from start to receipt.</h1>
-          <p className={styles.lede}>This guided example uses fictional people and an imaginary credit union. Your Google or email sign-in unlocks the sample; two-factor authentication is reserved for people who create or administer an institution workspace.</p>
+          <p className={styles.lede}>This guided example uses fictional people and an imaginary credit union. A verified Google or email sign-in plus your recorded contact permission unlocks the sample; two-factor authentication is reserved for people who create or administer an institution workspace.</p>
           <div className={styles.heroActions}>
             <a className={styles.primary} href="#workflow">Start the sample <span>↓</span></a>
             <Link className={styles.secondary} href="/contact">Book a guided walkthrough</Link>

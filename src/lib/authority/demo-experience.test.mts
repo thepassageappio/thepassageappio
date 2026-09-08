@@ -15,6 +15,21 @@ test("the public journey offers a guided demo without hiding product evaluation"
   assert.doesNotMatch(home, /Current status shared by permission|Complete activity history/);
 });
 
+test("sample access uses an explicit, durable lead gate", () => {
+  const sample = source("../../app/sample/page.tsx");
+  const access = source("../../app/sample/access/page.tsx");
+  const action = source("../../app/sample/actions.ts");
+  const hubspot = source("../commercial/hubspot-inquiry.ts");
+
+  assert.match(sample, /hasSampleAccessLead/);
+  assert.match(sample, /redirect\("\/sample\/access"\)/);
+  assert.match(access, /Passage may contact me about this sample/);
+  assert.match(access, /Agree and view sample/);
+  assert.match(action, /createSampleAccessLead/);
+  assert.match(hubspot, /projectSampleAccessLead/);
+  assert.match(hubspot, /pa_lead_source: "sample_workflow"/);
+});
+
 test("the public story explains the real-life use case, identity boundary, and completed result plainly", () => {
   const home = source("../../app/page.tsx");
   const about = source("../../app/about/page.tsx");

@@ -39,7 +39,7 @@ export default async function StartPage({ searchParams }: Props) {
           ? "Use Google for immediate access, or request a one-time link by email."
           : "Request a one-time sign-in link using your work email."
         : sample
-          ? "Continue with Google for the quickest access, or use a one-time email link. Viewing the read-only fictional workflow does not require an authenticator app."
+          ? "Continue with Google for the quickest access, or use a one-time email link. After sign-in, one clear contact opt-in unlocks the read-only sample; no authenticator app is required."
         : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
@@ -52,10 +52,10 @@ export default async function StartPage({ searchParams }: Props) {
       </> : null}
       <form action={requestSignInAction} className={styles.form}>
         <input name="next" type="hidden" value={next} />
-        {!returning && !sample ? (
+        {!returning ? (
           <div className={styles.field}>
             <label htmlFor="fullName">Your name</label>
-            <input autoComplete="name" id="fullName" name="fullName" placeholder="Alex Morgan" type="text" />
+            <input autoComplete="name" id="fullName" name="fullName" placeholder="Alex Morgan" required={sample} type="text" />
           </div>
         ) : null}
         <div className={styles.field}>
@@ -68,6 +68,7 @@ export default async function StartPage({ searchParams }: Props) {
           By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
         </p>
       </form>
+      {sample ? <p className={styles.legal}>Signing in identifies you securely. Passage asks for contact permission separately before opening the sample.</p> : null}
       {!returning && !sample ? <p className={styles.legal}>New evaluation workspaces begin with an Owner account. After sign-in, Owners set up an authenticator app to protect policy, team, billing, and request controls. <Link href="/sample">Prefer to look around first? Open the sign-in-only sample.</Link></p> : null}
     </AccountFrame>
   );

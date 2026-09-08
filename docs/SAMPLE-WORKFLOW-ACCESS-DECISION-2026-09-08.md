@@ -7,6 +7,8 @@
 ```text
 Explore a sample workflow
   -> Google sign-in (primary) or one-time email link
+  -> explicit “Agree and view sample” contact opt-in
+  -> append-only consent record and durable HubSpot Contact outbox job
   -> authenticated sample viewer with no organization membership
   -> read-only fictional four-persona workflow
   -> book a guided walkthrough or deliberately create an institution workspace
@@ -18,7 +20,9 @@ The sample viewer may open `/sample` at AAL1 because the route contains fixed fi
 
 ## Lead-generation truth
 
-The initial release captures an authenticated viewer in Supabase Auth and gives the viewer a direct CTA to the existing consented commercial-inquiry form. Authentication alone is not permission for sales or marketing contact. Do not project an Auth user into HubSpot or send outreach unless the person separately submits the contact form and accepts its recorded consent language.
+Authentication alone is not permission for sales or marketing contact. After authentication, Passage presents a separate, required contact opt-in. The `Agree and view sample` action records the verified Auth user, exact consent version, source path, timestamp, and hashed email in an append-only private record. The same transaction appends a commercial event and queues an idempotent HubSpot Contact projection before the sample unlocks.
+
+The HubSpot projection creates or updates a Contact with the source `sample_workflow`. It does not invent an institution, Company, Deal, or Ticket. A later commercial-inquiry form can collect and project those facts when the viewer supplies them. Authority records and participant data are prohibited from this payload.
 
 A later analytics increment may record a privacy-reviewed `sample_viewed` product event with source attribution and aggregate conversion reporting. It must remain separate from authority records and must not include participant or authority data.
 
@@ -28,7 +32,10 @@ A later analytics increment may record a privacy-reviewed `sample_viewed` produc
 - An unauthenticated `/sample` visit reaches `/start?intent=sample&next=/sample`.
 - The sample gate leads with Google when Google OAuth is configured and retains one-time email as a fallback.
 - Successful sign-in returns to `/sample`, not organization onboarding.
-- `/sample` requires an authenticated user but no organization, role, or AAL2 session.
+- A first-time authenticated viewer reaches `/sample/access` and must explicitly opt in before the sample opens.
+- The opt-in creates one append-only private consent record per Auth user, one commercial ledger event, and one idempotent HubSpot Contact outbox job.
+- A returning consented viewer opens `/sample` without repeating the gate.
+- `/sample` requires an authenticated, consented user but no organization, role, or AAL2 session.
 - `/sample` is dynamic, private/no-store, and `noindex`.
 - The sample contains fictional read-only content and no mutation controls.
 - Starting or entering an Owner/Admin institution workspace continues to require the existing MFA policy.
