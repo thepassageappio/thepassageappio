@@ -9,7 +9,7 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 - Production domain: `thepassageapp.io`.
 - Production Vercel project: `passage-authority-uat`, now Git-connected with automatic production deployment from `main`.
 - PR #90 fast-forwarded `main` to the former `agent/founding-pilot-billing` tip; do not describe that work as branch-only.
-- Refreshed `origin/main` is `8e3ca10d7241f17815a4a154ef5e144c558268ac`. It includes the privileged-MFA enforcement, progressive context, legal/vendor-risk packets, provider repair, mobile-navigation fix, backup-factor selection, and Pennsylvania requirements work through PR #95.
+- Refreshed `origin/main` is `07edaaef50dcecb46dce014c42f001462984b75c`. It includes the privileged-MFA enforcement, progressive context, legal/vendor-risk packets, provider repair, mobile-navigation fix, backup-factor selection, Pennsylvania requirements, and authority-scope catalog contract through PR #96.
 - `origin/agent/founding-pilot-billing` advanced to `15052ad` from an older base. Integrate its two final packet files selectively; merging the divergent branch wholesale would delete newer MFA/reconciliation work from `main`.
 - Manual `vercel deploy` was the old production path and is now stale. Use the Git-triggered `main` deployment path.
 - Block production from detached HEAD or a dirty worktree.
