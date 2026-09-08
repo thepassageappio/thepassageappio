@@ -1,12 +1,12 @@
 # Current Passage checkpoint
 
-Updated September 7, 2026.
+Updated September 8, 2026 UTC.
 
 ## Verified
 
 - Real-production four-persona synthetic journey, reviewer access, matching receipts, decline cleanup, recovery, authenticated 360/390 mobile, desktop, and keyboard evidence.
 - Production invitation and team delivery work; one Gmail message was silently dropped after provider acceptance.
-- Production `provider_event_inbox` was observed with zero unresolved events, but separate stuck HubSpot/Stripe rows and notification history work still block a clean reconciliation verdict.
+- UAT and Demo each compute `clean` after the exact provider repair described below: zero unresolved inbox/outbox rows and zero reconciliation variances.
 - P0 demo readiness is closed: the real four-persona production rehearsal passed.
 - `thepassageapp.io` is served by the Git-connected Vercel project `passage-authority-uat`, which now auto-deploys pushes to `main`.
 - PR #90 fast-forwarded `main` to the previous `agent/founding-pilot-billing` tip.
@@ -15,16 +15,19 @@ Updated September 7, 2026.
 - Clean integration candidate based on `origin/main` `76e52dc`: 148 domain tests, TypeScript, lint, and optimized Next.js build pass after repairing the team-delivery audit allowlist and MFA enrollment typing.
 - Privileged mutation MFA now has three layers in the candidate: `/app` routing, Server Action enforcement, and database RPC AAL2 enforcement. A disposable local Supabase reset applied every migration; a real JWT-claims test rejected an owner at AAL1 and allowed the owner at AAL2.
 - Legal-review and vendor-risk/privacy briefing packets from the advanced Claude branch are preserved in the integration candidate without importing that divergent branch's deletions.
+- The live `notification_outbox_send_history` fix was recovered verbatim into `20260907213516_notification_outbox_send_history.sql`; the shadow migration is now source controlled and applies from zero locally.
+- UAT's pending internal demo HubSpot projection was canceled through a service-only function with append-only ledger evidence. Demo's two unmatched test Stripe events were independently tied to non-Passage test invoices and resolved as `synthetic_test_event`, also with append-only ledger evidence.
+- Demo's missing organization-member summary and team-invitation delivery migrations are applied and their functions/columns are present.
+- Reconciliation now permits the valid paid-then-refunded history of one activation audit while still rejecting active allowances or duplicate activation audits after refund.
 
 ## Blocking
 
-1. The reconciliation job ran once on both live environments and returned `blocked`; zero clean days are credited. UAT has tracked migration `20260907035519`; Demo reports an older applied copy at `20260905233220`. Confirm SQL equivalence and migration bookkeeping before applying anything again.
-2. The stuck HubSpot row, two stuck Stripe rows, and `notification_outbox` history bug remain unresolved until separately investigated, repaired, and verified. One Stripe row is a known test event; the other may be a real defect.
-3. Supabase currently documents app-level TOTP as included on Free and enabled for all projects. Candidate code/build and local AAL enforcement pass; hosted configuration, owner/admin enrollment and re-challenge, recovery/backup-factor behavior, and production mutation replay remain.
-4. First clean reconciliation plus seven consecutive clean calendar days.
-5. Supabase production is on Free with no backups; owner plan decision remains open.
-6. Backup/restore/incident, privacy/security/vendor-risk, and five-state counsel evidence.
-7. The integration candidate is not merged or deployed; production `main` still lacks these fixes and progressive checkpoints.
+1. The immutable September 8 UTC daily runs were recorded as `blocked` before the repair and remain unchanged. Current computation is clean in both environments, but zero days are credited; September 9 UTC is the first possible clean streak day.
+2. Supabase currently documents app-level TOTP as included on Free and enabled for all projects. Candidate code/build and local AAL enforcement pass; hosted configuration, owner/admin enrollment and re-challenge, recovery/backup-factor behavior, and production mutation replay remain.
+3. Seven consecutive clean calendar-day runs beginning no earlier than September 9 UTC. Internal clean computation does not satisfy the later full Stripe/Passage/HubSpot three-way check while HubSpot credentials remain unconfigured.
+4. Supabase production is on Free with no backups; owner plan decision remains open.
+5. Backup/restore/incident, privacy/security/vendor-risk, and five-state counsel evidence.
+6. The integration candidate is not merged or deployed; production `main` still lacks these fixes and progressive checkpoints.
 
 ## Non-blocking backlog
 

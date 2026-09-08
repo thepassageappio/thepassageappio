@@ -7,7 +7,7 @@ This checkpoint supersedes stale lower-table status text in `V2-DELIVERY-ROADMAP
 - The real-production four-persona synthetic rehearsal is complete, including independent receipt comparison and clean decline-based closure of the duplicate request.
 - Authenticated 360px and 390px QA, desktop, keyboard, reviewer access, newest-link recovery, receipt replay, and production participant/team delivery are verified in the latest evidence documents.
 - The isolated Gmail nonarrival was a receiving-mailbox silent drop after provider acceptance. It is not a Passage delivery failure.
-- Production `provider_event_inbox` was observed with zero unresolved Stripe or HubSpot events. This does not clear the separate stuck HubSpot/Stripe rows or notification-history defect.
+- UAT and Demo now each compute `clean`: zero unresolved inbox/outbox rows and zero reconciliation variances after audited provider cleanup and a corrected refund invariant.
 - P0 demo readiness is closed. The real four-persona rehearsal passed on production.
 - `thepassageapp.io` is served by Vercel project `passage-authority-uat`, now connected to GitHub and auto-deploying from `main`.
 - PR #90 fast-forwarded `main` to the former `agent/founding-pilot-billing` tip.
@@ -15,9 +15,9 @@ This checkpoint supersedes stale lower-table status text in `V2-DELIVERY-ROADMAP
 
 ## Still blocking release
 
-- A real reconciliation job now exists and ran once against UAT and Demo; both results were `blocked`, so the clean streak remains at zero. UAT tracks the related fix as `20260907035519`; Demo reports an older applied copy at `20260905233220`. Confirm SQL equivalence and reconcile migration history before another application.
-- Migration application did not finish the stuck HubSpot row, the two stuck Stripe-row investigation, or the `notification_outbox` history fix. One Stripe row is a known test event; the other may be a real defect. Repair and verify each independently before calling reconciliation clean.
-- The seven-consecutive-clean-calendar-day reconciliation streak has not started.
+- The September 7 and September 8 UTC immutable daily results remain `blocked`. The repair does not rewrite history, so the seven-day streak remains at zero and can start September 9 UTC.
+- The UAT HubSpot row was an internal demo inquiry with no configured worker and is now canceled through a service-only RPC with append-only audit evidence. Both Demo Stripe rows were proven unmatched test invoices, including the $20 row, and are now explicitly ignored with append-only evidence.
+- The live notification send-history fix was a shadow migration. Its exact SQL is now recovered into Git, and fresh local replay passes. Demo's missing member-summary and team-delivery migrations are applied.
 - Supabase currently includes app-level TOTP on Free, so availability does not require a plan upgrade. The integration candidate now passes 148 domain tests, TypeScript, lint, and the optimized build. Its database migration applied from zero locally and rejected an owner AAL1 JWT while allowing AAL2. Hosted configuration, owner/admin enrollment and re-challenge, recovery/backup-factor handling, and production replay remain. Supabase organization-member MFA enforcement is a separate paid-plan control.
 - Production Supabase is on Free with no backups; upgrading is an owner decision.
 - Backup/restore/incident evidence, privacy/security/vendor-risk review, and state-by-state counsel review remain required before real-data or buyer-facing release.
@@ -40,14 +40,13 @@ Prior deployment work proved that “deployed” can diverge from “merged to m
 
 ## Execution order
 
-1. Compare UAT migration `20260907035519` with Demo's `20260905233220` live definition and reconcile bookkeeping; do not reapply blindly.
-2. Clear and verify the stuck HubSpot row; investigate and correctly classify/fix both stuck Stripe rows; implement and verify append-only notification attempt tracking, including late and out-of-order events.
-3. Produce the first clean reconciliation, then begin the seven-calendar-day streak.
-4. Merge and deploy the green MFA candidate, apply its database enforcement migration, then confirm hosted TOTP configuration and run owner/admin enrollment, challenge/verify, AAL1 denial, AAL2 success, fresh sign-in, factor management, and recovery in browsers.
-5. Build the five-state policy matrix and counsel packet, including Pennsylvania Acknowledgment coverage in `representative_certification`.
-6. Resolve the Supabase Free-plan/no-backup decision and complete backup/restore/incident, privacy/security/vendor-risk, and counsel gates.
-7. Capture/verify the backup recording and refresh the buyer deck, one-pager, pricing talk track, cold outreach, LinkedIn article, and posts.
-8. Launch P1 and any buyer-facing activity only after P1 and P2 are explicitly closed.
+1. On September 9 UTC, record the first clean run in UAT and Demo; continue until seven consecutive clean days are credited.
+2. Merge and deploy the green MFA candidate, apply its database enforcement migration, then confirm hosted TOTP configuration and run owner/admin enrollment, challenge/verify, AAL1 denial, AAL2 success, fresh sign-in, factor management, and recovery in browsers.
+3. Build the five-state policy matrix and counsel packet, including Pennsylvania Acknowledgment coverage in `representative_certification`.
+4. Resolve the Supabase Free-plan/no-backup decision and complete backup/restore/incident, privacy/security/vendor-risk, and counsel gates.
+5. Capture/verify the backup recording and refresh the buyer deck, one-pager, pricing talk track, cold outreach, LinkedIn article, and posts.
+6. Configure HubSpot credentials and add live provider comparison before claiming full three-way reconciliation.
+7. Launch P1 and any buyer-facing activity only after P1 and P2 are explicitly closed.
 
 ## Tracked follow-ons
 

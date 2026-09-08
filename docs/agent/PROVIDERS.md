@@ -21,16 +21,16 @@ Load for Supabase, Stripe, HubSpot, Resend, email delivery, or reconciliation.
 ## Current audit
 
 - Real production is Supabase project `Passage Authority UAT`, not `passage-demo`.
-- The reconciliation job exists and its first real UAT and Demo runs were both `blocked`; neither starts the seven-day streak.
-- UAT records the tracked reconciliation/Stripe fix as `20260907035519`. Demo reports a related live migration under `20260905233220`; establish whether the SQL is identical and reconcile history before applying another migration.
-- Migration application is schema evidence only. It does not resolve or verify the stuck provider rows or notification behavior.
-- The stuck HubSpot row still needs normal-worker processing, resulting-record/association verification, completion, and replay verification.
-- Two stuck Stripe rows still need investigation. One is a known test event; the other may expose a real product defect. Do not classify both as synthetic or exclude either from reconciliation without evidence.
-- The `notification_outbox` overwrite/history fix was not completed before the interrupted task. Verify append-only per-send attempts and late/duplicate/out-of-order webhook behavior before closing it.
-- Before the migration, production had zero unresolved provider-inbox events, one pending HubSpot projection, the two Stripe rows above, and eight notification rows associated with multiple provider message IDs. Re-query after the fix work before treating any count as current.
+- The September 7 and September 8 UTC immutable runs were `blocked`; neither starts the seven-day streak. Current computation after repair is `clean` in both environments, making September 9 UTC the first possible credited day.
+- The related reconciliation/Stripe SQL exists under different hosted migration timestamps but its live function definitions were compared and found equivalent. The repository now contains the source-controlled migration.
+- The pending UAT HubSpot row was an internal demo inquiry created while no HubSpot worker was configured. It is now `canceled` with code `internal_demo_no_worker` through a service-only RPC and an append-only commercial ledger event.
+- Both Demo Stripe rows were unmatched test residue. The $20 event belonged to a different invoice/customer from Passage's $5,000 paid demo order. Both are now `ignored` with code `synthetic_test_event`; two append-only resolution events preserve their prior states.
+- `notification_outbox_send_history` was already fixed live in both databases but absent from Git. Its exact applied SQL is now `20260907213516_notification_outbox_send_history.sql`; fresh local migration replay and delivery-history function creation pass.
+- Demo's missing organization-member summary and team-invitation delivery migrations are now applied; the expected functions and tracking columns exist.
+- The daily invariant was corrected so a normal paid-then-refunded order may retain one historical activation audit. A refunded order still fails reconciliation for any active allowance or more than one activation audit.
 - Stripe negative-path defects found tonight are fixed.
 - Production Supabase remains on the Free plan with zero backups; upgrading is an owner spending decision and a real-data gate.
-- No later shared-file or remote-commit evidence was found confirming that the interrupted 6:20 PM repair task cleared any blocker.
+- Full three-way Passage/Stripe/HubSpot reconciliation remains unavailable until HubSpot credentials and provider reads are configured; a clean internal reconciliation must not be described as that broader proof.
 
 ## Supabase MFA plan facts
 

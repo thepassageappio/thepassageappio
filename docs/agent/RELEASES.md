@@ -18,6 +18,10 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 - Record merge SHA, Demo deployment ID, Production deployment ID, migration set, and smoke evidence separately.
 - Never treat “deployed” as “merged” or Demo readiness as Production approval.
 - Promote a tested artifact; do not rebuild from untracked local state.
+- A branch push creates preview evidence only. It cannot be reported as shipped until the commit is merged to `main`, the `main` deployment is `Ready`, and `/api/version` reports that same SHA.
+- A failed newer `main` deployment blocks the release even if Vercel continues serving an older healthy production deployment. Record both the failed candidate and the active production SHA.
+- Use a pull request with required checks for every release change. Before merge, compare the PR head SHA, green check SHA, preview source SHA, and intended merge commit; after merge, compare `origin/main`, Vercel production source, and `/api/version`.
+- Do not make routine schema changes through direct hosted SQL. If an emergency SQL change is unavoidable, recover the exact applied statements into `supabase/migrations/` in the same incident, verify a fresh local reset, and record hosted object-definition hashes. A migration-history row alone is insufficient evidence.
 
 Run `pnpm verify:release-provenance` before release. The current detached dirty checkout must fail this check.
 

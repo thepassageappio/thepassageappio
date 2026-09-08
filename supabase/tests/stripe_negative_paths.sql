@@ -313,6 +313,20 @@ begin
 end;
 $$;
 
+-- A normal paid-then-refunded order retains one historical activation audit.
+-- That history is valid so long as its allowance is no longer active.
+do $$
+declare
+  v_report jsonb;
+begin
+  v_report := authority_private.compute_daily_reconciliation_v1();
+  if jsonb_array_length(v_report->'billing_variances') <> 0 then
+    raise exception 'REFUND RECONCILIATION FAILED: valid refund history reported as a variance: %',
+      v_report->'billing_variances';
+  end if;
+end;
+$$;
+
 select step, result from stripe_negpath_results order by step;
 
 rollback;
