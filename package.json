@@ -13,6 +13,7 @@
     "verify:gate1:database": "node scripts/verify-gate1-database.mjs",
     "verify:live-story": "node scripts/verify-live-story.mjs",
     "verify:public-release": "node scripts/verify-public-release.mjs",
+    "verify:release-provenance": "node --experimental-strip-types scripts/verify-release-provenance.mjs",
     "reconcile:daily": "node scripts/run-daily-reconciliation.mjs",
     "verify": "pnpm test:domain && pnpm typecheck && pnpm lint && pnpm build"
   },

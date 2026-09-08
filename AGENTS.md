@@ -1,44 +1,27 @@
-# Passage Authority engineering contract
+# Passage Authority agent contract
 
-This repository is a greenfield application. It does not inherit the retired Passage product's personas, cases, tasks, pricing, or database model.
+## Always true
 
-## Product boundary
-
-Passage Authority operationalizes one delegated-authority request between a principal, representative, and relying party. Identity, authority evidence, and relying-party acceptance are separate concepts in code and copy.
-
-The controlled MVP is synthetic and local. It must never imply legal validity, production security, or institutional acceptance.
+- Passage coordinates a delegated-authority request between a principal, representative, and institution. Identity evidence, authority evidence, and institution acceptance remain separate.
+- The institution decides. Passage does not create or validate a POA, replace identity/legal/fraud review, grant access, move money, or claim downstream access changed without acknowledged integration evidence.
+- Never use real customer data, live payments, external messages, or unsupported legal/security claims without explicit authorization and the applicable release gate.
+- Preserve unrelated and uncommitted work. Never repeat provider sends, migrations, or deployments merely to regain context.
 
 ## Definition of working
 
-A feature is working only when the full evidence chain passes:
+`browser action -> authenticated server command -> durable state -> append-only event -> other persona visibility -> matching receipt -> independent replay`
 
-`browser action -> authenticated server command -> durable state -> append-only event -> other persona sees and acts -> receipt matches -> independent replay passes`
+A rendered screen, build, HTTP 200, or sender-only confirmation is insufficient.
 
-A rendered screen, successful build, HTTP 200, optimistic client state, or sender-only confirmation is insufficient.
+## Start here
 
-## Engineering rules
+Read [docs/agent/CURRENT.md](docs/agent/CURRENT.md). Then load only the playbook that matches the task:
 
-- One canonical `authority_record` state machine owns every transition.
-- UI code never writes state directly. All mutations pass through a validated command service.
-- Every successful mutation writes state and an immutable event in one transaction.
-- Commands require actor identity, role authorization, expected version, and idempotency key.
-- Identity proof, authority evidence, and relying-party acceptance remain separate.
-- Human-facing copy never exposes raw IDs, enums, internal event names, database terms, or unsupported legal conclusions.
-- Every persona screen answers: where am I, what needs attention, what do I do, what happens next, what is saved, who can see it, and how do I recover?
-- Error, replay, stale-version, unauthorized-role, missing-evidence, rejection, limitation, revocation, and expiration paths are first-class tests.
-- Desktop, 390px, and 360px layouts ship together with visible focus and 44px minimum interactive targets.
-- No production deployment, production data, real messages, paid provider, or external institution action without explicit owner authorization.
+- Product/code/database work: [docs/agent/ENGINEERING.md](docs/agent/ENGINEERING.md)
+- Persona, browser, mobile, or demo QA: [docs/agent/QA.md](docs/agent/QA.md)
+- Git, Vercel, migrations, or deployment: [docs/agent/RELEASES.md](docs/agent/RELEASES.md)
+- Pricing, positioning, deck, outreach, CRM, or buyer-facing SOC 2 posture: [docs/agent/COMMERCIAL.md](docs/agent/COMMERCIAL.md)
+- Stripe, HubSpot, Supabase, Resend, or reconciliation: [docs/agent/PROVIDERS.md](docs/agent/PROVIDERS.md)
+- New York, Pennsylvania, or other state policy work: [docs/agent/JURISDICTIONS.md](docs/agent/JURISDICTIONS.md)
 
-## Architecture boundary
-
-The first adapter uses server-side SQLite for durable local verification on Node.js 24. It is replaceable through the repository interface. Production will use a separately reviewed Supabase/Postgres adapter with RLS, authenticated actors, and a real migration. Browser storage is never an authority source.
-
-## Change sequence
-
-1. Update the product contract and state transition table.
-2. Add or update domain tests, including negative paths.
-3. Implement server command and persistence changes.
-4. Implement persona projections.
-5. Run typecheck, lint, domain/API tests, optimized build, and full browser verification.
-6. Record evidence and remaining boundary truthfully.
-
+Open the full historical roadmap or product source only when the selected playbook links to a needed section. Do not load every document by default.
