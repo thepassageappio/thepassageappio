@@ -9,6 +9,8 @@ const migration = readFileSync(
 const accessSource = readFileSync(new URL("./access.ts", import.meta.url), "utf8");
 const accountActions = readFileSync(new URL("../../app/account-actions.ts", import.meta.url), "utf8");
 const billingActions = readFileSync(new URL("../../app/billing-actions.ts", import.meta.url), "utf8");
+const mfaChallenge = readFileSync(new URL("../../components/app/MfaVerification.tsx", import.meta.url), "utf8");
+const factorManager = readFileSync(new URL("../../components/app/MfaFactorManager.tsx", import.meta.url), "utf8");
 
 function actionBody(source: string, name: string) {
   const start = source.indexOf(`export async function ${name}`);
@@ -40,6 +42,14 @@ test("owner and admin RPC mutations require an aal2 JWT at the database boundary
     const body = migration.slice(start, next === -1 ? migration.length : next);
     assert.match(body, /require_privileged_mfa_v1\(p_organization_id\)/, `${rpc} must enforce MFA`);
   }
+});
+
+test("backup factors are usable for challenge and the only verified factor is protected", () => {
+  assert.match(mfaChallenge, /existingFactors\.map/);
+  assert.match(mfaChallenge, /setSelectedFactorId/);
+  assert.match(factorManager, /friendlyName: "Backup authenticator"/);
+  assert.match(factorManager, /canRemoveVerifiedMfaFactor\(factors\.length\)/);
+  assert.match(factorManager, /supabase\.auth\.mfa\.unenroll/);
 });
 
 test("every post-onboarding organization Server Action uses the MFA-verified mutation context", () => {

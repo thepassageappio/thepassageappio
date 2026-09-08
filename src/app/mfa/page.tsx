@@ -11,11 +11,16 @@ export default async function MfaGatePage() {
   if (!access?.user) redirect("/start?intent=sign-in");
   if (access.mfaGate === "allow") redirect("/app");
 
-  let existingFactorId: string | null = null;
+  let existingFactors: Array<{ id: string; friendlyName: string }> = [];
   if (access.mfaGate === "require_challenge") {
     const supabase = await createClient();
     const { data } = await supabase.auth.mfa.listFactors();
-    existingFactorId = data?.totp?.find((factor) => factor.status === "verified")?.id ?? null;
+    existingFactors = (data?.totp ?? [])
+      .filter((factor) => factor.status === "verified")
+      .map((factor, index) => ({
+        id: factor.id,
+        friendlyName: factor.friendly_name?.trim() || `Authenticator ${index + 1}`,
+      }));
   }
 
   const isEnrollment = access.mfaGate === "require_enrollment";
@@ -30,7 +35,7 @@ export default async function MfaGatePage() {
             ? "Owner and administrator accounts require an authenticator app before continuing. Scan the code below with an authenticator app (such as 1Password, Authy, or Google Authenticator), then enter the 6-digit code it shows."
             : "Enter the current 6-digit code from your authenticator app to continue."}
         </p>
-        <MfaVerification mode={isEnrollment ? "enroll" : "challenge"} existingFactorId={existingFactorId} />
+        <MfaVerification mode={isEnrollment ? "enroll" : "challenge"} existingFactors={existingFactors} />
       </div>
     </main>
   );

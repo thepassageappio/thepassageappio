@@ -28,6 +28,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
           <Link href="/app/organization">Organization administration</Link>
           <Link href="/app/team">People and roles</Link>
+          <Link href="/app/security">Sign-in security</Link>
           <Link href="/app/policies">Policies and workflow</Link>
         </nav>
         <div className={styles.sidebarFooter}>

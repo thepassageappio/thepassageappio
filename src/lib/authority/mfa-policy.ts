@@ -26,6 +26,10 @@ export type MfaFactorSummary = {
 
 export type MfaGate = "allow" | "require_enrollment" | "require_challenge";
 
+export function canRemoveVerifiedMfaFactor(verifiedFactorCount: number): boolean {
+  return Number.isInteger(verifiedFactorCount) && verifiedFactorCount > 1;
+}
+
 /**
  * Decide whether a request for this role, given the account's current MFA
  * state, may proceed.
