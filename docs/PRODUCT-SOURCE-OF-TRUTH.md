@@ -86,6 +86,8 @@ Passage Authority is an authority acceptance workflow and API.
 
 It is not a document generator, electronic signature provider, remote notary, identity provider, estate-administration suite, family monitoring product, case-management system, or universal authority registry.
 
+An optional participant authority portfolio is a validated V3 hypothesis, not a current capability. It would organize the participant's own Passage relationships, institution-specific decisions, receipts, and lifecycle states. It must never promote a Passage relationship or one institution's acceptance into universal legal authority. See [PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md](./PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md).
+
 ### 3.2 The differentiated job
 
 Passage coordinates the whole institutional decision:

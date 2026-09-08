@@ -34,6 +34,7 @@ P1 is prepared but not launched. Cold outreach, LinkedIn publication, buyer-faci
 
 ## Non-blocking backlog
 
+- Validate and later build the optional participant authority portfolio described in [../PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md](../PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md). It would let principals and representatives retain receipts and see their permitted relationships across separate institution-specific recognition cases. It is a V3 differentiation hypothesis, not implemented, not a universal registry, not a current launch gate, and not an approved public claim. New data-model work must preserve a path to stable parties, authority relationships, consent grants, institution recognition cases, and acknowledged downstream states rather than stretching record-bound participant sessions across requests.
 - Register and DNS-verify the sending domain in Google Postmaster Tools before real customer email volume.
 - Add an institution-authorized cancel/withdraw action while a request still awaits the principal.
 - Finalize a truthful SOC 2 path and timeline before the first sales conversation.
