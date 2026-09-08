@@ -1,8 +1,13 @@
 import { MfaFactorManager } from "@/components/app/MfaFactorManager";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { roleRequiresMfa } from "@/lib/authority/mfa-policy";
+import { redirect } from "next/navigation";
 import styles from "@/components/app/app-shell.module.css";
 
 export default async function SecurityPage() {
+  const access = await getAuthorityAccessContext();
+  if (!roleRequiresMfa(access?.membership?.role)) redirect("/app");
   const supabase = await createClient();
   const { data } = await supabase.auth.mfa.listFactors();
   const factors = (data?.totp ?? [])

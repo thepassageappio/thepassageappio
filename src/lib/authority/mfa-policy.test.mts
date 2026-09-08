@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canRemoveVerifiedMfaFactor, mfaGateDecision, roleRequiresMfa } from "./mfa-policy.ts";
+import { mfaGateDecision, roleRequiresMfa } from "./mfa-policy.ts";
 
 const unenrolled = { hasVerifiedTotp: false, currentLevel: "aal1", nextLevel: "aal1" } as const;
 const enrolledButUnchallenged = { hasVerifiedTotp: true, currentLevel: "aal1", nextLevel: "aal2" } as const;
@@ -36,11 +36,4 @@ test("owner/admin with a verified factor but an aal1 session must re-challenge",
 test("owner/admin who completed the aal2 challenge this session is allowed", () => {
   assert.equal(mfaGateDecision("owner", fullyVerified), "allow");
   assert.equal(mfaGateDecision("admin", fullyVerified), "allow");
-});
-
-test("factor management never removes the only verified authenticator", () => {
-  assert.equal(canRemoveVerifiedMfaFactor(0), false);
-  assert.equal(canRemoveVerifiedMfaFactor(1), false);
-  assert.equal(canRemoveVerifiedMfaFactor(2), true);
-  assert.equal(canRemoveVerifiedMfaFactor(10), true);
 });

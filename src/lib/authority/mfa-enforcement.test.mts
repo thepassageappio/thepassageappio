@@ -11,6 +11,8 @@ const accountActions = readFileSync(new URL("../../app/account-actions.ts", impo
 const billingActions = readFileSync(new URL("../../app/billing-actions.ts", import.meta.url), "utf8");
 const mfaChallenge = readFileSync(new URL("../../components/app/MfaVerification.tsx", import.meta.url), "utf8");
 const factorManager = readFileSync(new URL("../../components/app/MfaFactorManager.tsx", import.meta.url), "utf8");
+const securityPage = readFileSync(new URL("../../app/app/security/page.tsx", import.meta.url), "utf8");
+const appShell = readFileSync(new URL("../../components/app/AppShell.tsx", import.meta.url), "utf8");
 
 function actionBody(source: string, name: string) {
   const start = source.indexOf(`export async function ${name}`);
@@ -44,13 +46,19 @@ test("owner and admin RPC mutations require an aal2 JWT at the database boundary
   }
 });
 
-test("backup factors are usable for challenge and the only verified factor is protected", () => {
+test("backup factors are usable for challenge and verified-factor deletion is not exposed", () => {
   assert.match(mfaChallenge, /existingFactors\.map/);
   assert.match(mfaChallenge, /setSelectedFactorId/);
   assert.match(factorManager, /friendlyName: `Backup authenticator/);
   assert.match(factorManager, /factor\.status === "unverified"/);
-  assert.match(factorManager, /canRemoveVerifiedMfaFactor\(factors\.length\)/);
-  assert.match(factorManager, /supabase\.auth\.mfa\.unenroll/);
+  assert.doesNotMatch(factorManager, /status === "verified"[\s\S]+unenroll/);
+  assert.match(factorManager, /Verified factors cannot be removed from this screen/);
+});
+
+test("only MFA-enforced roles can open factor management", () => {
+  assert.match(securityPage, /roleRequiresMfa\(access\?\.membership\?\.role\)/);
+  assert.match(securityPage, /redirect\("\/app"\)/);
+  assert.match(appShell, /roleRequiresMfa\(access\.membership\.role\)/);
 });
 
 test("every post-onboarding organization Server Action uses the MFA-verified mutation context", () => {

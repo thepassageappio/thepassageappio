@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { signOutAction } from "@/app/account-actions";
 import { roleLabel, type AuthorityAccessContext } from "@/lib/authority/access";
 import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
+import { roleRequiresMfa } from "@/lib/authority/mfa-policy";
 import styles from "./app-shell.module.css";
 import polish from "./workspace-polish.module.css";
 
@@ -28,7 +29,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
           <Link href="/app/organization">Organization administration</Link>
           <Link href="/app/team">People and roles</Link>
-          <Link href="/app/security">Sign-in security</Link>
+          {roleRequiresMfa(access.membership.role) ? <Link href="/app/security">Sign-in security</Link> : null}
           <Link href="/app/policies">Policies and workflow</Link>
         </nav>
         <div className={styles.sidebarFooter}>
