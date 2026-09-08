@@ -43,12 +43,15 @@ test("an unavailable participant link explains replacement and recovery", () => 
 test("mobile institution navigation and request rows do not require a desktop-width canvas", () => {
   const app = source("../../app/app/page.tsx");
   const shell = source("../../components/app/AppShell.tsx");
+  const shellStyles = source("../../components/app/app-shell.module.css");
   const polish = source("../../components/app/workspace-polish.module.css");
 
   assert.match(shell, /className=\{polish\.navigation\}/);
   assert.match(app, /data-label="People"/);
   assert.match(app, /data-label="Action"/);
   assert.match(polish, /grid-auto-flow: column/);
+  assert.match(shellStyles, /\.sidebar nav\{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:max-content/);
+  assert.doesNotMatch(shellStyles, /\.sidebar nav\{[^}]*grid-template-columns:repeat\(/);
   assert.match(polish, /\.table tbody,[\s\S]+display: block/);
   assert.doesNotMatch(polish, /min-width:\s*720px/);
 });
