@@ -381,6 +381,8 @@ Routes are proposed product contracts. Final names may change once, before imple
 
 ### 10.2 Account and organization onboarding
 
+The gated sample and institution onboarding are separate. `Explore a sample workflow` authenticates a low-risk viewer through Google or a one-time email link and returns to the read-only fictional `/sample` route without creating an organization membership or requiring privileged MFA. Creating an institution workspace is a deliberate next action; its creator becomes Owner and must satisfy the Owner/Admin MFA policy before entering the workspace. Authentication alone is not consent for commercial follow-up. See [SAMPLE-WORKFLOW-ACCESS-DECISION-2026-09-08.md](./SAMPLE-WORKFLOW-ACCESS-DECISION-2026-09-08.md).
+
 | Screen ID | Proposed route | Primary job | Primary action |
 | --- | --- | --- | --- |
 | O-01 | `/start` | Collect work email and name | Send secure sign-in link |

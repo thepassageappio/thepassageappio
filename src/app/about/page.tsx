@@ -78,7 +78,7 @@ export default function AboutPage() {
 
         <section className={styles.callout}>
           <div><h2>See the whole example, not just a screen.</h2><p>Walk through the account holder, representative, institution review, final decision receipt, and later-change steps with sample information.</p></div>
-          <Link className={styles.cta} href="/start">Try the sample workflow</Link>
+          <Link className={styles.cta} href="/sample">Try the sample workflow</Link>
         </section>
       </div>
       <CommercialFooter />

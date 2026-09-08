@@ -18,24 +18,28 @@ export const metadata: Metadata = { title: "Start an Evaluation", robots: { inde
 export default async function StartPage({ searchParams }: Props) {
   const query = await searchParams;
   const access = await getAuthorityAccessContext();
+  const next = safeAppPath(query.next, "/onboarding/organization");
+  const sample = query.intent === "sample" || next === "/sample";
+  if (access?.user && sample) redirect("/sample");
   if (access?.organization?.onboardingStatus === "ready") redirect("/app");
   if (access?.organization?.onboardingStatus === "template_required") redirect("/onboarding/template");
   if (access?.organization?.onboardingStatus === "terms_required") redirect("/onboarding/terms");
   if (access?.user && !query.next) redirect("/onboarding/organization");
 
   const returning = query.intent === "sign-in";
-  const next = safeAppPath(query.next, "/onboarding/organization");
   const error = userErrorMessage(query.error);
   const googleSignInEnabled = isGoogleSignInEnabled();
 
   return (
     <AccountFrame
-      eyebrow={returning ? "Welcome back" : "Try Passage Authority"}
-      title={returning ? "Sign in securely" : "Create your evaluation workspace"}
+      eyebrow={returning ? "Welcome back" : sample ? "Sample workflow" : "Try Passage Authority"}
+      title={returning ? "Sign in securely" : sample ? "Sign in to view the sample" : "Create your evaluation workspace"}
       description={returning
         ? googleSignInEnabled
           ? "Use Google for immediate access, or request a one-time link by email."
           : "Request a one-time sign-in link using your work email."
+        : sample
+          ? "Continue with Google for the quickest access, or use a one-time email link. Viewing the read-only fictional workflow does not require an authenticator app."
         : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
@@ -48,7 +52,7 @@ export default async function StartPage({ searchParams }: Props) {
       </> : null}
       <form action={requestSignInAction} className={styles.form}>
         <input name="next" type="hidden" value={next} />
-        {!returning ? (
+        {!returning && !sample ? (
           <div className={styles.field}>
             <label htmlFor="fullName">Your name</label>
             <input autoComplete="name" id="fullName" name="fullName" placeholder="Alex Morgan" type="text" />
@@ -64,6 +68,7 @@ export default async function StartPage({ searchParams }: Props) {
           By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
         </p>
       </form>
+      {!returning && !sample ? <p className={styles.legal}>New evaluation workspaces begin with an Owner account. After sign-in, Owners set up an authenticator app to protect policy, team, billing, and request controls. <Link href="/sample">Prefer to look around first? Open the sign-in-only sample.</Link></p> : null}
     </AccountFrame>
   );
 }

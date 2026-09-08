@@ -159,7 +159,7 @@ export default function FaqPage() {
               <p>Book a 20-minute walkthrough for a guided view, or start the sample workflow if you want to explore first. We can tailor the conversation to operations, compliance, product, technology, security, or executive stakeholders.</p>
               <div className={styles.answerActions}>
                 <Link href="/contact">Book a walkthrough</Link>
-                <Link href="/start">Explore the sample workflow</Link>
+                <Link href="/sample">Explore the sample workflow</Link>
               </div>
             </article>
           </div>
