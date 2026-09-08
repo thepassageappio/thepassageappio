@@ -4,6 +4,7 @@
 
 - Passage coordinates a delegated-authority request between a principal, representative, and institution. Identity evidence, authority evidence, and institution acceptance remain separate.
 - The institution decides. Passage does not create or validate a POA, replace identity/legal/fraud review, grant access, move money, or claim downstream access changed without acknowledged integration evidence.
+- Policies, templates, catalogs, requirements, labels, controls, and integration mappings are effective-dated and forward-only. A draft records the version used to prepare it. Before first activation, a stale draft must stop and show the policy diff; an authorized coordinator may explicitly rebase it into a new draft revision while preserving the prior snapshot and event history. Activation permanently locks the governing snapshot. Later changes never rewrite an activated transaction, event, decision, receipt, or replay.
 - Never use real customer data, live payments, external messages, or unsupported legal/security claims without explicit authorization and the applicable release gate.
 - Preserve unrelated and uncommitted work. Never repeat provider sends, migrations, or deployments merely to regain context.
 
