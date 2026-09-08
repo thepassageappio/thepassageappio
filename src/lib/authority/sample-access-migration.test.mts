@@ -16,6 +16,19 @@ test("sample access consent is private, append-only, and service-only", () => {
   assert.match(migration, /grant execute on function public\.create_sample_access_lead_v1[\s\S]+to service_role/i);
 });
 
+const revisionMigration = await readFile(
+  new URL("../../../supabase/migrations/20260908233000_sample_access_consent_revisions.sql", import.meta.url),
+  "utf8",
+);
+
+test("new consent versions append a revision and gate access on the current version", () => {
+  assert.match(revisionMigration, /drop constraint sample_access_leads_actor_user_id_key/i);
+  assert.match(revisionMigration, /unique \(actor_user_id, consent_version\)/i);
+  assert.match(revisionMigration, /where actor_user_id = p_actor_user_id\s+and consent_version = p_consent_version/i);
+  assert.match(revisionMigration, /has_sample_access_lead_v2\(\s*p_actor_user_id uuid,\s*p_consent_version text\s*\)/i);
+  assert.match(revisionMigration, /grant execute on function public\.has_sample_access_lead_v2[\s\S]+to service_role/i);
+});
+
 test("one verified consent command records history and queues the HubSpot Contact", () => {
   const body = migration.match(/create or replace function authority_private\.create_sample_access_lead_v1[\s\S]+?\$\$;/i)?.[0] ?? "";
   assert.match(body, /from auth\.users where id = p_actor_user_id/i);

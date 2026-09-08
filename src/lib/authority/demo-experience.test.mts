@@ -28,6 +28,8 @@ test("sample access uses an explicit, durable lead gate", () => {
   assert.match(action, /createSampleAccessLead/);
   assert.match(hubspot, /projectSampleAccessLead/);
   assert.match(hubspot, /pa_lead_source: "sample_workflow"/);
+  assert.match(hubspot, /property: "email", value: payload\.email/);
+  assert.match(hubspot, /properties: passageContactProperties/);
 });
 
 test("the public story explains the real-life use case, identity boundary, and completed result plainly", () => {

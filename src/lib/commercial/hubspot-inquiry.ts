@@ -107,19 +107,50 @@ async function findByUniqueProperty(token: string, objectType: string, property:
   return result.results[0]?.id;
 }
 
-async function upsert(token: string, objectType: string, uniqueProperty: string, uniqueValue: string, properties: Record<string, string>) {
+type AlternateIdentity = {
+  property: string;
+  value: string;
+  properties: Record<string, string>;
+};
+
+async function upsert(
+  token: string,
+  objectType: string,
+  uniqueProperty: string,
+  uniqueValue: string,
+  properties: Record<string, string>,
+  alternateIdentity?: AlternateIdentity,
+) {
   const id = await findByUniqueProperty(token, objectType, uniqueProperty, uniqueValue);
   if (id) {
     await hubspotFetch(token, `/crm/v3/objects/${objectType}/${id}`, { method: "PATCH", body: JSON.stringify({ properties }) });
     return id;
+  }
+  if (alternateIdentity) {
+    const alternateId = await findByUniqueProperty(token, objectType, alternateIdentity.property, alternateIdentity.value);
+    if (alternateId) {
+      await hubspotFetch(token, `/crm/v3/objects/${objectType}/${alternateId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ properties: alternateIdentity.properties }),
+      });
+      return alternateId;
+    }
   }
   try {
     const created = await hubspotFetch<HubSpotRecord>(token, `/crm/v3/objects/${objectType}`, { method: "POST", body: JSON.stringify({ properties }) });
     return created.id;
   } catch (error) {
     if (!(error instanceof HubSpotError) || error.status !== 409) throw error;
-    const racedId = await findByUniqueProperty(token, objectType, uniqueProperty, uniqueValue);
+    const primaryId = await findByUniqueProperty(token, objectType, uniqueProperty, uniqueValue);
+    const alternateId = primaryId || !alternateIdentity
+      ? undefined
+      : await findByUniqueProperty(token, objectType, alternateIdentity.property, alternateIdentity.value);
+    const racedId = primaryId ?? alternateId;
     if (!racedId) throw error;
+    await hubspotFetch(token, `/crm/v3/objects/${objectType}/${racedId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ properties: primaryId ? properties : alternateIdentity?.properties ?? properties }),
+    });
     return racedId;
   }
 }
@@ -144,11 +175,17 @@ export async function projectCommercialInquiry(token: string, payload: HubSpotIn
     pa_inquiry_reference: payload.reference_code, pa_institution_category: payload.organization_type,
     pa_current_process: payload.current_process, pa_annual_volume_band: payload.annual_volume_band,
   });
+  const passageContactProperties = {
+    jobtitle: payload.job_role,
+    pa_prospect_key: payload.contact_key,
+    pa_inquiry_reference: payload.reference_code,
+    pa_contact_consent_version: payload.consent_version,
+  };
   const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
     ...splitName(payload.full_name), email: payload.email, jobtitle: payload.job_role,
     pa_prospect_key: payload.contact_key, pa_inquiry_reference: payload.reference_code,
     pa_contact_consent_version: payload.consent_version,
-  });
+  }, { property: "email", value: payload.email, properties: passageContactProperties });
   await associate(token, "contacts", contactId, "companies", companyId);
 
   const isOpportunity = payload.inquiry_type === "demo" || payload.inquiry_type === "pilot";
@@ -172,14 +209,17 @@ export async function projectCommercialInquiry(token: string, payload: HubSpotIn
 
 export async function projectSampleAccessLead(token: string, payload: HubSpotSampleAccessPayload) {
   assertCommercialPayloadSafe(payload as unknown as Record<string, unknown>);
-  const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
-    ...splitName(payload.full_name),
-    email: payload.email,
+  const passageContactProperties = {
     pa_prospect_key: payload.contact_key,
     pa_inquiry_reference: payload.reference_code,
     pa_contact_consent_version: payload.consent_version,
     pa_lead_source: "sample_workflow",
-  });
+  };
+  const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
+    ...splitName(payload.full_name),
+    email: payload.email,
+    ...passageContactProperties,
+  }, { property: "email", value: payload.email, properties: passageContactProperties });
   return { contact_id: contactId, object_type: "contacts", record_id: contactId };
 }
 
