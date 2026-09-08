@@ -35,18 +35,28 @@ Regional banks and credit unions with manual financial power of attorney intake 
 
 Deposit operations, member operations, trust operations, compliance operations, or another team that receives and reviews financial power of attorney requests.
 
-### 2.3 Initial transaction
+### 2.3 Controlled evaluation transaction
 
 A capable adult asks a financial institution to recognize a trusted representative for a narrow set of non-transactional account-service actions under a New York financial power of attorney.
 
 The institution defines the policy and decides whether to accept, limit, reject, or request more information.
 
-### 2.4 Initial permitted actions
+### 2.4 Current synthetic permitted actions
 
 - Receive duplicate statements for a named account boundary.
 - Discuss defined account-service questions.
 
-### 2.5 Explicitly prohibited in the first release
+These two actions are the current hosted evaluation fixture. They do not define the intended institution launch catalog.
+
+### 2.5 Institution launch authority scope
+
+Institution onboarding installs a versioned starter catalog for each enabled authority type. Owners and administrators can activate or deactivate standard actions, edit labels and guidance without changing semantic meaning, and create institution-defined custom actions. Requests snapshot the published catalog version so later edits cannot rewrite prior requests or receipts.
+
+The launch catalog separates requested legal powers, institution-approved actions, channel entitlements, and operational controls. It includes information access, deposits and withdrawals, payments and transfers, checks and cards, account administration, credit, investments, and separately identified branch, phone, online, mobile, or API access where the authority instrument, applicable law, account type, and institution policy permit them. See [AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md](./AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md).
+
+Passage records the request and institution decision. The institution grants access and executes transactions. A representative's digital access uses the representative's own identity and the institution's authentication controls; Passage never directs credential sharing.
+
+### 2.6 Explicitly prohibited in the controlled evaluation fixture
 
 - Move, withdraw, or transfer money.
 - Open or close an account.
@@ -57,7 +67,7 @@ The institution defines the policy and decides whether to accept, limit, reject,
 - Change credentials or take over the principal's digital banking access.
 - Make an automatic legal-validity determination.
 
-### 2.6 Two supported entry modes
+### 2.7 Two supported entry modes
 
 The two use cases share one data model and one review transaction. They are not separate products.
 
@@ -282,7 +292,7 @@ stateDiagram-v2
 | OA-01 | Create a company workspace | Verified account and durable organization | Yes |
 | OA-02 | Confirm authorized use | Terms, privacy, data-use attestation, and saved acceptance version | Yes |
 | OA-03 | Invite staff | Expiring invitation, least-privilege role, acceptance status | Yes |
-| OA-04 | Choose a template | New York financial POA template is active; future templates are clearly unavailable | Yes |
+| OA-04 | Configure authority templates | Install a versioned starter catalog; activate/deactivate standard actions; add governed custom actions; publish a new version | Launch gap |
 | OA-05 | Understand trial usage | Days and activated transactions shown from durable entitlement data | Yes |
 | OA-06 | Upgrade | Pilot request or paid flow creates no access until verified payment | Yes |
 | OA-07 | Manage billing | Current offer, invoice/payment state, renewal date, and portal access | Yes |
@@ -296,7 +306,7 @@ stateDiagram-v2
 | --- | --- | --- | --- |
 | IR-01 | Start from a template | Guided setup with no code | Yes |
 | IR-02 | Enter participant details once | Saved draft with duplicate detection | Yes |
-| IR-03 | Define the account boundary and permitted actions | Plain-language scope and prohibitions | Yes |
+| IR-03 | Define the account boundary, actions, channels, and controls | Use the institution's published catalog and preserve an immutable request snapshot | Launch gap |
 | IR-04 | Preview before sending | See exactly what each participant receives | Yes |
 | IR-05 | Activate request | Entitlement checked, transaction counted once, invitations issued | Yes |
 | IR-06 | Track all requests | Queue by status, next owner, age, and assignee | Yes |
