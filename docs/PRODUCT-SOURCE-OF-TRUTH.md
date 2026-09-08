@@ -118,7 +118,7 @@ This differentiation is a hypothesis until an external institution confirms that
 ## 4. Product principles
 
 1. One clear next action per person.
-2. Configuration is forward-only. Every request pins the effective policy, template, catalog, requirement, label, control, and mapping snapshot when the draft is created; later changes apply only to newly created requests and never rewrite history.
+2. Configuration is forward-only. Every draft records the effective policy, template, catalog, requirement, label, control, and mapping snapshot used to prepare it. A stale unactivated draft must explicitly rebase into a new preserved revision before activation. Activation locks the governing snapshot; later changes never rewrite an activated request or its history.
 3. Explain the benefit and boundary before asking for data.
 4. Ask each fact once and reuse it with visible provenance.
 5. Use human terms on human screens.

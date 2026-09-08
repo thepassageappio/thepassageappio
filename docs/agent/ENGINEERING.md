@@ -15,11 +15,13 @@ Load for product, API, database, or domain changes.
 ## Forward-only policy invariant
 
 - Treat policy, template, catalog, requirement, label, control, and integration-mapping changes as new effective-dated versions.
-- Pin the complete effective snapshot when a request draft is created; activation does not silently refresh it.
-- Apply a newly published version only to requests created after its effective time.
-- Never update an existing draft, active request, event, decision, receipt, or replay merely because configuration changed.
+- Pin the complete effective snapshot when a request draft is created.
+- At first activation, compare the draft snapshot with the current effective version. A stale draft must fail closed and show an exact diff.
+- Permit an authorized coordinator to explicitly rebase a stale, unactivated draft into a new draft revision. Revalidate actions, channels, controls, disclosures, and requirements; append an event naming both versions and the actor; preserve the prior snapshot.
+- Activation permanently locks the governing snapshot. Apply later published versions only to newly created drafts or explicit pre-activation rebases.
+- Never update an activated request, event, decision, receipt, or replay merely because configuration changed.
 - Make migration backfills preserve historical meaning. If an old row lacks a snapshot, derive and record the version that actually governed it rather than assigning the newest version.
-- Test the boundary with a request created before publication and a request created after publication.
+- Test the boundary with a request created before publication, an explicit pre-activation rebase, a declined rebase, and a request created after publication. Prove an activated request is unchanged.
 
 ## Current structural fixes
 

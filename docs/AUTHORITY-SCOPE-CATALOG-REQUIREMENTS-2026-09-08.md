@@ -54,7 +54,7 @@ Changing the meaning of a standard action is not a label edit. It requires eithe
 
 ## Request and receipt invariants
 
-Creating a draft must snapshot the selected template version, catalog version, action semantic keys, rendered labels and descriptions, channel requests, controls, and account boundary. That creation time is the version boundary: activation does not refresh the snapshot. A later catalog edit applies only to drafts created after the new version's effective time and must not rewrite an existing draft, active request, event, decision, receipt, or replay.
+Creating a draft must snapshot the selected template version, catalog version, action semantic keys, rendered labels and descriptions, channel requests, controls, and account boundary. If a newer policy becomes effective before activation, activation must stop and show the exact change. An authorized coordinator may explicitly rebase the unactivated draft into a new revision, reselect or confirm affected scope, and append a version-change event; the prior draft snapshot remains historical evidence. Activation permanently locks the governing version. Later catalog edits must not rewrite an activated request, event, decision, receipt, or replay.
 
 The institution decision must record an outcome for every requested action and channel: accepted, accepted with limits, rejected, or more information required. Accepted actions must remain a subset of requested actions. Every mutation requires authorization, expected-version checking, idempotency, tenant isolation, and an append-only event.
 
@@ -75,10 +75,11 @@ This capability is not complete until all of the following pass:
 1. An owner configures a starter catalog, deactivates one standard action, adds one custom action, and publishes a new version.
 2. An operations user creates a request from the published version; inactive actions are absent and the custom action is present.
 3. A reviewer accepts one action, limits one, and rejects one; principal and representative receipts match the decision.
-4. A later catalog edit leaves the earlier request, events, receipt, and replay unchanged.
-5. Unauthorized roles, stale versions, cross-tenant identifiers, duplicate commands, and invalid action/channel combinations fail closed.
-6. Desktop, 390px, 360px, and keyboard QA pass for catalog administration, request selection, review, and receipts.
-7. A signed integration event distinguishes the Passage decision from acknowledged downstream entitlement state.
+4. A stale unactivated draft cannot activate silently. Its exact policy diff is shown; an explicit rebase creates a new draft revision and preserves the earlier snapshot.
+5. A later catalog edit leaves an already activated request, events, receipt, and replay unchanged.
+6. Unauthorized roles, stale versions, cross-tenant identifiers, duplicate commands, and invalid action/channel combinations fail closed.
+7. Desktop, 390px, 360px, and keyboard QA pass for catalog administration, request selection, review, and receipts.
+8. A signed integration event distinguishes the Passage decision from acknowledged downstream entitlement state.
 
 ## Release consequence
 
