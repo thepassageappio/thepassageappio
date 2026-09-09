@@ -13,7 +13,9 @@ export type HubSpotInquiryPayload = {
 
 export type HubSpotSampleAccessPayload = {
   reference_code: string; full_name: string; email: string; consent_version: string;
-  source_path: string; contact_key: string;
+  source_path: string; contact_key: string; acquisition_source?: string;
+  acquisition_source_label?: string; nurture_program?: string; nurture_status?: string;
+  privacy_notice_version?: string;
 };
 
 type OutboxJob = {
@@ -36,6 +38,12 @@ const propertyDefinitions: PropertyDefinition[] = [
   { objectType: "contacts", groupName: "contactinformation", name: "pa_inquiry_reference", label: "Latest Passage inquiry" },
   { objectType: "contacts", groupName: "contactinformation", name: "pa_contact_consent_version", label: "Passage contact consent version" },
   { objectType: "contacts", groupName: "contactinformation", name: "pa_lead_source", label: "Passage lead source" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_acquisition_source", label: "Passage acquisition source code" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_source_path", label: "Passage acquisition source path" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_nurture_program", label: "Passage nurture program" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_nurture_status", label: "Passage nurture status" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_nurture_consent_version", label: "Passage nurture consent version" },
+  { objectType: "contacts", groupName: "contactinformation", name: "pa_privacy_notice_version", label: "Passage privacy notice version" },
   { objectType: "deals", groupName: "dealinformation", name: "pa_inquiry_reference", label: "Passage inquiry reference", hasUniqueValue: true },
   { objectType: "tickets", groupName: "ticketinformation", name: "pa_inquiry_reference", label: "Passage inquiry reference", hasUniqueValue: true },
 ];
@@ -213,7 +221,15 @@ export async function projectSampleAccessLead(token: string, payload: HubSpotSam
     pa_prospect_key: payload.contact_key,
     pa_inquiry_reference: payload.reference_code,
     pa_contact_consent_version: payload.consent_version,
-    pa_lead_source: "sample_workflow",
+    pa_lead_source: payload.acquisition_source_label ?? "Website - Gated Sample",
+    pa_acquisition_source: payload.acquisition_source ?? "website_sample_gated",
+    pa_source_path: payload.source_path,
+    ...(payload.privacy_notice_version ? { pa_privacy_notice_version: payload.privacy_notice_version } : {}),
+    ...(payload.nurture_program ? {
+      pa_nurture_program: payload.nurture_program,
+      pa_nurture_status: payload.nurture_status ?? "held_until_p1_p2",
+      pa_nurture_consent_version: payload.consent_version,
+    } : {}),
   };
   const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
     ...splitName(payload.full_name),

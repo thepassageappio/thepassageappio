@@ -20,14 +20,20 @@ test("sample access uses an explicit, durable lead gate", () => {
   const access = source("../../app/sample/access/page.tsx");
   const action = source("../../app/sample/actions.ts");
   const hubspot = source("../commercial/hubspot-inquiry.ts");
+  const privacy = source("../../app/legal/privacy/page.tsx");
 
   assert.match(sample, /hasSampleAccessLead/);
   assert.match(sample, /redirect\("\/sample\/access"\)/);
-  assert.match(access, /Passage may contact me about this sample/);
+  assert.match(access, /Passage may email me a short sample follow-up series/);
   assert.match(access, /Agree and view sample/);
   assert.match(action, /createSampleAccessLead/);
   assert.match(hubspot, /projectSampleAccessLead/);
-  assert.match(hubspot, /pa_lead_source: "sample_workflow"/);
+  assert.match(hubspot, /pa_lead_source: payload\.acquisition_source_label/);
+  assert.match(hubspot, /pa_acquisition_source: payload\.acquisition_source/);
+  assert.match(hubspot, /pa_nurture_program: payload\.nurture_program/);
+  assert.match(hubspot, /pa_nurture_status: payload\.nurture_status/);
+  assert.match(privacy, /Version evaluation-2026\.2/);
+  assert.match(privacy, /Send sample follow-up, product updates, or a walkthrough invitation/);
   assert.match(hubspot, /property: "email", value: payload\.email/);
   assert.match(hubspot, /properties: passageContactProperties/);
 });
