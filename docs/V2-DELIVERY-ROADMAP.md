@@ -47,6 +47,8 @@ This follows the current product boundary and Stripe's supported hosted invoice,
 
 The proposed long-term category is a persistent authority-status layer: an institution records its own current decision, scope, limits, effective period and later lifecycle changes once, while authorized channels and systems retrieve the same current result. The strategic wedge is **defensible, consistent handling**, not generic speed and not legal-document creation. V2 must first prove that institutions value a shared current decision and receipt before Passage commits to the integration depth required for V3.
 
+The participant-side V3 complement is an optional authority portfolio: a principal can see people acting for them, a representative can see people they help, and each can see the permitted projection of separate institution-specific recognition cases, scope, limits, receipts, and downstream acknowledgments. It revives the portable-but-bounded continuity mechanism from the earlier funeral-home thesis without reviving that retired application. See [PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md](./PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md). It remains a hypothesis until participant and institution discovery plus Phase A account-claiming QA pass; it is not a V2 launch gate or approved external claim.
+
 Current internal hypotheses, pending the source-backed competitive brief and buyer discovery:
 
 1. Document-creation, storage, identity and notarization products are upstream or point-in-time complements; the open lane may be the institution's ongoing decision and authority status.
