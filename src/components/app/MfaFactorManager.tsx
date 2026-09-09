@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/components/app/app-shell.module.css";
@@ -75,7 +76,14 @@ export function MfaFactorManager({ initialFactors }: { initialFactors: Factor[] 
         <div className={styles.panelHead}><div><h2>Add a backup authenticator</h2><p>A backup factor keeps you signed in if the primary device is lost. Passage does not issue recovery codes.</p></div></div>
         {!enrollment ? <button className={styles.primary} disabled={isPending} onClick={startBackupEnrollment} type="button">{isPending ? "Preparing…" : "Add backup authenticator"}</button> : (
           <div className={mfaStyles.qrBlock}>
-            <div className={mfaStyles.qr} dangerouslySetInnerHTML={{ __html: enrollment.qrSvg }} />
+            <Image
+              alt="QR code for adding a backup Passage authenticator"
+              className={mfaStyles.qrImage}
+              height={200}
+              src={enrollment.qrSvg}
+              unoptimized
+              width={200}
+            />
             <p className={mfaStyles.secretLabel}>Can&apos;t scan it? Enter this code manually:</p>
             <code className={mfaStyles.secret}>{enrollment.secret}</code>
             <label className={mfaStyles.fieldLabel} htmlFor="backup-mfa-code">6-digit code from the backup authenticator</label>

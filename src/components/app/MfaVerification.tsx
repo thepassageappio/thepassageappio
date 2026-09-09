@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/mfa/mfa.module.css";
@@ -20,6 +21,7 @@ export function MfaVerification({ mode, existingFactors }: Props) {
   const [code, setCode] = useState("");
   const [selectedFactorId, setSelectedFactorId] = useState(existingFactors[0]?.id ?? "");
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [enrollmentAttempt, setEnrollmentAttempt] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -27,40 +29,44 @@ export function MfaVerification({ mode, existingFactors }: Props) {
     let cancelled = false;
 
     async function startEnrollment() {
-      const { data: existing, error: listError } = await supabase.auth.mfa.listFactors();
-      if (cancelled) return;
-      if (listError) {
-        setEnroll({ status: "error", message: "Could not check your authenticator setup. Reload this page to try again." });
-        return;
-      }
-
-      const stale = existing?.all.filter(
-        (factor) => factor.factor_type === "totp" && factor.status === "unverified",
-      ) ?? [];
-      for (const factor of stale) {
-        const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+      try {
+        const { data: existing, error: listError } = await supabase.auth.mfa.listFactors();
         if (cancelled) return;
-        if (unenrollError) {
-          setEnroll({ status: "error", message: "Could not reset your authenticator setup. Reload this page to try again." });
+        if (listError) {
+          setEnroll({ status: "error", message: "Could not check your authenticator setup." });
           return;
         }
-      }
 
-      if (cancelled) return;
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Primary authenticator" });
-      if (cancelled) return;
-      if (error || !data?.totp) {
-        setEnroll({ status: "error", message: "Could not start two-factor setup. Reload this page to try again." });
-        return;
+        const stale = (existing?.all ?? []).filter(
+          (factor) => factor.factor_type === "totp" && factor.status === "unverified",
+        );
+        for (const factor of stale) {
+          const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+          if (cancelled) return;
+          if (unenrollError) {
+            setEnroll({ status: "error", message: "Could not reset your unfinished authenticator setup." });
+            return;
+          }
+        }
+
+        if (cancelled) return;
+        const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Primary authenticator" });
+        if (cancelled) return;
+        if (error || !data?.totp) {
+          setEnroll({ status: "error", message: "Could not start two-factor setup." });
+          return;
+        }
+        setEnroll({ status: "ready", factorId: data.id, qrSvg: data.totp.qr_code, secret: data.totp.secret });
+      } catch {
+        if (!cancelled) setEnroll({ status: "error", message: "Could not start two-factor setup." });
       }
-      setEnroll({ status: "ready", factorId: data.id, qrSvg: data.totp.qr_code, secret: data.totp.secret });
     }
 
     startEnrollment();
     return () => {
       cancelled = true;
     };
-  }, [mode, supabase]);
+  }, [enrollmentAttempt, mode, supabase]);
 
   const factorId = mode === "enroll" ? (enroll.status === "ready" ? enroll.factorId : null) : selectedFactorId;
 
@@ -96,10 +102,31 @@ export function MfaVerification({ mode, existingFactors }: Props) {
         </label>
       ) : null}
       {mode === "enroll" && enroll.status === "loading" && <p>Preparing your authenticator setup...</p>}
-      {mode === "enroll" && enroll.status === "error" && <p className={styles.error}>{enroll.message}</p>}
+      {mode === "enroll" && enroll.status === "error" && (
+        <div>
+          <p className={styles.error}>{enroll.message}</p>
+          <button
+            type="button"
+            className={styles.retry}
+            onClick={() => {
+              setEnroll({ status: "loading" });
+              setEnrollmentAttempt((attempt) => attempt + 1);
+            }}
+          >
+            Try setup again
+          </button>
+        </div>
+      )}
       {mode === "enroll" && enroll.status === "ready" && (
         <div className={styles.qrBlock}>
-          <div className={styles.qr} dangerouslySetInnerHTML={{ __html: enroll.qrSvg }} />
+          <Image
+            alt="QR code for adding Passage to an authenticator app"
+            className={styles.qrImage}
+            height={200}
+            src={enroll.qrSvg}
+            unoptimized
+            width={200}
+          />
           <p className={styles.secretLabel}>Can&apos;t scan it? Enter this code manually:</p>
           <code className={styles.secret}>{enroll.secret}</code>
         </div>

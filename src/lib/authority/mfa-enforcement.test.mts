@@ -55,6 +55,14 @@ test("backup factors are usable for challenge and verified-factor deletion is no
   assert.match(factorManager, /Verified factors cannot be removed from this screen/);
 });
 
+test("MFA enrollment renders Supabase's QR data URI as an image and offers a recoverable retry", () => {
+  assert.match(mfaChallenge, /src=\{enroll\.qrSvg\}/);
+  assert.match(mfaChallenge, /setEnrollmentAttempt/);
+  assert.doesNotMatch(mfaChallenge, /dangerouslySetInnerHTML/);
+  assert.match(factorManager, /src=\{enrollment\.qrSvg\}/);
+  assert.doesNotMatch(factorManager, /dangerouslySetInnerHTML/);
+});
+
 test("only MFA-enforced roles can open factor management", () => {
   assert.match(securityPage, /roleRequiresMfa\(access\?\.membership\?\.role\)/);
   assert.match(securityPage, /redirect\("\/app"\)/);

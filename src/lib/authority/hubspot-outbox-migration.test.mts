@@ -30,6 +30,13 @@ test("CRM projection excludes free text and scans prohibited payload keys", () =
   assert.match(worker, /hasUniqueValue:\s*true/);
 });
 
+test("contact projection resolves identity by email before updating Passage fields", () => {
+  assert.match(worker, /async function upsertContactByEmail/);
+  assert.match(worker, /findByUniqueProperty\(token, "contacts", "email", email\)/);
+  assert.match(worker, /upsertContactByEmail\(token, payload\.email/);
+  assert.doesNotMatch(worker, /upsert\(token, "contacts", "pa_prospect_key"/);
+});
+
 test("failed provider jobs can only be retried through a service-only audited command", () => {
   assert.match(retryMigration, /v_job\.status <> 'failed'/i);
   assert.match(retryMigration, /commercial\.integration_outbox_retried/i);

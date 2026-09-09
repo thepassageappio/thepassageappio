@@ -34,8 +34,9 @@ test("sample access uses an explicit, durable lead gate", () => {
   assert.match(hubspot, /pa_nurture_status: payload\.nurture_status/);
   assert.match(privacy, /Version evaluation-2026\.2/);
   assert.match(privacy, /Send sample follow-up, product updates, or a walkthrough invitation/);
-  assert.match(hubspot, /property: "email", value: payload\.email/);
-  assert.match(hubspot, /properties: passageContactProperties/);
+  assert.match(hubspot, /upsertContactByEmail\(token, payload\.email/);
+  assert.match(hubspot, /findByUniqueProperty\(token, "contacts", "email", email\)/);
+  assert.match(hubspot, /updateProperties/);
 });
 
 test("the public story explains the real-life use case, identity boundary, and completed result plainly", () => {
