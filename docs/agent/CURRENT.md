@@ -4,7 +4,7 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Verified
 
-- P0 demo readiness remains closed after the real four-persona production rehearsal. This does not approve buyer-facing activity or a real-data pilot.
+- P0 demo readiness is reopened. The September 9 independent production signup reached `/mfa` but made zero enrollment requests and created zero factors across five reloads. The earlier four-persona rehearsal predates the September 7 MFA release and cannot close the current release candidate.
 - PR #92 merged to `main` as `b1beaf3c912239961bd872448272015022bad49c`. Production served that exact SHA at `/api/version` before the database release proceeded.
 - The committed privileged-MFA migration is applied to UAT and Demo. In hosted UAT, the real database boundary denied an owner JWT at AAL1 with `mfa_verification_required` and allowed the same owner at AAL2.
 - A new production owner using `steveandashturrisi@gmail.com` completed organization onboarding, terms, the New York template, real TOTP enrollment, and the AAL2 challenge. A fresh AAL1 sign-in was then forced through the existing-factor challenge before `/app` loaded.
@@ -14,25 +14,60 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 - The first production sample opt-in recorded `PAS-00000001`. Its HubSpot projection initially failed because the verified email already belonged to Contact `535676541644`; PR #100 added email identity resolution. The service-only audited retry then applied on attempt 2 and updated that existing Contact with the Passage reference, consent version, source, and prospect key. Existing identity fields were preserved; the sample created no Deal or Ticket.
 - The live backup-authenticator flow passed with an authorized synthetic owner: primary enrollment, second verified factor, fresh AAL1 sign-in, selection of `Backup authenticator 2`, AAL2 challenge, and `/app` entry. Both automation-created factors were then removed from the synthetic account and the database confirmed zero remaining factors.
 - The prior live 390px retest returned 200, kept document width at 390px, and placed all five then-current navigation links in distinct non-overlapping positions inside a horizontal scroll row. Source regression coverage includes the new sixth security link, but an exact hosted 390px replay with all six links remains open because the attached Chrome control could not resize its fixed viewport and the isolated browser runtime failed to launch. Do not report the six-link mobile replay as passed yet.
-- The mobile regression test now rejects either fixed-column sidebar rule that caused the overlap. The final patch passes all 148 domain tests, TypeScript, ESLint, optimized build, and Ready Vercel checks for UAT and Demo.
+- The mobile regression test now rejects either fixed-column sidebar rule that caused the overlap. The current release passes all 158 domain tests, TypeScript, ESLint, optimized build, and Ready Vercel checks for UAT and Demo.
 - UAT and Demo each compute `clean`: zero unresolved provider rows and zero billing, usage, or decision variances. The HubSpot and Stripe residue was resolved through service-only audited repair, and the live notification send-history fix is source controlled. UAT's Passage HubSpot Service Key is configured and the real Contact projection passed.
 - The real production database is Supabase `Passage Authority UAT` (`ywlrxdjibngroycwnujg`), not Demo. Demo is `bklrclpertdtmhycpqlz`.
 - Supabase app-level TOTP works on the Free plan. Organization-member MFA enforcement is a separate paid-plan administrative feature.
 
+## Executive readiness assessment
+
+**Provisional overall buyer-ready launch score: 5.8/10.** This replaces the earlier 6.8 after independent September 9 QA found the new-owner entry path blocked and confirmed that P1 has no named target-account list. Re-score only after the MFA/RLS repair and post-MFA persona replay.
+
+| Dimension | Score | Assessment |
+| --- | ---: | --- |
+| Product vision and category | 9.0/10 | A clear wedge: the institution's operating record for delegated authority after a document arrives, with a separate longer-term participant portfolio and multi-recipient case opportunity |
+| Differentiation | 8.5/10 | Effective-dated policy, request snapshots, bounded decisions, matching receipts, and append-only lifecycle history form a defensible system-of-record direction |
+| Core workflow and synthetic demo | 5.5/10 | The workflow was previously rehearsed, but a new owner cannot currently enter it after onboarding; the full post-MFA persona matrix remains unverified |
+| Institution-ready configurability | 4.5/10 | Authority actions and evidence requirements are still fixed synthetic fixtures; the versioned policy/catalog management surface is specified but not built |
+| Security, resilience, legal, and real-data operations | 4.5/10 | Public tables have RLS and the private schema is non-exposed with browser grants revoked, but 20 private tables lack defense-in-depth RLS; MFA recovery, backups/restore, assurance evidence, and counsel approval remain open |
+| GTM package and measurement | 5.5/10 | Pricing and held content drafts exist, but P1 has no named target accounts, warm-path map, buyer evidence, or current Proof battlecard |
+
+The strongest product thesis is no longer a generic POA workflow. Passage can become the institution's current, auditable decision layer for delegated authority: an institution publishes its governed policy, a request snapshots that policy, separate people provide identity and authority evidence, the institution records a bounded decision, and every authorized party sees a matching receipt and later lifecycle changes. The optional V3 expansion lets one underlying authority or life event create separate confidential cases for several banks, insurers, utilities, government bodies, funeral homes, or other recipients while each recipient keeps its own evidence and decision boundary. Passage must not imply that one recipient's acceptance applies to another or that Passage creates legal authority.
+
+Commercial-planning coverage is assessed separately in [../COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md](../COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md). Independent findings are recorded in [../QA-REPORT-2026-09-09.md](../QA-REPORT-2026-09-09.md) and [../STRATEGIC-REVIEW-2026-09-09.md](../STRATEGIC-REVIEW-2026-09-09.md).
+
 ## Blocking
 
-1. September 7 and September 8 UTC are immutable `blocked` reconciliation days. Zero streak days are credited. Record day 1 on September 9 UTC; September 15 is the earliest possible day 7.
-2. The current reconciliation compares Passage's durable provider state. UAT HubSpot write credentials and Contact projection are proven; full Passage/Stripe/HubSpot comparison still requires live provider reads. The current report's embedded sentence saying HubSpot credentials are unconfigured is stale wording and must be corrected without rewriting the immutable September 8 run.
-3. Privileged MFA enrollment, AAL1 denial, AAL2 success, two-factor enrollment, factor selection, and a fresh-session production backup-factor challenge are proven. Verified-factor deletion remains excluded. P2 still needs an administrator replay plus an authorized and audited all-factors-lost recovery command/procedure.
-4. Supabase production remains on Free with no automated backups. A paid-plan decision and a real restore drill remain required before real data.
-5. Backup/restore/incident evidence, privacy/security/vendor-risk review, and counsel approval for New York, Pennsylvania, New Jersey, Connecticut, and Massachusetts remain open.
-6. Pennsylvania gap analysis now confirms `representative_certification` does not satisfy the statutory agent Acknowledgment. The separate requirement, exceptions, evidence, retention, and receipt wording still need counsel approval and implementation. See `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`.
-7. The current two-action scope is a synthetic fixture, not a configurable institution catalog. Institution onboarding, action activation/deactivation, custom actions, channel entitlements, controls, immutable request snapshots, and per-action decisions remain a launch-demo product gap. See `docs/AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md`.
-8. The claim that an institution currently defines its reusable evidence requirements through Passage was too broad. Production has a fixed three-requirement synthetic checklist and a read-only policy page. The truthful copy fix and complete policy-management contract are on the implementation branch; see `docs/INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md`.
+1. New-owner MFA enrollment is a P0 blocker. Fix the client enrollment path and malformed QR rendering, then repeat the complete production signup and all affected personas before closing P0.
+2. All 20 RLS-disabled tables are in non-exposed `authority_private`; browser table privileges are revoked, so current evidence does not establish a public leak. Enable default-deny RLS as defense in depth, replay service commands, and verify the hosted advisor and anon boundary before real data.
+3. September 7 and September 8 UTC are immutable `blocked` reconciliation days. September 9 is verified clean day 1; September 15 is the earliest possible day 7 if every daily run and required live-provider comparison remains clean.
+4. The current reconciliation compares Passage's durable provider state. UAT HubSpot write credentials and Contact projection are proven; full Passage/Stripe/HubSpot comparison still requires live provider reads.
+5. Earlier privileged-MFA evidence remains useful but does not cover the new-owner failure. P2 also needs administrator replay plus an authorized and audited all-factors-lost recovery command/procedure.
+6. Supabase production remains on Free with no automated backups. A paid-plan decision and a real restore drill remain required before real data.
+7. Backup/restore/incident evidence, privacy/security/vendor-risk review, and counsel approval for New York, Pennsylvania, New Jersey, Connecticut, and Massachusetts remain open.
+8. Pennsylvania's statutory agent Acknowledgment still needs counsel approval and implementation. See `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`.
+9. The current two-action scope remains a synthetic fixture; the institution catalog, action governance, snapshots, and per-action decisions are not implemented. See `docs/AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md`.
+10. Production still has a fixed three-requirement checklist and read-only policy page. The policy-management contract is specified, but implementation remains open. See `docs/INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md`.
 
 ## Commercial hold
 
-P1 is prepared but not launched. Cold outreach, LinkedIn publication, buyer-facing demos, and real-data pilots remain held until **P1 and P2 both close**. Drafting, research, synthetic QA, pricing review, and demo refinement continue.
+P1 is **not prepared**: its cited 20-account deliverable does not exist. Named-account research, buyer/contact mapping, warm-path research, personalization, synthetic QA, pricing work, and demo refinement may continue now. No message, LinkedIn publication, nurture delivery, or buyer-facing demo is released until the documented gate is explicitly changed and the P0 MFA/RLS verification is closed.
+
+## Top five execution priorities
+
+1. **Repair and re-prove the front door.** Fix new-owner enrollment and QR rendering, add failure/retry evidence, and repeat production signup plus the full owner/admin/reviewer/principal/representative matrix.
+2. **Close the RLS question with evidence.** Apply default-deny RLS to all 20 private tables, preserve revoked browser grants, replay service commands, run the advisor, and test anonymous denial.
+3. **Correct commercial identity and prepare real P1.** Fix HubSpot email-first matching; produce 20 named institutions, five warm paths, buyer roles, evidence sources, and an explicit Proof.com battlecard. Research and drafting may run while engineering closes P0.
+4. **Preserve reconciliation and finish security/state gates.** Maintain the seven-day streak with live provider reads; decide backups, run restore/recovery evidence, and finish counsel packages for NY/NJ/CT/MA/PA including Pennsylvania's Acknowledgment.
+5. **Build the configurable policy/catalog, then rehearse and release.** Implement effective-dated institution policy and scope, stale-draft rebase, exact mobile/accessibility repairs, final persona QA, pricing/value proof, and the held outreach/LinkedIn/nurture package only after the applicable gates close.
+
+## Evidence-based timeline
+
+- **September 9–15:** earliest possible seven-day reconciliation window, only if both environments record clean every UTC day and live provider reads are operating.
+- **September 9–18:** focused engineering window for configurable institution policy/catalog, administrator recovery, exact mobile checks, and the technical backup/restore work if the plan decision is made immediately.
+- **September 9–30:** counsel and assurance window for the five-state packages, Pennsylvania Acknowledgment, privacy/security/vendor-risk review, and buyer-ready SOC 2 path. External reviewer availability controls this date.
+- **Earliest credible controlled outreach: September 22–30.** September 15 is only the reconciliation floor; outreach still requires every P1/P2 exit item and an explicit go decision.
+- **Earliest credible real-data pilot: late September to early October**, subject to paid backups, a successful restore drill, security/privacy/vendor-risk closeout, counsel approval, and a qualified institution's requirements. Synthetic demos remain distinct from this approval.
 
 ## Non-blocking backlog
 

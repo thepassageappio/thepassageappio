@@ -163,6 +163,39 @@ async function upsert(
   }
 }
 
+async function upsertContactByEmail(
+  token: string,
+  email: string,
+  createProperties: Record<string, string>,
+  updateProperties: Record<string, string>,
+) {
+  const existingId = await findByUniqueProperty(token, "contacts", "email", email);
+  if (existingId) {
+    await hubspotFetch(token, `/crm/v3/objects/contacts/${existingId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ properties: updateProperties }),
+    });
+    return existingId;
+  }
+
+  try {
+    const created = await hubspotFetch<HubSpotRecord>(token, "/crm/v3/objects/contacts", {
+      method: "POST",
+      body: JSON.stringify({ properties: createProperties }),
+    });
+    return created.id;
+  } catch (error) {
+    if (!(error instanceof HubSpotError) || error.status !== 409) throw error;
+    const racedId = await findByUniqueProperty(token, "contacts", "email", email);
+    if (!racedId) throw error;
+    await hubspotFetch(token, `/crm/v3/objects/contacts/${racedId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ properties: updateProperties }),
+    });
+    return racedId;
+  }
+}
+
 async function firstStage(token: string, objectType: "deals" | "tickets", configuredPipeline?: string, configuredStage?: string) {
   if (configuredPipeline && configuredStage) return { pipeline: configuredPipeline, stage: configuredStage };
   const response = await hubspotFetch<{ results: Array<{ id: string; stages: Array<{ id: string; displayOrder: number }> }> }>(token, `/crm/v3/pipelines/${objectType}`);
@@ -189,11 +222,11 @@ export async function projectCommercialInquiry(token: string, payload: HubSpotIn
     pa_inquiry_reference: payload.reference_code,
     pa_contact_consent_version: payload.consent_version,
   };
-  const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
+  const contactId = await upsertContactByEmail(token, payload.email, {
     ...splitName(payload.full_name), email: payload.email, jobtitle: payload.job_role,
     pa_prospect_key: payload.contact_key, pa_inquiry_reference: payload.reference_code,
     pa_contact_consent_version: payload.consent_version,
-  }, { property: "email", value: payload.email, properties: passageContactProperties });
+  }, passageContactProperties);
   await associate(token, "contacts", contactId, "companies", companyId);
 
   const isOpportunity = payload.inquiry_type === "demo" || payload.inquiry_type === "pilot";
@@ -231,11 +264,11 @@ export async function projectSampleAccessLead(token: string, payload: HubSpotSam
       pa_nurture_consent_version: payload.consent_version,
     } : {}),
   };
-  const contactId = await upsert(token, "contacts", "pa_prospect_key", payload.contact_key, {
+  const contactId = await upsertContactByEmail(token, payload.email, {
     ...splitName(payload.full_name),
     email: payload.email,
     ...passageContactProperties,
-  }, { property: "email", value: payload.email, properties: passageContactProperties });
+  }, passageContactProperties);
   return { contact_id: contactId, object_type: "contacts", record_id: contactId };
 }
 

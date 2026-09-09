@@ -16,7 +16,11 @@ Load for positioning, pricing, buyer deck, outreach, CRM strategy, or LinkedIn.
 
 ## Distribution gate
 
-P0 demo readiness is closed. P1 infrastructure is prepared but not launched, and P2 is mid-flight. One-pager, buyer deck, cold sequence, LinkedIn article/posts, and buyer-facing demos remain drafted and held until **P1 and P2 both close**. Internal target research and personalization may continue.
+P0 is reopened by the post-MFA new-owner signup failure. P1 is not prepared because the promised named-account list and warm-path map do not exist. One-pager, buyer deck, cold sequence, LinkedIn article/posts, nurture delivery, and buyer-facing demos remain held. Internal target research, contact mapping, personalization, and unsent rehearsal may continue while the P0 repairs are verified.
+
+## Proof.com answer
+
+Proof is a credible adjacent vendor for identity verification, e-signature, and remote notarization, with a named Baxter Credit Union case study. Passage earns a separate role only if it owns the institution's work after a document arrives: institution-specific intake, evidence gaps, policy snapshot, internal review, bounded permitted/excluded decision, matching receipts, and later lifecycle changes. Position Proof as a potential upstream evidence and execution provider while Passage remains the institution's decision and servicing record. Validate this distinction in discovery before using it as a market claim.
 
 ## Buyer-ready SOC 2 answer
 
@@ -30,8 +34,9 @@ Use [../SOC2-BUYER-ANSWER-2026-09-07.md](../SOC2-BUYER-ANSWER-2026-09-07.md) for
 
 Load when needed:
 
-- [../PRICING-AND-VALUE-VALIDATION-771204.md](../PRICING-AND-VALUE-VALIDATION-771204.md)
-- [../PASSAGE-STRATEGIC-CLAIMS-AUDIT-AND-BATTLECARD-2026-09-05.md](../PASSAGE-STRATEGIC-CLAIMS-AUDIT-AND-BATTLECARD-2026-09-05.md)
+- [../PRICING-AND-PACKAGING-RESEARCH.md](../PRICING-AND-PACKAGING-RESEARCH.md)
+- [../SELLING-AND-PRICING-DECISION-BRIEF.md](../SELLING-AND-PRICING-DECISION-BRIEF.md)
+- [../COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md](../COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md)
 - [../SALES-ONE-PAGER-2026-09-05.md](../SALES-ONE-PAGER-2026-09-05.md)
 - [../OUTBOUND-SEQUENCE-2026-09-05.md](../OUTBOUND-SEQUENCE-2026-09-05.md)
-- [../LINKEDIN-LAUNCH-COPY-771204.md](../LINKEDIN-LAUNCH-COPY-771204.md)
+- [../OUTBOUND-CONTENT-DRAFT-2026-09-06.md](../OUTBOUND-CONTENT-DRAFT-2026-09-06.md)

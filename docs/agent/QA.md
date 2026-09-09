@@ -15,9 +15,12 @@ Require browser action, server command, durable state, append-only event, other-
 
 ## Current status and open QA
 
-- P0 demo readiness is closed from the real production four-persona rehearsal.
+- P0 is reopened by the September 9 independent production signup failure. Read [../QA-REPORT-2026-09-09.md](../QA-REPORT-2026-09-09.md). The earlier four-persona rehearsal predates the current MFA release.
+- New-owner `/mfa` stayed at “Preparing…” across five reloads with zero Auth enrollment requests and zero factors. The repair must prove a real enrollment request, a rendered QR image and manual secret, successful AAL2 entry, and recoverable error/retry behavior.
+- The 20 advisor concerns are all `authority_private` tables. The schema is excluded from the Data API and direct browser grants are revoked, so no public exposure is established; add default-deny RLS and replay the anon/service boundaries as defense in depth.
+- Repair the two onboarding checkbox semantics and the public mobile-nav affordance found in the same report before final UI sign-off.
 - Capture and verify the backup recording with readable receipt scope/status and concealed tokens/inbox content as a commercial resilience asset.
-- Re-run notification reissue/receipt/late/duplicate/out-of-order cases after the unfinished `notification_outbox` fix is implemented and the migration is present on both UAT and Demo.
-- Run MFA through a full build and hosted end-to-end browser replay: enroll TOTP, challenge/verify, confirm AAL2, deny privileged actions at AAL1, allow them at AAL2, then test fresh sign-in, factor management, sign-out, and recovery/backup-factor behavior.
+- The notification send-history fix is source controlled and applied to UAT and Demo. Re-run reissue, receipt, late, duplicate, and out-of-order cases as part of the final release-candidate matrix rather than treating the migration as unfinished.
+- Owner TOTP, AAL1 denial, AAL2 success, fresh sign-in, two verified choices, backup-factor challenge, and cleanup have passed. Complete the independent administrator replay and build an authorized, audited all-factors-lost recovery command/procedure before closing P2 MFA.
 
-Detailed checklist: [../DEMO-READY-CHECKLIST.md](../DEMO-READY-CHECKLIST.md). Recording shots: [../BACKUP-RECORDING-SHOT-LIST-2026-09-06.md](../BACKUP-RECORDING-SHOT-LIST-2026-09-06.md).
+Detailed checklist: [../DEMO-READY-CHECKLIST.md](../DEMO-READY-CHECKLIST.md).
