@@ -44,3 +44,21 @@ test("the HubSpot claim includes sample leads without fabricating a company key"
   assert.match(migration, /'operation', v_job\.operation/i);
   assert.match(migration, /if v_job\.operation = 'upsert_commercial_inquiry' then[\s\S]+company_key/i);
 });
+
+const nurtureMigration = await readFile(
+  new URL("../../../supabase/migrations/20260909051650_sample_attribution_nurture_enrollment.sql", import.meta.url),
+  "utf8",
+);
+
+test("the current sample consent atomically records attribution and held nurture enrollment", () => {
+  const body = nurtureMigration.match(/create or replace function authority_private\.create_sample_access_lead_v2[\s\S]+?\$\$;/i)?.[0] ?? "";
+  assert.match(body, /sample-access-contact-2026\.2/i);
+  assert.match(body, /evaluation-2026\.2/i);
+  assert.match(body, /commercial\.sample_access_opted_in/i);
+  assert.match(body, /commercial\.nurture_enrolled/i);
+  assert.match(body, /website_sample_gated/i);
+  assert.match(body, /sample_evaluator/i);
+  assert.match(body, /held_until_p1_p2/i);
+  assert.match(body, /upsert_sample_access_lead/i);
+  assert.match(nurtureMigration, /grant execute on function public\.create_sample_access_lead_v2[\s\S]+to service_role/i);
+});

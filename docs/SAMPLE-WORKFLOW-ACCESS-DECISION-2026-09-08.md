@@ -7,8 +7,9 @@
 ```text
 Explore a sample workflow
   -> configured sign-in method (production currently uses a one-time email link)
-  -> explicit “Agree and view sample” contact opt-in
-  -> append-only consent record and durable HubSpot Contact outbox job
+  -> explicit “Agree and view sample” email and nurture opt-in
+  -> append-only consent, attribution, and held nurture-enrollment events
+  -> durable HubSpot Contact outbox job
   -> authenticated sample viewer with no organization membership
   -> read-only fictional four-persona workflow
   -> book a guided walkthrough or deliberately create an institution workspace
@@ -20,9 +21,11 @@ The sample viewer may open `/sample` at AAL1 because the route contains fixed fi
 
 ## Lead-generation truth
 
-Authentication alone is not permission for sales or marketing contact. After authentication, Passage presents a separate, required contact opt-in. The `Agree and view sample` action records the verified Auth user, exact consent version, source path, timestamp, and hashed email in an append-only private record. The same transaction appends a commercial event and queues an idempotent HubSpot Contact projection before the sample unlocks.
+Authentication alone is not permission for sales or marketing contact. After authentication, Passage presents a separate, required email opt-in that expressly names a short sample follow-up series, product updates, and a walkthrough invitation. The `Agree and view sample` action records the verified Auth user, exact consent version, source path, timestamp, and hashed email in an append-only private record. The same transaction appends the consent and nurture-enrollment events and queues an idempotent HubSpot Contact projection before the sample unlocks.
 
-The HubSpot projection creates or updates a Contact with the source `sample_workflow`. When the verified email already belongs to a Contact, Passage adds only its own lead fields and preserves the existing name and email. It does not invent an institution, Company, Deal, or Ticket. A later commercial-inquiry form can collect and project those facts when the viewer supplies them. Authority records and participant data are prohibited from this payload.
+The canonical acquisition code is `website_sample_gated`; HubSpot also receives the readable label `Website - Gated Sample`, the source path, consent version, nurture program `sample_evaluator`, and nurture status `held_until_p1_p2`. When the verified email already belongs to a Contact, Passage adds only its own lead fields and preserves the existing name and email. It does not invent an institution, Company, Deal, or Ticket. A later commercial-inquiry form can collect and project those facts when the viewer supplies them. Authority records and participant data are prohibited from this payload.
+
+The Passage event ledger is the enrollment source of truth. Both events and the HubSpot projection name privacy notice `evaluation-2026.2`. HubSpot Workflows are unavailable in the current free portal, and the standing commercial gate prohibits buyer outreach until P1 and P2 both close. Enrollment is therefore recorded immediately while delivery remains held. Activating the series requires a later controlled release that supplies the send mechanism, unsubscribe handling, suppression checks, and delivery evidence. Consent version `sample-access-contact-2026.2` applies only to new consent revisions; prior `2026.1` records remain unchanged and do not silently acquire the broader nurture meaning.
 
 A later analytics increment may record a privacy-reviewed `sample_viewed` product event with source attribution and aggregate conversion reporting. It must remain separate from authority records and must not include participant or authority data.
 
@@ -39,7 +42,10 @@ Production UAT's Supabase Google provider is disabled as of this checkpoint. The
 - The sample gate leads with Google only when Google OAuth is configured; production currently uses the one-time email path.
 - Successful sign-in returns to `/sample`, not organization onboarding.
 - A first-time authenticated viewer reaches `/sample/access` and must explicitly opt in before the sample opens.
-- The opt-in creates one append-only private consent record per Auth user and consent version, one commercial ledger event, and one idempotent HubSpot Contact outbox job.
+- The opt-in creates one append-only private consent record per Auth user and consent version, separate consent and nurture-enrollment ledger events, and one idempotent HubSpot Contact outbox job.
+- The nurture-enrollment event carries canonical gated-sample attribution and a P1/P2 delivery hold.
+- HubSpot exposes both the readable source label and stable source code, plus the source path, nurture program, nurture status, and governing consent version.
+- The held series and controlled activation rules are defined in [SAMPLE-EVALUATOR-NURTURE-SERIES-2026-09-08.md](./SAMPLE-EVALUATOR-NURTURE-SERIES-2026-09-08.md).
 - A returning viewer opens `/sample` without repeating the gate only while their saved consent version matches the currently required version.
 - `/sample` requires an authenticated, consented user but no organization, role, or AAL2 session.
 - `/sample` is dynamic, private/no-store, and `noindex`.

@@ -38,7 +38,7 @@ export default async function SampleAccessPage({ searchParams }: Props) {
       <form action={grantSampleAccessAction} className={styles.form}>
         <label className={styles.check}>
           <input name="sampleContactConsent" required type="checkbox" />
-          <span>Passage may contact me about this sample, product updates, and a walkthrough. I can unsubscribe at any time.</span>
+          <span>Passage may email me a short sample follow-up series, product updates, and a walkthrough invitation. I can unsubscribe at any time.</span>
         </label>
         <button className={styles.primary} type="submit">Agree and view sample</button>
         <p className={styles.legal}>
