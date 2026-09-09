@@ -21,7 +21,7 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Executive readiness assessment
 
-**Provisional overall buyer-ready launch score: 5.8/10.** This replaces the earlier 6.8 after independent September 9 QA found the new-owner entry path blocked and confirmed that P1 has no named target-account list. Re-score only after the MFA/RLS repair and post-MFA persona replay.
+**Provisional overall buyer-ready launch score: 6.1/10.** Independent September 9 QA found the new-owner entry path blocked, so the score remains below the earlier 6.8 pending a post-repair hosted replay. P1 now has a researched 20-account source list and a written Proof.com response; named buyer contacts, confirmed warm paths, and first-five personalization remain open.
 
 | Dimension | Score | Assessment |
 | --- | ---: | --- |
@@ -29,8 +29,8 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 | Differentiation | 8.5/10 | Effective-dated policy, request snapshots, bounded decisions, matching receipts, and append-only lifecycle history form a defensible system-of-record direction |
 | Core workflow and synthetic demo | 5.5/10 | The workflow was previously rehearsed, but a new owner cannot currently enter it after onboarding; the full post-MFA persona matrix remains unverified |
 | Institution-ready configurability | 4.5/10 | Authority actions and evidence requirements are still fixed synthetic fixtures; the versioned policy/catalog management surface is specified but not built |
-| Security, resilience, legal, and real-data operations | 4.5/10 | Public tables have RLS and the private schema is non-exposed with browser grants revoked, but 20 private tables lack defense-in-depth RLS; MFA recovery, backups/restore, assurance evidence, and counsel approval remain open |
-| GTM package and measurement | 5.5/10 | Pricing and held content drafts exist, but P1 has no named target accounts, warm-path map, buyer evidence, or current Proof battlecard |
+| Security, resilience, legal, and real-data operations | 5.5/10 | Default-deny RLS is applied to all 20 private tables in UAT and Demo and hosted browser-role boundary checks pass; MFA recovery, backups/restore, assurance evidence, and counsel approval remain open |
+| GTM package and measurement | 6.5/10 | Pricing, held content drafts, a researched 20-account list, and a written Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and validated conversion economics remain open |
 
 The strongest product thesis is no longer a generic POA workflow. Passage can become the institution's current, auditable decision layer for delegated authority: an institution publishes its governed policy, a request snapshots that policy, separate people provide identity and authority evidence, the institution records a bounded decision, and every authorized party sees a matching receipt and later lifecycle changes. The optional V3 expansion lets one underlying authority or life event create separate confidential cases for several banks, insurers, utilities, government bodies, funeral homes, or other recipients while each recipient keeps its own evidence and decision boundary. Passage must not imply that one recipient's acceptance applies to another or that Passage creates legal authority.
 
@@ -39,7 +39,7 @@ Commercial-planning coverage is assessed separately in [../COMMERCIAL-STRATEGY-C
 ## Blocking
 
 1. New-owner MFA enrollment is a P0 blocker. Fix the client enrollment path and malformed QR rendering, then repeat the complete production signup and all affected personas before closing P0.
-2. All 20 RLS-disabled tables are in non-exposed `authority_private`; browser table privileges are revoked, so current evidence does not establish a public leak. Enable default-deny RLS as defense in depth, replay service commands, and verify the hosted advisor and anon boundary before real data.
+2. Default-deny RLS is applied to all 20 `authority_private` tables in UAT and Demo. Hosted checks confirm zero direct browser-role table privileges and the RLS-disabled advisor finding is gone. The four intentionally authenticated security-definer command functions and leaked-password-protection setting still require explicit closeout evidence.
 3. September 7 and September 8 UTC are immutable `blocked` reconciliation days. September 9 is verified clean day 1; September 15 is the earliest possible day 7 if every daily run and required live-provider comparison remains clean.
 4. The current reconciliation compares Passage's durable provider state. UAT HubSpot write credentials and Contact projection are proven; full Passage/Stripe/HubSpot comparison still requires live provider reads.
 5. Earlier privileged-MFA evidence remains useful but does not cover the new-owner failure. P2 also needs administrator replay plus an authorized and audited all-factors-lost recovery command/procedure.
@@ -51,13 +51,13 @@ Commercial-planning coverage is assessed separately in [../COMMERCIAL-STRATEGY-C
 
 ## Commercial hold
 
-P1 is **not prepared**: its cited 20-account deliverable does not exist. Named-account research, buyer/contact mapping, warm-path research, personalization, synthetic QA, pricing work, and demo refinement may continue now. No message, LinkedIn publication, nurture delivery, or buyer-facing demo is released until the documented gate is explicitly changed and the P0 MFA/RLS verification is closed.
+P1 is **in preparation**: the researched 20-account source list and Proof.com response exist, while named buyer contacts, confirmed warm paths, first-five personalization, sender review, and buyer evidence remain open. Contact mapping, warm-path research, personalization, synthetic QA, pricing work, and demo refinement may continue now. No message, LinkedIn publication, nurture delivery, or buyer-facing demo is released until the documented gate is explicitly changed and P1 and P2 close.
 
 ## Top five execution priorities
 
 1. **Repair and re-prove the front door.** Fix new-owner enrollment and QR rendering, add failure/retry evidence, and repeat production signup plus the full owner/admin/reviewer/principal/representative matrix.
-2. **Close the RLS question with evidence.** Apply default-deny RLS to all 20 private tables, preserve revoked browser grants, replay service commands, run the advisor, and test anonymous denial.
-3. **Correct commercial identity and prepare real P1.** Fix HubSpot email-first matching; produce 20 named institutions, five warm paths, buyer roles, evidence sources, and an explicit Proof.com battlecard. Research and drafting may run while engineering closes P0.
+2. **Close the hosted security findings.** Review the four intentionally authenticated security-definer RPCs, document their authorization/MFA boundary, and resolve or explicitly accept the leaked-password-protection setting.
+3. **Finish the first-five discovery batch.** Use the completed 20-account source list to identify real buyer contacts, confirm warm paths where available, personalize the first five, and complete sender review. Keep all delivery held while engineering closes P0 and P1/P2 remain open.
 4. **Preserve reconciliation and finish security/state gates.** Maintain the seven-day streak with live provider reads; decide backups, run restore/recovery evidence, and finish counsel packages for NY/NJ/CT/MA/PA including Pennsylvania's Acknowledgment.
 5. **Build the configurable policy/catalog, then rehearse and release.** Implement effective-dated institution policy and scope, stale-draft rebase, exact mobile/accessibility repairs, final persona QA, pricing/value proof, and the held outreach/LinkedIn/nurture package only after the applicable gates close.
 

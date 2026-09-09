@@ -16,7 +16,7 @@ Load for positioning, pricing, buyer deck, outreach, CRM strategy, or LinkedIn.
 
 ## Distribution gate
 
-P0 is reopened by the post-MFA new-owner signup failure. P1 is not prepared because the promised named-account list and warm-path map do not exist. One-pager, buyer deck, cold sequence, LinkedIn article/posts, nurture delivery, and buyer-facing demos remain held. Internal target research, contact mapping, personalization, and unsent rehearsal may continue while the P0 repairs are verified.
+P0 is reopened by the post-MFA new-owner signup failure. P1 is in preparation: the researched 20-account source list exists, while named buyer contacts, confirmed warm paths, and first-five personalization remain open. One-pager, buyer deck, cold sequence, LinkedIn article/posts, nurture delivery, and buyer-facing demos remain held. Internal contact research, personalization, and unsent rehearsal may continue while the P0 repairs are verified.
 
 ## Proof.com answer
 

@@ -44,9 +44,9 @@ UAT and Demo currently compute reconciliation as `clean`, but September 7–8 ar
 
 Overall buyer-ready launch score is provisionally **5.8/10** after independent QA found new-owner MFA enrollment stuck before any Auth request and confirmed that P1 lacks its named-account list. P0 is reopened until the repair and complete post-MFA persona replay pass. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
 
-The five commercial frameworks are audited in `docs/COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md`. GTM coverage is reduced to 5.5/10 until a real named-account/warm-path artifact and current Proof.com response exist.
+The five commercial frameworks are audited in `docs/COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md`. GTM coverage is 6.5/10: a researched 20-account source list and current Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and operating economics remain open.
 
-Execute in this order: repair and re-prove new-owner MFA; enable and verify default-deny RLS on the 20 private tables; fix HubSpot email-first identity matching and build the real P1 target list plus Proof.com battlecard; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog and run final persona/mobile/accessibility QA before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
+Execute in this order: merge and re-prove new-owner MFA on the hosted release; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; verify HubSpot email-first identity matching and finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog and run final persona/mobile/accessibility QA before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
 
 ## Standing gates
 
