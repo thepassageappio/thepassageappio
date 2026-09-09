@@ -134,7 +134,7 @@ All 8 passed. `supabase/tests/stripe_negative_paths.sql` reproduces the same 8 s
 
 - `src/lib/authority/mfa-policy.ts` — pure, unit-tested decision logic. Only `owner` and `admin` are required to hold a verified TOTP factor and have completed the current session's second-factor challenge (`aal2`); every other role is always allowed. Tests in `mfa-policy.test.mts` cover all six roles and all three MFA states.
 - `src/lib/authority/access.ts` — `getAuthorityAccessContext()` now also calls `supabase.auth.mfa.getAuthenticatorAssuranceLevel()` and `listFactors()` once an active membership and ready organization are already established (the same point every other gate in `src/app/app/layout.tsx` already runs at, so signed-out visitors and mid-onboarding users trigger no extra Auth calls), and exposes the result as `access.mfaGate`.
-- `src/app/app/layout.tsx` — redirects to `/mfa` when `mfaGate !== "allow"`, alongside the existing sign-in/revoked/onboarding redirects.
+- `src/app/app/layout.tsx` — redirects to `/mfa` when `mfaGate != "allow"`, alongside the existing sign-in/revoked/onboarding redirects.
 - `src/app/mfa/page.tsx` + `src/components/app/MfaVerification.tsx` — a real enrollment flow (shows a QR code and manual-entry secret from `supabase.auth.mfa.enroll`, cleans up any abandoned unverified factors first, verifies the entered code with `challengeAndVerify`) and a real re-challenge flow (existing verified factor, current session only `aal1` — just asks for the current code). Built as semantic HTML + an owned CSS module per `docs/UI-SYSTEM.md`'s existing toolkit decision (no Tailwind/shadcn introduced).
 - `supabase/config.toml` — `auth.mfa.totp` enroll/verify flipped to `true` for local-dev parity with the new gate.
 
@@ -339,3 +339,18 @@ Scope of this update: build/refine the P1 target-account list, check HubSpot con
 - [HubSpot properties and unique identifiers](https://developers.hubspot.com/docs/api-reference/latest/crm/properties/guide)
 - [Supabase row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
+
+
+## September 9, 2026 QA-fix batch — file-scoped, non-MFA/RLS items
+
+Scope: four concrete, independent bugs from `QA-REPORT-2026-09-09.md` that do not depend on the in-flight MFA/RLS work being handled separately. All four shipped directly to `main` in this session.
+
+1. **Checkbox semantics bug (organization-profile onboarding step) — fixed.** `src/app/onboarding/organization/page.tsx` nested a second attestation sentence inside a `<small>` inside the single `authorizedUse` checkbox's label, so the DOM visually read as two separate compliance attestations while only one checkbox is actually recorded. Flattened into one honest sentence under the single checkbox. No change to the `authorizedUse` field or the `create_organization_v1` RPC.
+
+2. **Branded confirmation link — documented, not code-fixable here.** The raw `supabase.co` confirmation-email link is produced by Supabase's own default "Confirm signup" email template (`{{ .ConfirmationURL }}`), which is Dashboard/project configuration, not app code. Confirmed `src/app/account-actions.ts` (`requestSignInAction`) and `src/app/auth/confirm/route.ts` already do the correct thing on the app side (branded `emailRedirectTo`, and a `/auth/confirm` route that already accepts `token_hash`+`type`). Exact required Dashboard change (Site URL, Redirect URLs, and the four email-template edits) is written up in `docs/BRANDED-CONFIRMATION-LINK-CONFIG-2026-09-09.md` for whoever has Supabase Dashboard access to both the UAT and Demo projects.
+
+3. **Public mobile marketing nav overflow — fixed.** `src/app/commercial.module.css` had two conflicting `@media(max-width:600px)` blocks targeting `.header nav` — a later block's `.header nav{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible}` silently won the cascade over the intended horizontally-scrollable nav (higher specificity than `commercial-header-polish.module.css`'s `.navigation` class rules), causing the exact overflow-clip QA found. Removed the conflicting block. Also added a right-edge fade (`mask-image`) to `commercial-header-polish.module.css`'s mobile `.navigation` rule so the horizontally-scrollable nav has a visible scroll affordance, since its scrollbar is intentionally hidden for visual polish.
+
+4. **Real 20-account P1 target list — resolved via existing PR.** PR #91 (`docs/p1-readiness-2026-09-07`) was still open and unmerged, contrary to an earlier claim that it didn't exist. Verified it was docs-only (2 files), clean, and mergeable against current `main`, then squash-merged it. `docs/P1-TARGET-ACCOUNT-LIST-2026-09-07.md` (20 real NY credit unions/banks, Filene FiLab Tier-1 sponsors Municipal Credit Union and Visions Federal Credit Union) is now on `main`, along with its companion P1-readiness append to this roadmap file.
+
+None of the above touched MFA, RLS, Stripe, or reconciliation code/config — that work remains owned by the separate in-flight effort.
