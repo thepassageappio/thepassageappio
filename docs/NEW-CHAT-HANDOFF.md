@@ -42,11 +42,11 @@ UAT and Demo currently compute reconciliation as `clean`, but September 7–8 ar
 
 ## Current objective
 
-Overall buyer-ready launch score is provisionally **5.8/10** after independent QA found new-owner MFA enrollment stuck before any Auth request and confirmed that P1 lacks its named-account list. P0 is reopened until the repair and complete post-MFA persona replay pass. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
+Overall buyer-ready launch score is provisionally **6.4/10**. PR #105 fixed the new-owner MFA front door and hardened all 20 private tables; exact-SHA production enrollment, TOTP verification, `/app` entry, and hosted factor-state checks pass. P0 remains reopened until the complete post-MFA persona replay passes. P1 has its 20-account source list and Proof.com response, while named buyer contacts, confirmed warm paths, and first-five personalization remain open. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
 
 The five commercial frameworks are audited in `docs/COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md`. GTM coverage is 6.5/10: a researched 20-account source list and current Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and operating economics remain open.
 
-Execute in this order: merge and re-prove new-owner MFA on the hosted release; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; verify HubSpot email-first identity matching and finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog and run final persona/mobile/accessibility QA before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
+Execute in this order: complete the post-MFA owner/admin/reviewer/principal/representative replay; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; verify HubSpot email-first identity matching and finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog and run final mobile/accessibility QA before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
 
 ## Standing gates
 

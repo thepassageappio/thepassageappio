@@ -4,7 +4,7 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Verified
 
-- P0 demo readiness is reopened. The September 9 independent production signup reached `/mfa` but made zero enrollment requests and created zero factors across five reloads. The earlier four-persona rehearsal predates the September 7 MFA release and cannot close the current release candidate.
+- P0 demo readiness remains reopened for the complete post-MFA persona matrix. PR #105 merged as `f99da278a9774516ad31b6bd14e593e8b307fb73`, production served that exact SHA, and the previously stuck production owner rendered the QR image and manual secret, verified TOTP, and reached `/app`. Hosted UAT then confirmed one verified factor and zero unverified factors for the authorized test owner. The original front-door defect is fixed; owner/admin/reviewer/principal/representative replay remains before P0 closes.
 - PR #92 merged to `main` as `b1beaf3c912239961bd872448272015022bad49c`. Production served that exact SHA at `/api/version` before the database release proceeded.
 - The committed privileged-MFA migration is applied to UAT and Demo. In hosted UAT, the real database boundary denied an owner JWT at AAL1 with `mfa_verification_required` and allowed the same owner at AAL2.
 - A new production owner using `steveandashturrisi@gmail.com` completed organization onboarding, terms, the New York template, real TOTP enrollment, and the AAL2 challenge. A fresh AAL1 sign-in was then forced through the existing-factor challenge before `/app` loaded.
@@ -21,13 +21,13 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Executive readiness assessment
 
-**Provisional overall buyer-ready launch score: 6.1/10.** Independent September 9 QA found the new-owner entry path blocked, so the score remains below the earlier 6.8 pending a post-repair hosted replay. P1 now has a researched 20-account source list and a written Proof.com response; named buyer contacts, confirmed warm paths, and first-five personalization remain open.
+**Provisional overall buyer-ready launch score: 6.4/10.** The hosted new-owner MFA repair and private-table hardening now pass, while P0 remains open for the complete post-MFA persona matrix. P1 has a researched 20-account source list and a written Proof.com response; named buyer contacts, confirmed warm paths, and first-five personalization remain open.
 
 | Dimension | Score | Assessment |
 | --- | ---: | --- |
 | Product vision and category | 9.0/10 | A clear wedge: the institution's operating record for delegated authority after a document arrives, with a separate longer-term participant portfolio and multi-recipient case opportunity |
 | Differentiation | 8.5/10 | Effective-dated policy, request snapshots, bounded decisions, matching receipts, and append-only lifecycle history form a defensible system-of-record direction |
-| Core workflow and synthetic demo | 5.5/10 | The workflow was previously rehearsed, but a new owner cannot currently enter it after onboarding; the full post-MFA persona matrix remains unverified |
+| Core workflow and synthetic demo | 6.5/10 | The repaired production owner entry path now reaches AAL2 and `/app`; the full post-MFA persona matrix remains unverified |
 | Institution-ready configurability | 4.5/10 | Authority actions and evidence requirements are still fixed synthetic fixtures; the versioned policy/catalog management surface is specified but not built |
 | Security, resilience, legal, and real-data operations | 5.5/10 | Default-deny RLS is applied to all 20 private tables in UAT and Demo and hosted browser-role boundary checks pass; MFA recovery, backups/restore, assurance evidence, and counsel approval remain open |
 | GTM package and measurement | 6.5/10 | Pricing, held content drafts, a researched 20-account list, and a written Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and validated conversion economics remain open |
@@ -38,7 +38,7 @@ Commercial-planning coverage is assessed separately in [../COMMERCIAL-STRATEGY-C
 
 ## Blocking
 
-1. New-owner MFA enrollment is a P0 blocker. Fix the client enrollment path and malformed QR rendering, then repeat the complete production signup and all affected personas before closing P0.
+1. New-owner MFA enrollment and QR rendering now pass on the exact production merge. Repeat the complete owner/admin/reviewer/principal/representative production matrix before closing P0.
 2. Default-deny RLS is applied to all 20 `authority_private` tables in UAT and Demo. Hosted checks confirm zero direct browser-role table privileges and the RLS-disabled advisor finding is gone. The four intentionally authenticated security-definer command functions and leaked-password-protection setting still require explicit closeout evidence.
 3. September 7 and September 8 UTC are immutable `blocked` reconciliation days. September 9 is verified clean day 1; September 15 is the earliest possible day 7 if every daily run and required live-provider comparison remains clean.
 4. The current reconciliation compares Passage's durable provider state. UAT HubSpot write credentials and Contact projection are proven; full Passage/Stripe/HubSpot comparison still requires live provider reads.
@@ -55,7 +55,7 @@ P1 is **in preparation**: the researched 20-account source list and Proof.com re
 
 ## Top five execution priorities
 
-1. **Repair and re-prove the front door.** Fix new-owner enrollment and QR rendering, add failure/retry evidence, and repeat production signup plus the full owner/admin/reviewer/principal/representative matrix.
+1. **Complete the post-MFA persona proof.** The new-owner enrollment defect is fixed on production; repeat the full owner/admin/reviewer/principal/representative matrix and close every critical/high regression before P0 closes.
 2. **Close the hosted security findings.** Review the four intentionally authenticated security-definer RPCs, document their authorization/MFA boundary, and resolve or explicitly accept the leaked-password-protection setting.
 3. **Finish the first-five discovery batch.** Use the completed 20-account source list to identify real buyer contacts, confirm warm paths where available, personalize the first five, and complete sender review. Keep all delivery held while engineering closes P0 and P1/P2 remain open.
 4. **Preserve reconciliation and finish security/state gates.** Maintain the seven-day streak with live provider reads; decide backups, run restore/recovery evidence, and finish counsel packages for NY/NJ/CT/MA/PA including Pennsylvania's Acknowledgment.

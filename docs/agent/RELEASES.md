@@ -10,7 +10,7 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 - Production Vercel project: `passage-authority-uat`, now Git-connected with automatic production deployment from `main`.
 - PR #90 fast-forwarded `main` to the former `agent/founding-pilot-billing` tip; do not describe that work as branch-only.
 - Refreshed `origin/main` is `c24823c` and adds the September 9 QA and strategic reports. The local checkout may remain at `ff69e7b` when Git metadata is read-only; materialize the two reports without discarding local work and start the next writable branch from refreshed `origin/main`.
-- P0 is reopened until the new-owner MFA repair and full post-MFA persona replay pass. Do not deploy or merge the current local repair from a stale base; reapply or cherry-pick it onto refreshed `main`, run required checks, and preserve exact-sha release evidence.
+- PR #105 merged the new-owner MFA repair and private-table hardening as `f99da278a9774516ad31b6bd14e593e8b307fb73`. Production served that exact SHA; owner enrollment rendered, TOTP verification reached `/app`, and hosted UAT recorded one verified factor. P0 remains reopened only until the complete post-MFA persona replay passes.
 - `origin/agent/founding-pilot-billing` advanced to `15052ad` from an older base. Integrate its two final packet files selectively; merging the divergent branch wholesale would delete newer MFA/reconciliation work from `main`.
 - Manual `vercel deploy` was the old production path and is now stale. Use the Git-triggered `main` deployment path.
 - Block production from detached HEAD or a dirty worktree.
