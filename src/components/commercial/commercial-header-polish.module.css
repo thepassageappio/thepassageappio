@@ -48,6 +48,11 @@
     justify-content: start;
     gap: 3px;
     overflow-x: auto;
+    /* Scroll affordance: fade the trailing edge so a first-time visitor
+       can see there are more nav items to reach by scrolling, since the
+       scrollbar itself is hidden above for visual polish. */
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
   }
 
   .navigation a {
