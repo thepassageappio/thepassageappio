@@ -99,8 +99,7 @@ export default async function OrganizationOnboardingPage({ searchParams }: Props
         <label className={styles.check}>
           <input name="authorizedUse" required type="checkbox" />
           <span>
-            I am authorized to evaluate Passage Authority for this organization.
-            <small>I will only invite people and use information that I am permitted to use for this evaluation.</small>
+            I am authorized to evaluate Passage Authority for this organization and will only invite people and use information I am permitted to use for this evaluation.
           </span>
         </label>
         <button className={styles.primary} type="submit">Save organization</button>
