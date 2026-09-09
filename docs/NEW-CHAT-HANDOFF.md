@@ -2,12 +2,12 @@
 
 **Codeword:** `AUTHORITY COMPASS 771204`
 
-**Exact continuation phrase:** `AUTHORITY COMPASS 771204 — P0 REOPENED — REPAIR MFA RLS`
+**Exact continuation phrase:** `AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2`
 
 Paste this into a new chat:
 
 ```text
-AUTHORITY COMPASS 771204 — P0 REOPENED — REPAIR MFA RLS
+AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2
 
 Read:
 C:\Users\Turrisi OS\Documents\Codex\2026-09-05\authority-compass-771204-resume-execution-read\passage-authority-main-verify\docs\NEW-CHAT-HANDOFF.md
@@ -24,9 +24,9 @@ Follow the latest restart checkpoint and linked playbooks. Preserve uncommitted 
 
 ## Latest restart checkpoint
 
-The last independently verified production SHA is `ff69e7bdac887751f9805fd37bc8c8be2ecf0d2b`; GitHub `main` has since advanced to `c24823c` with the September 9 QA and strategic reports. Verify `/api/version` before making a fresh deployment claim. PR #92 delivered auditable provider cleanup, source-controlled notification history, reconciliation repair, progressive release controls, and three-layer privileged MFA. PR #93 fixed the authenticated mobile-navigation overlap; PR #95 added owner/admin backup-authenticator enrollment and the Pennsylvania packet; PR #96 established the authority-scope catalog and forward-only policy/rebase contract; PRs #99–100 deployed the gated sample and fixed existing-email HubSpot upsert plus consent revisions; PR #101 recorded the optional participant authority portfolio strategy; PR #102 reconciled the production sample-lead evidence; PRs #103–104 deployed gated-source attribution, explicit nurture consent, held nurture enrollment, the four-message series, and the final release record. Migration `20260909051650` is applied to UAT and Demo.
+The last independently verified production SHA is PR #105 merge `f99da278a9774516ad31b6bd14e593e8b307fb73`; `/api/version` served that exact SHA with verified GitHub `main` provenance. Verify `/api/version` again before making a later deployment claim. PR #92 delivered auditable provider cleanup, source-controlled notification history, reconciliation repair, progressive release controls, and three-layer privileged MFA. PR #93 fixed the authenticated mobile-navigation overlap; PR #95 added owner/admin backup-authenticator enrollment and the Pennsylvania packet; PR #96 established the authority-scope catalog and forward-only policy/rebase contract; PRs #99–100 deployed the gated sample and fixed existing-email HubSpot upsert plus consent revisions; PR #101 recorded the optional participant authority portfolio strategy; PR #102 reconciled the production sample-lead evidence; PRs #103–104 deployed gated-source attribution, explicit nurture consent, held nurture enrollment, the four-message series, and the final release record. Migration `20260909051650` is applied to UAT and Demo.
 
-Hosted owner TOTP enrollment, AAL1 database denial, AAL2 database success, and production desktop verification pass. The deployed backup-factor flow passed a real fresh-session replay: both factor choices appeared, the backup factor completed AAL2, and `/app` loaded. The two automation-created factors were removed afterward and zero remained. The prior five-link 390px replay remains valid; exact hosted 390px geometry with the new sixth security link is still open. Do not mark P2 MFA closed until an administrator replay and an authorized, audited all-factors-lost recovery process pass.
+Hosted owner and independent administrator TOTP enrollment, AAL1 database denial, AAL2 database success, and production desktop verification pass. The deployed backup-factor flow passed a real fresh-session replay: both factor choices appeared, the backup factor completed AAL2, and `/app` loaded. The two automation-created factors were removed afterward and zero remained. The prior five-link 390px replay remains valid; exact hosted 390px geometry with the new sixth security link is still open. Do not mark P2 MFA closed until an authorized, audited all-factors-lost recovery process and team-visible privileged-MFA compliance pass.
 
 The current New York template still hard-codes two non-transactional actions. That is a controlled synthetic fixture, not the intended institution product. Read `docs/AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md`. Institution onboarding must install a versioned starter catalog per authority type and allow authorized owners/admins to activate or deactivate standard actions, add governed custom actions, configure channels and limits, and publish immutable versions. Requests and receipts must snapshot the exact version. Do not claim this configurability in buyer materials until it is implemented and replayed.
 
@@ -42,11 +42,13 @@ UAT and Demo currently compute reconciliation as `clean`, but September 7–8 ar
 
 ## Current objective
 
-Overall buyer-ready launch score is provisionally **5.8/10** after independent QA found new-owner MFA enrollment stuck before any Auth request and confirmed that P1 lacks its named-account list. P0 is reopened until the repair and complete post-MFA persona replay pass. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
+Overall buyer-ready launch score is provisionally **6.8/10**. PR #105 fixed the new-owner MFA front door and hardened all 20 private tables. The complete post-MFA production persona matrix now passes: Owner and Administrator verified TOTP and reached `/app`; an independent Reviewer received the intended review-only workspace; request `PA-E3DEFCE539` completed principal, representative, evidence, review, decision, and matching three-party receipt `PAR-1805F05F8FC4`. The application regression that reopened P0 is closed. Final presenter sign-off still needs deterministic invitation delivery, timed/mobile/accessibility, and remaining hosted negative paths. P1 has its 20-account source list and Proof.com response, while named buyer contacts, confirmed warm paths, and first-five personalization remain open. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
 
 The five commercial frameworks are audited in `docs/COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md`. GTM coverage is 6.5/10: a researched 20-account source list and current Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and operating economics remain open.
 
-Execute in this order: merge and re-prove new-owner MFA on the hosted release; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; verify HubSpot email-first identity matching and finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog and run final persona/mobile/accessibility QA before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
+Execute in this order: finish presenter-grade timed/mobile/accessibility/negative-path QA and make invitation delivery deterministic; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
+
+The September 9 Gmail caveat is real: Resend marked the principal, representative, Administrator, and Reviewer invitations delivered, but exact Gmail searches did not surface several invitation messages; decision receipts did surface. The application state and delivery webhooks behaved correctly, but a buyer demo must not depend on manually extracting links from Resend. Keep Google Postmaster/domain-reputation work and a presenter-safe fallback in the release plan.
 
 ## Standing gates
 

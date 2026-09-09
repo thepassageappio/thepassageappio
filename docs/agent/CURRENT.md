@@ -4,7 +4,7 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Verified
 
-- P0 demo readiness is reopened. The September 9 independent production signup reached `/mfa` but made zero enrollment requests and created zero factors across five reloads. The earlier four-persona rehearsal predates the September 7 MFA release and cannot close the current release candidate.
+- The complete post-MFA production persona matrix passed on September 9. PR #105 merged as `f99da278a9774516ad31b6bd14e593e8b307fb73` and production served that exact SHA. Owner and Administrator each rendered a real QR image and manual secret, verified TOTP, and reached `/app`; hosted UAT recorded one verified TOTP factor for each. A separate Institution Reviewer received the review-only workspace without privileged MFA. Request `PA-E3DEFCE539` then completed principal confirmation, representative acceptance and certification, two fictional evidence uploads, institution review, submission, an accepted-with-limits decision, and matching owner/principal/representative receipts. The application regression that reopened P0 is closed. Final presenter sign-off remains open for deterministic inbox delivery, timed demo, exact mobile/accessibility, and hosted negative-path evidence.
 - PR #92 merged to `main` as `b1beaf3c912239961bd872448272015022bad49c`. Production served that exact SHA at `/api/version` before the database release proceeded.
 - The committed privileged-MFA migration is applied to UAT and Demo. In hosted UAT, the real database boundary denied an owner JWT at AAL1 with `mfa_verification_required` and allowed the same owner at AAL2.
 - A new production owner using `steveandashturrisi@gmail.com` completed organization onboarding, terms, the New York template, real TOTP enrollment, and the AAL2 challenge. A fresh AAL1 sign-in was then forced through the existing-factor challenge before `/app` loaded.
@@ -21,13 +21,13 @@ Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enr
 
 ## Executive readiness assessment
 
-**Provisional overall buyer-ready launch score: 6.1/10.** Independent September 9 QA found the new-owner entry path blocked, so the score remains below the earlier 6.8 pending a post-repair hosted replay. P1 now has a researched 20-account source list and a written Proof.com response; named buyer contacts, confirmed warm paths, and first-five personalization remain open.
+**Provisional overall buyer-ready launch score: 6.8/10.** The hosted new-owner and administrator MFA paths, private-table hardening, and complete production persona matrix now pass. The score remains below buyer-ready because inbox delivery is not deterministic, exact release-candidate QA is incomplete, and P1/P2 still have material commercial, resilience, recovery, state, and external-review gates.
 
 | Dimension | Score | Assessment |
 | --- | ---: | --- |
 | Product vision and category | 9.0/10 | A clear wedge: the institution's operating record for delegated authority after a document arrives, with a separate longer-term participant portfolio and multi-recipient case opportunity |
 | Differentiation | 8.5/10 | Effective-dated policy, request snapshots, bounded decisions, matching receipts, and append-only lifecycle history form a defensible system-of-record direction |
-| Core workflow and synthetic demo | 5.5/10 | The workflow was previously rehearsed, but a new owner cannot currently enter it after onboarding; the full post-MFA persona matrix remains unverified |
+| Core workflow and synthetic demo | 8.0/10 | The exact production release passed owner/admin/reviewer/principal/representative execution and matching receipts; timed presentation, deterministic inbox delivery, exact mobile/accessibility, and the remaining hosted negative paths remain |
 | Institution-ready configurability | 4.5/10 | Authority actions and evidence requirements are still fixed synthetic fixtures; the versioned policy/catalog management surface is specified but not built |
 | Security, resilience, legal, and real-data operations | 5.5/10 | Default-deny RLS is applied to all 20 private tables in UAT and Demo and hosted browser-role boundary checks pass; MFA recovery, backups/restore, assurance evidence, and counsel approval remain open |
 | GTM package and measurement | 6.5/10 | Pricing, held content drafts, a researched 20-account list, and a written Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and validated conversion economics remain open |
@@ -38,11 +38,11 @@ Commercial-planning coverage is assessed separately in [../COMMERCIAL-STRATEGY-C
 
 ## Blocking
 
-1. New-owner MFA enrollment is a P0 blocker. Fix the client enrollment path and malformed QR rendering, then repeat the complete production signup and all affected personas before closing P0.
+1. The post-MFA production persona matrix passes. Final presenter sign-off still requires a deterministic email-link plan, timed run, exact mobile/accessibility replay, and the remaining hosted negative paths.
 2. Default-deny RLS is applied to all 20 `authority_private` tables in UAT and Demo. Hosted checks confirm zero direct browser-role table privileges and the RLS-disabled advisor finding is gone. The four intentionally authenticated security-definer command functions and leaked-password-protection setting still require explicit closeout evidence.
 3. September 7 and September 8 UTC are immutable `blocked` reconciliation days. September 9 is verified clean day 1; September 15 is the earliest possible day 7 if every daily run and required live-provider comparison remains clean.
 4. The current reconciliation compares Passage's durable provider state. UAT HubSpot write credentials and Contact projection are proven; full Passage/Stripe/HubSpot comparison still requires live provider reads.
-5. Earlier privileged-MFA evidence remains useful but does not cover the new-owner failure. P2 also needs administrator replay plus an authorized and audited all-factors-lost recovery command/procedure.
+5. Owner and independent administrator MFA enrollment now pass. P2 still needs an authorized and audited all-factors-lost recovery command/procedure plus team-visible privileged-MFA compliance.
 6. Supabase production remains on Free with no automated backups. A paid-plan decision and a real restore drill remain required before real data.
 7. Backup/restore/incident evidence, privacy/security/vendor-risk review, and counsel approval for New York, Pennsylvania, New Jersey, Connecticut, and Massachusetts remain open.
 8. Pennsylvania's statutory agent Acknowledgment still needs counsel approval and implementation. See `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`.
@@ -55,11 +55,18 @@ P1 is **in preparation**: the researched 20-account source list and Proof.com re
 
 ## Top five execution priorities
 
-1. **Repair and re-prove the front door.** Fix new-owner enrollment and QR rendering, add failure/retry evidence, and repeat production signup plus the full owner/admin/reviewer/principal/representative matrix.
+1. **Finish presenter-grade release QA.** The post-MFA persona matrix passes; now complete a timed run, deterministic invitation-delivery fallback, exact 390px/360px and keyboard/accessibility replay, and the hosted negative-path set.
 2. **Close the hosted security findings.** Review the four intentionally authenticated security-definer RPCs, document their authorization/MFA boundary, and resolve or explicitly accept the leaked-password-protection setting.
 3. **Finish the first-five discovery batch.** Use the completed 20-account source list to identify real buyer contacts, confirm warm paths where available, personalize the first five, and complete sender review. Keep all delivery held while engineering closes P0 and P1/P2 remain open.
 4. **Preserve reconciliation and finish security/state gates.** Maintain the seven-day streak with live provider reads; decide backups, run restore/recovery evidence, and finish counsel packages for NY/NJ/CT/MA/PA including Pennsylvania's Acknowledgment.
 5. **Build the configurable policy/catalog, then rehearse and release.** Implement effective-dated institution policy and scope, stale-draft rebase, exact mobile/accessibility repairs, final persona QA, pricing/value proof, and the held outreach/LinkedIn/nurture package only after the applicable gates close.
+
+## September 9 post-MFA production evidence
+
+- Institution personas: the existing Owner and newly invited Administrator both completed real TOTP enrollment and entered the production workspace at AAL2. The independently invited Institution Reviewer entered a review-only workspace with no request-creation navigation, matching the intended policy.
+- Participant workflow: production request `PA-E3DEFCE539` covered two non-transactional actions for a fictional deposit relationship. The principal and representative used separate one-time sessions; the representative uploaded only the approved fictional PDFs; the institution recorded `Accepted with limits` with `No money movement` and `No account ownership changes`.
+- Receipt integrity: owner, principal, and representative receipt views showed the same outcome, accepted actions, limits, people, account boundary, and receipt `PAR-1805F05F8FC4`.
+- Delivery caveat: Resend recorded the participant and team invitations as delivered, but exact Gmail searches did not surface several invitation messages. Decision receipts did surface. This reproduces the known Gmail post-acceptance placement/drop risk. It is not an application-state failure, but it can break a live demo and remains a release blocker until the presenter path has a proven fallback and Google Postmaster/domain reputation work is underway.
 
 ## Evidence-based timeline
 
