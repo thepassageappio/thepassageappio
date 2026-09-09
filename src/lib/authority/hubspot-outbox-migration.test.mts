@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const migration = await readFile(new URL("../../../supabase/migrations/20260904041944_hubspot_outbox_delivery.sql", import.meta.url), "utf8");
+const retryMigration = await readFile(new URL("../../../supabase/migrations/20260908231500_auditable_integration_outbox_retry.sql", import.meta.url), "utf8");
 const worker = await readFile(new URL("../commercial/hubspot-inquiry.ts", import.meta.url), "utf8");
 
 test("HubSpot jobs use a leased service-only claim and bounded retry", () => {
@@ -25,4 +26,12 @@ test("CRM projection excludes free text and scans prohibited payload keys", () =
   assert.doesNotMatch(worker, /content:\s*payload\.message/);
   assert.match(worker, /pa_prospect_key/);
   assert.match(worker, /hasUniqueValue:\s*true/);
+});
+
+test("failed provider jobs can only be retried through a service-only audited command", () => {
+  assert.match(retryMigration, /v_job\.status <> 'failed'/i);
+  assert.match(retryMigration, /commercial\.integration_outbox_retried/i);
+  assert.match(retryMigration, /prior_error_code/i);
+  assert.match(retryMigration, /from public, anon, authenticated/i);
+  assert.match(retryMigration, /to service_role/i);
 });

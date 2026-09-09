@@ -28,7 +28,7 @@ export default function Home() {
           <p className={styles.lede}>If you help a parent or grandparent manage money, Passage gives you, the account holder, and the financial institution one clear process. The institution checks who is involved, reviews the power of attorney, decides what you may do, and shares the answer.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/contact">Book a 20-minute walkthrough <span>→</span></Link>
-            <Link className={styles.secondary} href="/start">Explore a sample workflow</Link>
+            <Link className={styles.secondary} href="/sample">Explore a sample workflow</Link>
           </div>
           <p className={styles.boundary}>Passage keeps the request moving. It does not verify identity, approve the power of attorney, grant account access, or move money. The financial institution keeps those responsibilities.</p>
         </div>
@@ -106,6 +106,7 @@ export default function Home() {
         </div>
         <div className={styles.ctaActions}>
           <Link className={styles.lightCta} href="/contact">Book a walkthrough</Link>
+          <Link className={styles.textCta} href="/sample">Explore the sample</Link>
           <Link className={styles.textCta} href="/pricing">View pricing</Link>
         </div>
       </section>
