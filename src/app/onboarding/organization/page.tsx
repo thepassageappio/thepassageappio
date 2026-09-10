@@ -76,7 +76,7 @@ export default async function OrganizationOnboardingPage({ searchParams }: Props
         <div className={styles.field}>
           <label htmlFor="addressLine1">Street address</label>
           <input autoComplete="address-line1" id="addressLine1" name="addressLine1" required type="text" />
-          <small>Use your primary operating address. Manual entry remains available even when address suggestions are added.</small>
+          <small>Enter your organization’s main business address.</small>
         </div>
         <div className={styles.field}>
           <label htmlFor="addressLine2">Suite or floor</label>

@@ -24,11 +24,11 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>A clear path for financial power of attorney</p>
-          <h1>Help a financial institution handle a power of attorney.</h1>
-          <p className={styles.lede}>If you help a parent or grandparent manage money, Passage gives you, the account holder, and the financial institution one clear process. The institution checks who is involved, reviews the power of attorney, decides what you may do, and shares the answer.</p>
+          <h1>A clear way to ask a bank for help with someone else’s account.</h1>
+          <p className={styles.lede}>Helping a parent or grandparent with their bank account? Passage keeps the request, documents, and bank’s answer in one place. The bank checks the details and decides what you can do.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/contact">Book a 20-minute walkthrough <span>→</span></Link>
-            <Link className={styles.secondary} href="/sample">Explore a sample workflow</Link>
+            <Link className={styles.secondary} href="/sample">Try an example</Link>
           </div>
           <p className={styles.boundary}>Passage keeps the request moving. It does not verify identity, approve the power of attorney, grant account access, or move money. The financial institution keeps those responsibilities.</p>
         </div>
@@ -43,8 +43,8 @@ export default function Home() {
             <div><i>MC</i><span><strong>Maya Carter</strong><small>Representative · Identity checked</small></span></div>
           </div>
           <div className={styles.reviewCard}>
-            <div><span>Permitted</span><strong>Statements and account-service discussions</strong></div>
-            <div data-excluded="true"><span>Not included in this example</span><strong>Money movement and ownership changes</strong></div>
+            <div><span>Permitted</span><strong>Get statement copies and ask account questions</strong></div>
+            <div data-excluded="true"><span>Not included in this example</span><strong>Move money or change who owns the account</strong></div>
           </div>
           <div className={styles.requirements}>
             <div><span>POA document</span><b>Reviewed</b></div>
@@ -65,7 +65,7 @@ export default function Home() {
       <section className={styles.flowSection} id="how-it-works">
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>How it works</p>
-          <h2>From “Can you talk to me?” to a clear answer.</h2>
+          <h2>Know what to do at each step.</h2>
           <span>Today, the financial institution starts the Passage request and invites each person. Passage does not let someone approve their own authority.</span>
         </div>
         <ol className={`${styles.flow} ${clarity.flowFour}`}>
@@ -100,9 +100,9 @@ export default function Home() {
 
       <section className={styles.finalCta}>
         <div>
-          <p className={styles.eyebrow}>Interactive product evaluation</p>
+          <p className={styles.eyebrow}>Try it with sample details</p>
           <h2>See exactly how the request ends.</h2>
-          <span>Use sample information to walk through the institution, account holder, representative, review, decision receipt, and later-change steps.</span>
+          <span>Follow an example from the first request to the bank’s answer. See what each person needs to do.</span>
         </div>
         <div className={styles.ctaActions}>
           <Link className={styles.lightCta} href="/contact">Book a walkthrough</Link>

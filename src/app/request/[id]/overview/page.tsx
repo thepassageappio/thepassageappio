@@ -42,11 +42,11 @@ const NOTICE_MESSAGES: Record<string, string> = {
   principal_confirm: "Your confirmation was saved. The representative can now review the request.",
   principal_confirm_delivery_pending: "Your confirmation was saved. Representative email delivery needs attention, and the institution can send a fresh link.",
   principal_decline: "Your decision was saved. This request is now closed.",
-  representative_accept: "Your acceptance was saved. The required evidence steps are now available.",
+  representative_accept: "Your choice was saved. You can now add the documents and information needed.",
   representative_decline: "Your decision was saved. This request is now closed.",
   information_response_saved: "Your response was saved. The institution can continue its review.",
   responsibility_withdrawn: "Your withdrawal was saved. The institution and the person granting authority will see that this request ended.",
-  request_submitted: "Your disclosure acknowledgment and completed request were sent to the institution for review.",
+  request_submitted: "Your request was sent for review, along with your agreement to share the listed information.",
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -118,7 +118,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <summary>What is not included</summary>
       <ul className={decisionStyles.prohibited}>{context.prohibitedActionKeys.map((key) => <li key={key}>{PROHIBITED_ACTIONS[key] ?? key}</li>)}</ul>
     </details>
-    {context.status === "evidence_required" && !isPrincipal ? <div className={styles.summary}><h2>Next: complete the requirements</h2><p>Your responsibility decision is saved. Complete one clear requirement at a time and see why the institution needs it.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/requirements`}>Continue to requirements</Link></div> : null}
+    {context.status === "evidence_required" && !isPrincipal ? <div className={styles.summary}><h2>Next: complete the requirements</h2><p>You agreed to help. Next, complete the checklist. Each step explains what the institution needs.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/requirements`}>Continue to requirements</Link></div> : null}
     {context.status === "ready_to_submit" && !isPrincipal ? <div className={styles.summary}>
       <h2>Review and send to the institution</h2>
       <p>The institution will receive the names, requested actions, account description, completed requirements, file names, and your certification. You can review that list before sending.</p>

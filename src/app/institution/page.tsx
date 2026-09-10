@@ -48,7 +48,7 @@ export default async function InstitutionQueue({ searchParams }: Props) {
       <div className={styles.content}>
         <section className={styles.intro}>
           <div><p className={styles.eyebrow}>Institution workspace</p><h1>Authority review queue</h1></div>
-          <div className={styles.introAction}><p className={styles.lede}>See who owns the next step, review complete evidence, and preserve every decision.</p><Link className={styles.primary} href="/institution/new">Start a request</Link></div>
+          <div className={styles.introAction}><p className={styles.lede}>See who goes next, review the documents, and save each decision.</p><Link className={styles.primary} href="/institution/new">Start a request</Link></div>
         </section>
         {messages.notice ? <div className={styles.notice} role="status">{messages.notice}</div> : null}
         {messages.error ? <div className={styles.error} role="alert">{messages.error}</div> : null}

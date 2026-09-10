@@ -26,7 +26,7 @@ export default async function RepresentativeResponsibilityPage({ params, searchP
 
   if (!context || context.participantRole !== "representative") {
     return <AccountFrame eyebrow="Secure request" title="This decision is unavailable" description="Use the latest invitation from the institution to open the request.">
-      <div className={styles.alert} role="alert">Your secure access is missing, expired, or belongs to a different role.</div>
+      <div className={styles.alert} role="alert">This page needs your own current link. Open the latest email sent to you.</div>
       <Link className={styles.secondary} href="/security">How Passage protects access</Link>
     </AccountFrame>;
   }
@@ -58,7 +58,7 @@ export default async function RepresentativeResponsibilityPage({ params, searchP
         <span>I understand the permitted actions, prohibitions, end date, and responsibility to act only for {context.otherPersonName} within this request.</span>
       </label>
       <button className={styles.primary} type="submit">Accept responsibility</button>
-      <p className={styles.legal}>Passage saves your choice and the exact acknowledgment version. Accepting does not transfer account ownership or guarantee institution acceptance.</p>
+      <p className={styles.legal}>Passage saves your choice and the words you agreed to. Agreeing does not make you the account owner. The institution still needs to decide.</p>
     </form>
     <details className={decisionStyles.reviewOption}>
       <summary>I cannot take this responsibility</summary>

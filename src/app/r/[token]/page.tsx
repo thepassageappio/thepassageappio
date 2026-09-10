@@ -61,11 +61,11 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     eyebrow={preview.institutionName ?? "Secure authority request"}
     title={waiting ? "The request is waiting for the principal" : viewingReceipt ? `Decision receipt ready for ${preview.participantName}` : resuming ? `Welcome back, ${preview.participantName}` : `Hello, ${preview.participantName}`}
     description={waiting
-      ? "Your access is prepared, but the person granting authority must confirm the request before your responsibilities open."
+      ? "Your link is ready. You can continue after the account holder confirms the request."
       : viewingReceipt
         ? "The institution recorded its decision. Open the secure receipt to see the outcome, accepted actions, any limits, and later changes."
         : resuming
-        ? "Your earlier choice is still saved. Open a new secure session to finish the remaining requirements."
+        ? "Your earlier choice is saved. Open the request to finish the remaining steps."
         : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
   >
     <div className={styles.summary}>

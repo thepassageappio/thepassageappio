@@ -74,7 +74,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
     </section> : null}
     <div className={`${styles.grid} ${polish.workspaceGrid}`} style={{ marginTop: 17 }}>
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>Authority requests</h2><p>Every request shows its status, scope, policy, and next action.</p></div><span className={styles.badge}>{records.length} total</span></div>
+        <div className={styles.panelHead}><div><h2>Authority requests</h2><p>See where each request stands and who needs to act next.</p></div><span className={styles.badge}>{records.length} total</span></div>
         {records.length === 0 ? <div className={styles.empty}>
           <strong>{presentation.emptyTitle}</strong>
           <p>{mayCreate || access.membership.role === "reviewer" ? presentation.emptyDescription : "There are no requests to view. Your request coordinator can confirm what is being prepared."}</p>
@@ -99,19 +99,19 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
             <li>An owner or operations staff member starts and sends requests</li>
           </ul>
         </> : <>
-          <div className={styles.panelHead}><div><h2>About this evaluation</h2><p>Explore the workflow using fictional people and sample documents.</p></div></div>
+          <div className={styles.panelHead}><div><h2>About this evaluation</h2><p>Try the steps with made-up people and sample documents.</p></div></div>
           <ul className={styles.checklist}>
             <li>Start with a saved draft. Nothing is sent until you choose to send.</li>
             <li>The account holder and representative each complete their own step.</li>
             <li>Your institution reviews the evidence and records its decision.</li>
-            <li>The receipt explains the accepted scope and any limits.</li>
+            <li>The receipt shows what the institution accepted and any limits.</li>
           </ul>
         </>}
       </section>
     </div>
     {mayCreate && mayPrepareDemo && entitlement ? <details className={polish.demoTools}>
       <summary>Presenter tools</summary>
-      <p>Prepare an isolated set of fictional requests for an internal rehearsal.</p>
+      <p>Create fresh sample requests for a practice run.</p>
       <form action={provisionHostedDemoRunAction}>
         <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
         <input type="hidden" name="idempotencyKey" value={randomUUID()} />

@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+
 Updated September 10, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
 ## Owner objective
@@ -15,6 +17,8 @@ Finish a beautiful, simple, user-friendly product that supports truthful one-pag
 - Internal reconciliation is **2/7** real clean UTC days; live-provider comparison remains separate. No additional day can be credited by rerunning.
 - P1 first-five research and unsent drafts exist. Actual warm introductions, final sender review and broader list validation remain open.
 - **P1 open; P2 open; outreach and buyer-demo release not approved.** Real-data pilot approval remains separate.
+
+- The broad plain-language pass is implemented and checked. See [copy review](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md). Existing versioned legal articles remain unchanged, with separate plain explanations.
 
 ## Execute next
 

@@ -27,9 +27,9 @@ export default async function SecurityPage() {
   return (
     <>
       <header className={styles.pageHeader}>
-        <div><p className={styles.eyebrow}>Sign-in security</p><h1>Authenticator recovery</h1><p>Keep two verified authenticators so losing one device does not lock you out of privileged work.</p></div>
+        <div><p className={styles.eyebrow}>Sign-in security</p><h1>Authenticator recovery</h1><p>Set up a backup authenticator so you can still sign in if you lose your phone.</p></div>
       </header>
-      {factorError ? <p role="status">Your authenticators could not be loaded. Refresh this page before managing enrollment.</p> : <MfaFactorManager initialFactors={factors} />}
+      {factorError ? <p role="status">We could not load your authenticators. Refresh the page and try again.</p> : <MfaFactorManager initialFactors={factors} />}
       <MfaTeamStatus status={team.error ? null : parseMfaTeamStatus(team.data)} />
     </>
   );

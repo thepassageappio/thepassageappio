@@ -26,7 +26,7 @@ export default async function ContactPage({ searchParams }: Props) {
     <CommercialHeader />
     <section className={styles.hero}>
       <p className={styles.eyebrow}>Talk with Passage</p>
-      <h1>See a POA request move clearly from intake to decision.</h1>
+      <h1>See how a request gets an answer.</h1>
       <p>Tell us what you want to improve. We will tailor a short walkthrough to your institution and current process.</p>
     </section>
     <div className={contact.layout}>
@@ -72,7 +72,7 @@ export default async function ContactPage({ searchParams }: Props) {
       </section>
       <aside className={contact.aside}>
         <div><span>What you will see</span><h2>One complete, auditable request.</h2></div>
-        <ol><li>Capture the request and authority evidence.</li><li>Keep principal, representative, and institution aligned.</li><li>Record the institution&apos;s scoped decision.</li><li>Give every participant the same current receipt.</li></ol>
+        <ol><li>Capture the request and authority evidence.</li><li>Help each person know what to do next.</li><li>Save the bank’s answer and any limits.</li><li>Give each person a copy of the answer.</li></ol>
         <div className={contact.note}><strong>No-card evaluation</strong><p>Prefer to explore first? Create a workspace using sample information.</p><Link href="/start">Start free</Link></div>
         <a className={contact.email} href="mailto:hello@thepassageapp.io">hello@thepassageapp.io</a>
       </aside>

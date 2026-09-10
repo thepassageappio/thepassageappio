@@ -51,8 +51,8 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
   const action = delivery.participantRole === "principal"
     ? "review the request and confirm whether it is correct"
     : isResume
-      ? "finish the remaining requirements"
-      : "review and accept or decline the responsibility";
+      ? "finish the remaining steps"
+      : "review the request and decide whether to help";
   const subject = isReceipt
     ? `${delivery.institutionName}: decision receipt ready`
     : isResume
@@ -69,7 +69,7 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
     : isResume
     ? `${delivery.institutionName} sent you a new link to ${action}. Your earlier answers are still saved.`
     : `${delivery.institutionName} invited you as the ${role} to ${action}.`;
-  const buttonLabel = isReceipt ? "View decision receipt" : isResume ? "Resume secure request" : "Open secure request";
+  const buttonLabel = isReceipt ? "View decision receipt" : isResume ? "Continue request" : "Open secure request";
   const expires = expirationLabel(delivery.expiresAt);
   const purpose = authorityPurposeLabel(delivery.purpose);
 

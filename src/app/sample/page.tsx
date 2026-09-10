@@ -35,7 +35,7 @@ export default async function SampleWorkflowPage() {
         <div>
           <p className={styles.eyebrow}>Read-only product sample</p>
           <h1>See one authority request from start to receipt.</h1>
-          <p className={styles.lede}>This guided example uses fictional people and an imaginary credit union. A verified Google or email sign-in plus your recorded contact permission unlocks the sample; two-factor authentication is reserved for people who create or administer an institution workspace.</p>
+          <p className={styles.lede}>This example uses made-up people and a credit union. Sign in with Google or email, then agree to receive follow-up emails to open it. You do not need an authenticator app to view the example.</p>
           <div className={styles.heroActions}>
             <a className={styles.primary} href="#workflow">Start the sample <span>↓</span></a>
             <Link className={styles.secondary} href="/contact">Book a guided walkthrough</Link>
@@ -44,14 +44,14 @@ export default async function SampleWorkflowPage() {
         <aside className={styles.sampleNotice} aria-label="Sample boundaries">
           <strong>What this sample does</strong>
           <p>Shows the participant steps, institution review, accepted scope, limits, and matching decision receipt.</p>
-          <span>Signed-in sample · No live request · No authenticator required</span>
+          <span>Example only · Nothing is sent · No authenticator needed</span>
         </aside>
       </section>
 
       <section className={styles.workflow} id="workflow">
         <div className={styles.heading}>
           <p className={styles.eyebrow}>The shared workflow</p>
-          <h2>Four people see the same request through their own permitted view.</h2>
+          <h2>See the request as the account holder, representative, or institution team.</h2>
         </div>
         <ol className={styles.steps}>
           {journey.map((step) => (
@@ -100,7 +100,7 @@ export default async function SampleWorkflowPage() {
       </section>
 
       <section className={styles.nextStep}>
-        <div><p className={styles.eyebrow}>Ready to operate the workflow?</p><h2>Create a protected institution workspace.</h2><span>Continue with Google or a one-time email link. New Owner accounts also set up an authenticator because they can manage institutional policy, people, billing, and requests.</span></div>
+        <div><p className={styles.eyebrow}>Ready to operate the workflow?</p><h2>Create a protected institution workspace.</h2><span>Sign in with Google or an email link. If you create a workspace, you will also set up an authenticator app to protect your account.</span></div>
         <div><Link className={styles.primary} href="/start">Create an evaluation workspace</Link><Link className={styles.textLink} href="/start?intent=sign-in">Sign in to an existing workspace</Link></div>
       </section>
 

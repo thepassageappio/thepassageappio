@@ -20,8 +20,8 @@ const ERRORS: Record<string, string> = {
 };
 
 const NOTICES: Record<string, string> = {
-  file_received: "Your source file is stored privately and is waiting for institution review.",
-  certification_saved: "Your certification was saved with its exact wording and time.",
+  file_received: "Your file is saved privately. It is waiting for the institution to review it.",
+  certification_saved: "Your statement was saved, including the words you agreed to and the time.",
 };
 
 export default async function ParticipantRequirementsPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ notice?: string; error?: string }> }) {

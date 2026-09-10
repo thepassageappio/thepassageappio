@@ -81,7 +81,7 @@ export default async function TeamPage({ searchParams }: Props) {
   return (
     <>
       <header className={styles.pageHeader}>
-        <div><p className={styles.eyebrow}>People and access</p><h1>Organization access</h1><p>Give each person the narrowest role they need. Revoked access stops immediately across the workspace.</p></div>
+        <div><p className={styles.eyebrow}>People and access</p><h1>Organization access</h1><p>Give each person only the access they need. Removing access stops them from using this workspace.</p></div>
       </header>
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
@@ -169,7 +169,7 @@ export default async function TeamPage({ searchParams }: Props) {
       ) : null}
       {activity.length ? (
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Recent access activity</h2><p>Organization access changes are preserved in order.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Recent access activity</h2><p>See who changed team access and when.</p></div></div>
           <ul className={styles.activity}>{activity.map((event) => <li key={event.event_id}><strong>{organizationAccessActivityLabel(event.event_type)}</strong><span>{formatTime(event.occurred_at)}</span></li>)}</ul>
         </section>
       ) : null}

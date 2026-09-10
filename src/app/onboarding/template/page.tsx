@@ -21,7 +21,7 @@ export default async function TemplateOnboardingPage({ searchParams }: Props) {
     <AccountFrame
       eyebrow="Starting workflow"
       title="Use the New York financial POA template"
-      description="One guided template gives your team a consistent request, clear limits, and an institution-owned decision."
+      description="Use the same checklist for each sample request. Your team makes the final decision."
       step="Step 3 of 3"
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
@@ -32,9 +32,9 @@ export default async function TemplateOnboardingPage({ searchParams }: Props) {
             <div><span className={styles.eyebrow}>Financial authority</span><h2>New York financial power of attorney</h2></div>
             <span className={styles.badge}>Available</span>
           </div>
-          <p>Designed for limited, non-transactional account-service requests. Your institution remains responsible for its policy and final decision.</p>
+          <p>Try requests for statement copies and account questions. Your institution sets the rules and makes the decision.</p>
           <ul className={styles.scope}>
-            <li>Receive duplicate statements for a named account boundary</li>
+            <li>Get statement copies for the named account</li>
             <li>Discuss defined account-service questions</li>
             <li>Clearly prohibits transfers, withdrawals, ownership changes, and credential takeover</li>
           </ul>

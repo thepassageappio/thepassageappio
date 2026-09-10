@@ -23,17 +23,17 @@ export default async function NewHostedAuthorityRequest({ searchParams }: Props)
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>New authority request</p><h1>Start with a clear, limited scope</h1><p>Save a draft first. You will review exactly what each person receives before anything is sent or counted.</p>{useSample ? null : <Link className={styles.secondary} href="/app/requests/new?sample=1">Load sample details</Link>}</div>
+      <div><p className={styles.eyebrow}>New authority request</p><h1>Start with a clear, limited scope</h1><p>Save a draft first. Check the details before sending it. Drafts do not count toward your limit.</p>{useSample ? null : <Link className={styles.secondary} href="/app/requests/new?sample=1">Load sample details</Link>}</div>
     </header>
     {message ? <div className={styles.alert} role="alert">{message}</div> : null}
-    {useSample ? <div className={styles.notice} role="status"><strong>Sample details are ready.</strong> Enter two controlled inboxes that you can open separately. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> for the representative upload steps.</div> : null}
+    {useSample ? <div className={styles.notice} role="status"><strong>Sample details are ready.</strong> Use two test email addresses you can open separately. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> for the representative upload steps.</div> : null}
     <form action={createHostedAuthorityDraftAction} className={requestStyles.form}>
       <input type="hidden" name="idempotencyKey" value={randomUUID()} />
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>New York financial power of attorney</h2><p>Your organization policy defines the required evidence and keeps the final decision with your review team.</p></div><span className={styles.badge}>Selected</span></div>
+        <div className={styles.panelHead}><div><h2>New York financial power of attorney</h2><p>Your organization’s rules say which documents and checks are needed. Your review team makes the decision.</p></div><span className={styles.badge}>Selected</span></div>
       </section>
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>People</h2><p>Enter each person once. Their secure access is created only after activation.</p></div></div>
+        <div className={styles.panelHead}><div><h2>People</h2><p>Add both people. They will get separate links after you send the request.</p></div></div>
         <div className={requestStyles.formGrid}>
           <label className={styles.field}>Person granting authority<input name="principalName" required autoComplete="name" placeholder="Full legal name" defaultValue={useSample ? "Parker Quinn" : ""} /></label>
           <label className={styles.field}>Email<input name="principalEmail" type="email" required autoComplete="email" placeholder="name@example.com" /></label>
@@ -51,7 +51,7 @@ export default async function NewHostedAuthorityRequest({ searchParams }: Props)
         </fieldset>
         <label className={styles.field}>Request end date<input name="validUntil" type="date" required defaultValue={defaultEndDate.toISOString().slice(0, 10)} /></label>
       </section>
-      <section className={requestStyles.reviewBar}><div><strong>Save without sending</strong><p>This creates one private draft. The evaluation clock remains stopped and no request is used.</p></div><button className={styles.primary} type="submit">Save draft</button></section>
+      <section className={requestStyles.reviewBar}><div><strong>Save without sending</strong><p>Save your draft. Your 10-day trial starts only when you send the first request.</p></div><button className={styles.primary} type="submit">Save draft</button></section>
     </form>
   </>;
 }

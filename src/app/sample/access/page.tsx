@@ -32,7 +32,7 @@ export default async function SampleAccessPage({ searchParams }: Props) {
     <AccountFrame
       eyebrow="One last step"
       title="Unlock the Passage sample"
-      description="See a read-only, fictional authority request from invitation through the institution's final receipt."
+      description="Look through a made-up request from the first invitation to the final answer. You cannot change it."
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       <form action={grantSampleAccessAction} className={styles.form}>

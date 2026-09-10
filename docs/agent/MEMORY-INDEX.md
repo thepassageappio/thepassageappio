@@ -1,5 +1,7 @@
 # Authority Compass memory index
 
+Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+
 Updated September 10, 2026 UTC. This is the portable project memory; it does not claim an update to an unavailable account-wide memory service.
 
 | Remember | Authoritative source |
@@ -27,3 +29,5 @@ Updated September 10, 2026 UTC. This is the portable project memory; it does not
 - Proof and Docusign are credible adjacent platforms. Do not claim no competition or unsupported superiority.
 - Do not return to older writable/dirty clones or obsolete September 7 execution instructions.
 - Preserve the optional V3 portfolio idea without making it a V2 launch gate.
+
+Plain-language pass: [review and checks](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md). Keep the writing standard in every future product review.

@@ -59,9 +59,9 @@ test("representative resume email preserves the prior decision and directs the n
     accessPurpose: "resume",
   });
   assert.match(message.subject, /fresh secure access link/i);
-  assert.match(message.text, /finish the remaining requirements/i);
+  assert.match(message.text, /finish the remaining steps/i);
   assert.match(message.text, /earlier answers are still saved/i);
-  assert.match(message.html, /Resume secure request/);
+  assert.match(message.html, /Continue request/);
   assert.doesNotMatch(message.text, /accept or decline/i);
 });
 

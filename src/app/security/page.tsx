@@ -18,7 +18,7 @@ export default function Security() {
         <article className={styles.card}><span>Required before a production pilot</span><h2>Assurance still in progress</h2><ul><li>Production identity and organization-isolation review</li><li>Encryption and key-management review</li><li>Retention, deletion, backup, and recovery testing</li><li>Independent security assessment and penetration test</li><li>Vendor, incident, privacy, and legal reviews</li></ul></article>
       </section>
       <div className={styles.note}>Before a pilot with approved customer data, the institution and Passage must agree exactly how identity will be checked and complete the required security, legal, fraud, privacy, and operating review. Passage does not claim a completed certification, independent audit, or identity integration until it can be supported with evidence.</div>
-      <section className={styles.callout}><div><h2>Bring your security questions.</h2><p>We will show the current controls, evidence, open assurance work, and the boundary required before any approved pilot data is used.</p></div><Link className={styles.cta} href="/contact">Request a security review</Link></section>
+      <section className={styles.callout}><div><h2>Bring your security questions.</h2><p>We will show what has been tested and what still needs work before a pilot can use customer data.</p></div><Link className={styles.cta} href="/contact">Request a security review</Link></section>
     </div>
     <CommercialFooter />
   </main>;

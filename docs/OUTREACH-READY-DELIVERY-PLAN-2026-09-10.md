@@ -1,5 +1,7 @@
 # Outreach-ready product delivery plan
 
+Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+
 Updated September 10, 2026 UTC. Owner direction: finish a beautiful, simple, user-friendly product that can support truthful one-pagers and outreach. This plan is the active execution order; historical scores and older priority lists do not override it.
 
 ## Where we are

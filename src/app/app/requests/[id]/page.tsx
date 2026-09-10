@@ -78,13 +78,13 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     return labels[String(status)] ?? "Access updated";
   };
   const participantAccessDescription = record.status === "awaiting_principal"
-    ? "The person granting authority acts first. Representative access remains held until confirmation."
+    ? "The account holder goes first. The representative can continue after the account holder confirms."
     : record.status === "awaiting_representative"
       ? "The person granting authority confirmed. The representative can now review the request."
       : "Each person used separate access for their role. Their saved decisions appear in the activity below.";
   const activityDetail = (event: { eventType: string; detail: string }) => {
     if (event.eventType === "participant.access_established") return "The secure invitation was opened for this person and this request.";
-    if (event.eventType === "authority.activated") return "The evaluation started, one request was counted, and principal access was prepared. Representative access remained held.";
+    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder’s link was prepared. The representative must wait for the account holder to confirm.";
     if (event.eventType === "participant.invitation_delivered") return "The email provider accepted the invitation. Final delivery confirmation is pending.";
     return event.detail;
   };
@@ -150,7 +150,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
       <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
     </header>
     {savedNotice ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
-    {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Review the controlled inboxes and sample scope below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
+    {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     {reviewerNextStep ? <div className={styles.notice}><strong>Your next step: </strong>{reviewerNextStep.description} <a href={reviewerNextStep.href}>{reviewerNextStep.label}</a>.</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
@@ -176,9 +176,9 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
         {record.status === "draft" ? <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Review and send</h2><p>This draft is saved. Nothing has been sent or counted yet.</p></div><span className={styles.badge}>Saved</span></div>
           <ul className={styles.checklist}>
-            <li>{record.principalName} receives a secure request to confirm the exact scope</li>
-            <li>{record.representativeName}&apos;s separate access is prepared and held until the principal confirms</li>
-            <li>{evaluationLimitReached ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Activation uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Activation starts the 10-day evaluation and uses request ${nextCount} of ${transactionLimit}`}</li>
+            <li>{record.principalName} gets a private link to check the requested actions</li>
+            <li>{record.representativeName} can continue after the account holder confirms</li>
+            <li>{evaluationLimitReached ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Sending uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Sending starts the 10-day trial and uses request ${nextCount} of ${transactionLimit}`}</li>
           </ul>
           {canActivate ? <form action={activateHostedAuthorityRequestAction}>
             <input type="hidden" name="recordId" value={record.id} />
@@ -299,8 +299,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           </form> : <>
             <ul className={styles.checklist}>
               <li>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length || 3} required review steps are complete</li>
-              <li>The requested actions and account boundary remain unchanged</li>
-              <li>{record.status === "ready_to_submit" ? "The representative must review the disclosure and send the completed request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
+              <li>The requested actions and account details stay the same</li>
+              <li>{record.status === "ready_to_submit" ? "The representative must check what will be shared and send the request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
             </ul>
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}

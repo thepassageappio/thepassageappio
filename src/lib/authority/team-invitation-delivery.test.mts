@@ -17,7 +17,7 @@ test("team invitation email names the organization, role, recipient, and expirat
   assert.match(email.text, /Institution reviewer/);
   assert.match(email.text, /reviewer@example\.com/);
   assert.match(email.html, /Review invitation/);
-  assert.match(email.html, /receiving institution keeps the final decision/);
+  assert.match(email.html, /institution makes the final decision/);
 });
 
 test("team invitation email escapes organization and URL content", () => {

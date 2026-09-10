@@ -24,6 +24,6 @@ test("delivery notices disappear after the request moves beyond delivery", () =>
 test("unrelated notices keep their saved user-facing message", () => {
   assert.equal(
     hostedRequestNoticeMessage("draft_created", null),
-    "The draft is saved. No invitation was sent and no transaction was counted.",
+    "Your draft is saved. Nothing was sent or counted.",
   );
 });

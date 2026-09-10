@@ -4,15 +4,15 @@ import { CommercialFooter } from "@/components/commercial/CommercialFooter";
 import { CommercialHeader } from "@/components/commercial/CommercialHeader";
 import styles from "@/app/commercial.module.css";
 
-export const metadata: Metadata = { title: "$5,000 Founding Pilot", description: "Prove one financial authority workflow with a named institution team in 60 to 90 days.", alternates: { canonical: "/pilot" } };
+export const metadata: Metadata = { title: "$5,000 Founding Pilot", description: "Test one power of attorney process with your team over 60 to 90 days.", alternates: { canonical: "/pilot" } };
 
 export default function Pilot() {
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>$5,000 founding pilot</p><h1>Prove one New York financial POA workflow in 60 to 90 days.</h1><p>Before any approved case, we agree the scope, success measures, data boundary, and owners. You receive a configured workflow, weekly operating reviews, and a written go-or-no-go readout. The fee is credited toward year one if you continue.</p><Link className={styles.secondary} href="/contact">Discuss a founding pilot</Link></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>$5,000 founding pilot</p><h1>Test one New York power of attorney process with your team.</h1><p>Before you start, we agree what to test, which data you may use, who is responsible, and how to judge the results. We meet each week and write up what worked and what needs to change. If you continue, the pilot fee counts toward your first year.</p><Link className={styles.secondary} href="/contact">Discuss a founding pilot</Link></section>
     <div className={styles.content}>
-      <section className={styles.grid3}><article className={styles.card}><span>Days 1 to 15</span><h2>Define acceptance</h2><p>Agree policy, evidence, limits, participants, systems, security constraints, and success measures.</p></article><article className={styles.card}><span>Days 16 to 60</span><h2>Run controlled cases</h2><p>Complete test and approved pilot transactions with weekly review of completion, exceptions, and operations.</p></article><article className={styles.card}><span>Days 61 to 90</span><h2>Decide from proof</h2><p>Compare cycle time, handoffs, missing information, decision consistency, and downstream receipt accuracy.</p></article></section>
-      <section className={styles.callout}><div><h2>Experience the complete workflow.</h2><p>See the institution, account holder, representative, reviewer, receipt, and revocation experience in one guided walkthrough.</p></div><Link className={styles.cta} href="/contact">Book a walkthrough</Link></section>
+      <section className={styles.grid3}><article className={styles.card}><span>Days 1 to 15</span><h2>Plan the trial</h2><p>Agree the rules, documents, people, systems, and checks needed for the trial.</p></article><article className={styles.card}><span>Days 16 to 60</span><h2>Try the requests</h2><p>Work through test requests and any approved pilot requests. Review progress and problems each week.</p></article><article className={styles.card}><span>Days 61 to 90</span><h2>Review the results</h2><p>Check how long requests take, where they get stuck, and whether people receive the right answer.</p></article></section>
+      <section className={styles.callout}><div><h2>Experience the complete workflow.</h2><p>See how each person uses Passage, how the bank decides, and how later changes are recorded.</p></div><Link className={styles.cta} href="/contact">Book a walkthrough</Link></section>
     </div>
     <CommercialFooter />
   </main>;

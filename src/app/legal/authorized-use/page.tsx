@@ -8,6 +8,7 @@ export default function AuthorizedUsePage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}><Link href="/">Passage Authority</Link><Link href="/start">Return to account setup</Link></header>
+      <aside className={styles.document} aria-label="Plain-language guide"><h2>What this means</h2><p>You need permission to try Passage for your organization. Invite only people who should take part. Use only information you are allowed to share. Report misuse or mistakes. Your institution still makes each request’s decision.</p><p>This guide helps explain the document below. It does not replace it.</p></aside>
       <article className={styles.document}>
         <p className={styles.eyebrow}>Organization attestation</p><h1>Authorized Use Attestation</h1><p className={styles.version}>Version evaluation-2026.1 · Effective August 27, 2026</p>
         <p>By confirming this attestation for an organization, the organization owner states that:</p>

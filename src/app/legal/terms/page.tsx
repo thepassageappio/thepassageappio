@@ -8,6 +8,7 @@ export default function EvaluationTermsPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}><Link href="/">Passage Authority</Link><Link href="/start">Return to account setup</Link></header>
+      <aside className={styles.document} aria-label="Plain-language guide"><h2>What this means</h2><p>Try Passage only with information your organization has permission to use. The free trial includes five sent requests over 10 days. Drafts do not count. Passage records the institution’s decision; it does not grant account access or move money.</p><p>This guide helps explain the document below. It does not replace it.</p></aside>
       <article className={styles.document}>
         <p className={styles.eyebrow}>Evaluation agreement</p><h1>Evaluation Terms</h1><p className={styles.version}>Version evaluation-2026.1 · Effective August 27, 2026</p>
         <p className={styles.callout}>These terms govern a limited product evaluation. They do not replace a signed pilot agreement, financial institution policy, legal advice, or an institution&apos;s authority decision.</p>

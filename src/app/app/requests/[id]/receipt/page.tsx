@@ -109,7 +109,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         </section>
 
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Request boundary</h2><p>The receipt remains tied to this person, representative, account relationship, purpose, and end date.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Request boundary</h2><p>This receipt covers only the people, account, purpose, and end date shown here.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}</dd></div>
@@ -127,7 +127,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
 
       <div>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Changes after the decision</h2><p>Revocation and expiration are shown separately so the original decision remains clear.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Changes after the decision</h2><p>Later changes appear separately. The original decision stays saved.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Current status</dt><dd>{hostedStatusLabel(record.status)}</dd></div>
             <div><dt>Latest update</dt><dd>{lifecycleEvent ? <>{lifecycleEvent.summary}<br />{dateTime(lifecycleEvent.occurredAt)}</> : "No change since the decision"}</dd></div>
@@ -140,7 +140,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
             <input type="hidden" name="lifecycleAction" value="revoke" />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <label htmlFor="revocation-reason">Revocation notice reason</label>
-            <textarea id="revocation-reason" name="reason" minLength={3} maxLength={500} required placeholder="Record the source and reason for ending future reliance." />
+            <textarea id="revocation-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain who reported the revocation and why the institution should stop relying on this receipt." />
             <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /><span>I confirm the institution received a revocation notice and should end future reliance on this receipt.</span></label>
             <button className={styles.dangerButton} type="submit">Record revocation notice</button>
           </form> : null}

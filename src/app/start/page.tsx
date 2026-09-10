@@ -39,7 +39,7 @@ export default async function StartPage({ searchParams }: Props) {
           ? "Use Google for immediate access, or request a one-time link by email."
           : "Request a one-time sign-in link using your work email."
         : sample
-          ? "Continue with Google for the quickest access, or use a one-time email link. After sign-in, one clear contact opt-in unlocks the read-only sample; no authenticator app is required."
+          ? "Sign in with Google or an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
         : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
@@ -68,8 +68,8 @@ export default async function StartPage({ searchParams }: Props) {
           By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
         </p>
       </form>
-      {sample ? <p className={styles.legal}>Signing in identifies you securely. Passage asks for contact permission separately before opening the sample.</p> : null}
-      {!returning && !sample ? <p className={styles.legal}>New evaluation workspaces begin with an Owner account. After sign-in, Owners set up an authenticator app to protect policy, team, billing, and request controls. <Link href="/sample">Prefer to look around first? Open the sign-in-only sample.</Link></p> : null}
+      {sample ? <p className={styles.legal}>Signing in checks that you can access your account. We ask separately for permission to send follow-up emails.</p> : null}
+      {!returning && !sample ? <p className={styles.legal}>When you create a workspace, you become its owner. Set up an authenticator app to protect your account. It gives you a code to enter when you sign in. <Link href="/sample">Want to look around first? View the example.</Link></p> : null}
     </AccountFrame>
   );
 }
