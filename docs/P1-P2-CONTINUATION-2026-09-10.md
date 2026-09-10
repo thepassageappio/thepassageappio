@@ -7,7 +7,7 @@ Codeword: AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2.
 Work in `C:/Users/Turrisi OS/Documents/Codex/2026-09-09/authority-compass-771204-persona-matrix-passed/passage-authority`.
 Branch: `agent/p1-p2-closeout-20260909`, based on verified production/main `42976b096b7569174f3b290419a20610ea3ea638` (PR #107). The older main-verify checkout contains preserved uncommitted work and an obsolete checkpoint; do not resume there or merge its dirty tree wholesale.
 
-No application code or hosted schema/auth settings changed in this continuation. Added a rollback-only hosted security test, current evidence, first-five drafts, and corrected handoff/list/reconciliation records.
+The initial evidence pass added a rollback-only hosted security test, first-five drafts, and corrected handoff/list/reconciliation records. The subsequent engineering pass implements a guarded team MFA enrollment inventory on Sign-in security. See [contract and verification](PRIVILEGED-MFA-TEAM-STATUS.md). Hosted deployment status must be read separately from local verification; this branch is not a production release.
 
 ## Completed in this continuation
 
@@ -31,7 +31,7 @@ Evidence: [hosted and public QA](P1-P2-HOSTED-EVIDENCE-2026-09-10.md), [first-fi
 | P2 reconciliation | Five more clean internal days at minimum; full live Stripe/HubSpot comparison and operating automation | Calendar + provider access/engineering | Record each real UTC day, never backdate or multiply runs; compare live providers separately |
 | P2 password protection | Enabled/tested leaked-password protection or scoped security-owner alternative | Owner plan decision + engineering | UAT has password-bearing accounts; current Free-plan evidence does not permit calling this irrelevant |
 | P2 resilience | Chosen backup plan/storage, backup evidence and isolated real restore drill, accepted recovery targets | Owner spending decision + engineering | Use existing recovery decision package; no upgrade or additional spend has been authorized |
-| P2 privileged recovery | Audited all-factors-lost process/command and team-visible MFA compliance | Security owner + engineering | Implement controlled recovery without bypassing identity verification or weakening the MFA gate |
+| P2 privileged recovery | Audited all-factors-lost process/command; deployment of the verified team enrollment inventory | Security owner + engineering | Release the guarded inventory through normal checks; implement controlled recovery without bypassing identity verification or weakening the MFA gate |
 | P2 institution policy | Versioned configurable policy/catalog, publication/snapshot/rebase enforcement and persona replay | Engineering | Follow existing institution-policy and authority-scope specifications |
 | P2 legal/assurance | Scoped security/privacy/vendor-risk review, counsel decisions and Pennsylvania artifact requirements | Qualified reviewers + Steve | Complete existing evidence packs; obtain actual reviewer sign-off, not agent self-certification |
 
