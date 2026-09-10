@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+> **September 10 UTC continuation:** [Latest evidence and remaining gates](../P1-P2-CONTINUATION-2026-09-10.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.
+
 Updated September 9, 2026 UTC after the gated-sample attribution and nurture-enrollment release.
 
 ## Verified

@@ -1,5 +1,7 @@
 # Passage Authority fresh-chat handoff
 
+> **September 10 UTC continuation:** [Latest evidence and remaining gates](P1-P2-CONTINUATION-2026-09-10.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.
+
 **Codeword:** `AUTHORITY COMPASS 771204`
 
 **Exact continuation phrase:** `AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2`
@@ -10,7 +12,7 @@ Paste this into a new chat:
 AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2
 
 Read:
-C:\Users\Turrisi OS\Documents\Codex\2026-09-05\authority-compass-771204-resume-execution-read\passage-authority-main-verify\docs\NEW-CHAT-HANDOFF.md
+C:\Users\Turrisi OS\Documents\Codex\2026-09-09\authority-compass-771204-persona-matrix-passed\passage-authority\docs\NEW-CHAT-HANDOFF.md
 
 Follow the latest restart checkpoint and linked playbooks. Preserve uncommitted work. Do not repeat completed setup. Keep synthetic-demo readiness separate from buyer-facing release and real-data pilot approval. Resume the first unfinished item in the documented top five.
 ```

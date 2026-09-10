@@ -1,5 +1,7 @@
 # Commercial playbook
 
+> **September 10 UTC continuation:** [Latest evidence and remaining gates](../P1-FIRST-FIVE-DISCOVERY-BATCH-2026-09-09.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.
+
 Load for positioning, pricing, buyer deck, outreach, CRM strategy, or LinkedIn.
 
 ## Position

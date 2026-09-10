@@ -1,5 +1,13 @@
 # Daily reconciliation streak log
 
+## Latest evidence — September 10, 2026 UTC
+
+UAT and Demo each recorded a new immutable `clean` run on September 10, following the September 9 clean run: **2/7 consecutive internal reconciliation days**. Both returned `already_recorded_today: false`, run key `765a4257-92a8-d9ce-5a6b-ae9b0b453f49`; UAT recorded at `2026-09-10T02:20:43.130886Z`, Demo at `2026-09-10T02:20:44.414146Z`. The shared date-derived key is scoped to each separate project. Unresolved inbox/outbox and billing/usage/decision variance arrays were empty.
+
+The earliest internal day 7 remains September 15 if every subsequent UTC day is clean. This is **not** seven days of live provider comparison: the job explicitly does not call Stripe or HubSpot APIs. Their independent read/comparison evidence and automation remain open. The current hosted scope note correctly distinguishes those limits; old immutable reports are unchanged. Credential-unconfigured wording in historical sections below is historical and does not describe the current proven UAT Contact projection.
+
+See [September 10 hosted evidence](P1-P2-HOSTED-EVIDENCE-2026-09-10.md).
+
 Tracks the P2 exit criterion in `docs/V2-DELIVERY-ROADMAP.md` (gate V2-6): **seven consecutive clean daily reconciliation runs** before a real-data pilot is approved. A day is "clean" only if `public.run_daily_reconciliation_v1()` (added by `supabase/migrations/20260907153000_daily_reconciliation_check.sql`) returns `"status": "clean"`. Any `"blocked"` or `"variance"` day resets that environment's streak to zero -- no exceptions, no rounding up.
 
 The streak is tracked **per environment** because Passage runs two live Supabase projects with independent data and independent provider integrations:

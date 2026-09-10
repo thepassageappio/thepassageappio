@@ -1,7 +1,17 @@
 ## Passage Authority — P1 target account list
 
 **Date:** September 7, 2026
-**Status:** Research complete. No institution has been contacted. This list supports P1 infrastructure prep only, per `SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md` and `CUSTOMER-JOURNEY-AND-GTM.md`. Outreach remains blocked until Steve gives explicit go-ahead after both P1 and P2 close, per Steve's standing rule (see `V2-DELIVERY-ROADMAP.md`).
+**Status:** Historical candidate list, corrected September 10 UTC; not a fully validated 20-account deliverable. No institution has been contacted. First-five role research and unsent personalization now exist in [P1 first-five batch](P1-FIRST-FIVE-DISCOVERY-BATCH-2026-09-09.md). Confirmed warm introductions, verified delivery channels, and sender review remain open. Outreach stays held until P1/P2 and explicit release approval.
+
+## September 10 identity corrections
+
+- Row 11 is now **Tompkins Community Bank**; the old affiliate-bank naming is stale. [Institution announcement](https://blog.tompkinsbank.com/our-new-look).
+- Row 14 is now **Arrow Bank National Association**, effective January 1, 2025. [Bank history](https://www.arrowbank.com/about/history-of-arrow-bank).
+- Row 20, **Elmira Savings Bank**, is excluded as an independent prospect: Community Bank completed its acquisition in May 2022. [Issuer release](https://communitybanksystem2024rd.q4web.com/news/news-details/2022/Community-Bank-N.A.-Completes-Merger-with-Elmira-Savings-Bank-and-Expands-Its-Presence-in-the-Central-New-York-and-Southern-Tier-Regions/default.aspx). A replacement or requalification of the successor remains open; do not silently count twenty active independent accounts.
+- New York association routing should use [NYCUA](https://nycua.org/about-us). The earlier Cornerstone geography claim is withdrawn.
+- Asset/member counts and other firmographic claims below are historical research inputs, not freshly verified 2026 numbers. Do not copy them into outreach. The remaining fifteen rows need primary-source validation before use.
+
+The original candidate rows below preserve research provenance; these corrections and the first-five batch govern current use.
 
 **Method:** Public web research only (Filene Research Institute FiLab sponsor announcements, NCUA/institution disclosures, institution and holding-company sites, Wikipedia, PNC's New York small/micro-cap bank research). No CRM, enrichment tool, or paid data source was used. No request volume, complaints, systems, or executive priorities were invented for any institution, per the personalization rule in `OUTBOUND-SEQUENCE-2026-09-05.md`.
 
@@ -24,7 +34,7 @@ A warm intro path for both still needs a named contact — FiLab sponsorship con
 
 ### Tier 2 — NY credit unions, strong ICP fit, no confirmed warm path yet
 
-Real, verified NY credit unions with meaningful deposit-servicing scale. No FiLab, CMFG/TruStage Ventures, or other innovation-channel affiliation was found in public sources for these — they need a referral, association (e.g., the Cornerstone Credit Union League, which covers NY/NJ/CT/DE), or cold path, ranked below Tier 1.
+Historical NY credit-union candidates. Current identity, scale, and affiliation must be verified before use. A referral or NYCUA route is a research possibility; no actual introduction is established.
 
 | # | Institution | HQ | Assets / members | Notes |
 | --- | --- | --- | --- | --- |
@@ -33,7 +43,7 @@ Real, verified NY credit unions with meaningful deposit-servicing scale. No FiLa
 | 5 | **Hudson Valley Credit Union** | Poughkeepsie, NY | ~$7B assets, 900+ employees | Hudson Valley regional footprint |
 | 6 | **ESL Federal Credit Union** | Rochester, NY | Multi-billion-dollar, one of the largest CUs based in NY | Rochester/Finger Lakes footprint |
 | 7 | **USALLIANCE Financial** | Rye, NY | $2B+ assets, 125,000+ members | Historically an early digital-banking adopter among NY CUs |
-| 8 | **Self-Reliance New York Federal Credit Union** | New York, NY (Yonkers/NYC branches) | $1B+ assets, 15,000+ members | Serves a large elderly Ukrainian-American immigrant membership — a member base where financial-caregiver and POA activity is plausibly elevated; worth a discovery conversation on that basis alone |
+| 8 | **Self-Reliance New York Federal Credit Union** | New York, NY (historical listing) | Historical counts require verification | Candidate only; POA volume and workflow need have not been established. Do not infer need from member ethnicity or age. |
 | 9 | **TEG Federal Credit Union** | Poughkeepsie, NY | Mid-size regional CU | Hudson Valley footprint, adjacent to Hudson Valley CU |
 | 10 | **Actors Federal Credit Union** | New York, NY | Small, niche | Entertainment-industry membership; smaller but a clean single-branch pilot scope if a contact exists |
 
@@ -58,7 +68,7 @@ Verified independent NY-headquartered community/regional bank holding companies.
 
 ### What's still open before any account is touched
 
-- No buyer-role contact (deposit ops / compliance / legal ops / digital servicing leader) is named for any institution above. Per the personalization rule, none should be invented — the next step is LinkedIn/association research or a warm-intro ask, not guessing at names or titles.
+- Named routing contacts for the first five are now recorded in the linked batch. Exact POA workflow ownership, direct channels, and warm introductions remain unconfirmed.
 - No warm-intro path is confirmed for any institution, including the two Tier 1 FiLab sponsors — FiLab sponsorship is an institutional signal, not a personal connection. Steve should check his own network (Filene contacts, credit-union-league contacts, advisors, investors) before treating any account as "warm."
-- Per `SALES-OUTBOUND-LAUNCH-PLAN-2026-09-05.md`, the immediate-launch order is a **20-account list** (this document) followed by **personalizing only the first five accounts**. Personalization has not been started — it depends on the buyer-role and warm-path research above.
+- First-five personalization is drafted in the linked batch. The twenty-independent-account criterion remains open after excluding Elmira; sender review and actual introductions are still required.
 - CMFG Ventures / TruStage Ventures was researched per the task brief: it is CUNA Mutual/TruStage's venture arm investing in fintechs that sell *to* credit unions, not a list of credit union customers or an obvious warm-intro channel. No CMFG/TruStage-affiliated NY credit union relationship was found in public sources. Unless Steve has a specific personal contact at TruStage Ventures or a portfolio company, this path is currently aspirational rather than actionable and should not be represented to a prospect as a partnership or endorsement (per the ICP guidance: "treat specific programs as candidates until eligibility, fit, timing, and evidence are confirmed").
