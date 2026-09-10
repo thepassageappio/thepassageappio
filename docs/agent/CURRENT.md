@@ -20,6 +20,8 @@ Finish a beautiful, simple, user-friendly product that supports truthful one-pag
 
 - The broad plain-language pass is implemented and checked. See [copy review](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md). Existing versioned legal articles remain unchanged, with separate plain explanations.
 
+- Draft recovery now retains entered values and selected actions on server/database errors. Real local save, append-only event, exact-POST idempotency replay and reviewer denial/visibility passed. See [draft evidence](../DRAFT-RECOVERY-2026-09-10.md) and [current gaps](../PRODUCT-GAPS-2026-09-10.md).
+
 ## Execute next
 
 1. UX2: continue the guided journey, including complete keyboard/zoom/screen-reader and first-time walkthrough checks; UX1 core workspace changes are locally verified.

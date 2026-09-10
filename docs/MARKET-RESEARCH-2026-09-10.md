@@ -1,5 +1,7 @@
 # Passage Authority Market and Readiness Assessment
 
+Implementation update: [current position, research implications and gaps](PRODUCT-GAPS-2026-09-10.md). The external research below is the original September 10 baseline. Workspace guidance, plain-language copy and draft recovery have since progressed on unmerged PR 108; no new market-validation or compliance claim follows from those changes.
+
 ## Overview
 
 **Passage is directionally aligned with a real institutional problem, but enterprise readiness and product-market fit remain unproven.** Its strongest proposition is a consistent record of an institution’s delegated-authority decision: the evidence reviewed, specific actions accepted or excluded, governing policy, decision maker, and later changes. That is a credible focus. It should be developed as an operations product whose controls support adoption, rather than expanded into a general compliance platform.

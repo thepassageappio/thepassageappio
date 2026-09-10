@@ -1,5 +1,7 @@
 ## Passage Authority V2 delivery roadmap
 
+Latest execution checkpoint: [product gaps](PRODUCT-GAPS-2026-09-10.md), [draft recovery](DRAFT-RECOVERY-2026-09-10.md). UX2 has progressed; WF1 and POL1 remain open.
+
 > **Active plan — September 10:** [Outreach-ready delivery plan](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md) now controls execution, completion criteria and release gates. [Market research](MARKET-RESEARCH-2026-09-10.md) supplies the evidence. Owner objective: a complete, beautiful, simple, easy-to-use product for truthful one-pagers and outreach. Start at UX1, then complete workflow/policy/security/operating gaps. P1/P2 remain open. The dated status lists and numerical scores below are historical and must not be used as the current readiness verdict.
 
 > **September 10 UTC continuation:** [Latest evidence and remaining gates](P1-P2-CONTINUATION-2026-09-10.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.

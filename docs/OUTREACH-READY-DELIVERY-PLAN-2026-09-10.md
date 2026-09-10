@@ -6,7 +6,7 @@ Updated September 10, 2026 UTC. Owner direction: finish a beautiful, simple, use
 
 ## Where we are
 
-The institution/principal/representative synthetic journey has passed, including scoped decisions, matching receipts, role boundaries and mobile checks. Production was rechecked at main `42976b096b7569174f3b290419a20610ea3ea638`. PR 108 contains tested team MFA visibility and remains unmerged. P1 and P2 are open. The current product is a controlled New York evaluation with two non-transactional actions, not the complete configurable institutional product.
+The institution/principal/representative synthetic journey has passed, including scoped decisions, matching receipts, role boundaries and mobile checks. Production was rechecked at main `42976b096b7569174f3b290419a20610ea3ea638`. PR 108 contains tested team MFA visibility, workspace guidance, plain-language copy and draft recovery, and remains unmerged. See the [current gap assessment](PRODUCT-GAPS-2026-09-10.md). P1 and P2 are open. The current product is a controlled New York evaluation with two non-transactional actions, not the complete configurable institutional product.
 
 The [market assessment](MARKET-RESEARCH-2026-09-10.md) supports the institutional acceptance/servicing focus. It does not establish customer demand, competitor superiority, a dollar TAM or enterprise compliance. Build controls to meet real obligations and buyer needs; do not build a general compliance platform.
 
@@ -21,7 +21,7 @@ The institution retains legal, identity, fraud and access decisions. Existing-in
 | ID | Workstream | Deliverable and exit evidence | Status |
 | --- | --- | --- | --- |
 | UX1 | Clear workspace | One prominent next action; open actionable work ahead of older receipts; named next actor; requested scope never labeled already permitted; clean empty/waiting/completed/error states; owner/staff/reviewer/auditor boundaries; desktop/390/360 and keyboard replay | Core implemented and locally verified; remaining accessibility/replay in UX2/REL1 |
-| UX2 | Complete guided journey | Simplify start, onboarding, request preparation, participant steps, evidence corrections and receipts; retain entered information; readable labels, visible progress and recovery; first-time walkthrough without operator coaching | Open |
+| UX2 | Complete guided journey | Simplify start, onboarding, request preparation, participant steps, evidence corrections and receipts; retain entered information; readable labels, visible progress and recovery; first-time walkthrough without operator coaching | Partial: copy and draft recovery checked; remaining forms and full accessibility/first-use replay open |
 | WF1 | Complete lifecycle | Institution can cancel an unneeded pending request through an authorized, versioned, idempotent command with event, notification treatment, all-persona status and receipt replay | Open |
 | WF2 | Real POA intake | Explicit supported principal-participation scope; approved path for principal unable to act; agent-initiated existing-instrument intake, successor/co-agent/conflicting-instrument handling or clear exclusions; never fabricate consent or infer incapacity | Open; product and counsel review |
 | POL1 | Institution configuration | Governed action/evidence/channel/control catalogs; draft and publish immutable policy; pin snapshots; explicit stale-draft rebase; preserve activated history; test before/after publication | Open; specified, not built |
