@@ -11,6 +11,8 @@ All-factors-lost recovery remains a separate open gate. This feature does not pe
 ## Verification — September 10, 2026 UTC
 
 - Local migration applied successfully to the existing development database.
+- Source migration `20260910023630_privileged_mfa_team_status.sql` was applied through the migration API to Demo and UAT. Both hosted environments then passed the same 11 rollback-only assertion groups. API-generated history versions (Demo `20260910024710`, UAT `20260910024721`) were aligned to the source version after definition verification, without rerunning DDL.
+- Local, Demo and UAT function-definition MD5 values match: private implementation `a18c14159f7e1eb4fe40343527818b6b`; public invoker wrapper `04222f92cc16e51fa01141a6f8c172dc`. Both use an empty search path. Hosted advisors report no finding for the new function; pre-existing [leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), four public definer warnings and intentional private default-deny RLS notices remain separate open/reviewed items.
 - `supabase/tests/privileged_mfa_team_status.sql`: 11 assertion groups passed, transaction rolled back. Owner/admin AAL2 positive paths; AAL1, foreign organization, staff, revoked admin, suspended organization, incomplete onboarding and unverified email denials; minimal payload and verified-only counts.
 - Existing public security boundary suite: 14 assertions passed locally after the migration.
 - 164 domain tests passed; TypeScript, ESLint and optimized Next.js build passed.
