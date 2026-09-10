@@ -134,4 +134,3 @@ do $$ begin
 end $$;
 select * from security_boundary_results order by label;
 rollback;
-

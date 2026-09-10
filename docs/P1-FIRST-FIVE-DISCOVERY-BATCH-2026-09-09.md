@@ -122,4 +122,3 @@ Open: confirmed introductions (or an explicit owner decision revising that crite
 Used: the linked institution-controlled directories/announcements for professional roles, Filene for program context, NYCUA for association scope, and the repository's commercial playbook for claims/pricing.
 
 Coverage is limited to the supplied first five institutions and identified public roles. No Sales Intelligence connector was available in the callable registry; no paid enrichment or private contact access was used. This is not an exhaustive contact map or validation of the other fifteen accounts. Steve's relationship network and recipient addresses remain unknown.
-
