@@ -33,3 +33,44 @@ test("a completed decision makes the receipt the value milestone", () => {
   assert.equal(result.completedCount, 1);
   assert.equal(result.milestone, 3);
 });
+
+test("open work takes priority over a previous completed receipt", () => {
+  const result = evaluationProgress([record("done", "accepted"), record("waiting", "awaiting_principal")], null);
+  assert.equal(result.nextHref, "/app/requests/waiting");
+  assert.equal(result.completedCount, 1);
+  assert.match(result.nextTitle, /Casey Quinn/);
+});
+
+test("review work takes priority for reviewers while staff continue their draft", () => {
+  const records = [record("waiting", "awaiting_principal"), record("draft", "draft"), record("review", "under_review")];
+  const reviewer = evaluationProgress(records, null, new Date(), "reviewer");
+  assert.equal(reviewer.nextHref, "/app/requests/review");
+  assert.equal(reviewer.nextLabel, "Review request");
+  const staff = evaluationProgress(records, null, new Date(), "staff");
+  assert.equal(staff.nextHref, "/app/requests/draft");
+  assert.equal(staff.nextLabel, "Continue draft");
+  assert.deepEqual(records.map(r => r.id), ["waiting", "draft", "review"]);
+});
+
+test("staff and auditors view institution review without being prompted to decide", () => {
+  for (const role of ["staff", "auditor"] as const) {
+    const result = evaluationProgress([record("review", "under_review")], null, new Date(), role);
+    assert.equal(result.nextLabel, "View request");
+    assert.equal(result.nextTitle, "Waiting on Institution reviewer");
+  }
+});
+
+test("closed requests never become pending work and an empty reviewer queue never offers creation", () => {
+  const records = (["declined", "withdrawn", "revoked", "expired", "canceled"] as const).map(s => record(s, s));
+  const result = evaluationProgress(records, null, new Date(), "reviewer");
+  assert.equal(result.nextHref, "/app/team");
+  assert.equal(result.completedCount, 0);
+});
+
+test("representative steps name the person responsible", () => {
+  for (const status of ["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"] as const) {
+    const result = evaluationProgress([record("rep", status)], null);
+    assert.match(result.nextTitle, /Parker Quinn/);
+    assert.equal(result.nextLabel, "View request");
+  }
+});
