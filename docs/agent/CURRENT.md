@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest release checkpoint: [focused buyer demo release](../BUYER-DEMO-POLISH-LIVE-2026-09-11.md). PR 110 is live on both sites at verified main b207fb8. All 32 entry checks, four PDFs, 44 public routes and eight recovery states pass. Presenter guidance, sample downloads, clearer copy and auditor controls were extracted from PR 109 with no migrations. Earlier notes assigning these UI changes to pending PR 109 are historical. Prioritize the fresh timed inbox-to-receipt rehearsal once the pending controlled-inbox/email authorization is supplied.
+
 Latest buyer-entry evidence: [live keyboard/reflow/download checks](../BUYER-ENTRY-VERIFICATION-2026-09-11.md) passed 32 entry cases and four PDFs on both sites at verified main c64299e. Sample sign-in copy now matches Google availability in both local configurations; all 229 tests/build pass. Copy fix is pending PR 109. No authenticated run, form submission or email delivery is claimed; the controlled-inbox/approval question remains pending.
 
 Immediate owner priority: [buyer demo readiness](../BUYER-DEMO-PRIORITY-2026-09-11.md). Prioritize the presenter journey and reliable invitation arrival over further general policy groundwork. Presenter preparation guidance and sample downloads are added; four-width keyboard/layout checks and all 229 tests/build pass, pending PR 109. A question is pending for two controlled participant inboxes and approval to send rehearsal invitations/receipts. No test mail sent; no completed timed rehearsal or delivery fallback is claimed.

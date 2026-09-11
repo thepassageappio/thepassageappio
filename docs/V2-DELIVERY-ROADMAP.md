@@ -1,5 +1,7 @@
 ## Passage Authority V2 delivery roadmap
 
+Latest release checkpoint: [focused buyer demo release](BUYER-DEMO-POLISH-LIVE-2026-09-11.md). PR 110 is live on both sites at verified main b207fb8. All 32 entry checks, four PDFs, 44 public routes and eight recovery states pass. Presenter guidance, sample downloads, clearer copy and auditor controls were extracted from PR 109 with no migrations. Earlier notes assigning these UI changes to pending PR 109 are historical. Prioritize the fresh timed inbox-to-receipt rehearsal once the pending controlled-inbox/email authorization is supplied.
+
 > September 11 UTC: PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled. Internal reconciliation is **3/7**. [Current evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Older release/access/P0 descriptions below are historical; the fresh-demo and remaining P1/P2 gates remain open.
 
 Latest execution checkpoint: [product gaps](PRODUCT-GAPS-2026-09-10.md), [draft recovery](DRAFT-RECOVERY-2026-09-10.md). UX2 has progressed; WF1 and POL1 remain open.
