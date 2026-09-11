@@ -37,3 +37,5 @@ Consult only as needed:
 - [../BUILD-CONTRACT.md](../BUILD-CONTRACT.md) for fictional MVP regression behavior.
 
 Local-only POL1 migration: [snapshot content storage](../POLICY-SNAPSHOT-STORAGE-2026-09-11.md). Development DDL exists locally without a migration-history row; the replay test recreates and rolls back only its empty new objects. Do not repeat the migration blindly. No hosted application yet.
+
+Local-only source storage migration 20260911113719: see [source storage](../POLICY-SOURCE-STORAGE-2026-09-11.md). Development DDL exists with no migration-history row. Do not repeat it or the earlier snapshot migration blindly. Source-content registration is not approved publication.
