@@ -17,6 +17,21 @@ export type PolicySnapshotBody = {
 };
 export type StoredPolicySnapshot = { canonicalJson: string; sha256: string };
 
+/** Read the exact transport envelope without invoking property getters. */
+export function readStoredPolicyEnvelope(value: unknown): StoredPolicySnapshot {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail();
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) fail();
+  const keys = Reflect.ownKeys(value);
+  if (keys.length !== 2 || !keys.includes("canonicalJson") || !keys.includes("sha256")) fail();
+  const canonical = Object.getOwnPropertyDescriptor(value, "canonicalJson");
+  const hash = Object.getOwnPropertyDescriptor(value, "sha256");
+  if (!canonical?.enumerable || !("value" in canonical) || typeof canonical.value !== "string" ||
+      !hash?.enumerable || !("value" in hash) || typeof hash.value !== "string" ||
+      Buffer.byteLength(canonical.value, "utf8") > 1_000_000 || !/^[a-f0-9]{64}$/.test(hash.value)) fail();
+  return { canonicalJson: canonical.value, sha256: hash.value };
+}
+
 function fail(): never { throw new Error("policy_snapshot_invalid"); }
 
 /** Project-specific canonical encoding. Arrays retain their order; object keys sort by UTF-16 code unit. */
@@ -95,9 +110,7 @@ export function capturePolicySnapshot(body: PolicySnapshotBody): StoredPolicySna
 }
 
 export function readPolicySnapshot(snapshot: StoredPolicySnapshot): PolicySnapshotBody {
-  if (!snapshot || typeof snapshot.canonicalJson !== "string" ||
-      Buffer.byteLength(snapshot.canonicalJson, "utf8") > 1_000_000 ||
-      typeof snapshot.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(snapshot.sha256)) fail();
+  snapshot = readStoredPolicyEnvelope(snapshot);
   if (createHash("sha256").update(snapshot.canonicalJson, "utf8").digest("hex") !== snapshot.sha256) {
     throw new Error("policy_snapshot_hash_mismatch");
   }

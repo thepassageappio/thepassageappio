@@ -1,5 +1,7 @@
 # Product status and remaining gaps
 
+Latest independent POL1 work: [strict saved-record reading](POLICY-ENVELOPE-READING-2026-09-11.md) rejects getters and unexpected properties before checking policy bytes. Eight new regression cases and all 237 domain tests, TypeScript, lint and build passed. This remains in open PR 109; no database or live product change. Publication, trusted history loading and request snapshot/rebase enforcement remain unfinished.
+
 Latest release: PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) is live on both sites at verified main `326976fd1dc0a4009b18db5429dedf474d48c37c`. [HTTP contact recovery](CONTACT-HTTP-RECOVERY-2026-09-11.md) preserves entries after invalid 503/429/502 responses. The 172-test build, eight exception-boundary and seven action checks passed. Both exact previews and both live sites each passed 12 injected errors, four preflight denials and four honeypot redirects at four widths. Public smoke passed 44 routes/eight recovery states; both error scans returned zero records. No migration, inquiry or provider send occurred. The owner approved rehearsal email; the two recipient addresses remain pending.
 
 Latest contact evidence: [local database replay](CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.

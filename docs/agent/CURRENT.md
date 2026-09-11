@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest independent POL1 work: [strict saved-record reading](../POLICY-ENVELOPE-READING-2026-09-11.md) rejects getters and unexpected properties before checking policy bytes. Eight new regression cases and all 237 domain tests, TypeScript, lint and build passed. This remains in open PR 109; no database or live product change. Publication, trusted history loading and request snapshot/rebase enforcement remain unfinished.
+
 Latest release: PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) is live on both sites at verified main `326976fd1dc0a4009b18db5429dedf474d48c37c`. [HTTP contact recovery](../CONTACT-HTTP-RECOVERY-2026-09-11.md) preserves entries after invalid 503/429/502 responses. The 172-test build, eight exception-boundary and seven action checks passed. Both exact previews and both live sites each passed 12 injected errors, four preflight denials and four honeypot redirects at four widths. Public smoke passed 44 routes/eight recovery states; both error scans returned zero records. No migration, inquiry or provider send occurred. The owner approved rehearsal email; the two recipient addresses remain pending.
 
 Presenter preparation: [run card](../PRESENTER-RUN-CARD-2026-09-11.md) now gives setup, seven-minute targets, stop conditions and a blank evidence sheet. At 18:41 UTC both live sources matched origin/main ee3a5fb; eight entry pages, two sample sign-in gates and four byte-matched sample PDF downloads passed read-only checks. Older demo checklist results are explicitly historical. No fresh rehearsal, sign-in or provider send occurred.
@@ -8,7 +10,7 @@ Latest contact evidence: [local database replay](../CONTACT-REPLAY-2026-09-11.md
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
-Latest UX2 form evidence: [native entry validation](../ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Contact server-error recovery is now shipped below; browser fetch disconnects are also handled; Invalid HTTP responses are handled in PR 113; opaque server failures and authenticated first-use remain open.
+Latest UX2 form evidence: [native entry validation](../ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Contact server-error recovery is now shipped below; browser fetch disconnects are also handled; invalid HTTP responses are handled in PR 113; opaque server failures and authenticated first-use remain open.
 
 Latest GTM1 preparation: [buyer one-pager PDF and claim review](../BUYER-ONE-PAGER-2026-09-11.md) are complete as an internal draft. One-page render, full text, page bounds and contact link were checked. No distribution or demo-readiness approval is implied. Native screen-reader/spoken-output testing is unavailable in this session and remains open; do not repeat unsupported attempts.
 

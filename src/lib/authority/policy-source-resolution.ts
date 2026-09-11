@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { canonicalPolicyJson, type PolicyJson } from "./policy-snapshot.ts";
+import { canonicalPolicyJson, readStoredPolicyEnvelope, type PolicyJson } from "./policy-snapshot.ts";
 
 export type PolicySourceKind = "platform" | "jurisdiction" | "institution";
 export type PolicySourceReference = { key: string; version: string; sha256: string };
@@ -64,9 +64,8 @@ export function capturePolicySource(value: PolicySourceVersion): StoredPolicySou
 }
 
 export function readPolicySource(stored: StoredPolicySource): PolicySourceVersion {
-  object(stored, ["canonicalJson", "sha256"]);
-  if (typeof stored.canonicalJson !== "string" || Buffer.byteLength(stored.canonicalJson, "utf8") > 1_000_000 ||
-    typeof stored.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(stored.sha256)) fail("The saved source is invalid.");
+  try { stored = readStoredPolicyEnvelope(stored); }
+  catch { fail("The saved source is invalid."); }
   const value: unknown = JSON.parse(stored.canonicalJson);
   const canonical = canonicalPolicyJson(value);
   if (canonical !== stored.canonicalJson || createHash("sha256").update(canonical, "utf8").digest("hex") !== stored.sha256) fail("The saved source does not match its hash.");
