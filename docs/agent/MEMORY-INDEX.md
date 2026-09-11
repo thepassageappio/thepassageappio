@@ -2,6 +2,8 @@
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
+Latest UX2 form evidence: [native entry validation](../ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Server-error recovery and authenticated first-use remain separate open work.
+
 Latest GTM1 preparation: [buyer one-pager PDF and claim review](../BUYER-ONE-PAGER-2026-09-11.md) are complete as an internal draft. One-page render, full text, page bounds and contact link were checked. No distribution or demo-readiness approval is implied. Native screen-reader/spoken-output testing is unavailable in this session and remains open; do not repeat unsupported attempts.
 
 Latest UX2 evidence: [native Chrome zoom](../NATIVE-ZOOM-2026-09-11.md) passed 24 live entry/recovery cases at 200%/400%, including 180 keyboard focus stops, at main b207fb8. Earlier [text size and labels](../ENTRY-ACCESSIBILITY-2026-09-11.md) checks also passed. Public entry/recovery zoom is checked; real screen-reader use and authenticated first-use/zoom remain open.
