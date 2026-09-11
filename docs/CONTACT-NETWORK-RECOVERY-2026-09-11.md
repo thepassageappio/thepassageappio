@@ -11,3 +11,10 @@ The policy branch passed 229 tests, TypeScript, lint and build. The separate mai
 ## Limits
 
 Preserving the key supports the existing idempotent retry boundary; an interrupted connection does not prove that a request was never received or saved. This test aborts before delivery and does not establish a lost-response-after-commit scenario. HTTP error responses, no-JavaScript use, reload persistence and spoken screen-reader output remain separate. No email, hosted inquiry, customer data or fresh timed buyer demo is claimed.
+
+
+## Release checkpoint
+
+PR [112](https://github.com/thepassageappio/thepassageappio/pull/112) merged as `ee3a5fbf6e83fadc320be3c11002af7055c566c8`. Candidate `f3fc04b512656df8d32ae5c59ef98e0a7571f2cc` passed 172 domain tests, TypeScript, lint and optimized build. Both preview version endpoints matched this candidate and both Git checks were green. Each preview passed four browser-aborted requests followed by four malformed-key server preflight responses. No inquiry was created or provider contacted.
+
+Git main deployments: Demo `dpl_2HDK2fV8iJSPmTGbJPionkXEJzUM`; Production/UAT `dpl_5NxZ4Mekg6zVuo66wxguqa51bnTU`. Clean local main provenance verification passed. Both deployments are Ready from GitHub main and both live version endpoints report ee3a5fb with verified provenance. Each live site passed four browser connection aborts and four invalid-key preflight retries across 1280/390/360/320. Values/key, pending recovery and error focus passed with no overflow/page errors. Public smoke passed 44 routes and eight recovery states. Deployment-specific 30-minute error queries returned zero records; this is a point-in-time scan, not full monitoring assurance. Raw preview/live proofs are in the isolated release worktree under ignored work/network-{uat,demo}-preview-proof.json and work/network-{prod,demo}-live-proof.json.

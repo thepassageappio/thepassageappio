@@ -15,3 +15,12 @@ The initial action test caught an overlooked generic redirect and the first full
 ## Limits
 
 No new hosted inquiry or provider send was authorized or performed. Successful writes still use the existing database command; database semantics and historical records are unchanged. Native no-JavaScript fallback, browser transport disconnects, reload persistence and screen-reader spoken output are not established by these tests. The separate fresh buyer-demo inbox/rehearsal dependency remains open.
+
+
+## Verified release
+
+PR [111](https://github.com/thepassageappio/thepassageappio/pull/111) merged as `70f059e8db6fd66e18929d81a36bd68fdeeca4ca`. The isolated candidate `4917bcada5c82a57bdb57ef2301eed6e5fc40454` passed 172 domain tests, TypeScript, lint and optimized build. Both exact preview version endpoints matched the candidate; six hosted contact cases and 18 native invalid attempts passed with all submission events blocked. UAT initially returned its building placeholder; verification ran only once it was Ready.
+
+Both live sites now report verified GitHub main 70f059e. Demo deployment `dpl_6vSuoip5PJ7gSC4UfGbaobg6qbr3` and Production/UAT deployment `dpl_G5mFg5vWK934W9gFthtCZbVZsG8r` are Ready. Clean-main provenance verification passed. Public smoke covered 44 routes and eight recovery states; Demo was additionally rechecked after its exact-SHA deployment completed. Deployment-specific 30-minute error queries returned zero records, a point-in-time check only.
+
+Sixteen actual hosted malformed-key denials (two attempts at four widths on each site) exercised the returned error without calling database or provider code. Entries, selections, checkbox and the invalid test key remained; pending lock and focus passed with no page errors/overflow. The key was deliberately invalid before either submit, so the server preflight returned before inquiry creation. This is hosted negative-path proof, not a successful hosted inquiry or database-outage test. Reproducible helper: `scripts/verify-contact-hosted-preflight.mjs`; raw files: ignored `work/contact-prod-preflight-proof.json` and `work/contact-demo-preflight-proof.json`. No fresh participant email, real customer data or database change occurred.

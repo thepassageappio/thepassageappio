@@ -1,52 +1,53 @@
 # Current Passage checkpoint
 
-Latest POL1 evidence: [policy snapshot baseline](../POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+Rehearsal dependency updated: the owner supplied the two participant addresses and both inboxes are accessible (Gmail browser and connected Gmail). The approved pair is saved only in ignored work/approved-rehearsal-recipients.json. The Demo browser reached new authenticator setup at /mfa; credential-setup handoff is required before presenter access can proceed. No rehearsal invitation was sent or timed run started. Recipient allowlist matching still needs verification after access is restored.
 
-Latest POL1 prerequisite: [accurate policy overview](../POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
+Latest POL1 prerequisite: [draft policy comparison](../DRAFT-POLICY-COMPARISON-2026-09-11.md) returns exact changes and rejects foreign-institution, future and older replacement snapshots. Six new tests and all 243 domain tests, TypeScript, lint and build passed. The result is comparison-only, not activation permission; authenticated publication lookup, locking and explicit rebase remain unbuilt. No live or database change.
 
-Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
+Latest independent POL1 work: [strict saved-record reading](../POLICY-ENVELOPE-READING-2026-09-11.md) rejects getters and unexpected properties before checking policy bytes. Eight new regression cases and all 237 domain tests, TypeScript, lint and build passed. This remains in open PR 109; no database or live product change. Publication, trusted history loading and request snapshot/rebase enforcement remain unfinished.
 
-Latest work: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) extends the native shortcut to public headers and fixes the 320px header overflow. See that evidence file for verification and limits. The [hosted cancellation checkpoint](../PENDING-CANCELLATION-HOSTED-2026-09-11.md) remains the database/release record. Git and PR metadata access are restored; PR 108 remains unmerged. Hosted authenticated replay and UAT preview SSO remain open.
+Latest release: PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) is live on both sites at verified main `326976fd1dc0a4009b18db5429dedf474d48c37c`. [HTTP contact recovery](../CONTACT-HTTP-RECOVERY-2026-09-11.md) preserves entries after invalid 503/429/502 responses. The 172-test build, eight exception-boundary and seven action checks passed. Both exact previews and both live sites each passed 12 injected errors, four preflight denials and four honeypot redirects at four widths. Public smoke passed 44 routes/eight recovery states; both error scans returned zero records. No migration, inquiry or provider send occurred. The owner approved rehearsal email; the approved pair is now available; presenter authenticator setup is the current blocker.
 
-Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+Presenter preparation: [run card](../PRESENTER-RUN-CARD-2026-09-11.md) now gives setup, seven-minute targets, stop conditions and a blank evidence sheet. At 18:41 UTC both live sources matched origin/main ee3a5fb; eight entry pages, two sample sign-in gates and four byte-matched sample PDF downloads passed read-only checks. Older demo checklist results are explicitly historical. No fresh rehearsal, sign-in or provider send occurred.
 
-Updated September 10, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
+Latest contact evidence: [local database replay](../CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
+
+Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
+
+Latest UX2 form evidence: [native entry validation](../ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Contact server-error recovery is now shipped below; browser fetch disconnects are also handled; invalid HTTP responses are handled in PR 113; opaque server failures and authenticated first-use remain open.
+
+Latest GTM1 preparation: [buyer one-pager PDF and claim review](../BUYER-ONE-PAGER-2026-09-11.md) are complete as an internal draft. One-page render, full text, page bounds and contact link were checked. No distribution or demo-readiness approval is implied. Native screen-reader/spoken-output testing is unavailable in this session and remains open; do not repeat unsupported attempts.
+
+Latest UX2 evidence: [native Chrome zoom](../NATIVE-ZOOM-2026-09-11.md) passed 24 live entry/recovery cases at 200%/400%, including 180 keyboard focus stops, at main b207fb8. Earlier [text size and labels](../ENTRY-ACCESSIBILITY-2026-09-11.md) checks also passed. Public entry/recovery zoom is checked; real screen-reader use and authenticated first-use/zoom remain open.
+
+Earlier release evidence: PR [112](https://github.com/thepassageappio/thepassageappio/pull/112) was verified on both sites at main `ee3a5fbf6e83fadc320be3c11002af7055c566c8`. [Contact connection recovery](../CONTACT-NETWORK-RECOVERY-2026-09-11.md) retains entries/key after browser fetch failure and shows retry guidance. The 172-test release, four exception-boundary cases and eight local failure/retry steps passed. Both exact previews and both live sites each passed four connection aborts followed by four server preflight denials. Public smoke passed 44 routes/eight recovery states and both error scans returned zero records. No migration, inquiry or provider send occurred. PR 111 server-error recovery remains included; prior evidence stays in its dated files.
+
+The immediate priority is the [fresh buyer demo](../BUYER-DEMO-PRIORITY-2026-09-11.md). The owner approved the rehearsal invitations and receipts after being told their purpose. The owner supplied the intended pair and inbox access is verified; use only that approved pair. No fresh timed rehearsal or inbox-delivery proof is claimed. Continue independent usability checks without sending email.
+
+PR [109](https://github.com/thepassageappio/thepassageappio/pull/109) now contains unfinished policy groundwork and documentation. Canonical encoding, source resolution, structural/operational checks and private append-only storage are tested locally. Its two migrations (20260911072009 and 20260911113719) remain local only without local migration-history rows. Do not reapply them to recover context. Authenticated registration, complete semantic validation, publication, request binding and rebase remain unbuilt.
 
 ## Owner objective
 
-Finish a beautiful, simple, user-friendly product that supports truthful one-pagers and outreach. Follow the [active delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md), informed by the [market research](../MARKET-RESEARCH-2026-09-10.md). Use evidence and completion criteria, not a readiness score.
+Finish a beautiful, simple product that supports truthful one-pagers and outreach. Use clear everyday language throughout the website and product; follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve legal meaning and saved decisions. The owner has authorized continuing engineering and normal tested pushes/releases; do not ask again for routine work within that scope.
 
 ## Actual status
 
-- Production was reverified at `42976b096b7569174f3b290419a20610ea3ea638` (PR 107). GitHub main provenance matches.
-- PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) on `agent/p1-p2-closeout-20260909` contains tested team MFA enrollment visibility and evidence. It is unmerged. Its additive migration `20260910023630` is applied and boundary-tested in Demo and UAT.
-- Core synthetic persona journey and scoped receipts pass. Current evaluation is New York with two non-transactional action fixtures. General policy configuration, Pennsylvania and an incapacitated-principal path are not established as shipped capabilities.
-- UX1 core workspace guidance is implemented and locally verified: 169 domain tests, TypeScript, lint, build; actual local owner/staff/reviewer/auditor authentication and desktop/390/360 checks. See [workspace evidence](../WORKSPACE-GUIDANCE-2026-09-10.md). This is not a complete accessibility or lifecycle replay.
-- Internal reconciliation is **2/7** real clean UTC days; live-provider comparison remains separate. No additional day can be credited by rerunning.
-- P1 first-five research and unsent drafts exist. Actual warm introductions, final sender review and broader list validation remain open.
-- **P1 open; P2 open; outreach and buyer-demo release not approved.** Real-data pilot approval remains separate.
-
-- The broad plain-language pass is implemented and checked. See [copy review](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md). Existing versioned legal articles remain unchanged, with separate plain explanations.
-
-- Draft recovery now retains entered values and selected actions on server/database errors. Real local save, append-only event, exact-POST idempotency replay and reviewer denial/visibility passed. See [draft evidence](../DRAFT-RECOVERY-2026-09-10.md) and [current gaps](../PRODUCT-GAPS-2026-09-10.md).
+- The supported evaluation is the existing New York synthetic workflow for statement copies and account questions. The earlier full persona journey passed; this release adds independently verified cancellation and usability changes.
+- Application code is merged and live. A reliable fresh seven-minute presenter demo remains unverified because invitation arrival and full first-use rehearsal remain open.
+- Internal reconciliation is **3/7** real clean UTC days, September 9–11. Earliest possible seventh day is September 15 UTC if every subsequent day stays clean. Live-provider comparison remains separate.
+- POL1 inventory and policy overview states are checked. General authoring, immutable publication, full request snapshots and explicit stale-draft rebase remain unbuilt. The [snapshot baseline](../POLICY-SNAPSHOT-BASELINE-2026-09-11.md) predates this release's additional synthetic fixtures; do not present its record counts as current totals.
+- P1 first-five research, unsent drafts and the one-pager exist. No messages were sent. P1/P2 and real-customer-data approval remain open; the product is not established as enterprise compliant.
 
 ## Execute next
 
-1. UX2: continue the guided journey, including complete keyboard/zoom/screen-reader and first-time walkthrough checks; UX1 core workspace changes are locally verified.
-2. WF1: complete exact-candidate hosted browser release checks for cancellation; hosted migration and SQL verification passed; broader states and automatic cancellation notices remain outside this slice.
-3. POL1: implement governed institution policy/catalog publication and snapshot/rebase invariants.
-4. Prepare WF2/LEG1: principal unable to participate, state applicability, deadlines, acknowledgments and notices for qualified review.
-5. Continue SEC1/OPS1/OPS2/ASS1 and release-candidate QA. Only then record explicit outreach release.
+1. Resolve reliable participant invitation arrival and rehearse a fresh presenter-created demo with separate personas, sample uploads, clarification, limited acceptance and matching revocation receipts. No database or provider-dashboard link recovery in the accepted run.
+2. Finish keyboard, zoom, screen-reader and first-use checks. Keep proof specific to tested surfaces.
+3. Build POL1 immutable policy/catalog publication, snapshot pinning and explicit stale-draft rebase while preserving activated history.
+4. Continue access recovery, actual restore/incident/retention evidence and the four remaining real reconciliation days. Qualified state/security decisions and any new spending remain external dependencies.
+5. Use the [first-sale plan](../DEMO-TO-FIRST-SALE-2026-09-11.md) and [delivery roadmap](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md) to finish the release gates. Do not represent the remaining roadmap as complete.
 
 ## Persistent boundaries
 
-The institution decides; no automatic legal acceptance, universal registry, inferred consent, customer credential sharing or unacknowledged access-change claim. Preserve activated history. No new spending, real customer data, live payments, external messages or invented signoffs. Research and unsent asset preparation may proceed. Do not repeat migrations or provider sends to recover context.
+The institution decides; Passage does not grant access, move money, validate a POA or replace legal/identity/fraud review. No inferred consent, real customer data, live payments, external messages, new spending or invented signoffs. Research and unsent preparation may proceed. The recurring continuation heartbeat already exists; do not duplicate it.
 
-## Read only what the task needs
-
-- [Memory index](MEMORY-INDEX.md)
-- [Delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md)
-- [Prior evidence ledger](../P1-P2-CONTINUATION-2026-09-10.md)
-- [Engineering](ENGINEERING.md), [QA](QA.md), [releases](RELEASES.md), [commercial](COMMERCIAL.md), [providers](PROVIDERS.md), [jurisdictions](JURISDICTIONS.md)
-
-The previous checkpoint is preserved in `docs/archive/CURRENT-before-market-plan-2026-09-10.md`. Older scores and stale counts there are historical.
+Start with [memory index](MEMORY-INDEX.md), then only the needed [engineering](ENGINEERING.md), [QA](QA.md), [release](RELEASES.md), [commercial](COMMERCIAL.md), [provider](PROVIDERS.md) or [jurisdiction](JURISDICTIONS.md) playbook.
