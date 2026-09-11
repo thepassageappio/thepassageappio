@@ -35,3 +35,5 @@ Consult only as needed:
 - [../PRODUCT-SOURCE-OF-TRUTH.md](../PRODUCT-SOURCE-OF-TRUTH.md) for detailed behavior.
 - [../IMPLEMENTATION-TRACEABILITY.md](../IMPLEMENTATION-TRACEABILITY.md) for route/function mapping.
 - [../BUILD-CONTRACT.md](../BUILD-CONTRACT.md) for fictional MVP regression behavior.
+
+Local-only POL1 migration: [snapshot content storage](../POLICY-SNAPSHOT-STORAGE-2026-09-11.md). Development DDL exists locally without a migration-history row; the replay test recreates and rolls back only its empty new objects. Do not repeat the migration blindly. No hosted application yet.
