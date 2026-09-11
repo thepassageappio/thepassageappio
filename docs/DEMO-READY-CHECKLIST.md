@@ -2,7 +2,8 @@
 
 **Current status, September 11:** fresh timed rehearsal and actual participant invitation arrival remain open. Use the [presenter run card](PRESENTER-RUN-CARD-2026-09-11.md). Historical passes below are scoped to their runs and do not establish current presenter sign-off. Live main is ee3a5fb; PRs 110-112 are shipped.
 
-**Target:** a reliable buyer demonstration using fictional information  
+**Target:** a reliable buyer demonstration using fictional information
+
 **Demo promise:** one financial POA request moves from intake to a shared institution decision, with each person seeing one clear next step and the same later changes.
 
 ## Demo-ready exit criteria
