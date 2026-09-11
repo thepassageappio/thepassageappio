@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { createCommercialInquiryAction } from "@/app/commercial-actions";
+import { ContactForm } from "./ContactForm";
 import { CommercialFooter } from "@/components/commercial/CommercialFooter";
 import { CommercialHeader } from "@/components/commercial/CommercialHeader";
 import styles from "@/app/commercial.module.css";
@@ -40,7 +40,7 @@ export default async function ContactPage({ searchParams }: Props) {
           <span>We will follow up at the work email you provided.{reference ? ` Reference: ${reference}.` : ""}</span>
         </div> : null}
         {error ? <p className={contact.error} role="alert">{error}</p> : null}
-        {!sent ? <form action={createCommercialInquiryAction} className={contact.form}>
+        {!sent ? <ContactForm>
           <input type="hidden" name="idempotencyKey" value={randomUUID()} />
           <label className={contact.honeypot} aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
           <label><span>What can we help with?</span><select name="inquiryType" defaultValue={initialType} required>
@@ -67,8 +67,7 @@ export default async function ContactPage({ searchParams }: Props) {
           </select></label>
           <label><span>Anything useful for the walkthrough? <em>Optional</em></span><textarea name="message" rows={3} maxLength={1200} /></label>
           <label className={contact.consent}><input type="checkbox" name="contactConsent" required /><span>Passage may contact me about this request. See our <Link href="/legal/privacy">Privacy Policy</Link>.</span></label>
-          <button className={contact.submit} type="submit">Request walkthrough</button>
-        </form> : <Link className={styles.secondary} href="/contact">Send another request</Link>}
+        </ContactForm> : <Link className={styles.secondary} href="/contact">Send another request</Link>}
       </section>
       <aside className={contact.aside}>
         <div><span>What you will see</span><h2>One complete, auditable request.</h2></div>
