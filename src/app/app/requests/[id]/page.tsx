@@ -197,7 +197,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {
             const notification = notifications.find((item) => item.invitation_id === String(invitation.id));
             const role = invitation.participant_role === "principal" ? "principal" : "representative";
-            const canReissue = canReissueParticipantAccess(role, record.status);
+            const canReissue = (canCoordinate || canReviewEvidence) && canReissueParticipantAccess(role, record.status);
             const accessPurpose = participantAccessPurpose(role, record.status);
             return <li key={String(invitation.id)}>
               <span>{role === "principal" ? "Person granting authority" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {deliveryStatusLabel(notification?.delivery_status)})</span>

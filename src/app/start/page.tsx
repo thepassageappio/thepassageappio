@@ -39,7 +39,9 @@ export default async function StartPage({ searchParams }: Props) {
           ? "Use Google for immediate access, or request a one-time link by email."
           : "Request a one-time sign-in link using your work email."
         : sample
-          ? "Sign in with Google or an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
+          ? googleSignInEnabled
+            ? "Sign in with Google or an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
+            : "Sign in with an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
         : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
