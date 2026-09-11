@@ -12,6 +12,11 @@ export function ContactForm({ children }: { children: ReactNode }) {
       // Fetch rejects with TypeError when the browser cannot reach the server.
       // Preserve framework redirects and other errors for Next to handle.
       if (error instanceof TypeError) return { error: "We could not reach Passage. Check your connection and try again." };
+      // Pinned Next 16.1.6 marks non-action HTTP responses with E394.
+      // Never display a gateway's raw response or claim the request was not saved.
+      if (error instanceof Error && "__NEXT_ERROR_CODE" in error && error.__NEXT_ERROR_CODE === "E394" && !("digest" in error)) {
+        return { error: "We could not confirm that your request was saved. Please try again." };
+      }
       throw error;
     }
   }, { error: null });
