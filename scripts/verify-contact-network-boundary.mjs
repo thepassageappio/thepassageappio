@@ -17,8 +17,16 @@ loadedModule.exports.ContactForm({ children: null });
 assert.equal(await action({ error: null }, new FormData()), result);
 failure = new TypeError('Failed to fetch');
 assert.match((await action({ error: null }, new FormData())).error, /Check your connection/);
-for (const error of [Object.assign(new Error('NEXT_REDIRECT'), { digest: 'NEXT_REDIRECT;push;/contact?sent=1;303;' }), new Error('unexpected')]) {
+failure = Object.defineProperty(new Error('Private upstream diagnostic'), '__NEXT_ERROR_CODE', { value: 'E394' });
+assert.equal((await action({ error: null }, new FormData())).error, 'We could not confirm that your request was saved. Please try again.');
+for (const error of [
+  Object.assign(new Error('NEXT_REDIRECT'), { digest: 'NEXT_REDIRECT;push;/contact?sent=1;303;' }),
+  Object.assign(new Error('not found'), { digest: 'NEXT_HTTP_ERROR_FALLBACK;404' }),
+  Object.assign(new Error('opaque server failure'), { digest: 'opaque', __NEXT_ERROR_CODE: 'E394' }),
+  Object.assign(new Error('different framework failure'), { __NEXT_ERROR_CODE: 'E999' }),
+  new Error('unexpected'),
+]) {
   failure = error;
   await assert.rejects(action({ error: null }, new FormData()), caught => caught === error);
 }
-console.log('PASS: returned server state and fetch failure handled; redirect and unexpected Error objects rethrown unchanged.');
+console.log('PASS: server state, fetch failure and E394 recover; redirect, not-found, digested, other-code and unexpected errors rethrow unchanged.');
