@@ -1,5 +1,7 @@
 # Authority Compass memory index
 
+Latest POL1 validation: [action/evidence compiler](../POLICY-RULE-VALIDATION-2026-09-11.md) preserves standard meanings and locks, validates custom-rule ownership/metadata and rejects unsupported fields. Thirteen focused and 196 total domain tests pass. The output is explicitly partial; channel/control/dependency validation, trusted source resolution and publication/request integration remain next. No release occurred.
+
 Latest POL1 storage: [private append-only policy bytes](../POLICY-SNAPSHOT-STORAGE-2026-09-11.md) is implemented and verified locally, including exact cross-runtime hash, tenant checks, browser denial and update/delete/truncate protection. Migration 20260911072009 is not applied to hosted databases; no application integration or release occurred. Compiler, publication, request-revision binding and rebase commands remain next.
 
 Latest POL1 code: [snapshot encoding and exact comparison](../POLICY-SNAPSHOT-ENCODING-2026-09-11.md) adds detached canonical bytes, SHA-256 verification and same-organization policy diffs. Eleven focused tests and 183 total domain tests pass. This is the encoding foundation only; compiler, database persistence, publication and rebase enforcement remain next. No migration or application release occurred.
