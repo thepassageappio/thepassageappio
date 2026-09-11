@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest UX1 follow-up: [clearer policy overview](../POLICY-PLAIN-LANGUAGE-2026-09-11.md) spells out power of attorney and accurately describes the saved policy reference. Eight page-state checks and 28 desktop/phone layout cases pass, including keyboard retry; data is mocked. All 229 domain tests, TypeScript, lint and build pass. Pending in PR 109; no production release or broader demo-readiness claim.
+
 Latest POL1 checkpoint: [operational combination validation](../POLICY-OPERATIONAL-COMPATIBILITY-2026-09-11.md) checks action/evidence dependencies, account types, retention references, currencies and channel/control combinations. Custom actions are blocked from this path pending governed semantic review. All 229 domain tests, TypeScript, lint and build pass; local source resolution -> compatibility -> PostgreSQL byte/permission checks pass. Output remains configuration-only. Trusted registry, semantic/disclosure/exception rules, transactional publication, request binding and rebase remain unbuilt. Storage remains local only (migration 20260911072009 has no local history entry). No product release occurred.
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
