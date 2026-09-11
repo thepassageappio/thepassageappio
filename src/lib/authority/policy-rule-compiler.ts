@@ -265,3 +265,63 @@ export function compilePolicyConfiguration(organizationId: string, trustedCatalo
     controls: [...controls.values()].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0),
   };
 }
+
+/**
+ * Operational compatibility against a server-controlled, versioned contract.
+ * This does not establish legal approval or a complete publishable policy.
+ * Custom actions need a governed semantic review path before they can pass.
+ */
+export function compileCompatiblePolicyConfiguration(organizationId: string, trustedCatalog: unknown, submittedDraft: unknown, trustedCompatibility: unknown) {
+  const configuration = compilePolicyConfiguration(organizationId, trustedCatalog, submittedDraft);
+  let input: unknown;
+  try { input = JSON.parse(canonicalPolicyJson(trustedCompatibility)); }
+  catch { invalid("/compatibility", "We could not read the rules for these combinations."); }
+  const contract = shape(input, ["accountTypes", "retentionClasses", "currencies", "actions"], [], "/compatibility");
+  function strings(value: unknown, path: string): string[] {
+    const result = list(value, path).map((item, index) => text(item, `${path}/${index}`));
+    if (new Set(result).size !== result.length) invalid(path, "Each value can appear only once.");
+    return result;
+  }
+  const accountTypes = new Set(strings(contract.accountTypes, "/compatibility/accountTypes"));
+  const retentionClasses = new Set(strings(contract.retentionClasses, "/compatibility/retentionClasses"));
+  const currencies = new Set(strings(contract.currencies, "/compatibility/currencies"));
+  for (const currency of currencies) if (!/^[A-Z]{3}$/.test(currency)) invalid("/compatibility/currencies", "Use a three-letter currency code.");
+  const actionKeys = new Set(configuration.actions.map(rule => rule.key));
+  const evidenceByKey = new Map(configuration.evidence.map(rule => [rule.key, rule]));
+  const rules = unique(list(contract.actions, "/compatibility/actions").map((value, index) => {
+    const path = `/compatibility/actions/${index}`;
+    const row = shape(value, ["key", "requiredEvidenceKeys", "allowedChannelAccess", "allowedControlKinds"], [], path);
+    const id = key(row.key, `${path}/key`);
+    if (!actionKeys.has(id)) invalid(path, "This compatibility rule names an unknown action.");
+    const requiredEvidenceKeys = strings(row.requiredEvidenceKeys, `${path}/requiredEvidenceKeys`);
+    if (requiredEvidenceKeys.some(id => !evidenceByKey.has(id))) invalid(path, "This action names missing evidence.");
+    const allowedChannelAccess = strings(row.allowedChannelAccess, `${path}/allowedChannelAccess`);
+    if (allowedChannelAccess.some(item => !/^(branch|phone|online|mobile|api):(view|transaction)$/.test(item))) invalid(path, "Choose a supported channel and access level.");
+    const allowedControlKinds = strings(row.allowedControlKinds, `${path}/allowedControlKinds`);
+    if (allowedControlKinds.some(item => !["max_amount", "max_duration_days", "min_approvers", "max_count"].includes(item))) invalid(path, "Choose a supported kind of limit.");
+    return { key: id, requiredEvidenceKeys, allowedChannelAccess, allowedControlKinds };
+  }), "/compatibility/actions");
+  for (const action of configuration.actions) {
+    const path = `/actions/${action.key}`;
+    if (action.source === "institution") invalid(path, "Custom actions need a reviewed definition before this policy can continue.");
+    const rule = rules.get(action.key);
+    if (!rule) invalid(path, "This action is missing its combination rules.");
+    if (action.accountTypes.some(type => !accountTypes.has(type))) invalid(path, "This action names an unsupported account type.");
+    if (action.enabled && rule.requiredEvidenceKeys.some(id => !evidenceByKey.get(id)?.required)) invalid(path, "Keep the evidence required for this action.");
+  }
+  for (const evidence of configuration.evidence) {
+    if (!retentionClasses.has(evidence.retentionClass)) invalid(`/evidence/${evidence.key}`, "Choose a supported record retention rule.");
+  }
+  for (const channel of configuration.channels) {
+    for (const id of channel.actionKeys) {
+      if (!rules.get(id)?.allowedChannelAccess.includes(`${channel.key}:${channel.accessLevel}`)) invalid(`/channels/${channel.key}`, "This channel and access level do not fit one of its actions.");
+    }
+  }
+  for (const control of configuration.controls) {
+    if (control.currency !== null && !currencies.has(control.currency)) invalid(`/controls/${control.key}`, "Choose a supported currency for this limit.");
+    for (const id of control.actionKeys) {
+      if (!rules.get(id)?.allowedControlKinds.includes(control.kind)) invalid(`/controls/${control.key}`, "This kind of limit does not fit one of its actions.");
+    }
+  }
+  return { ...configuration, compatibility: "operational-references-checked" as const };
+}

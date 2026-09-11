@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { capturePolicySnapshot } from '../src/lib/authority/policy-snapshot.ts';
-import { compilePolicyConfiguration } from '../src/lib/authority/policy-rule-compiler.ts';
+import { compileCompatiblePolicyConfiguration } from '../src/lib/authority/policy-rule-compiler.ts';
 import { capturePolicySource, resolvePolicySources } from '../src/lib/authority/policy-source-resolution.ts';
 
 const cli = process.env.LOCAL_SUPABASE_CLI;
@@ -22,7 +22,10 @@ const keys = { platform: 'test-catalog', jurisdiction: 'test-only', institution:
 // Explicit fictional source split, not a production package merger or legal approval.
 const sourceContent = {
   platform: { actions: catalog.actions, channels: catalog.channels, controls: catalog.controls },
-  jurisdiction: { evidence: catalog.evidence }, institution: draft,
+  jurisdiction: { evidence: catalog.evidence, compatibility: {
+    accountTypes: ['sample'], retentionClasses: ['fixture-retention'], currencies: ['USD'],
+    actions: [{ key: 'statements', requiredEvidenceKeys: ['identity'], allowedChannelAccess: ['phone:view'], allowedControlKinds: ['max_duration_days'] }],
+  } }, institution: draft,
 };
 const history = [], pins = {};
 for (const kind of ['platform', 'jurisdiction', 'institution']) {
@@ -36,9 +39,9 @@ for (const kind of ['platform', 'jurisdiction', 'institution']) {
   if (kind !== 'institution') pins[kind] = { key: keys[kind], version: '1', sha256: saved.sha256 };
 }
 const resolved = resolvePolicySources(history, { organizationId, jurisdiction: 'NY', authorityType: 'fixture', at, keys });
-const configuration = compilePolicyConfiguration(organizationId, {
-  ...resolved.platform.source.content, ...resolved.jurisdiction.source.content,
-}, resolved.institution.source.content);
+const configuration = compileCompatiblePolicyConfiguration(organizationId, {
+  ...resolved.platform.source.content, evidence: resolved.jurisdiction.source.content.evidence,
+}, resolved.institution.source.content, resolved.jurisdiction.source.content.compatibility);
 const content = { configuration, sourceVersions: {
   platform: resolved.platform, jurisdiction: resolved.jurisdiction, institution: resolved.institution,
 } };
