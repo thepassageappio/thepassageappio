@@ -1,5 +1,7 @@
 # Passage Authority fresh-chat handoff
 
+Latest local work: [pending cancellation implementation and evidence](PENDING-CANCELLATION-EVIDENCE-2026-09-10.md). Waiting-for-account-holder cancellation is implemented and locally verified; hosted migration and release remain pending. Local Git writes are restricted because the metadata lives outside this workspace. The authorized GitHub connector is being used to publish the tested files to PR 108; verify its remote head before continuing. No new reconciliation day or outreach approval.
+
 **Resume phrase:** AUTHORITY COMPASS 771204 — FINISH OUTREACH READY PRODUCT
 
 Active repository:

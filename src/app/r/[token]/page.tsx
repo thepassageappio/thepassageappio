@@ -59,11 +59,11 @@ export default async function ParticipantInvitationPage({ params, searchParams }
 
   return <AccountFrame
     eyebrow={preview.institutionName ?? "Secure authority request"}
-    title={waiting ? "The request is waiting for the principal" : viewingReceipt ? `Decision receipt ready for ${preview.participantName}` : resuming ? `Welcome back, ${preview.participantName}` : `Hello, ${preview.participantName}`}
+    title={waiting ? "The request is waiting for the principal" : viewingReceipt ? `Request receipt ready for ${preview.participantName}` : resuming ? `Welcome back, ${preview.participantName}` : `Hello, ${preview.participantName}`}
     description={waiting
       ? "Your link is ready. You can continue after the account holder confirms the request."
       : viewingReceipt
-        ? "The institution recorded its decision. Open the secure receipt to see the outcome, accepted actions, any limits, and later changes."
+        ? "Open the secure receipt to see the saved result and any later changes."
         : resuming
         ? "Your earlier choice is saved. Open the request to finish the remaining steps."
         : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
@@ -82,7 +82,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     {waiting ? <div className={styles.notice} role="status">No action is required yet. The institution will notify you when the request is ready.</div> : ready ? <form action={exchangeParticipantInvitationAction} className={styles.form}>
       <input name="token" type="hidden" value={token!} />
       <input name="idempotencyKey" type="hidden" value={randomUUID()} />
-      <button className={styles.primary} type="submit">{viewingReceipt ? "View decision receipt" : resuming ? "Resume secure request" : "Open secure request"}</button>
+      <button className={styles.primary} type="submit">{viewingReceipt ? "View receipt" : resuming ? "Resume secure request" : "Open secure request"}</button>
       <p className={styles.legal}>This link can be used once and gives you 30 minutes of access to this request.</p>
     </form> : null}
   </AccountFrame>;

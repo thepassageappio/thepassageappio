@@ -1,5 +1,7 @@
 # Authority Compass memory index
 
+Latest local work: [pending cancellation implementation and evidence](../PENDING-CANCELLATION-EVIDENCE-2026-09-10.md). Waiting-for-account-holder cancellation is implemented and locally verified; hosted migration and release remain pending. Local Git writes are restricted because the metadata lives outside this workspace. The authorized GitHub connector is being used to publish the tested files to PR 108; verify its remote head before continuing. No new reconciliation day or outreach approval.
+
 Latest position: [gaps](../PRODUCT-GAPS-2026-09-10.md) and [draft recovery evidence](../DRAFT-RECOVERY-2026-09-10.md). No new reconciliation day or outreach approval was recorded.
 
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.

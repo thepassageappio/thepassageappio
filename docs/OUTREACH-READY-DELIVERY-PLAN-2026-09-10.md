@@ -21,8 +21,8 @@ The institution retains legal, identity, fraud and access decisions. Existing-in
 | ID | Workstream | Deliverable and exit evidence | Status |
 | --- | --- | --- | --- |
 | UX1 | Clear workspace | One prominent next action; open actionable work ahead of older receipts; named next actor; requested scope never labeled already permitted; clean empty/waiting/completed/error states; owner/staff/reviewer/auditor boundaries; desktop/390/360 and keyboard replay | Core implemented and locally verified; remaining accessibility/replay in UX2/REL1 |
-| UX2 | Complete guided journey | Simplify start, onboarding, request preparation, participant steps, evidence corrections and receipts; retain entered information; readable labels, visible progress and recovery; first-time walkthrough without operator coaching | Partial: copy and draft recovery checked; remaining forms and full accessibility/first-use replay open |
-| WF1 | Complete lifecycle | Institution can cancel an unneeded pending request through an authorized, versioned, idempotent command with event, notification treatment, all-persona status and receipt replay | Open |
+| UX2 | Complete guided journey | Simplify start, onboarding, request preparation, participant steps, evidence corrections and receipts; retain entered information; readable labels, visible progress and recovery; first-time walkthrough without operator coaching | Partial: copy, draft recovery and closed-request guidance checked; remaining forms and full accessibility/first-use replay open |
+| WF1 | Complete lifecycle | Institution can cancel an unneeded pending request through an authorized, versioned, idempotent command with event, notification treatment, all-persona status and receipt replay | Awaiting-principal slice locally verified; hosted release, broader states and automatic notices remain open |
 | WF2 | Real POA intake | Explicit supported principal-participation scope; approved path for principal unable to act; agent-initiated existing-instrument intake, successor/co-agent/conflicting-instrument handling or clear exclusions; never fabricate consent or infer incapacity | Open; product and counsel review |
 | POL1 | Institution configuration | Governed action/evidence/channel/control catalogs; draft and publish immutable policy; pin snapshots; explicit stale-draft rebase; preserve activated history; test before/after publication | Open; specified, not built |
 | LEG1 | State rules | Counsel-approved New York applicability, presentation dates, business-day deadlines, reasons and required notices; Pennsylvania separate acknowledgment and state tests before enablement | Open; external signoff required |
@@ -75,6 +75,8 @@ Proceed with independent engineering while waiting for external decisions. Prese
 - Elapsed calendar evidence: rerunning reconciliation on the same day cannot create another day.
 
 Do not let these dependencies stop useful local engineering. Do not mark them closed through documentation alone.
+
+Closed-request guidance is implemented locally with 76 rendered-page checks. See [evidence and limits](CLOSED-REQUEST-GUIDANCE-2026-09-10.md). The [narrow cancellation implementation](PENDING-CANCELLATION-EVIDENCE-2026-09-10.md) now passes database, browser, shared-receipt and concurrency checks. Hosted migration/release, broader states and automatic notices remain open.
 
 ## Immediate continuation
 

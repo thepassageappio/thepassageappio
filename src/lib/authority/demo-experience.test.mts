@@ -89,6 +89,6 @@ test("reviewers and participants receive a visible next action before supporting
   assert.match(institutionRequest, /href: "#institution-decision"/);
   assert.match(institutionRequest, /href: "#required-information"/);
   assert.match(participantOverview, /Your next step: review and decide/);
-  assert.match(participantOverview, /Nothing changes until you choose an action/);
+  assert.match(participantOverview, /You can see the current request below/);
   assert.match(participantRequirements, /allComplete \? "Review and send"/);
 });

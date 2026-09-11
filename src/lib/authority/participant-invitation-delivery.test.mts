@@ -65,16 +65,16 @@ test("representative resume email preserves the prior decision and directs the n
   assert.doesNotMatch(message.text, /accept or decline/i);
 });
 
-test("participant receipt email directs both roles to the institution decision without claiming Passage granted authority", () => {
+test("participant receipt email directs both roles to the saved result without claiming Passage granted authority", () => {
   const message = buildParticipantInvitationEmail({
     ...delivery,
     accessPurpose: "receipt",
   });
-  assert.match(message.subject, /decision receipt ready/i);
-  assert.match(message.text, /outcome, accepted actions, and any limits/i);
+  assert.match(message.subject, /request receipt ready/i);
+  assert.match(message.text, /saved a result for this request/i);
   assert.match(message.text, /Financial power of attorney request/i);
   assert.doesNotMatch(message.text, /request recognition of limited financial power of attorney authority/i);
-  assert.match(message.html, /View decision receipt/);
+  assert.match(message.html, /View receipt/);
   assert.match(message.html, /-webkit-text-size-adjust: 100%/);
   assert.match(message.html, /@media only screen and \(max-width: 480px\)/);
   assert.match(message.html, /min-height: 44px/);

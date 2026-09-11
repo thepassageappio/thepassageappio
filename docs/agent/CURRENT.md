@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest local work: [pending cancellation implementation and evidence](../PENDING-CANCELLATION-EVIDENCE-2026-09-10.md). Waiting-for-account-holder cancellation is implemented and locally verified; hosted migration and release remain pending. Local Git writes are restricted because the metadata lives outside this workspace. The authorized GitHub connector is being used to publish the tested files to PR 108; verify its remote head before continuing. No new reconciliation day or outreach approval.
+
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
 
 Updated September 10, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
@@ -25,7 +27,7 @@ Finish a beautiful, simple, user-friendly product that supports truthful one-pag
 ## Execute next
 
 1. UX2: continue the guided journey, including complete keyboard/zoom/screen-reader and first-time walkthrough checks; UX1 core workspace changes are locally verified.
-2. WF1: institution cancellation of an unneeded pending request, with authorization, versioning, idempotency, event, notices and all-persona receipt replay.
+2. WF1: carry locally verified awaiting-principal cancellation through hosted migration and exact-candidate release checks; broader states and automatic cancellation notices remain outside this slice.
 3. POL1: implement governed institution policy/catalog publication and snapshot/rebase invariants.
 4. Prepare WF2/LEG1: principal unable to participate, state applicability, deadlines, acknowledgments and notices for qualified review.
 5. Continue SEC1/OPS1/OPS2/ASS1 and release-candidate QA. Only then record explicit outreach release.

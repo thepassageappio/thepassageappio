@@ -902,3 +902,32 @@ export async function recordAuthorityLifecycleAction(formData: FormData) {
   }
   redirect(destination);
 }
+
+export async function cancelPendingRequestAction(_previous: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
+  const recordId = textField(formData, "recordId");
+  try {
+    const access = await getAuthorityMutationAccessContext();
+    if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("cancellation_not_allowed");
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("cancel_pending_request_v1", {
+      p_organization_id: access.membership.organizationId, p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")), p_reason: textField(formData, "reason"),
+      p_acknowledged: checkbox(formData, "acknowledged"), p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+  } catch (error) {
+    const code = error && typeof error === "object" && "message" in error ? String(error.message) : "";
+    const messages: Record<string, string> = {
+      cancellation_not_allowed: "Only an owner, administrator, or operations staff member can cancel this request.",
+      cancellation_input_invalid: "Add a reason of 3 to 500 characters and confirm that you want to cancel.",
+      cancellation_not_available: "This request can no longer be canceled here. Refresh the page to see its current status.",
+      request_changed: "The request changed while this page was open. Refresh the page before trying again.",
+      mfa_verification_required: "Verify your sign-in before canceling this request.",
+    };
+    return { error: messages[code] ?? "We could not cancel the request. Your reason is still here. Try again." };
+  }
+  revalidatePath("/app");
+  revalidatePath(`/app/requests/${recordId}`);
+  revalidatePath(`/request/${recordId}/overview`);
+  redirect(`/app/requests/${encodeURIComponent(recordId)}/receipt`);
+}

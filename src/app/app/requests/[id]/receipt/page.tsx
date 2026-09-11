@@ -1,3 +1,5 @@
+import { CancellationReceipt } from "@/components/app/CancellationReceipt";
+import { mapCancellationReceipt } from "@/lib/authority/cancellation";
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -42,6 +44,13 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
   if (decisionError) throw decisionError;
   if (eventError) throw eventError;
   if (invitationError) throw invitationError;
+  if (recordRow?.status === "canceled") {
+    const { data, error } = await supabase.from("authority_request_cancellations").select("receipt_snapshot, receipt_sha256").eq("organization_id", access.organization.id).eq("authority_record_id", id).maybeSingle();
+    if (error) throw error;
+    const cancellation = mapCancellationReceipt(data);
+    if (!cancellation) notFound();
+    return <><CancellationReceipt receipt={cancellation} /><Link className={styles.secondary} href={`/app/requests/${id}`}>Return to request and receipt links</Link></>;
+  }
   if (!recordRow || !decisionRow) notFound();
 
   const record = mapHostedAuthorityRecord(recordRow as never);

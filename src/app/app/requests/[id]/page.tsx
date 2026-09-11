@@ -1,7 +1,9 @@
+import { CancelRequestForm } from "./CancelRequestForm";
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { activateHostedAuthorityRequestAction, recordInstitutionDecisionAction, reissueParticipantInvitationAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
+import { closedRequestMessage } from "@/lib/authority/closed-request";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canCoordinateAuthorityRequests, canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
@@ -59,6 +61,8 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   if (!recordRow) notFound();
 
   const record = mapHostedAuthorityRecord(recordRow as never);
+  const closedMessage = closedRequestMessage(record.status);
+  const reviewFinished = Boolean(closedMessage) || ["accepted", "accepted_with_limits"].includes(record.status);
   const events = (eventRows ?? []).map((row) => mapHostedAuthorityEvent(row as never));
   const savedError = userErrorMessage(error);
   const activatedCount = Number(entitlement?.activated_count ?? 0);
@@ -149,7 +153,9 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
       <div><p className={styles.eyebrow}>{record.referenceCode}</p><h1>{record.principalName} to {record.representativeName}</h1><p>{record.accountBoundary}</p></div>
       <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
     </header>
-    {savedNotice ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
+    {closedMessage ? <div className={styles.notice} role="status">{closedMessage} The saved history is still available below.</div> : null}
+    {record.status === "canceled" ? <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open cancellation receipt</Link> : null}
+    {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     {reviewerNextStep ? <div className={styles.notice}><strong>Your next step: </strong>{reviewerNextStep.description} <a href={reviewerNextStep.href}>{reviewerNextStep.label}</a>.</div> : null}
@@ -168,7 +174,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           </dl>
         </section>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>Your team will decide which of these actions to accept.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
           <ul className={styles.checklist}>{record.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
         </section>
       </div>
@@ -201,7 +207,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
                 <input type="hidden" name="expectedRecordVersion" value={record.version} />
                 <input type="hidden" name="expectedInvitationVersion" value={Number(invitation.version)} />
                 <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-                <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send decision receipt" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
+                <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send receipt link" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
               </form> : null}
               {canReissue ? <span>Sending a fresh link turns every earlier link for this person off.</span> : null}
             </li>;
@@ -209,7 +215,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           <Link className={styles.secondary} href="/app">Return to request queue</Link>
         </section>}
         {(requirements ?? []).length > 0 ? <section className={styles.panel} id="required-information">
-          <div className={styles.panelHead}><div><h2>Required information</h2><p>Review each file or confirmation before making a decision.</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
+          <div className={styles.panelHead}><div><h2>Required information</h2><p>{reviewFinished ? "These files and confirmations are part of the saved history." : "Review each file or confirmation before making a decision."}</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
           <ul className={styles.activity}>{(requirements ?? []).map((requirement) => {
             const artifact = (evidenceArtifacts ?? []).find((item) => String(item.requirement_id) === String(requirement.id));
             return <li key={String(requirement.id)}>
@@ -220,7 +226,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
                 {artifact ? <><span>Source: {String(artifact.original_filename)} · {Math.max(1, Math.round(Number(artifact.byte_size) / 1024))} KB</span><Link href={`/app/evidence/${encodeURIComponent(String(artifact.id))}`}>Open authorized source</Link></> : null}
                 {artifact?.reviewer_note ? <span>Reviewer note: {String(artifact.reviewer_note)}</span> : null}
               </div>
-              {artifact && artifact.review_status === "pending" && canReviewEvidence ? <div>
+              {artifact && artifact.review_status === "pending" && canReviewEvidence && !reviewFinished ? <div>
                 <form action={reviewEvidenceArtifactAction}>
                   <input type="hidden" name="recordId" value={record.id} />
                   <input type="hidden" name="artifactId" value={String(artifact.id)} />
@@ -248,10 +254,10 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           <p>Accepting a file completes this review step. It does not decide whether the power of attorney is legally valid.</p>
         </section> : null}
         {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Questions</h2><p>Ask the representative for missing or unclear information.</p></div><span className={styles.badge}>{openInformationRequest ? "Response needed" : "Up to date"}</span></div>
+          <div className={styles.panelHead}><div><h2>Questions</h2><p>{reviewFinished ? "Questions and responses saved with this request." : "Ask the representative for missing or unclear information."}</p></div><span className={styles.badge}>{reviewFinished ? "Saved history" : openInformationRequest ? "Response needed" : "Up to date"}</span></div>
           {(informationRequests ?? []).length > 0 ? <ul className={styles.activity}>{(informationRequests ?? []).map((item) => {
             const response = responseByRequest.get(String(item.id));
-            return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>Waiting for the representative</span>}</div></li>;
+            return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>{reviewFinished ? "No response was saved" : "Waiting for the representative"}</span>}</div></li>;
           })}</ul> : null}
           {record.status === "under_review" && canRecordDecision && !openInformationRequest ? <form action={requestHostedAuthorityInformationAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />
@@ -265,7 +271,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           </form> : null}
         </section> : null}
         <section className={styles.panel} id="institution-decision">
-          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>Record the outcome after every required review step is complete.</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : decisionReady ? "Ready" : "Not ready"}</span></div>
+          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>{reviewFinished ? "Any saved decision is shown here." : "Record the outcome after every required review step is complete."}</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : closedMessage ? "Closed" : decisionReady ? "Ready" : "Not ready"}</span></div>
           {decision ? <>
             <dl className={styles.policyFacts}>
               <div><dt>Outcome</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
@@ -273,7 +279,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
               <div><dt>Receipt</dt><dd>{decision.receiptCode}</dd></div>
             </dl>
             <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open decision receipt</Link>
-          </> : decisionReady && canRecordDecision ? <form action={recordInstitutionDecisionAction} className={styles.field}>
+          </> : closedMessage ? <p>No institution decision is saved for this request. Review the activity history for what happened.</p> : decisionReady && canRecordDecision ? <form action={recordInstitutionDecisionAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
@@ -305,6 +311,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}
         </section>
+        {record.status === "awaiting_principal" && canCoordinate ? <CancelRequestForm recordId={record.id} version={record.version} idempotencyKey={randomUUID()} /> : null}
         <details className={`${styles.panel} ${styles.disclosurePanel}`}>
           <summary>View activity history ({events.length})</summary>
           <p>Every saved change is listed in order.</p>

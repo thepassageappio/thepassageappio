@@ -54,22 +54,22 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
       ? "finish the remaining steps"
       : "review the request and decide whether to help";
   const subject = isReceipt
-    ? `${delivery.institutionName}: decision receipt ready`
+    ? `${delivery.institutionName}: request receipt ready`
     : isResume
     ? `${delivery.institutionName} sent you a fresh secure access link`
     : `${delivery.institutionName} sent you a secure authority request`;
   const preview = isReceipt
-    ? "View the decision, accepted actions, and any limits."
+    ? "See the saved result and any later changes."
     : isResume
     ? `Resume your secure authority request with ${delivery.institutionName}.`
     : `${delivery.institutionName} invited you as the ${role}.`;
-  const heading = isReceipt ? "Decision receipt ready" : isResume ? "Continue your request" : "Please review this request";
+  const heading = isReceipt ? "Request receipt ready" : isResume ? "Continue your request" : "Please review this request";
   const introduction = isReceipt
-    ? `${delivery.institutionName} recorded its decision. View the outcome, accepted actions, and any limits.`
+    ? `${delivery.institutionName} saved a result for this request. Open the receipt to see what happened.`
     : isResume
     ? `${delivery.institutionName} sent you a new link to ${action}. Your earlier answers are still saved.`
     : `${delivery.institutionName} invited you as the ${role} to ${action}.`;
-  const buttonLabel = isReceipt ? "View decision receipt" : isResume ? "Continue request" : "Open secure request";
+  const buttonLabel = isReceipt ? "View receipt" : isResume ? "Continue request" : "Open secure request";
   const expires = expirationLabel(delivery.expiresAt);
   const purpose = authorityPurposeLabel(delivery.purpose);
 
