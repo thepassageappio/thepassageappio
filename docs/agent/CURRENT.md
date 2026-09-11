@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest buyer-entry evidence: [live keyboard/reflow/download checks](../BUYER-ENTRY-VERIFICATION-2026-09-11.md) passed 32 entry cases and four PDFs on both sites at verified main c64299e. Sample sign-in copy now matches Google availability in both local configurations; all 229 tests/build pass. Copy fix is pending PR 109. No authenticated run, form submission or email delivery is claimed; the controlled-inbox/approval question remains pending.
+
 Immediate owner priority: [buyer demo readiness](../BUYER-DEMO-PRIORITY-2026-09-11.md). Prioritize the presenter journey and reliable invitation arrival over further general policy groundwork. Presenter preparation guidance and sample downloads are added; four-width keyboard/layout checks and all 229 tests/build pass, pending PR 109. A question is pending for two controlled participant inboxes and approval to send rehearsal invitations/receipts. No test mail sent; no completed timed rehearsal or delivery fallback is claimed.
 
 Latest UX1 follow-up: [clearer policy overview](../POLICY-PLAIN-LANGUAGE-2026-09-11.md) spells out power of attorney and accurately describes the saved policy reference. Eight page-state checks and 28 desktop/phone layout cases pass, including keyboard retry; data is mocked. All 229 domain tests, TypeScript, lint and build pass. Pending in PR 109; no production release or broader demo-readiness claim.
