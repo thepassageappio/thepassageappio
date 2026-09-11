@@ -17,6 +17,7 @@ export function AccountFrame({
 }) {
   return (
     <main className={styles.page}>
+      <a className="skip-link" href="#page-content">Skip to page content</a>
       <header className={styles.header}>
         <Link className={styles.brand} href="/">
           <span aria-hidden="true"><i /><i /></span>
@@ -24,7 +25,7 @@ export function AccountFrame({
         </Link>
         <Link className={styles.headerLink} href="/security">Security</Link>
       </header>
-      <section className={styles.shell}>
+      <section id="page-content" tabIndex={-1} className={styles.shell}>
         <div className={styles.introduction}>
           <div>
             <p className={styles.eyebrow}>{eyebrow}</p>

@@ -14,6 +14,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
 
   return (
     <div className={styles.shell}>
+      <a className="skip-link" href="#page-content">Skip to page content</a>
       <aside className={styles.sidebar}>
         <Link className={styles.brand} href="/app">
           <span aria-hidden="true"><i /><i /></span>
@@ -37,7 +38,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           <form action={signOutAction}><button type="submit">Sign out</button></form>
         </div>
       </aside>
-      <main className={styles.main}>{children}</main>
+      <main id="page-content" tabIndex={-1} className={styles.main}>{children}</main>
     </div>
   );
 }
