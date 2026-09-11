@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+Latest POL1 code: [snapshot encoding and exact comparison](../POLICY-SNAPSHOT-ENCODING-2026-09-11.md) adds detached canonical bytes, SHA-256 verification and same-organization policy diffs. Eleven focused tests and 183 total domain tests pass. This is the encoding foundation only; compiler, database persistence, publication and rebase enforcement remain next. No migration or application release occurred.
+
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
 PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled.

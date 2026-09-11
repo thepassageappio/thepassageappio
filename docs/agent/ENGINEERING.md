@@ -27,7 +27,8 @@ Load for product, API, database, or domain changes.
 
 - Notification history: add immutable per-send attempts; mutable outbox remains current work only.
 - Commercial reconciliation: classify provider-backed and synthetic-fixture orders explicitly.
-- Pending lifecycle gap: institutions cannot cancel an awaiting-principal request. Add an institution-authorized cancel/withdraw command after current release blockers, with expected-version and idempotency checks, an append-only event, notification handling, all-persona visibility, and a durable terminal receipt. The rehearsal duplicate was closed as `declined` only because this action does not exist.
+- Awaiting-principal cancellation is now shipped and verified; see [release evidence](../RELEASE-AND-DEMO-STATUS-2026-09-11.md). Broader cancellation states remain separate work.
+- Policy byte encoding and exact comparison are implemented; see [snapshot contract](../POLICY-SNAPSHOT-ENCODING-2026-09-11.md). Persist exact canonical text, never substitute PostgreSQL JSON reserialization for those hashed bytes. Compiler, transactional publication and request snapshot/rebase enforcement are still required.
 
 Consult only as needed:
 
