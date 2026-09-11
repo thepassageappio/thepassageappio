@@ -10,8 +10,12 @@ const query = { organizationId: org, jurisdiction: "NY", authorityType: "poa", a
   keys: { platform: "standard", jurisdiction: "ny-fixture", institution: "office" } };
 function source(kind: PolicySourceKind, edits: Partial<PolicySourceVersion> = {}): PolicySourceVersion {
   return { format: "passage-policy-source-v1", kind, key: query.keys[kind], version: "v1", organizationId: kind === "institution" ? org : null,
-    jurisdiction: "NY", authorityType: "poa", publishedAt: start, effectiveFrom: start, content: { fixture: "Sample rules only" }, ...edits };
+    jurisdiction: "NY", authorityType: "poa", publishedAt: start, effectiveFrom: start,
+    dependencies: kind === "platform" ? {} : kind === "jurisdiction" ? { platform: reference(source("platform")) } :
+      { platform: reference(source("platform")), jurisdiction: reference(source("jurisdiction")) },
+    content: { fixture: "Sample rules only" }, ...edits };
 }
+function reference(value: PolicySourceVersion) { return { key: value.key, version: value.version, sha256: capturePolicySource(value).sha256 }; }
 function history() { return (["platform", "jurisdiction", "institution"] as const).map(kind => capturePolicySource(source(kind))); }
 
 test("each source resolves with exact bytes and a detached result", () => {
@@ -65,4 +69,43 @@ test("unknown fields and malformed selection dates cannot change resolution", ()
     assert.throws(() => resolvePolicySources(history(), { ...query, at }), /UTC/);
   }
   assert.throws(() => resolvePolicySources(history(), { ...query, organizationId: "bad" }), /institution/);
+});
+
+test("a new platform version stops old downstream rules exactly when it takes effect", () => {
+  const rows = history(); rows.push(capturePolicySource(source("platform", { version: "v2", effectiveFrom: change })));
+  assert.equal(resolvePolicySources(rows, { ...query, at: start }).platform.source.version, "v1");
+  assert.throws(() => resolvePolicySources(rows, query), /jurisdiction rules need review.*platform/);
+});
+test("a new jurisdiction version stops an institution policy prepared against its predecessor", () => {
+  const rows = history(); rows.push(capturePolicySource(source("jurisdiction", { version: "v2", effectiveFrom: change })));
+  assert.throws(() => resolvePolicySources(rows, query), /institution rules need review.*jurisdiction/);
+});
+test("matching names cannot conceal a changed upstream hash", () => {
+  const rows = history(); rows[0] = capturePolicySource(source("platform", { content: { fixture: "Different rules under the same name" } }));
+  assert.throws(() => resolvePolicySources(rows, query), /need review/);
+});
+test("revised downstream sources restore resolution without rewriting old bytes", () => {
+  const rows = history(), before = JSON.stringify(rows);
+  const platform = source("platform", { version: "v2", publishedAt: change, effectiveFrom: change });
+  const jurisdiction = source("jurisdiction", { version: "v2", publishedAt: change, effectiveFrom: change, dependencies: { platform: reference(platform) } });
+  const institution = source("institution", { version: "v2", publishedAt: change, effectiveFrom: change,
+    dependencies: { platform: reference(platform), jurisdiction: reference(jurisdiction) } });
+  const revised = [...rows, ...[institution, platform, jurisdiction].map(capturePolicySource)];
+  assert.equal(resolvePolicySources(revised, query).institution.source.version, "v2");
+  assert.equal(resolvePolicySources(revised, { ...query, at: start }).institution.source.version, "v1");
+  assert.equal(JSON.stringify(rows), before);
+});
+test("missing pins, self-dependencies, extra fields and malformed hashes fail capture", () => {
+  assert.throws(() => capturePolicySource(source("jurisdiction", { dependencies: {} })), /fields/);
+  assert.throws(() => capturePolicySource(source("institution", { dependencies: { platform: reference(source("platform")) } })), /fields/);
+  assert.throws(() => capturePolicySource(source("platform", { dependencies: { platform: reference(source("platform")) } })), /fields/);
+  const pinned = reference(source("platform"));
+  assert.throws(() => capturePolicySource(source("jurisdiction", { dependencies: { platform: { ...pinned, sha256: "bad" } } })), /hash/);
+});
+test("a matching dependency cannot claim knowledge of a later publication", () => {
+  const platform = source("platform", { publishedAt: change, effectiveFrom: change });
+  const jurisdiction = source("jurisdiction", { effectiveFrom: change, dependencies: { platform: reference(platform) } });
+  const institution = source("institution", { publishedAt: change, effectiveFrom: change,
+    dependencies: { platform: reference(platform), jurisdiction: reference(jurisdiction) } });
+  assert.throws(() => resolvePolicySources([platform, jurisdiction, institution].map(capturePolicySource), query), /published after/);
 });

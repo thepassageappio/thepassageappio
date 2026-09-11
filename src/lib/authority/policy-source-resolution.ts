@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { canonicalPolicyJson, type PolicyJson } from "./policy-snapshot.ts";
 
 export type PolicySourceKind = "platform" | "jurisdiction" | "institution";
+export type PolicySourceReference = { key: string; version: string; sha256: string };
 export type PolicySourceVersion = {
   format: "passage-policy-source-v1";
   kind: PolicySourceKind;
@@ -12,6 +13,7 @@ export type PolicySourceVersion = {
   authorityType: string;
   publishedAt: string;
   effectiveFrom: string;
+  dependencies: Partial<Record<"platform" | "jurisdiction", PolicySourceReference>>;
   content: { [key: string]: PolicyJson };
 };
 export type StoredPolicySource = { canonicalJson: string; sha256: string };
@@ -38,12 +40,19 @@ function timestamp(value: unknown): asserts value is string {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) || !Number.isFinite(date.getTime()) || date.toISOString() !== value) fail("Use an exact UTC date and time.");
 }
 function validate(value: unknown): asserts value is PolicySourceVersion {
-  object(value, ["format", "kind", "key", "version", "organizationId", "jurisdiction", "authorityType", "publishedAt", "effectiveFrom", "content"]);
+  object(value, ["format", "kind", "key", "version", "organizationId", "jurisdiction", "authorityType", "publishedAt", "effectiveFrom", "dependencies", "content"]);
   if (value.format !== "passage-policy-source-v1" || !kinds.includes(value.kind as PolicySourceKind)) fail("Unknown source format or kind.");
   for (const key of ["key", "version", "jurisdiction", "authorityType"]) text(value[key]);
   if (value.kind === "institution" ? typeof value.organizationId !== "string" || !uuid.test(value.organizationId) : value.organizationId !== null) fail("Source ownership does not match its kind.");
   timestamp(value.publishedAt); timestamp(value.effectiveFrom);
   if (value.publishedAt > value.effectiveFrom) fail("A source cannot take effect before it was published.");
+  const dependencyKinds = value.kind === "platform" ? [] : value.kind === "jurisdiction" ? ["platform"] : ["platform", "jurisdiction"];
+  object(value.dependencies, dependencyKinds);
+  for (const reference of Object.values(value.dependencies)) {
+    object(reference, ["key", "version", "sha256"]);
+    text(reference.key); text(reference.version);
+    if (typeof reference.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(reference.sha256)) fail("A source dependency needs its exact saved hash.");
+  }
   if (!value.content || typeof value.content !== "object" || Array.isArray(value.content) || !Object.keys(value.content).length) fail("Source rules are missing.");
 }
 
@@ -68,7 +77,8 @@ export function readPolicySource(stored: StoredPolicySource): PolicySourceVersio
 /**
  * Call only with a complete history from a trusted server-side source registry.
  * Browser-supplied records or filtered histories cannot establish the current version.
- * Resolving versions does not establish compatibility or counsel approval.
+ * Dependency pins reject unprepared version combinations; they do not establish
+ * semantic compatibility, registry authenticity or counsel approval.
  */
 export function resolvePolicySources(trustedHistory: readonly StoredPolicySource[], selection: PolicySourceSelection) {
   const query: unknown = JSON.parse(canonicalPolicyJson(selection));
@@ -92,6 +102,17 @@ export function resolvePolicySources(trustedHistory: readonly StoredPolicySource
       .sort((left, right) => left.effectiveFrom < right.effectiveFrom ? 1 : -1)[0];
     if (!current) fail(`No ${kind} rules are in effect for this request.`);
     resolved[kind] = { source: current, sha256: capturePolicySource(current).sha256 };
+  }
+  for (const kind of kinds) {
+    for (const dependencyKind of ["platform", "jurisdiction"] as const) {
+      const expected = resolved[kind].source.dependencies[dependencyKind];
+      if (!expected) continue;
+      const actual = resolved[dependencyKind];
+      if (expected.key !== actual.source.key || expected.version !== actual.source.version || expected.sha256 !== actual.sha256) {
+        fail(`The ${kind} rules need review against the current ${dependencyKind} version.`);
+      }
+      if (actual.source.publishedAt > resolved[kind].source.publishedAt) fail("A source cannot depend on rules published after it.");
+    }
   }
   return { stage: "sources-only" as const, ...resolved };
 }

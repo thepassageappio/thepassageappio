@@ -24,11 +24,17 @@ const sourceContent = {
   platform: { actions: catalog.actions, channels: catalog.channels, controls: catalog.controls },
   jurisdiction: { evidence: catalog.evidence }, institution: draft,
 };
-const history = Object.keys(keys).map(kind => capturePolicySource({
-  format: 'passage-policy-source-v1', kind, key: keys[kind], version: '1',
-  organizationId: kind === 'institution' ? organizationId : null,
-  jurisdiction: 'NY', authorityType: 'fixture', publishedAt: at, effectiveFrom: at, content: sourceContent[kind],
-}));
+const history = [], pins = {};
+for (const kind of ['platform', 'jurisdiction', 'institution']) {
+  const saved = capturePolicySource({
+    format: 'passage-policy-source-v1', kind, key: keys[kind], version: '1',
+    organizationId: kind === 'institution' ? organizationId : null,
+    jurisdiction: 'NY', authorityType: 'fixture', publishedAt: at, effectiveFrom: at,
+    dependencies: { ...pins }, content: sourceContent[kind],
+  });
+  history.push(saved);
+  if (kind !== 'institution') pins[kind] = { key: keys[kind], version: '1', sha256: saved.sha256 };
+}
 const resolved = resolvePolicySources(history, { organizationId, jurisdiction: 'NY', authorityType: 'fixture', at, keys });
 const configuration = compilePolicyConfiguration(organizationId, {
   ...resolved.platform.source.content, ...resolved.jurisdiction.source.content,

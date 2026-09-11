@@ -1,6 +1,6 @@
 # Outreach-ready product delivery plan
 
-Latest POL1 checkpoint: [effective source-version selection](POLICY-SOURCE-RESOLUTION-2026-09-11.md) rejects mismatched, altered, conflicting and future-only source packages. All 215 domain tests, TypeScript, lint and build pass; local source resolution -> compilation -> PostgreSQL bytes/permissions also passes. The resolver still needs a trusted immutable registry and compatibility validation. Transactional publication, request binding and rebase remain unbuilt. Storage remains local only (migration 20260911072009 has no local history entry). No product release occurred.
+Latest POL1 checkpoint: [source-version dependency checks](POLICY-SOURCE-RESOLUTION-2026-09-11.md) stop older institution/jurisdiction policies when upstream versions or bytes change. Revised downstream versions restore resolution without changing prior bytes. All 221 domain tests, TypeScript, lint and build pass; local dependency resolution -> compilation -> PostgreSQL bytes/permissions passes. A trusted immutable registry, semantic compatibility, transactional publication, request binding and rebase remain unbuilt. Storage stays local only (migration 20260911072009 has no local history entry). No product release occurred.
 
 Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) is verified locally and pending release in PR 109. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
 
