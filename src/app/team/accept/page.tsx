@@ -19,7 +19,7 @@ export default async function AcceptTeamInvitationPage({ searchParams }: Props) 
 
   if (!access?.user) {
     return (
-      <AccountFrame eyebrow="Organization invitation" title="Sign in to review this invitation" description="Use the same work email address that received the invitation. The secure link is bound to that address.">
+      <AccountFrame eyebrow="Organization invitation" title="Sign in to review this invitation" description="Sign in with the work email address that received this invitation.">
         {error ? <div className={styles.alert} role="alert">{error}</div> : null}
         <Link className={styles.primary} href={`/start?intent=sign-in&next=${encodeURIComponent(returnPath)}`}>Continue securely</Link>
       </AccountFrame>

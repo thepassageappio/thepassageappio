@@ -52,7 +52,7 @@ test("backup factors are usable for challenge and verified-factor deletion is no
   assert.match(factorManager, /friendlyName: `Backup authenticator/);
   assert.match(factorManager, /factor\.status === "unverified"/);
   assert.doesNotMatch(factorManager, /status === "verified"[\s\S]+unenroll/);
-  assert.match(factorManager, /Verified factors cannot be removed from this screen/);
+  assert.match(factorManager, /You cannot remove an authenticator here/);
 });
 
 test("MFA enrollment renders Supabase's QR data URI as an image and offers a recoverable retry", () => {

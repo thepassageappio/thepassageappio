@@ -6,24 +6,37 @@ export default async function PoliciesPage() {
   const access = await getAuthorityAccessContext();
   if (!access?.membership) return null;
   const supabase = await createClient();
-  const { data: selection } = await supabase.from("organization_template_selections").select("template_key, template_version, selected_at").eq("organization_id", access.membership.organizationId).maybeSingle();
+  const { data: selection, error } = await supabase.from("organization_template_selections").select("template_key, template_version, selected_at").eq("organization_id", access.membership.organizationId).maybeSingle();
+
+  if (error) return <PolicyNotice title="We could not load your policy" detail="Reload this page to try again. If it still does not load, ask your organization owner for help." retry />;
+  if (!selection) return <PolicyNotice title="No policy selected" detail="Ask your organization owner to finish the policy step in organization setup." />;
+  if (selection.template_key !== "ny_financial_poa" || selection.template_version !== "2026.1") {
+    return <PolicyNotice title="This saved policy is not supported" detail="This version of Passage cannot show the saved policy. Ask your organization owner to check the policy setup." />;
+  }
 
   return (
     <>
-      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Authority policy</p><h1>New York financial POA</h1><p>This controlled evaluation template defines the current checklist. Your institution reviews the evidence and keeps the final authority decision.</p></div><span className={styles.badge}>Active</span></header>
+      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Authority policy</p><h1>New York financial POA</h1><p>This checklist is used for the sample requests. Your institution reviews the documents and makes the final decision.</p></div><span className={styles.badge}>Selected</span></header>
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Controlled evaluation scope</h2><p>Limited, non-transactional account-service actions only. Institution policy configuration is not yet available in this release.</p></div></div>
+          <div className={styles.panelHead}><div><h2>What this sample covers</h2><p>The sample covers statement copies and account questions. You cannot change the institution’s rules in Passage yet.</p></div></div>
           <div className={styles.policyScope}>
-            <div className={styles.scopeCard}><h3>May be requested</h3><ul><li>Receive duplicate statements for a named account boundary</li><li>Discuss defined account-service questions</li></ul></div>
+            <div className={styles.scopeCard}><h3>May be requested</h3><ul><li>Get statement copies for the named account</li><li>Discuss defined account-service questions</li></ul></div>
             <div className={styles.scopeCard} data-tone="caution"><h3>Never included in this release</h3><ul><li>Move, withdraw, or transfer money</li><li>Open or close accounts</li><li>Change owners, beneficiaries, credentials, or investments</li></ul></div>
           </div>
         </section>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Policy record</h2><p>The selected version remains attached to every future decision.</p></div></div>
-          <dl className={styles.policyFacts}><div><dt>Template</dt><dd>New York financial POA</dd></div><div><dt>Version</dt><dd>{selection?.template_version ?? "2026.1"}</dd></div><div><dt>Decision owner</dt><dd>Receiving institution</dd></div><div><dt>Automatic legal decision</dt><dd>Never</dd></div></dl>
+          <div className={styles.panelHead}><div><h2>Saved policy</h2><p>This is the policy selected for your organization. Each request keeps its own saved version.</p></div></div>
+          <dl className={styles.policyFacts}><div><dt>Template</dt><dd>New York financial POA</dd></div><div><dt>Version</dt><dd>{selection.template_version}</dd></div><div><dt>Decision owner</dt><dd>Receiving institution</dd></div><div><dt>Automatic legal decision</dt><dd>Never</dd></div></dl>
         </section>
       </div>
     </>
   );
+}
+
+function PolicyNotice({ title, detail, retry = false }: { title: string; detail: string; retry?: boolean }) {
+  return <>
+    <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Authority policy</p><h1>{title}</h1><p>{detail}</p></div></header>
+    {retry ? <form method="get"><button className={styles.primary} type="submit">Reload policy</button></form> : null}
+  </>;
 }

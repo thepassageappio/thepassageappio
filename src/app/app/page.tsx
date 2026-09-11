@@ -4,6 +4,7 @@ import { provisionHostedDemoRunAction } from "@/app/account-actions";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { evaluationProgress } from "@/lib/authority/evaluation-progress";
+import { requestNextStep } from "@/lib/authority/request-next-step";
 import { canCoordinateAuthorityRequests, institutionWorkspacePresentation } from "@/lib/authority/role-capabilities";
 import { hostedStatusLabel, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
@@ -42,19 +43,13 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
   const mayCreate = canCoordinateAuthorityRequests(access.membership.role);
   const mayPrepareDemo = mayProvisionDemoRun(access.user.email, access.membership.role);
   const presentation = institutionWorkspacePresentation(access.membership.role);
-  const progress = evaluationProgress(records, entitlement?.period_ends_at ?? null);
+  const progress = evaluationProgress(records, entitlement?.period_ends_at ?? null, new Date(), access.membership.role);
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>{presentation.eyebrow}</p><h1>{presentation.title ?? access.organization.displayName}</h1><p>{presentation.description}</p></div>
+      <div><p className={styles.eyebrow}>{presentation.eyebrow}</p><h1>{presentation.title ?? access.organization.displayName}</h1><p>{access.membership.role === "auditor" ? "Review request history, institution decisions, and shared receipts." : presentation.description}</p></div>
       {mayCreate ? <div className={styles.headerActions}>
-        {mayPrepareDemo && entitlement ? <form action={provisionHostedDemoRunAction}>
-          <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
-          <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-          <button className={styles.primary} type="submit">Prepare a fresh demo</button>
-        </form> : null}
-        {!mayPrepareDemo ? <Link className={styles.secondary} href="/app/requests/new?sample=1">Start with sample details</Link> : null}
-        <Link className={mayPrepareDemo ? styles.secondary : styles.primary} href="/app/requests/new">Start a blank request</Link>
+        <Link className={styles.secondary} href="/app/requests/new?sample=1">New sample request</Link>
       </div> : null}
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
@@ -64,33 +59,33 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
       <div className={styles.metric}><span>Complete results</span><strong>{progress.completedCount}</strong></div>
       <div className={styles.metric}><span>{progress.daysRemaining == null ? "Evaluation timing" : "Days remaining"}</span><strong>{progress.daysRemaining == null ? "Starts on send" : progress.daysRemaining}</strong></div>
     </section>
-    {mayCreate ? <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="evaluation-next-step">
+    {access.membership.role !== "developer" ? <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="evaluation-next-step">
       <div className={styles.progressCopy}>
-        <p className={styles.eyebrow}>Your next step · {progress.milestone} of 3</p>
+        <p className={styles.eyebrow}>Your next step</p>
         <h2 id="evaluation-next-step">{progress.nextTitle}</h2>
         <p>{progress.nextDescription}</p>
       </div>
-      <ol className={styles.progressSteps} aria-label="Evaluation progress">
+      {mayCreate ? <ol className={styles.progressSteps} aria-label="Evaluation progress">
         <li data-complete={progress.milestone > 1}>Send</li>
         <li data-complete={progress.milestone > 2}>Complete</li>
         <li data-current={progress.milestone === 3}>Review receipt</li>
-      </ol>
+      </ol> : null}
       <Link className={styles.primary} href={progress.nextHref}>{progress.nextLabel}</Link>
     </section> : null}
-    <div className={styles.grid} style={{ marginTop: 17 }}>
+    <div className={`${styles.grid} ${polish.workspaceGrid}`} style={{ marginTop: 17 }}>
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>Authority requests</h2><p>Every request shows its status, scope, policy, and next action.</p></div><span className={styles.badge}>{records.length} total</span></div>
+        <div className={styles.panelHead}><div><h2>Authority requests</h2><p>See where each request stands and who needs to act next.</p></div><span className={styles.badge}>{records.length} total</span></div>
         {records.length === 0 ? <div className={styles.empty}>
           <strong>{presentation.emptyTitle}</strong>
-          <p>{presentation.emptyDescription}</p>
+          <p>{mayCreate || access.membership.role === "reviewer" ? presentation.emptyDescription : "There are no requests to view. Your request coordinator can confirm what is being prepared."}</p>
         </div> : <div className={`${styles.tableWrap} ${polish.tableWrap}`}><table className={`${styles.table} ${polish.table}`}>
-          <thead><tr><th>Request</th><th>Status</th><th>Scope</th><th>Updated</th><th>Action</th></tr></thead>
+          <thead><tr><th>Request</th><th>Status and next step</th><th>Requested scope</th><th>Updated</th><th>Action</th></tr></thead>
           <tbody>{records.map((record) => <tr key={record.id}>
             <td data-label="People"><strong>{record.principalName} to {record.representativeName}</strong><small>{record.referenceCode}</small></td>
-            <td data-label="Status"><span className={styles.badge}>{hostedStatusLabel(record.status)}</span></td>
-            <td data-label="Scope"><strong>{record.accountBoundary}</strong><small>{record.allowedActionKeys.length} permitted {record.allowedActionKeys.length === 1 ? "action" : "actions"}</small></td>
+            <td data-label="Status"><span className={`${styles.badge} ${polish.requestStatus}`}>{hostedStatusLabel(record.status)}</span><small>{requestNextStep(record, access.membership!.role).actor}</small></td>
+            <td data-label="Requested"><strong>{record.accountBoundary}</strong><small>{record.allowedActionKeys.length} requested {record.allowedActionKeys.length === 1 ? "action" : "actions"}</small></td>
             <td data-label="Updated">{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(record.updatedAt))}</td>
-            <td data-label="Action"><Link className={styles.smallButton} href={`/app/requests/${record.id}`}>Open request</Link></td>
+            <td data-label="Action"><Link className={styles.smallButton} href={`/app/requests/${record.id}`} aria-label={`${requestNextStep(record, access.membership!.role).label} ${record.referenceCode}`}>{requestNextStep(record, access.membership!.role).label}</Link></td>
           </tr>)}</tbody>
         </table></div>}
       </section>
@@ -104,15 +99,24 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
             <li>An owner or operations staff member starts and sends requests</li>
           </ul>
         </> : <>
-          <div className={styles.panelHead}><div><h2>Ready to demonstrate</h2><p>Your workspace is configured for a safe product walkthrough.</p></div></div>
+          <div className={styles.panelHead}><div><h2>About this evaluation</h2><p>Try the steps with made-up people and sample documents.</p></div></div>
           <ul className={styles.checklist}>
-            <li>Verified organization owner</li>
-            <li>Evaluation terms accepted</li>
-            <li>New York financial POA workflow selected</li>
-            <li>Access limited to your organization</li>
+            <li>Start with a saved draft. Nothing is sent until you choose to send.</li>
+            <li>The account holder and representative each complete their own step.</li>
+            <li>Your institution reviews the evidence and records its decision.</li>
+            <li>The receipt shows what the institution accepted and any limits.</li>
           </ul>
         </>}
       </section>
     </div>
+    {mayCreate && mayPrepareDemo && entitlement ? <details className={polish.demoTools}>
+      <summary>Presenter tools</summary>
+      <p>Create fresh sample requests for a practice run.</p>
+      <form action={provisionHostedDemoRunAction}>
+        <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
+        <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+        <button className={styles.secondary} type="submit">Prepare a fresh demo</button>
+      </form>
+    </details> : null}
   </>;
 }

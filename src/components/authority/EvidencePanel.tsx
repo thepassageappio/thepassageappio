@@ -36,7 +36,7 @@ export function EvidencePanel({ record }: { record: AuthorityRecord }) {
                   <p>{artifact.sourceNote}</p>
                   {artifact.findings?.length ? <dl className={styles.findings}>{artifact.findings.map((finding) => <div key={finding.key}><dt>{finding.label}</dt><dd>{finding.value}<small>{finding.sourceLocator} · {finding.reviewStatus === "needs_review" ? "Confirm during review" : "Observed"}</small></dd></div>)}</dl> : null}
                 </div>
-              )) : requirement.failureReason ? <p className={styles.emptyEvidence}>{requirement.failureReason}</p> : <p className={styles.emptyEvidence}>This result will appear here when the responsible person completes the step.</p>}
+              )) : requirement.failureReason ? <p className={styles.emptyEvidence}>{requirement.failureReason}</p> : <p className={styles.emptyEvidence}>The result will appear here when this step is done.</p>}
             </article>
           );
         })}

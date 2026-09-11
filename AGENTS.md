@@ -1,5 +1,7 @@
 # Passage Authority agent contract
 
+Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](docs/PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+
 ## Always true
 
 - Passage coordinates a delegated-authority request between a principal, representative, and institution. Identity evidence, authority evidence, and institution acceptance remain separate.

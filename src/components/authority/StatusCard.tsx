@@ -20,8 +20,8 @@ function message(record: AuthorityRecord, role: ActorRole) {
     (["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"].includes(record.status) && role === "representative") ||
     (record.status === "under_review" && role === "reviewer");
   if (active) return "This request needs your attention now.";
-  if (["accepted", "accepted_with_limits", "rejected", "declined", "withdrawn", "revoked", "expired"].includes(record.status)) return "The current outcome and its saved proof are shown below.";
-  return "Another participant owns the next step. You will see their saved result here.";
+  if (["accepted", "accepted_with_limits", "rejected", "declined", "withdrawn", "revoked", "expired"].includes(record.status)) return "The saved result and supporting details are below.";
+  return "Someone else needs to act next. Their result will appear here.";
 }
 
 export function StatusCard({ record, role }: { record: AuthorityRecord; role: ActorRole }) {

@@ -12,6 +12,7 @@ const PARTICIPANT_RECEIPT_STATUSES = new Set<HostedAuthorityStatus>([
   "rejected",
   "revoked",
   "expired",
+  "canceled",
 ]);
 
 export function canReissueParticipantAccess(

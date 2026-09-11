@@ -1,5 +1,7 @@
 # QA and demo playbook
 
+> **September 10 UTC continuation:** [Latest evidence and remaining gates](../P1-P2-HOSTED-EVIDENCE-2026-09-10.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.
+
 Load for browser, persona, mobile, accessibility, recovery, or demo verification.
 
 ## Pass standard

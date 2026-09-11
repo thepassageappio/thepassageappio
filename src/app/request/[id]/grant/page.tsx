@@ -26,7 +26,7 @@ export default async function PrincipalGrantPage({ params, searchParams }: { par
 
   if (!context || context.participantRole !== "principal") {
     return <AccountFrame eyebrow="Secure request" title="This decision is unavailable" description="Use the latest invitation from the institution to open the request.">
-      <div className={styles.alert} role="alert">Your secure access is missing, expired, or belongs to a different role.</div>
+      <div className={styles.alert} role="alert">This page needs your own current link. Open the latest email sent to you.</div>
       <Link className={styles.secondary} href="/security">How Passage protects access</Link>
     </AccountFrame>;
   }

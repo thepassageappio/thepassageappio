@@ -58,7 +58,7 @@ export default async function BlogArticlePage({ params }: Props) {
       <article>
         <header className={styles.articleHeader}>
           <p className={styles.category}>{post.category}</p>
-          <h1>{post.title}</h1>
+          <h1 id="page-content" tabIndex={-1}>{post.title}</h1>
           <p className={styles.byline}>By Passage Authority · Published September 4, 2026 · {post.readingTime}</p>
           <p className={styles.answer}><strong>Short answer:</strong> {post.answer}</p>
         </header>

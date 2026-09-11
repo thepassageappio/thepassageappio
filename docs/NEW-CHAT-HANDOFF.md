@@ -1,64 +1,32 @@
 # Passage Authority fresh-chat handoff
 
-**Codeword:** `AUTHORITY COMPASS 771204`
+Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
 
-**Exact continuation phrase:** `AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2`
+Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
 
-Paste this into a new chat:
+Latest: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) passed 32 browser cases. The app still requires JavaScript, but disabled-script visitors now see clear instructions instead of endless loading. Hosted cancellation replay and UAT preview SSO remain open.
 
-```text
-AUTHORITY COMPASS 771204 — PERSONA MATRIX PASSED — CLOSE P1 P2
+Latest follow-up: [public keyboard navigation](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) adds native header shortcuts and repairs the 320px commercial-header overflow. This supersedes earlier statements that public-page skip navigation is unimplemented. Hosted replay, actual zoom/screen-reader and first-use verification remain open; no release or outreach occurred.
 
-Read:
-C:\Users\Turrisi OS\Documents\Codex\2026-09-05\authority-compass-771204-resume-execution-read\passage-authority-main-verify\docs\NEW-CHAT-HANDOFF.md
+Latest UX2 progress: [native keyboard skip navigation](KEYBOARD-NAVIGATION-2026-09-11.md) is implemented for workspace and account/participant layouts. Eight Chromium layout checks passed at 1280/390/360/320px with JavaScript disabled. Public commercial navigation, actual zoom/screen-reader and independent first-use checks remain open. Hosted database evidence is unchanged; no migration was repeated. Hosted authenticated cancellation replay and UAT preview SSO remain release work. The earlier documentation checkpoint was pushed as `060b7b6`; Git and PR metadata access are restored.
 
-Follow the latest restart checkpoint and linked playbooks. Preserve uncommitted work. Do not repeat completed setup. Keep synthetic-demo readiness separate from buyer-facing release and real-data pilot approval. Resume the first unfinished item in the documented top five.
-```
+September 11, 01:53 UTC: full access restored normal Git operations. Local branch now matches the published code with only documentation changes pending. PR 108 title/body updated successfully. Demo preview dpl_BEHhSRiY2j1NbdyqqfETQk1N2Gx4 is Ready and /api/version verifies ccbbc8531b2a7703cfda32301e2c9a37a85e60e9 on the intended branch. UAT preview dpl_32JXKTNZUTXrkDLAXnTJZb5CQST6 is Ready, but its version endpoint redirects to Vercel SSO even through vercel curl. Deployment protection remains enabled. Production /api/version still verifies main 42976b096b7569174f3b290419a20610ea3ea638. Hosted authenticated browser replay remains open; no release or outreach was performed.
 
-## Resume sequence
+Earlier access-blocker statements below are historical; the remaining preview access issue is UAT SSO.
 
-1. Read `AGENTS.md`.
-2. Read [agent/CURRENT.md](./agent/CURRENT.md).
-3. Inspect Git status and preserve all uncommitted work.
-4. Load only the playbook for the active task.
+September 11 UTC checkpoint: [hosted cancellation evidence](PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
 
-## Latest restart checkpoint
+**Resume phrase:** AUTHORITY COMPASS 771204 — FINISH OUTREACH READY PRODUCT
 
-The last independently verified production SHA is PR #106 merge `1611c5dce4392a0674890896b7141a868935cd39`; `/api/version` served that exact SHA with verified GitHub `main` provenance. PR #106 records the complete post-MFA persona proof and raises workspace table controls to the 44px target. Verify `/api/version` again before making a later deployment claim. PR #92 delivered auditable provider cleanup, source-controlled notification history, reconciliation repair, progressive release controls, and three-layer privileged MFA. PR #93 fixed the authenticated mobile-navigation overlap; PR #95 added owner/admin backup-authenticator enrollment and the Pennsylvania packet; PR #96 established the authority-scope catalog and forward-only policy/rebase contract; PRs #99–100 deployed the gated sample and fixed existing-email HubSpot upsert plus consent revisions; PR #101 recorded the optional V3 participant authority portfolio strategy; PR #102 reconciled the production sample-lead evidence; PRs #103–104 deployed gated-source attribution, explicit nurture consent, held nurture enrollment, the four-message series, and the final release record. Migration `20260909051650` is applied to UAT and Demo.
+Active repository:
+`C:/Users/Turrisi OS/Documents/Codex/2026-09-09/authority-compass-771204-persona-matrix-passed/passage-authority`
 
-Hosted owner and independent administrator TOTP enrollment, AAL1 database denial, AAL2 database success, and production desktop verification pass. The deployed backup-factor flow passed a real fresh-session replay: both factor choices appeared, the backup factor completed AAL2, and `/app` loaded. The two automation-created factors were removed afterward and zero remained. Exact hosted 390px and 360px workspace geometry now passes on PR #106 with scrollable role navigation, contained document width, and no visible main-content target below 44px. Do not mark P2 MFA closed until an authorized, audited all-factors-lost recovery process and team-visible privileged-MFA compliance pass.
+1. Read `AGENTS.md`, then [current checkpoint](agent/CURRENT.md) and [memory index](agent/MEMORY-INDEX.md).
+2. Inspect Git status; preserve all work. Active branch is `agent/p1-p2-closeout-20260909`, PR 108. Do not resume the older dirty main-verify checkout.
+3. Read the [outreach-ready delivery plan](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md). Continue the first unfinished workstream with the relevant playbook.
+4. Use the [market assessment](MARKET-RESEARCH-2026-09-10.md) for product/buyer reasoning and the [prior ledger](P1-P2-CONTINUATION-2026-09-10.md) for completed provider and persona evidence.
+5. Report implemented, tested, merged and live separately. Production was last reverified at `42976b096b7569174f3b290419a20610ea3ea638`; verify again before claiming a newer release.
 
-The current New York template still hard-codes two non-transactional actions. That is a controlled synthetic fixture, not the intended institution product. Read `docs/AUTHORITY-SCOPE-CATALOG-REQUIREMENTS-2026-09-08.md`. Institution onboarding must install a versioned starter catalog per authority type and allow authorized owners/admins to activate or deactivate standard actions, add governed custom actions, configure channels and limits, and publish immutable versions. Requests and receipts must snapshot the exact version. Do not claim this configurability in buyer materials until it is implemented and replayed.
+Owner wants a complete, beautiful, simple product for one-pagers and outreach. That is the outcome, not an instruction to send messages now. P1/P2 and real-data gates remain open. No broad compliance or unsupported feature claims. Team MFA inventory is implemented/tested in PR; controlled all-factors-lost recovery is still open.
 
-The evidence policy is also fixed today: a database trigger seeds POA document, representative certification, and identity evidence, and `/app/policies` is read-only. The website sentence saying the institution defines its evidence requirements was ahead of current behavior and is corrected on production. The implementation contract is on `main` at `docs/INSTITUTION-POLICY-MANAGEMENT-REQUIREMENTS-2026-09-08.md`; use it for action, exclusion, evidence, review, channel, control, legal-lock, publication, rebase, and enforcement work.
-
-The participant experience is currently an expiring, role-bound session for one authority record; there are no persistent participant accounts or cross-request dashboards. The validated V3 direction is an optional participant authority portfolio: principals see who acts for them, representatives see whom they help, and both see separate institution recognition decisions, scope, limits, receipts, and acknowledged lifecycle states. Read `docs/PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md`. Preserve the architectural path, but do not make it a V2 launch gate or public claim and never imply that one institution's acceptance applies to another.
-
-Marketing sample links route to gated `/sample`, not Owner onboarding and privileged MFA. Production UAT currently supports one-time email authentication; its Supabase Google provider is disabled. Google remains enabled and proven in Demo and must not be advertised as live production until configured and replayed there. Consent version `sample-access-contact-2026.2` explicitly covers a short sample follow-up series, product updates, and a walkthrough invitation. One service transaction records append-only consent and `sample_evaluator` nurture-enrollment events, canonical source `website_sample_gated`, privacy notice `evaluation-2026.2`, and an idempotent HubSpot Contact projection labeled `Website - Gated Sample`. Delivery remains `held_until_p1_p2`; no nurture or outbound message may send before both gates close. Read `docs/SAMPLE-WORKFLOW-ACCESS-DECISION-2026-09-08.md` and `docs/SAMPLE-EVALUATOR-NURTURE-SERIES-2026-09-08.md`.
-
-Pennsylvania is now a confirmed product gap rather than an unanswered investigation. The generic `representative_certification` does not capture the agent signature/name, date, substantially prescribed § 5601(d) content, executed artifact, or association with the POA. Read `docs/PENNSYLVANIA-LAUNCH-REQUIREMENTS-2026-09-08.md`; keep Pennsylvania disabled until counsel approves and the separate state requirement passes synthetic QA.
-
-UAT and Demo currently compute reconciliation as `clean`, but September 7–8 are immutable blocked days. Run and record the first credited day on September 9 UTC. UAT HubSpot credentialing and Contact projection are proven; the internal job still needs live Stripe and HubSpot provider reads before it can satisfy the full three-way claim. Its current embedded scope note still says HubSpot credentials are unconfigured; correct that wording prospectively and do not alter the immutable September 8 report.
-
-## Current objective
-
-Overall buyer-ready launch score is provisionally **6.8/10**. PR #105 fixed the new-owner MFA front door and hardened all 20 private tables. The complete post-MFA production persona matrix now passes: Owner and Administrator verified TOTP and reached `/app`; an independent Reviewer received the intended review-only workspace; request `PA-E3DEFCE539` completed principal, representative, evidence, review, decision, and matching three-party receipt `PAR-1805F05F8FC4`. The application regression that reopened P0 is closed. Final presenter sign-off still needs deterministic invitation delivery, timed/mobile/accessibility, and remaining hosted negative paths. P1 has its 20-account source list and Proof.com response, while named buyer contacts, confirmed warm paths, and first-five personalization remain open. Read `docs/QA-REPORT-2026-09-09.md`, `docs/STRATEGIC-REVIEW-2026-09-09.md`, and `docs/agent/CURRENT.md`.
-
-The five commercial frameworks are audited in `docs/COMMERCIAL-STRATEGY-COVERAGE-2026-09-09.md`. GTM coverage is 6.5/10: a researched 20-account source list and current Proof.com response exist; named buyer contacts, confirmed warm paths, first-five personalization, buyer evidence, and operating economics remain open.
-
-Execute in this order: finish presenter-grade timed/keyboard/accessibility/negative-path QA and make invitation delivery deterministic; close the remaining hosted security-advisor findings after the completed private-table RLS hardening; finish the first-five buyer-contact/warm-path/personalization batch from the completed P1 list; preserve the reconciliation streak and close backup/state/security gates; then implement the configurable policy catalog before any held buyer-facing release. September 9 is clean reconciliation day 1. Keep demo release and real-data approval as separate decisions.
-
-The September 9 Gmail caveat is real: Resend marked the principal, representative, Administrator, and Reviewer invitations delivered, but exact Gmail searches did not surface several invitation messages; decision receipts did surface. The application state and delivery webhooks behaved correctly, but a buyer demo must not depend on manually extracting links from Resend. Keep Google Postmaster/domain-reputation work and a presenter-safe fallback in the release plan.
-
-## Standing gates
-
-- No cold outreach, LinkedIn publication, or buyer-facing demo until P1 and P2 are explicitly closed.
-- No real institution data until backups, restore evidence, security/privacy/vendor-risk review, and counsel gates close.
-- App-level TOTP is available on Supabase Free. Production remains on Free with no automated backups; the plan decision belongs to the owner.
-- Before real email volume, register the authenticated sending domain in Google Postmaster Tools.
-- Track institution-side cancellation of awaiting-principal requests as a product gap.
-- Prepare a truthful SOC 2 path and timeline before the first sales conversation.
-
-Detailed release evidence: [AUTHORITY-COMPASS-RELEASE-CHECKPOINT-2026-09-08.md](./AUTHORITY-COMPASS-RELEASE-CHECKPOINT-2026-09-08.md).
-
-Archived full handoff: [archive/NEW-CHAT-HANDOFF-2026-09-07-full.md](./archive/NEW-CHAT-HANDOFF-2026-09-07-full.md).
+Historical handoff is preserved at [archive](archive/HANDOFF-before-market-plan-2026-09-10.md). Its old statuses do not override CURRENT or the active delivery plan.

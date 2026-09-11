@@ -5,6 +5,7 @@ import styles from "./portal.module.css";
 export function PortalHeader({ active }: { active: "home" | "institution" | "templates" | "developer" }) {
   return (
     <header className={styles.header}>
+      <a className="skip-link" href="#page-content">Skip to page content</a>
       <Link href="/" className={styles.brand}>
         <span className={styles.brandMark} aria-hidden="true"><i /><i /></span>
         <span>Passage <b>Authority</b></span>

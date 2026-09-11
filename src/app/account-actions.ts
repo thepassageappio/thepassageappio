@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAuthorityAccessContext, getAuthorityMutationAccessContext } from "@/lib/authority/access";
+import { userErrorMessage } from "@/lib/authority/user-messages";
 import { prepareHostedAuthorityDraft } from "@/lib/authority/hosted-records";
 import { prepareHostedInstitutionDecision, prepareHostedLifecycleChange } from "@/lib/authority/hosted-decisions";
 import { prepareHostedInformationRequest } from "@/lib/authority/hosted-information";
@@ -121,6 +122,13 @@ function errorCode(error: unknown) {
     demo_entitlement_unavailable: "evaluation_unavailable",
     demo_recipient_configuration_invalid: "demo_recipient_configuration_invalid",
     demo_fixture_not_available: "request_failed",
+    "Enter the full name of each person.": "participant_name_invalid",
+    "Enter a valid email address for each person.": "participant_email_invalid",
+    "The person granting authority and the representative need a different email address.": "participant_roles_must_be_distinct",
+    "Describe the account or relationship covered by this request.": "account_boundary_invalid",
+    "Choose a future request end date.": "valid_until_invalid",
+    "Choose at least one permitted action.": "allowed_action_invalid",
+    "One of the requested actions is not supported by this template.": "allowed_action_invalid",
     "Choose the requirement that needs more information.": "information_request_requirement_invalid",
     "Explain what information is still needed.": "information_request_message_required",
     "Confirm that this is the institution's decision for this request.": "institution_decision_acknowledgment_required",
@@ -505,7 +513,7 @@ export async function provisionHostedDemoRunAction(formData: FormData) {
   redirect(destination);
 }
 
-export async function createHostedAuthorityDraftAction(formData: FormData) {
+export async function createHostedAuthorityDraftAction(_previous: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
   let destination = "/app/requests/new";
   try {
     const access = await getAuthorityMutationAccessContext();
@@ -540,7 +548,7 @@ export async function createHostedAuthorityDraftAction(formData: FormData) {
     revalidatePath(`/app/requests/${result.authority_record_id}`);
     destination = withMessage(`/app/requests/${result.authority_record_id}`, "notice", "draft_created");
   } catch (error) {
-    destination = withMessage("/app/requests/new", "error", errorCode(error));
+    return { error: userErrorMessage(errorCode(error)) };
   }
   redirect(destination);
 }
@@ -893,4 +901,33 @@ export async function recordAuthorityLifecycleAction(formData: FormData) {
     destination = withMessage(destination, "error", errorCode(error));
   }
   redirect(destination);
+}
+
+export async function cancelPendingRequestAction(_previous: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
+  const recordId = textField(formData, "recordId");
+  try {
+    const access = await getAuthorityMutationAccessContext();
+    if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("cancellation_not_allowed");
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("cancel_pending_request_v1", {
+      p_organization_id: access.membership.organizationId, p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")), p_reason: textField(formData, "reason"),
+      p_acknowledged: checkbox(formData, "acknowledged"), p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+  } catch (error) {
+    const code = error && typeof error === "object" && "message" in error ? String(error.message) : "";
+    const messages: Record<string, string> = {
+      cancellation_not_allowed: "Only an owner, administrator, or operations staff member can cancel this request.",
+      cancellation_input_invalid: "Add a reason of 3 to 500 characters and confirm that you want to cancel.",
+      cancellation_not_available: "This request can no longer be canceled here. Refresh the page to see its current status.",
+      request_changed: "The request changed while this page was open. Refresh the page before trying again.",
+      mfa_verification_required: "Verify your sign-in before canceling this request.",
+    };
+    return { error: messages[code] ?? "We could not cancel the request. Your reason is still here. Try again." };
+  }
+  revalidatePath("/app");
+  revalidatePath(`/app/requests/${recordId}`);
+  revalidatePath(`/request/${recordId}/overview`);
+  redirect(`/app/requests/${encodeURIComponent(recordId)}/receipt`);
 }

@@ -4,7 +4,7 @@ import styles from "@/app/commercial.module.css";
 export function CommercialFooter() {
   return (
     <footer className={styles.footer}>
-      <span>Passage Authority · Controlled evaluation</span>
+      <span>Passage Authority · Sample trial</span>
       <nav aria-label="Site information">
         <Link href="/faq">FAQ</Link>
         <Link href="/blog">Blog</Link>

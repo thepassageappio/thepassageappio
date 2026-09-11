@@ -11,12 +11,11 @@ export const metadata: Metadata = {
 };
 
 const roles = [
-  ["Owner", "Full organization, team, request, policy, billing, integration, and audit control."],
-  ["Administrator", "Runs day-to-day access, requests, decisions, billing, and audit without controlling owners or adding administrators."],
-  ["Staff", "Creates and coordinates requests without deciding them or managing access and billing."],
+  ["Owner", "Manages the organization, team access, requests, settings, billing, and records."],
+  ["Administrator", "Manages daily work and billing. Cannot change owners or add administrators."],
+  ["Staff", "Prepares and sends requests. Cannot make decisions or manage access and billing."],
   ["Reviewer", "Reviews evidence, asks for corrections, and records the institution’s decision."],
-  ["Auditor", "Has read-only visibility into requests, receipts, access history, billing, and integrations."],
-  ["Developer", "Manages integrations without participant-request or billing access."],
+  ["Auditor", "Can view requests, receipts, access history, billing, and system connections. Cannot change them."],
 ] as const;
 
 export default function FaqPage() {
@@ -26,7 +25,7 @@ export default function FaqPage() {
 
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Frequently asked questions</p>
-        <h1>Plain answers about what Passage does.</h1>
+        <h1 id="page-content" tabIndex={-1}>Plain answers about what Passage does.</h1>
         <p>Start with the real-life use case, then see how identity checks, institution decisions, organizations, roles, and the current evaluation work.</p>
         <nav className={styles.jumpLinks} aria-label="FAQ topics">
           <a href="#product">Product</a>
@@ -57,11 +56,11 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>Who is Passage for?</h3>
-              <p>The institution workspace is designed for operations, review, compliance, technology, audit, and accountable leaders. Account holders and representatives use focused, role-bound steps rather than the institution workspace.</p>
+              <p>Bank and credit union teams use the workspace to prepare and review requests. Account holders and the people helping them use separate links for their own steps.</p>
             </article>
             <article>
               <h3>What is the current product focus?</h3>
-              <p>The controlled evaluation focuses on New York financial power of attorney for deposit-account servicing. We are starting with a narrow workflow so its responsibilities, exceptions, decisions, and later changes can be demonstrated end to end.</p>
+              <p>The sample covers a New York power of attorney request for statement copies and account questions. It uses made-up details so you can try the full process.</p>
             </article>
           </div>
         </section>
@@ -86,11 +85,11 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>What can each person see?</h3>
-              <p>Account holders and representatives receive separate role-bound experiences with only the steps and information they need. Institution users see the workspace capabilities assigned to their organization role. Revoking a team member’s access removes their organization access.</p>
+              <p>Each person gets their own steps and information. Staff access depends on their assigned role. Removing a team member’s access stops them from using the workspace.</p>
             </article>
             <article>
               <h3>What record is kept?</h3>
-              <p>Saved actions are added to an ordered activity history. The resulting decision receipt describes the participants, request scope, institution outcome, limits, and current status so permitted people and systems can reconcile the same result.</p>
+              <p>Passage saves what happened and when. A receipt shows the people, requested actions, the institution’s answer, and any limits or later changes.</p>
             </article>
             <article>
               <h3>What does a completed request look like?</h3>
@@ -105,13 +104,13 @@ export default function FaqPage() {
 
         <section className={styles.topic} id="organization" aria-labelledby="organization-heading">
           <div className={styles.topicIntro}>
-            <p>03 · Enterprise setup</p>
+            <p>03 · Team setup</p>
             <h2 id="organization-heading">Organizations, users, roles, and permissions</h2>
           </div>
           <div className={styles.questions}>
             <article>
               <h3>How does an organization create its Passage workspace?</h3>
-              <p>An authorized evaluator signs in with a work email, records the organization’s legal and participant-facing names, organization type, domain, and operating address, accepts the evaluation terms, and selects the workflow policy. That first accountable user becomes the organization owner.</p>
+              <p>Someone with permission to try Passage signs in with a work email. They add the organization’s details, accept the terms, and choose the sample checklist. They become the workspace owner.</p>
             </article>
             <article>
               <h3>Can the organization add users and control their access?</h3>
@@ -131,7 +130,7 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>Is this ready for approved customer data?</h3>
-              <p>Not by default. The current evaluation uses synthetic data only. Before an approved controlled-data pilot, the institution and Passage must agree the data boundary and complete the required identity, access, isolation, retention, recovery, incident, privacy, vendor, and independent security reviews.</p>
+              <p>No. Use made-up details in the current trial. Before using customer data, Passage and your institution must agree what data is allowed and complete the required legal, privacy, security, and recovery checks.</p>
             </article>
           </div>
         </section>
@@ -139,34 +138,34 @@ export default function FaqPage() {
         <section className={styles.topic} id="evaluation" aria-labelledby="evaluation-heading">
           <div className={styles.topicIntro}>
             <p>04 · Getting started</p>
-            <h2 id="evaluation-heading">Evaluation, integrations, and commercial path</h2>
+            <h2 id="evaluation-heading">Trying Passage and planning a pilot</h2>
           </div>
           <div className={styles.questions}>
             <article>
               <h3>Can I try the complete workflow?</h3>
-              <p><strong>Yes.</strong> The no-card evaluation uses sample information to show the institution, account holder, representative, reviewer, decision, receipt, and later-change experiences. Do not enter real customer or sensitive personal information.</p>
+              <p><strong>Yes.</strong> Use sample details to try each person’s steps and see the final answer. No card is needed. Do not enter real customer details.</p>
             </article>
             <article>
               <h3>How does Passage connect to existing systems?</h3>
-              <p>A hosted workflow comes first so the full operating model can be proven quickly. APIs and signed webhooks can then connect request creation and current decision updates to institution systems as integration requirements are agreed.</p>
+              <p>Start by using Passage on its own. We can then plan how your system sends requests and receives updates. Your technical team can review the API and signed update messages.</p>
             </article>
             <article>
               <h3>How is Passage priced?</h3>
-              <p>The controlled evaluation is free for five sample requests over 10 days. The founding pilot is $5,000, credited toward year one, for a focused 60-to-90-day proof of operational fit. Institution pricing is shaped afterward by volume, workflow, integration, security, implementation, and support needs. Account holders and representatives are never charged.</p>
+              <p>Try five sample requests free over 10 days. A paid pilot costs $5,000 and lasts 60 to 90 days. That fee counts toward year one if you continue. Ongoing pricing depends on what your institution needs. Account holders and representatives do not pay.</p>
             </article>
             <article>
               <h3>What is the best next step?</h3>
-              <p>Book a 20-minute walkthrough for a guided view, or start the sample workflow if you want to explore first. We can tailor the conversation to operations, compliance, product, technology, security, or executive stakeholders.</p>
+              <p>Book a 20-minute walkthrough, or try the example first. Tell us what your team needs help with.</p>
               <div className={styles.answerActions}>
                 <Link href="/contact">Book a walkthrough</Link>
-                <Link href="/sample">Explore the sample workflow</Link>
+                <Link href="/sample">Try the example</Link>
               </div>
             </article>
           </div>
         </section>
 
         <aside className={styles.help} aria-label="More help">
-          <div><p className={styles.eyebrow}>Still have a question?</p><h2>Bring us the hard version.</h2><span>We will answer plainly, show the current product, and separate what works today from what must be completed before a pilot.</span></div>
+          <div><p className={styles.eyebrow}>Still have a question?</p><h2>Tell us what you need help with.</h2><span>We will answer plainly, show the current product, and separate what works today from what must be completed before a pilot.</span></div>
           <Link href="/contact">Ask Passage</Link>
         </aside>
       </div>

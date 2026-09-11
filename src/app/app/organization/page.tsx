@@ -94,10 +94,10 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
   const setupControls = [
     { label: "Organization identity", detail: "Legal name, display name, and institution type are recorded.", complete: Boolean(access.organization.legalName && access.organization.displayName) },
     { label: "Accountable owner", detail: "At least one active owner is responsible for organization access.", complete: activeOwners.length >= 1 },
-    { label: "Backup owner", detail: activeOwners.length >= 2 ? "A second owner protects account recovery." : "Add or promote a second owner before controlled data.", complete: activeOwners.length >= 2 },
-    { label: "Separated team roles", detail: activeMembers.length >= 2 ? "Multiple people can hold distinct operating and review roles." : "Invite an operator or reviewer to prove separation of duties.", complete: activeMembers.length >= 2 },
+    { label: "Backup owner", detail: activeOwners.length >= 2 ? "A second owner protects account recovery." : "Add a second owner before using approved customer data.", complete: activeOwners.length >= 2 },
+    { label: "Separated team roles", detail: activeMembers.length >= 2 ? "Different people can prepare requests and review them." : "Invite staff to prepare requests and a reviewer to decide them.", complete: activeMembers.length >= 2 },
     { label: "Authority policy", detail: templateResult.data ? `Policy ${templateResult.data.template_version} is attached to new requests.` : "Select a policy before requests begin.", complete: Boolean(templateResult.data) },
-    { label: "Evaluation entitlement", detail: plan ? "Usage and access-period limits are tracked by Passage." : "The evaluation allowance is not available.", complete: Boolean(plan) },
+    { label: "Trial allowance", detail: plan ? "Usage and access-period limits are tracked by Passage." : "The evaluation allowance is not available.", complete: Boolean(plan) },
     { label: "Invitation recovery", detail: expiredInvitations.length === 0 ? "No expired invitation needs attention." : `${expiredInvitations.length} expired invitation${expiredInvitations.length === 1 ? "" : "s"} need replacement.`, complete: expiredInvitations.length === 0 },
   ];
   const completeControls = setupControls.filter((control) => control.complete).length;
@@ -108,7 +108,7 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
         <div>
           <p className={styles.eyebrow}>Organization administration</p>
           <h1>{access.organization.displayName}</h1>
-          <p>One place to understand organization identity, accountable access, policy, billing, integrations, and the controls still required for a pilot.</p>
+          <p>Manage your organization details, team access, and billing. See what still needs to be done before a pilot.</p>
         </div>
         <span className={styles.badge}>{roleLabel(role)}</span>
       </header>
@@ -169,17 +169,17 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
             <div className={styles.field}><label htmlFor="pilot-end">Pilot ends</label><input id="pilot-end" name="servicePeriodEnd" type="date" defaultValue={pilotPeriod.servicePeriodEnd} required /></div>
             <div className={styles.field}><label htmlFor="pilot-allowance">Request allowance</label><input id="pilot-allowance" name="requestAllowance" type="number" min="1" max="500" defaultValue="25" required /></div>
             <button className={styles.primary} type="submit">Prepare $5,000 test invoice</button>
-            <p>Demo test mode only. This records the service period and allowance before opening Stripe’s hosted invoice.</p>
+            <p>For this demo only. Save the dates and number of requests, then open the test invoice in Stripe.</p>
           </form> : mayManageBilling && !billing?.hosted_invoice_url ? <div className={styles.panelActions}><Link className={styles.primary} href="/contact?topic=billing">Contact billing support</Link></div> : null}
         </section>
       </div>
 
       <section className={styles.panel}>
-        <div className={styles.panelHead}><div><h2>Controlled-data pilot gates</h2><p>These are intentionally visible instead of being implied by a completed evaluation.</p></div><span className={styles.badge}>Before pilot</span></div>
+        <div className={styles.panelHead}><div><h2>Controlled-data pilot gates</h2><p>Trying the sample does not complete these checks.</p></div><span className={styles.badge}>Before pilot</span></div>
         <div className={styles.gateGrid}>
-          <div><strong>Identity security</strong><p>Verified organization domain and privileged-user MFA enforcement.</p><small>Not yet configured</small></div>
-          <div><strong>Commercial operations</strong><p>Named billing contact, approved invoice path, and reconciled entitlement.</p><small>{isEvaluation ? "Required for pilot" : "Plan connected"}</small></div>
-          <div><strong>Integration assurance</strong><p>Provider delivery health, audit export, retention owner, and tested recovery.</p><small>Evidence still required</small></div>
+          <div><strong>Identity security</strong><p>Check the organization’s email domain. Require a second sign-in step for accounts that manage access.</p><small>Not yet configured</small></div>
+          <div><strong>Commercial operations</strong><p>Name a billing contact. Check the invoice and make sure the plan matches what was paid for.</p><small>{isEvaluation ? "Required for pilot" : "Plan connected"}</small></div>
+          <div><strong>Integration assurance</strong><p>Check that messages arrive and records can be exported. Decide how long to keep data and test how to restore it.</p><small>Evidence still required</small></div>
         </div>
       </section>
     </>

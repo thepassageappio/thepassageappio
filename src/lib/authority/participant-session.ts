@@ -1,3 +1,4 @@
+import { mapCancellationReceipt } from "./cancellation";
 import { cookies } from "next/headers";
 import { mapParticipantSessionContext, PARTICIPANT_SESSION_COOKIE } from "./participant-access";
 import { mapParticipantEvidenceContext } from "./participant-evidence";
@@ -70,4 +71,11 @@ export async function getParticipantInformationRequest(authorityRecordId: string
     message: String(row.message),
     requestedAt: String(row.requested_at),
   };
+}
+
+export async function getParticipantCancellation(authorityRecordId: string) {
+  const token = (await cookies()).get(PARTICIPANT_SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const { data, error } = await createAuthorityAdminClient().rpc("get_participant_cancellation_v1", { p_session_token: token, p_authority_record_id: authorityRecordId });
+  return error ? null : mapCancellationReceipt(data);
 }

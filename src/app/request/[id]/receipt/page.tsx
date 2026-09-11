@@ -1,3 +1,5 @@
+import { CancellationReceipt } from "@/components/app/CancellationReceipt";
+import { getParticipantCancellation } from "@/lib/authority/participant-session";
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
@@ -14,6 +16,8 @@ function dateTime(value: string) {
 
 export default async function ParticipantDecisionReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const cancellation = await getParticipantCancellation(id);
+  if (cancellation) return <AccountFrame eyebrow="Saved receipt" title="Request closed" description="The institution saved this cancellation for everyone named in the request."><CancellationReceipt receipt={cancellation} /><Link className={styles.secondary} href={`/request/${encodeURIComponent(id)}/overview`}>Return to request summary</Link></AccountFrame>;
   const receipt = await getParticipantDecisionReceipt(id);
 
   if (!receipt) {

@@ -1,5 +1,10 @@
 # Passage Authority product source of truth
 
+## September 10 delivery direction
+
+The owner has adopted the [market-informed outreach-ready delivery plan](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md). It controls current sequence and release evidence without weakening this document's authority boundaries or forward-only policy invariant. The [research](MARKET-RESEARCH-2026-09-10.md) identifies principal participation, jurisdiction deadlines, broader access controls and actual buyer economics as explicit gaps. Sections describing the intended launch catalog are requirements, not proof of shipped configurability.
+
+
 **Version:** 1.7
 **Date:** September 3, 2026
 **Status:** Active build and release contract  

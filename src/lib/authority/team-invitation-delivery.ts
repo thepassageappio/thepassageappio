@@ -59,8 +59,8 @@ export function buildTeamInvitationEmail(delivery: TeamInvitationDelivery) {
     "Review the organization and requested role before accepting access:",
     delivery.secureUrl,
     "",
-    `This secure link is bound to ${delivery.email} and expires ${expires} Eastern Time.`,
-    "Passage Authority coordinates authority requests. The receiving institution keeps the final decision.",
+    `This link works only for ${delivery.email} and expires ${expires} Eastern Time.`,
+    "Passage keeps the request and answer together. The institution makes the final decision.",
   ].join("\n");
 
   const html = `<!doctype html>
@@ -76,8 +76,8 @@ export function buildTeamInvitationEmail(delivery: TeamInvitationDelivery) {
             <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2">You have been invited</h1>
             <p style="margin:0 0 24px;font-size:17px;line-height:1.6">${escapeHtml(organizationName)} invited you to join its Passage Authority workspace as <strong>${escapeHtml(role)}</strong>.</p>
             <p style="margin:0 0 28px"><a href="${escapeHtml(delivery.secureUrl)}" style="display:inline-block;background:#12664f;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 20px;border-radius:10px">Review invitation</a></p>
-            <p style="margin:0 0 12px;color:#4e625d;font-size:14px;line-height:1.6">This secure link is bound to ${escapeHtml(delivery.email)} and expires ${escapeHtml(expires)} Eastern Time.</p>
-            <p style="margin:0;color:#4e625d;font-size:14px;line-height:1.6">Passage Authority coordinates authority requests. The receiving institution keeps the final decision.</p>
+            <p style="margin:0 0 12px;color:#4e625d;font-size:14px;line-height:1.6">This link works only for ${escapeHtml(delivery.email)} and expires ${escapeHtml(expires)} Eastern Time.</p>
+            <p style="margin:0;color:#4e625d;font-size:14px;line-height:1.6">Passage keeps the request and answer together. The institution makes the final decision.</p>
           </td></tr>
         </table>
       </td></tr>

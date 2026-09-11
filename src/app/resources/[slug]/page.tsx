@@ -7,7 +7,7 @@ import styles from "@/app/commercial.module.css";
 
 const articles = {
   "financial-poa-operations": {
-    title: "A clearer operating model for financial POA requests",
+    title: "A clearer way to handle power of attorney requests",
     description: "Separate what each person supplies from what the institution reviews and decides.",
     sections: [
       ["Start with one shared request", "Name the account holder, representative, purpose, affected account relationship, requested actions, exclusions, and end date before anything is sent. This gives every later step the same boundary."],
@@ -17,7 +17,7 @@ const articles = {
     ],
   },
   "decision-receipts": {
-    title: "What a useful authority decision receipt should show",
+    title: "What to include in a decision receipt",
     description: "A receipt should answer what was decided, for whom, within which boundaries, and whether it is still current.",
     sections: [
       ["The exact people and purpose", "Identify the account holder, representative, institution, purpose, account relationship, and request end date in language a person can recognize."],
@@ -27,13 +27,13 @@ const articles = {
     ],
   },
   "hosted-first-integration": {
-    title: "Why hosted-first is the fastest path to a useful pilot",
-    description: "Prove the full customer and reviewer experience before spreading unfinished logic across existing systems.",
+    title: "Try Passage before connecting other systems",
+    description: "Test every step for customers and reviewers before connecting other systems.",
     sections: [
-      ["Prove the workflow first", "A hosted experience lets the institution test people, requirements, exceptions, decisions, and recovery as one complete story before committing integration resources."],
+      ["Prove the workflow first", "Using Passage on its own lets your team try the whole process before spending time on system connections."],
       ["Connect at stable boundaries", "Once the workflow is understood, an API can create the request and a signed webhook can return status changes and the current receipt. The institution does not need to rebuild the participant experience."],
       ["Make the sandbox realistic", "Use explicit sample data, separate test and production environments, copyable requests, example responses, signed event examples, retry guidance, and a quickstart that reaches a completed request."],
-      ["Measure time to value", "Track time to the first sent request and the first completed receipt. A simple integration claim is credible only when a new technical user can reproduce it."],
+      ["Measure time to value", "Measure how long it takes to send a first request and reach a decision. Ask someone new to follow the setup guide and check that it works."],
     ],
   },
 } as const;
@@ -54,7 +54,7 @@ export default async function ResourceArticle({ params }: { params: Promise<{ sl
   if (!article) notFound();
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>Passage field note</p><h1>{article.title}</h1><p>{article.description}</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Passage field note</p><h1 id="page-content" tabIndex={-1}>{article.title}</h1><p>{article.description}</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>{article.sections.map(([title, body]) => <article className={styles.card} key={title}><h2>{title}</h2><p>{body}</p></article>)}</section>
       <section className={styles.callout}><div><h2>See the workflow in practice.</h2><p>Use sample information to experience the request from the institution and participant sides.</p></div><Link className={styles.cta} href="/start">Try Passage free</Link></section>

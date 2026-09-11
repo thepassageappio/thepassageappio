@@ -62,12 +62,12 @@ export default async function DecisionReceipt({ params }: { params: Promise<{ id
             <section className={styles.card}>
               <div className={styles.cardHead}><div><p>Institution</p><h2>{record.relyingParty.name}</h2></div><span>Policy {record.policy.version}</span></div>
               <dl className={styles.summary}>
-                <div><dt>Account boundary</dt><dd>{record.accountBoundary}</dd></div>
+                <div><dt>Account covered</dt><dd>{record.accountBoundary}</dd></div>
                 <div><dt>Authority source</dt><dd>{record.authoritySource.instrumentName}</dd></div>
                 <div><dt>Jurisdiction</dt><dd>New York</dd></div>
                 <div><dt>Request ends</dt><dd>{date(record.validUntil)}</dd></div>
                 <div><dt>Decision recorded</dt><dd>{date(decision?.decidedAt)}</dd></div>
-                <div><dt>Lifecycle</dt><dd>{record.revokedAt ? `Revoked ${date(record.revokedAt)}` : decision ? "Active unless ended, expired, or revoked" : "Decision not yet recorded"}</dd></div>
+                <div><dt>Current status</dt><dd>{record.revokedAt ? `Revoked ${date(record.revokedAt)}` : decision ? "Active unless ended, expired, or revoked" : "Decision not yet recorded"}</dd></div>
               </dl>
             </section>
 

@@ -81,3 +81,12 @@
     width: 100%;
   }
 }
+.demoTools { margin-top: 24px; color: var(--muted); font-size: 13px; }
+.demoTools summary { display: list-item; width: fit-content; min-height: 44px; padding: 12px 4px; cursor: pointer; }
+.demoTools summary:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.demoTools p { line-height: 1.6; }
+.workspaceGrid { grid-template-columns: minmax(0, 1fr); }
+.workspaceGrid .requestStatus { height: auto; min-height: 24px; padding: 6px 9px; line-height: 1.4; }
+@media (max-width: 720px) {
+  .workspaceGrid .table td > * { grid-column: 2; }
+}

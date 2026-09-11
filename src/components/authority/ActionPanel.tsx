@@ -87,7 +87,7 @@ function Principal({ record }: { record: AuthorityRecord }) {
     );
   }
 
-  return <Waiting title="No action is required" body="The final outcome and authority lifecycle are preserved in the receipt." />;
+  return <Waiting title="No action is required" body="The receipt keeps the decision and any later changes." />;
 }
 
 function RepresentativeRequirementList({ record }: { record: AuthorityRecord }) {
@@ -214,7 +214,7 @@ function Representative({ record }: { record: AuthorityRecord }) {
       <section className={styles.actionPanel}>
         <p className={styles.eyebrow}>Reviewer request · {requirement?.label ?? "Requirement"}</p>
         <h2>{record.informationRequest.message}</h2>
-        <p>The response is attached to this requirement and returned to the same reviewer workspace.</p>
+        <p>Your answer is saved with this step so the reviewer can read it.</p>
         <form action={executeAuthorityAction} className={styles.formStack}>
           <Hidden record={record} command="resolve_information" />
           <label>Your response<textarea name="response" required minLength={3} placeholder="Explain what you confirmed or added." /></label>
@@ -229,7 +229,7 @@ function Representative({ record }: { record: AuthorityRecord }) {
       <section className={styles.actionPanel}>
         <p className={styles.eyebrow}>Your responsibility</p>
         <h2>{record.status === "under_review" ? "The institution is reviewing this request" : "No action is required right now"}</h2>
-        <p>The current owner and saved progress are visible above. You may withdraw if you can no longer serve.</p>
+        <p>See who goes next and what is done above. You can leave the request if you can no longer help.</p>
         <details className={styles.reviewOption}>
           <summary>Withdraw from this responsibility</summary>
           <form action={executeAuthorityAction} className={styles.formStack}>
@@ -261,12 +261,12 @@ function Reviewer({ record }: { record: AuthorityRecord }) {
       );
     }
     if (["declined", "withdrawn", "revoked", "expired"].includes(record.status)) {
-      return <Waiting title="This request has ended" body="The reason and final lifecycle state are preserved in the decision receipt." />;
+      return <Waiting title="This request has ended" body="The receipt shows why the request ended." />;
     }
     return (
       <Waiting
         title={record.status === "information_requested" ? `Waiting for ${record.representative.name}` : "The packet is not ready for review"}
-        body="The responsible participant and saved progress are shown in the status, policy requirements, and receipt."
+        body="Check the status to see who needs to act next. The checklist shows what is already done."
       />
     );
   }
@@ -275,7 +275,7 @@ function Reviewer({ record }: { record: AuthorityRecord }) {
     <section className={styles.actionPanel}>
       <p className={styles.eyebrow}>Your next step · Policy {record.policy.version}</p>
       <h2>Review and record the institution&apos;s decision</h2>
-      <p>Passage shows policy completion and source details separately. Your institution retains the final decision.</p>
+      <p>Check the completed steps and the documents behind them. Your institution makes the final decision.</p>
       <div className={styles.reviewerEvidence}>
         {record.requirements.map((requirement) => (
           <span key={requirement.key}>

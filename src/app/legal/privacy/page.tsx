@@ -8,6 +8,7 @@ export default function EvaluationPrivacyPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}><Link href="/">Passage Authority</Link><Link href="/start">Return to account setup</Link></header>
+      <aside className={styles.document} aria-label="Plain-language guide"><h2>What this means</h2><p>Passage uses the information needed to run your account and requests. Who can see it depends on their access. Marketing emails need your separate agreement, and you can unsubscribe. Some records may need to be kept for legal or security reasons. Read the full notice below.</p><p>This guide helps explain the document below. It does not replace it.</p></aside>
       <article className={styles.document}>
         <p className={styles.eyebrow}>Evaluation privacy</p><h1>Evaluation Privacy Notice</h1><p className={styles.version}>Version evaluation-2026.2 · Effective September 8, 2026</p>
         <p className={styles.callout}>This notice describes the evaluation workflow. Final production retention, subprocessor, and jurisdiction terms require the applicable customer agreement and privacy review.</p>

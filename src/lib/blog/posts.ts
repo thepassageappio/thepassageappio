@@ -77,7 +77,7 @@ export const blogPosts: BlogPost[] = [
         heading: "A simple example",
         paragraphs: [
           "Imagine your grandmother signed a financial power of attorney naming you as her agent. She wants you to receive duplicate statements and speak with her credit union about account-service questions.",
-          "The request can start with her, with you, or with the institution. Passage then gives each person a separate secure step. Your grandmother confirms the request and its boundaries first. You accept the responsibilities assigned to you. The institution reviews the document and evidence before deciding what it will recognize.",
+          "In Passage today, the bank or credit union starts the request. Your grandmother uses her own link to confirm the details. You use a separate link to agree to help. The institution reviews the documents and decides what it will accept.",
         ],
       },
       {
@@ -96,7 +96,7 @@ export const blogPosts: BlogPost[] = [
     ],
     questions: [
       { question: "Can my grandmother use Passage to tell her bank I am her agent?", answer: "Yes—that is the core scenario. She can confirm a request that identifies you as her proposed representative, and the bank can review and record what authority it will recognize." },
-      { question: "Can I start the request for her?", answer: "The workflow can be initiated by the representative or institution, but the person granting authority receives a separate step and acts before representative access opens." },
+      { question: "Can I start the request for her?", answer: "Ask the bank or credit union to start it. In Passage today, the institution sends the invitation. The account holder confirms first, then the representative can continue." },
       { question: "Does Passage create a power of attorney?", answer: "No. Passage handles the request and review around an existing authority document. People should consult a qualified lawyer for advice about creating or interpreting a power of attorney." },
     ],
     sources: [
