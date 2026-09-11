@@ -1,5 +1,7 @@
 # Authority Compass memory index
 
+Latest contact evidence: [local database replay](../CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
+
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
 Latest UX2 form evidence: [native entry validation](../ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Contact server-error recovery is now shipped below; browser fetch disconnects are also handled; HTTP failures and authenticated first-use remain open.

@@ -1,5 +1,7 @@
 # Product status and remaining gaps
 
+Latest contact evidence: [local database replay](CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
+
 Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) is verified locally and pending release in PR 109. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
 
 
