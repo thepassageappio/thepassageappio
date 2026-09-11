@@ -10,7 +10,7 @@ This example uses made-up people and documents. It covers statement copies and a
 
 1. Use the [Demo site](https://demo.thepassageapp.io). [Sign in to your existing workspace](https://demo.thepassageapp.io/start?intent=sign-in). Complete your normal security check.
 2. Open separate browser profiles for the owner, administrator, reviewer, account holder and representative. Check the name and role in each institution profile. Do not reuse a closed test account.
-3. Confirm the two participant email addresses and the owner's permission to send test invitations and receipts. This is still pending. Do not send until it is resolved.
+3. Use the two participant email addresses supplied by the owner. The owner approved rehearsal invitations and receipts; the addresses are still pending. Do not guess them.
 4. Download the [sample authority document](https://demo.thepassageapp.io/samples/fictional-poa.pdf) and [sample identity document](https://demo.thepassageapp.io/samples/fictional-identity.pdf). Keep both ready to upload. Use no real documents.
 5. In the approved presenter workspace, open the demo preparation guide. Choose **Prepare a fresh demo**. This creates a draft; it does not send invitations. Check the fictional details and intended email addresses before sending.
 

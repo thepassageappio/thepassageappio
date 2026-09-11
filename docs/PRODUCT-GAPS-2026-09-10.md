@@ -1,8 +1,10 @@
 # Product status and remaining gaps
 
+Latest release: PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) is live on both sites at verified main `326976fd1dc0a4009b18db5429dedf474d48c37c`. [HTTP contact recovery](CONTACT-HTTP-RECOVERY-2026-09-11.md) preserves entries after invalid 503/429/502 responses. The 172-test build, eight exception-boundary and seven action checks passed. Both exact previews and both live sites each passed 12 injected errors, four preflight denials and four honeypot redirects at four widths. Public smoke passed 44 routes/eight recovery states; both error scans returned zero records. No migration, inquiry or provider send occurred. The owner approved rehearsal email; the two recipient addresses remain pending.
+
 Latest contact evidence: [local database replay](CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
 
-Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) is verified locally and pending release in PR 109. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
+Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) shipped in PR 110 and remains included in the current release. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
 
 
 PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled.
@@ -13,7 +15,7 @@ See [release evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Updated September
 
 Passage has a tested sample journey from institution request through separate participant steps to a recorded decision and matching receipts. The current sample is New York, with statement copies and account questions. It is not yet the complete configurable product or approved for general customer-data use.
 
-Production and origin/main are verified at `ee3a5fbf6e83fadc320be3c11002af7055c566c8`. PR 112 is merged and live; see [connection recovery evidence](CONTACT-NETWORK-RECOVERY-2026-09-11.md).
+Production and origin/main are verified at `326976fd1dc0a4009b18db5429dedf474d48c37c`. PR 113 is merged and live; PR 112 remains included; see [connection recovery evidence](CONTACT-NETWORK-RECOVERY-2026-09-11.md).
 
 ## What the research means now
 

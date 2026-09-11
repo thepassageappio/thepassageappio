@@ -12,7 +12,7 @@ Use the [presenter run card](PRESENTER-RUN-CARD-2026-09-11.md) for setup, the ti
 
 ## Next accepted run
 
-1. Confirm the two owner-controlled participant inboxes and permission to send rehearsal invitations/receipts. A concise question is pending with the owner. No new test email has been sent; do not infer approval from elapsed time.
+1. Obtain the two participant email addresses from the owner. The owner approved sending rehearsal invitations and receipts; the exact addresses remain pending. No new test email has been sent.
 2. Verify presenter sign-in, institution role separation and the exact configured recipient pair. Complete necessary setup before the timed run.
 3. Prepare a fresh sample through the presenter UI. Open each invitation from its actual inbox in a separate profile. Do not recover links through SQL or a provider dashboard for the accepted run.
 4. Confirm, accept, upload the two sample files, request a clarification, answer it, accept with limits, compare receipts and show revocation. Record duration, role, status and saved evidence at each step.
