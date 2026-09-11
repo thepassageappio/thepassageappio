@@ -1,5 +1,7 @@
 # Product status and remaining gaps
 
+Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
+
 Latest UX2 completion: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
 
 Latest follow-up: [public keyboard navigation](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) adds native header shortcuts and repairs the 320px commercial-header overflow. This supersedes earlier statements that public-page skip navigation is unimplemented. Hosted replay, actual zoom/screen-reader and first-use verification remain open; no release or outreach occurred.

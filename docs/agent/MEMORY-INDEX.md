@@ -1,5 +1,7 @@
 # Authority Compass memory index
 
+Latest POL1 prerequisite: [accurate policy overview](../POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
+
 Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
 
 Latest UX2 evidence: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) and [shared-layout navigation](../KEYBOARD-NAVIGATION-2026-09-11.md). Release/database evidence: [hosted cancellation](../PENDING-CANCELLATION-HOSTED-2026-09-11.md). Earlier access restrictions are historical; Git/PR writes work. Hosted journey verification, UAT preview SSO, actual zoom/screen-reader and independent first-use checks remain open.
