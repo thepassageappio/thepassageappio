@@ -2,11 +2,13 @@
 
 The owner's latest instruction is to make the buyer demo seamless. Prioritize the presenter journey and delivery blocker over expanding general policy infrastructure. POL1 remains unfinished; do not imply the fixed sample offers policy authoring or enterprise compliance.
 
-## Completed this pass
+## Presenter preparation shipped in PR 110
 
 The existing allowlisted Demo presenter tools now include a short preparation checklist, both sample PDF downloads, separate-profile instructions, the complete practice sequence and missing-invitation guidance. Preparing a sample still creates a draft without sending email. No authorization, recipient selection, invitation logic or durable request behavior changed.
 
-Actual guide markup and styles passed at 1280, 390, 360 and 320 pixels: keyboard opening, focus order through both downloads and the preparation button, 44px targets and no horizontal overflow. Both PDFs exist; the 360px screenshot was inspected. This was a local render check, not authenticated provisioning or a hosted rehearsal. All 229 domain tests, TypeScript, lint and build passed. Changes are pending in PR 109.
+Actual guide markup and styles passed at 1280, 390, 360 and 320 pixels: keyboard opening, focus order through both downloads and the preparation button, 44px targets and no horizontal overflow. Both PDFs exist; the 360px screenshot was inspected. This was a local render check, not authenticated provisioning or a hosted rehearsal. All 229 domain tests, TypeScript, lint and build passed. These presenter changes shipped in PR 110 and remain included in current live main ee3a5fb. The earlier test counts describe the local policy branch, not the isolated release.
+
+Use the [presenter run card](PRESENTER-RUN-CARD-2026-09-11.md) for setup, the timed story, stop conditions and the evidence sheet. Its public links and PDF bytes were checked September 11 at 18:41 UTC. This preparation does not close the fresh-run gate.
 
 ## Next accepted run
 

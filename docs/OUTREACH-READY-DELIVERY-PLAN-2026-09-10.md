@@ -1,5 +1,7 @@
 # Outreach-ready product delivery plan
 
+Presenter preparation: [run card](PRESENTER-RUN-CARD-2026-09-11.md) now gives setup, seven-minute targets, stop conditions and a blank evidence sheet. At 18:41 UTC both live sources matched origin/main ee3a5fb; eight entry pages, two sample sign-in gates and four byte-matched sample PDF downloads passed read-only checks. Older demo checklist results are explicitly historical. No fresh rehearsal, sign-in or provider send occurred.
+
 Latest contact evidence: [local database replay](CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.

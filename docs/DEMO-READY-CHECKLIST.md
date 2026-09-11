@@ -1,6 +1,8 @@
 # Passage Authority demo and persona UAT
 
-**Target:** sellable synthetic enterprise demo this week  
+**Current status, September 11:** fresh timed rehearsal and actual participant invitation arrival remain open. Use the [presenter run card](PRESENTER-RUN-CARD-2026-09-11.md). Historical passes below are scoped to their runs and do not establish current presenter sign-off. Live main is ee3a5fb; PRs 110-112 are shipped.
+
+**Target:** a reliable buyer demonstration using fictional information  
 **Demo promise:** one financial POA request moves from intake to a shared institution decision, with each person seeing one clear next step and the same later changes.
 
 ## Demo-ready exit criteria
@@ -40,7 +42,7 @@ For each step record the profile/device, URL, start and finish time, visible sta
 
 The preparation action must create a fresh namespaced run and request inside the presenter's existing isolated Demo organization, with a fictional account holder, representative, sample account boundary, two harmless test files, and unused invitation links. It must not change organization membership, reuse a prior participant session, delete earlier evidence, touch production customer data, or require a manual SQL edit.
 
-### Current reset evidence
+### Historical reset and journey evidence
 
 - The hosted Demo offers **Prepare a fresh demo** only to an authenticated owner or administrator whose exact email is in the server-side presenter allowlist. Outside Demo, the control is absent and the command returns the same generic not-found boundary as a nonexistent route.
 - One command creates a new organization-scoped run, sample request, and immutable evidence without sending messages, consuming usage, deleting an earlier run, changing membership, or affecting another presenter's organization.
