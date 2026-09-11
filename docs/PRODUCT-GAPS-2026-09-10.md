@@ -11,7 +11,7 @@ See [release evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Updated September
 
 Passage has a tested sample journey from institution request through separate participant steps to a recorded decision and matching receipts. The current sample is New York, with statement copies and account questions. It is not yet the complete configurable product or approved for general customer-data use.
 
-Production and origin/main were verified at `c64299e5ed3fa49b43e7ca62278b9c5c59088264`. PR 108 is merged and live.
+Production and origin/main are verified at `ee3a5fbf6e83fadc320be3c11002af7055c566c8`. PR 112 is merged and live; see [connection recovery evidence](CONTACT-NETWORK-RECOVERY-2026-09-11.md).
 
 ## What the research means now
 
@@ -21,7 +21,7 @@ The [market report](MARKET-RESEARCH-2026-09-10.md) remains the external research
 
 | Gap | Current position | Next concrete result |
 | --- | --- | --- |
-| Simple guided journey | Workspace and broad copy pass checked; draft errors now keep entries and checkbox choices | Apply recovery to remaining forms; keyboard/zoom/screen-reader and independent first-use walkthrough |
+| Simple guided journey | Workspace/copy checked; draft and contact server/fetch errors retain entries; public text, keyboard, native zoom and form validation checked | Apply recovery to remaining forms; keyboard/zoom/screen-reader and independent first-use walkthrough |
 | Request cancellation | Awaiting-principal cancellation shipped; hosted seven-persona receipts, retry and role checks passed | Broader states and automatic notices remain separate |
 | Institution rules | Fixed sample checklist; general policy editor not shipped | Governed catalogs, immutable publish, snapshot pinning and explicit stale-draft rebase |
 | Real POA cases | Supported sample requires the account holder to participate | Approved intake/exclusions for incapacity, existing instruments, successor/co-agent and conflicting documents |
@@ -30,7 +30,7 @@ The [market report](MARKET-RESEARCH-2026-09-10.md) remains the external research
 | Reliable operations | Internal reconciliation 3/7 actual UTC days | Four further real days, separate provider comparison and dependable invitation delivery |
 | Restore/data lifecycle | Not closed by a working demo | Approved backup choice, actual isolated restore, retention/deletion and incident exercise |
 | Buyer proof | Research, first-five drafts and unsent one-pager exist | Real introductions, buyer interviews, process baseline and willingness-to-pay evidence |
-| Release | PR 108 is live with exact-SHA public and authenticated receipt checks | Reliable invitation arrival and timed fresh full-story rehearsal |
+| Release | PR 112 live with exact-SHA negative contact recovery; earlier authenticated receipt evidence belongs to PR 108 | Reliable invitation arrival and timed fresh full-story rehearsal |
 
 ## Next execution order
 
