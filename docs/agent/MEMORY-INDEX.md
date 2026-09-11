@@ -2,7 +2,7 @@
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
-Latest UX2 evidence: [text size and accessibility labels](../ENTRY-ACCESSIBILITY-2026-09-11.md) passed 24 live cases and 308 exposed control-name checks at main b207fb8. Doubled text and 320px entry/recovery layouts passed; native zoom, real screen-reader use and authenticated first-use checks remain open.
+Latest UX2 evidence: [native Chrome zoom](../NATIVE-ZOOM-2026-09-11.md) passed 24 live entry/recovery cases at 200%/400%, including 180 keyboard focus stops, at main b207fb8. Earlier [text size and labels](../ENTRY-ACCESSIBILITY-2026-09-11.md) checks also passed. Public entry/recovery zoom is checked; real screen-reader use and authenticated first-use/zoom remain open.
 
 PR [110](https://github.com/thepassageappio/thepassageappio/pull/110) is live on both sites at verified main `b207fb8bd60c84f73ddee326245064571fdfbae2`. Presenter guidance, sample downloads, plain policy/sign-in copy and auditor controls shipped without migrations. All 32 live entry checks, four PDFs, 44 public routes and eight recovery states passed. See [release evidence](../BUYER-DEMO-POLISH-LIVE-2026-09-11.md). The earlier authenticated cancellation/receipt checks remain recorded against PR 108 in [hosted evidence](../RELEASE-AND-DEMO-STATUS-2026-09-11.md); they were not repeated by PR 110.
 
