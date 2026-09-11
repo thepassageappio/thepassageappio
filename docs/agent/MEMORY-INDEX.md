@@ -1,6 +1,6 @@
 # Authority Compass memory index
 
-Latest POL1 checkpoint: [channel/control validation and compiler-to-storage proof](../POLICY-CHANNEL-CONTROLS-2026-09-11.md) combines actions, evidence, channels and typed limits. All 207 domain tests and local PostgreSQL hash/permission checks pass. Storage remains local only (migration 20260911072009 has no local history entry). Trusted version resolution, cross-rule compatibility, publication/request binding and rebase remain next. No product release occurred.
+Latest POL1 checkpoint: [effective source-version selection](../POLICY-SOURCE-RESOLUTION-2026-09-11.md) rejects mismatched, altered, conflicting and future-only source packages. All 215 domain tests, TypeScript, lint and build pass; local source resolution -> compilation -> PostgreSQL bytes/permissions also passes. The resolver still needs a trusted immutable registry and compatibility validation. Transactional publication, request binding and rebase remain unbuilt. Storage remains local only (migration 20260911072009 has no local history entry). No product release occurred.
 
 Latest UX2 follow-up: [auditor participant-access controls](../PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) is verified locally and pending release in PR 109. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
 

@@ -5,20 +5,41 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { capturePolicySnapshot } from '../src/lib/authority/policy-snapshot.ts';
 import { compilePolicyConfiguration } from '../src/lib/authority/policy-rule-compiler.ts';
+import { capturePolicySource, resolvePolicySources } from '../src/lib/authority/policy-source-resolution.ts';
 
 const cli = process.env.LOCAL_SUPABASE_CLI;
 assert.ok(cli, 'Set LOCAL_SUPABASE_CLI to the installed Supabase executable.');
 const organizationId = randomUUID();
-const content = compilePolicyConfiguration(organizationId, {
+const catalog = {
   actions: [{ key: 'statements', label: "Account holder's café statements", meaning: 'Receive sample copies', category: 'information', accountTypes: ['sample'], riskTier: 'low', reviewGuidance: 'Review the sample.', enabled: true, unavailableReason: null, source: 'platform' }],
   evidence: [{ key: 'identity', label: 'Identity evidence', purpose: 'Identify the sample representative', collectionMethod: 'upload', retentionClass: 'fixture-retention', reviewerRole: 'reviewer', required: true, lockedRequired: true, source: 'jurisdiction' }],
   channels: [{ key: 'phone', label: 'Phone', enabled: true, accessLevel: 'view', separateIdentity: true, requiresMfa: false, requiresAcknowledgment: true, actionKeys: ['statements'], unavailableReason: null, source: 'platform' }],
   controls: [{ key: 'duration', kind: 'max_duration_days', value: 30, currency: null, windowHours: null, actionKeys: ['statements'], locked: false, source: 'platform' }],
-}, { actionOverrides: [], evidenceOverrides: [], customActions: [], customEvidence: [], channelOverrides: [], controlOverrides: [{ key: 'duration', value: 14 }] });
+};
+const draft = { actionOverrides: [], evidenceOverrides: [], customActions: [], customEvidence: [], channelOverrides: [], controlOverrides: [{ key: 'duration', value: 14 }] };
+const at = '2026-09-11T00:00:00.000Z';
+const keys = { platform: 'test-catalog', jurisdiction: 'test-only', institution: 'test-policy' };
+// Explicit fictional source split, not a production package merger or legal approval.
+const sourceContent = {
+  platform: { actions: catalog.actions, channels: catalog.channels, controls: catalog.controls },
+  jurisdiction: { evidence: catalog.evidence }, institution: draft,
+};
+const history = Object.keys(keys).map(kind => capturePolicySource({
+  format: 'passage-policy-source-v1', kind, key: keys[kind], version: '1',
+  organizationId: kind === 'institution' ? organizationId : null,
+  jurisdiction: 'NY', authorityType: 'fixture', publishedAt: at, effectiveFrom: at, content: sourceContent[kind],
+}));
+const resolved = resolvePolicySources(history, { organizationId, jurisdiction: 'NY', authorityType: 'fixture', at, keys });
+const configuration = compilePolicyConfiguration(organizationId, {
+  ...resolved.platform.source.content, ...resolved.jurisdiction.source.content,
+}, resolved.institution.source.content);
+const content = { configuration, sourceVersions: {
+  platform: resolved.platform, jurisdiction: resolved.jurisdiction, institution: resolved.institution,
+} };
 const snapshot = capturePolicySnapshot({
   format: 'passage-policy-snapshot-v1', organizationId, policyVersion: 'fixture-1',
   effectiveFrom: '2026-09-11T00:00:00.000Z',
-  sources: { platform: { key: 'test-catalog', version: '1' }, jurisdiction: { key: 'test-only', version: '1' }, institution: { key: 'test-policy', version: '1' } },
+  sources: Object.fromEntries(Object.keys(keys).map(kind => [kind, { key: resolved[kind].source.key, version: resolved[kind].source.version }])),
   content,
 });
 const sql = readFileSync('supabase/tests/policy_snapshot_contents.sql','utf8')
@@ -40,5 +61,5 @@ writeFileSync('work/policy-snapshot-storage-test.sql',query);
 execFileSync(cli,['db','query','--db-url','postgresql://postgres:postgres@127.0.0.1:55322/postgres?sslmode=disable','-f','work/policy-snapshot-storage-test.sql'],{
   encoding:'utf8',stdio:'pipe',env:{...process.env,SUPABASE_TELEMETRY_DISABLED:'1'},
 });
-console.log('Policy storage verification passed: exact Node/PostgreSQL hash, envelope and tenant checks, browser denial, service insert/read, duplicate denial, update/delete/truncate protection, preserved bytes, rolled-back fixtures.');
+console.log('Policy source resolution -> compilation -> storage verification passed: exact Node/PostgreSQL hash, envelope and tenant checks, browser denial, service insert/read, duplicate denial, update/delete/truncate protection, preserved bytes, rolled-back fixtures.');
 if (replay) console.log('Clean recreation from the migration passed in an isolated transaction; the original local objects were restored by rollback.');
