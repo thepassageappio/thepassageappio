@@ -1,6 +1,6 @@
 # Current Passage checkpoint
 
-New UX2 gap: with JavaScript disabled, the actual app stays on the streamed route loading screen. The native shortcut passes isolated no-JavaScript layout checks, but complete-page no-JavaScript support is not established. Public keyboard checks passed with JavaScript enabled; do not conflate those results.
+Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
 
 Latest work: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) extends the native shortcut to public headers and fixes the 320px header overflow. See that evidence file for verification and limits. The [hosted cancellation checkpoint](../PENDING-CANCELLATION-HOSTED-2026-09-11.md) remains the database/release record. Git and PR metadata access are restored; PR 108 remains unmerged. Hosted authenticated replay and UAT preview SSO remain open.
 

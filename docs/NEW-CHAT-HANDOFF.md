@@ -1,5 +1,7 @@
 # Passage Authority fresh-chat handoff
 
+Latest: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) passed 32 browser cases. The app still requires JavaScript, but disabled-script visitors now see clear instructions instead of endless loading. Hosted cancellation replay and UAT preview SSO remain open.
+
 Latest follow-up: [public keyboard navigation](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) adds native header shortcuts and repairs the 320px commercial-header overflow. This supersedes earlier statements that public-page skip navigation is unimplemented. Hosted replay, actual zoom/screen-reader and first-use verification remain open; no release or outreach occurred.
 
 Latest UX2 progress: [native keyboard skip navigation](KEYBOARD-NAVIGATION-2026-09-11.md) is implemented for workspace and account/participant layouts. Eight Chromium layout checks passed at 1280/390/360/320px with JavaScript disabled. Public commercial navigation, actual zoom/screen-reader and independent first-use checks remain open. Hosted database evidence is unchanged; no migration was repeated. Hosted authenticated cancellation replay and UAT preview SSO remain release work. The earlier documentation checkpoint was pushed as `060b7b6`; Git and PR metadata access are restored.

@@ -1,6 +1,6 @@
 # Outreach-ready product delivery plan
 
-New UX2 gap: with JavaScript disabled, the actual app stays on the streamed route loading screen. The native shortcut passes isolated no-JavaScript layout checks, but complete-page no-JavaScript support is not established. Public keyboard checks passed with JavaScript enabled; do not conflate those results.
+Latest UX2 completion: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
 
 Latest follow-up: [public keyboard navigation](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) adds native header shortcuts and repairs the 320px commercial-header overflow. This supersedes earlier statements that public-page skip navigation is unimplemented. Hosted replay, actual zoom/screen-reader and first-use verification remain open; no release or outreach occurred.
 

@@ -1,6 +1,6 @@
 # Authority Compass memory index
 
-New UX2 gap: with JavaScript disabled, the actual app stays on the streamed route loading screen. The native shortcut passes isolated no-JavaScript layout checks, but complete-page no-JavaScript support is not established. Public keyboard checks passed with JavaScript enabled; do not conflate those results.
+Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
 
 Latest UX2 evidence: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) and [shared-layout navigation](../KEYBOARD-NAVIGATION-2026-09-11.md). Release/database evidence: [hosted cancellation](../PENDING-CANCELLATION-HOSTED-2026-09-11.md). Earlier access restrictions are historical; Git/PR writes work. Hosted journey verification, UAT preview SSO, actual zoom/screen-reader and independent first-use checks remain open.
 

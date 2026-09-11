@@ -40,6 +40,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <noscript>
+          <style>{"[data-route-loading] { display: none; }"}</style>
+          <section className="javascript-notice" aria-labelledby="javascript-notice-title">
+            <p>Passage Authority</p>
+            <h1 id="javascript-notice-title">Turn on JavaScript to open this page</h1>
+            <p>Turn on JavaScript in your browser settings. Then reload this page.</p>
+          </section>
+        </noscript>
         <Suspense fallback={null}><InteractionFeedback /></Suspense>
         {children}
       </body>
