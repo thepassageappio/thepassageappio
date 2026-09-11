@@ -1,6 +1,10 @@
 # Current Passage checkpoint
 
-Latest local work: [pending cancellation implementation and evidence](../PENDING-CANCELLATION-EVIDENCE-2026-09-10.md). Waiting-for-account-holder cancellation is implemented and locally verified; hosted migration and release remain pending. Local Git writes are restricted because the metadata lives outside this workspace. The authorized GitHub connector is being used to publish the tested files to PR 108; verify its remote head before continuing. No new reconciliation day or outreach approval.
+September 11, 01:53 UTC: full access restored normal Git operations. Local branch now matches the published code with only documentation changes pending. PR 108 title/body updated successfully. Demo preview dpl_BEHhSRiY2j1NbdyqqfETQk1N2Gx4 is Ready and /api/version verifies ccbbc8531b2a7703cfda32301e2c9a37a85e60e9 on the intended branch. UAT preview dpl_32JXKTNZUTXrkDLAXnTJZb5CQST6 is Ready, but its version endpoint redirects to Vercel SSO even through vercel curl. Deployment protection remains enabled. Production /api/version still verifies main 42976b096b7569174f3b290419a20610ea3ea638. Hosted authenticated browser replay remains open; no release or outreach was performed.
+
+Earlier access-blocker statements below are historical; the remaining preview access issue is UAT SSO.
+
+September 11 UTC checkpoint: [hosted cancellation evidence](../PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
 
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
 
@@ -27,7 +31,7 @@ Finish a beautiful, simple, user-friendly product that supports truthful one-pag
 ## Execute next
 
 1. UX2: continue the guided journey, including complete keyboard/zoom/screen-reader and first-time walkthrough checks; UX1 core workspace changes are locally verified.
-2. WF1: carry locally verified awaiting-principal cancellation through hosted migration and exact-candidate release checks; broader states and automatic cancellation notices remain outside this slice.
+2. WF1: complete exact-candidate hosted browser release checks for cancellation; hosted migration and SQL verification passed; broader states and automatic cancellation notices remain outside this slice.
 3. POL1: implement governed institution policy/catalog publication and snapshot/rebase invariants.
 4. Prepare WF2/LEG1: principal unable to participate, state applicability, deadlines, acknowledgments and notices for qualified review.
 5. Continue SEC1/OPS1/OPS2/ASS1 and release-candidate QA. Only then record explicit outreach release.

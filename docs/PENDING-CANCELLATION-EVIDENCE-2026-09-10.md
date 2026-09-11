@@ -1,5 +1,7 @@
 # Pending request cancellation: implementation and evidence
 
+September 11 UTC checkpoint: [hosted cancellation evidence](PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
+
 September 10, 2026 UTC. Implemented and verified locally on `agent/p1-p2-closeout-20260909`. Not merged or deployed. Local Git staging was denied because this worktree references metadata outside the writable workspace. The authorized GitHub connector is being used to publish the tested files to PR 108. Verify the remote PR head; the restricted local checkout remains at its earlier commit. Migration `20260910230516_pending_request_cancellation.sql` has been exercised against the local database, without a migration-history entry during iteration. It has not been applied to Demo or UAT.
 
 ## Delivered behavior

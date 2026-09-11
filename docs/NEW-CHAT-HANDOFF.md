@@ -1,6 +1,10 @@
 # Passage Authority fresh-chat handoff
 
-Latest local work: [pending cancellation implementation and evidence](PENDING-CANCELLATION-EVIDENCE-2026-09-10.md). Waiting-for-account-holder cancellation is implemented and locally verified; hosted migration and release remain pending. Local Git writes are restricted because the metadata lives outside this workspace. The authorized GitHub connector is being used to publish the tested files to PR 108; verify its remote head before continuing. No new reconciliation day or outreach approval.
+September 11, 01:53 UTC: full access restored normal Git operations. Local branch now matches the published code with only documentation changes pending. PR 108 title/body updated successfully. Demo preview dpl_BEHhSRiY2j1NbdyqqfETQk1N2Gx4 is Ready and /api/version verifies ccbbc8531b2a7703cfda32301e2c9a37a85e60e9 on the intended branch. UAT preview dpl_32JXKTNZUTXrkDLAXnTJZb5CQST6 is Ready, but its version endpoint redirects to Vercel SSO even through vercel curl. Deployment protection remains enabled. Production /api/version still verifies main 42976b096b7569174f3b290419a20610ea3ea638. Hosted authenticated browser replay remains open; no release or outreach was performed.
+
+Earlier access-blocker statements below are historical; the remaining preview access issue is UAT SSO.
+
+September 11 UTC checkpoint: [hosted cancellation evidence](PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
 
 **Resume phrase:** AUTHORITY COMPASS 771204 — FINISH OUTREACH READY PRODUCT
 
