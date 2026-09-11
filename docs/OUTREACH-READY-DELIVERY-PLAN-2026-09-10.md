@@ -2,13 +2,13 @@
 
 Updated September 11, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
 
-Latest UX2 form evidence: [native entry validation](ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Server-error recovery and authenticated first-use remain separate open work.
+Latest UX2 form evidence: [native entry validation](ENTRY-FORM-VALIDATION-2026-09-11.md) passed 18 live form cases and 42 invalid attempts. Required fields, email format, contact permission, focus and retained values passed; no submit event or application write occurred. Contact server-error recovery is now shipped below; transport disconnects and authenticated first-use remain open.
 
 Latest GTM1 preparation: [buyer one-pager PDF and claim review](BUYER-ONE-PAGER-2026-09-11.md) are complete as an internal draft. One-page render, full text, page bounds and contact link were checked. No distribution or demo-readiness approval is implied. Native screen-reader/spoken-output testing is unavailable in this session and remains open; do not repeat unsupported attempts.
 
 Latest UX2 evidence: [native Chrome zoom](NATIVE-ZOOM-2026-09-11.md) passed 24 live entry/recovery cases at 200%/400%, including 180 keyboard focus stops, at main b207fb8. Earlier [text size and labels](ENTRY-ACCESSIBILITY-2026-09-11.md) checks also passed. Public entry/recovery zoom is checked; real screen-reader use and authenticated first-use/zoom remain open.
 
-PR [110](https://github.com/thepassageappio/thepassageappio/pull/110) is live on both sites at verified main `b207fb8bd60c84f73ddee326245064571fdfbae2`. Presenter guidance, sample downloads, plain policy/sign-in copy and auditor controls shipped without migrations. All 32 live entry checks, four PDFs, 44 public routes and eight recovery states passed. See [release evidence](BUYER-DEMO-POLISH-LIVE-2026-09-11.md). The earlier authenticated cancellation/receipt checks remain recorded against PR 108 in [hosted evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md); they were not repeated by PR 110.
+PR [111](https://github.com/thepassageappio/thepassageappio/pull/111) is live on both sites at verified main `70f059e8db6fd66e18929d81a36bd68fdeeca4ca`. [Contact server-error recovery](CONTACT-RECOVERY-2026-09-11.md) now retains entries and the retry key, shows errors in place and focuses the message. The 172-test release, seven action cases, eight local failure/retries, six preview cases and 16 hosted preflight denials passed. Public smoke passed; both deployment error scans returned zero records. No database migration or provider send occurred. Earlier PR 110/108 evidence remains in its dated files.
 
 The immediate priority is the [fresh buyer demo](BUYER-DEMO-PRIORITY-2026-09-11.md). Two owner-controlled participant inboxes and explicit invitation/receipt-email authorization remain pending. No fresh timed rehearsal or inbox-delivery proof is claimed. Continue independent usability checks without sending email.
 
