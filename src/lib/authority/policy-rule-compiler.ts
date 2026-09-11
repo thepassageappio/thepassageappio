@@ -154,3 +154,114 @@ export function compilePolicyRules(organizationId: string, trustedCatalog: unkno
     evidence: [...compiledEvidence.values()].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0),
   };
 }
+
+type PolicyChannel = {
+  key: string; label: string; enabled: boolean; accessLevel: "view" | "transaction";
+  separateIdentity: boolean; requiresMfa: boolean; requiresAcknowledgment: boolean;
+  actionKeys: string[]; unavailableReason: string | null; source: Source;
+  availabilitySource: Source; securitySource: Source;
+};
+type PolicyControl = {
+  key: string; kind: "max_amount" | "max_duration_days" | "min_approvers" | "max_count";
+  value: number; currency: string | null; windowHours: number | null; actionKeys: string[];
+  locked: boolean; source: Source; valueSource: Source;
+};
+function positiveInteger(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) invalid(path, "Enter a positive whole number.");
+  return value;
+}
+function actionReferences(value: unknown, actions: Set<string>, path: string): string[] {
+  const values = list(value, path).map((item, index) => text(item, `${path}/${index}`));
+  if (!values.length || new Set(values).size !== values.length || values.some(item => !actions.has(item))) {
+    invalid(path, "Choose existing actions, with no repeats.");
+  }
+  return values.sort();
+}
+
+/** Combines structural rule sections; still requires trusted source resolution and publication validation. */
+export function compilePolicyConfiguration(organizationId: string, trustedCatalog: unknown, submittedDraft: unknown) {
+  let catalogInput: unknown, draftInput: unknown;
+  try {
+    catalogInput = JSON.parse(canonicalPolicyJson(trustedCatalog));
+    draftInput = JSON.parse(canonicalPolicyJson(submittedDraft));
+  } catch { invalid("/", "We could not read these rules. Check the entered values."); }
+  const catalog = shape(catalogInput, ["actions", "evidence", "channels", "controls"], [], "/catalog");
+  const draft = shape(draftInput, ["actionOverrides", "evidenceOverrides", "customActions", "customEvidence", "channelOverrides", "controlOverrides"], [], "/draft");
+  const base = compilePolicyRules(organizationId, { actions: catalog.actions, evidence: catalog.evidence }, {
+    actionOverrides: draft.actionOverrides, evidenceOverrides: draft.evidenceOverrides,
+    customActions: draft.customActions, customEvidence: draft.customEvidence,
+  });
+  const actionKeys = new Set(base.actions.map(item => item.key));
+  const channels = unique(list(catalog.channels, "/catalog/channels").map((value, index): PolicyChannel => {
+    const path = `/catalog/channels/${index}`;
+    const row = shape(value, ["key", "label", "enabled", "accessLevel", "separateIdentity", "requiresMfa", "requiresAcknowledgment", "actionKeys", "unavailableReason", "source"], [], path);
+    const source = choice(row.source, ["platform", "jurisdiction"], `${path}/source`);
+    return {
+      key: choice(row.key, ["branch", "phone", "online", "mobile", "api"], `${path}/key`),
+      label: text(row.label, `${path}/label`), enabled: boolean(row.enabled, `${path}/enabled`),
+      accessLevel: choice(row.accessLevel, ["view", "transaction"], `${path}/accessLevel`),
+      separateIdentity: boolean(row.separateIdentity, `${path}/separateIdentity`),
+      requiresMfa: boolean(row.requiresMfa, `${path}/requiresMfa`),
+      requiresAcknowledgment: boolean(row.requiresAcknowledgment, `${path}/requiresAcknowledgment`),
+      actionKeys: actionReferences(row.actionKeys, actionKeys, `${path}/actionKeys`),
+      unavailableReason: row.unavailableReason === null ? null : text(row.unavailableReason, `${path}/unavailableReason`),
+      source, availabilitySource: source, securitySource: source,
+    };
+  }), "/catalog/channels");
+  const channelOverrides = unique(list(draft.channelOverrides, "/draft/channelOverrides").map((value, index) => {
+    const path = `/draft/channelOverrides/${index}`, row = shape(value, ["key"], ["enabled", "requiresMfa"], path);
+    return { key: text(row.key, `${path}/key`), row, path };
+  }), "/draft/channelOverrides");
+  for (const { key: id, row, path } of channelOverrides.values()) {
+    const channel = channels.get(id); if (!channel) invalid(path, "This channel is not in the selected catalog.");
+    if (Object.hasOwn(row, "enabled")) {
+      const enabled = boolean(row.enabled, `${path}/enabled`);
+      if (enabled !== channel.enabled) { channel.enabled = enabled; channel.availabilitySource = "institution"; }
+    }
+    if (Object.hasOwn(row, "requiresMfa")) {
+      const requiresMfa = boolean(row.requiresMfa, `${path}/requiresMfa`);
+      if (!requiresMfa && channel.requiresMfa) invalid(path, "This security check cannot be removed.");
+      if (requiresMfa !== channel.requiresMfa) { channel.requiresMfa = requiresMfa; channel.securitySource = "institution"; }
+    }
+  }
+  for (const channel of channels.values()) {
+    const path = `/channels/${channel.key}`;
+    if (channel.enabled && channel.unavailableReason) invalid(path, "This channel is unavailable under the selected rules.");
+    if (channel.enabled && ["online", "mobile", "api"].includes(channel.key)) {
+      if (!channel.separateIdentity) invalid(path, "The representative needs their own sign-in.");
+      if (!channel.requiresAcknowledgment) invalid(path, "The institution must confirm when access is set up.");
+      if (channel.accessLevel === "transaction" && !channel.requiresMfa) invalid(path, "Transaction access requires an extra sign-in check.");
+    }
+  }
+  const controls = unique(list(catalog.controls, "/catalog/controls").map((value, index): PolicyControl => {
+    const path = `/catalog/controls/${index}`;
+    const row = shape(value, ["key", "kind", "value", "currency", "windowHours", "actionKeys", "locked", "source"], [], path);
+    const kind = choice(row.kind, ["max_amount", "max_duration_days", "min_approvers", "max_count"], `${path}/kind`);
+    const currency = row.currency === null ? null : text(row.currency, `${path}/currency`);
+    if ((kind === "max_amount" && (!currency || !/^[A-Z]{3}$/.test(currency))) || (kind !== "max_amount" && currency !== null)) invalid(`${path}/currency`, "Use a three-letter currency code only for an amount limit.");
+    const windowHours = row.windowHours === null ? null : positiveInteger(row.windowHours, `${path}/windowHours`);
+    if ((kind === "max_count" && windowHours === null) || (kind !== "max_count" && windowHours !== null)) invalid(`${path}/windowHours`, "Set a time window only for a frequency limit.");
+    const amount = positiveInteger(row.value, `${path}/value`);
+    if (kind === "min_approvers" && amount < 2) invalid(`${path}/value`, "Dual approval needs at least two people.");
+    const source = choice(row.source, ["platform", "jurisdiction"], `${path}/source`);
+    return { key: key(row.key, `${path}/key`), kind, value: amount, currency, windowHours, actionKeys: actionReferences(row.actionKeys, actionKeys, `${path}/actionKeys`), locked: boolean(row.locked, `${path}/locked`), source, valueSource: source };
+  }), "/catalog/controls");
+  const controlOverrides = unique(list(draft.controlOverrides, "/draft/controlOverrides").map((value, index) => {
+    const path = `/draft/controlOverrides/${index}`, row = shape(value, ["key", "value"], [], path);
+    return { key: key(row.key, `${path}/key`), value: positiveInteger(row.value, `${path}/value`), path };
+  }), "/draft/controlOverrides");
+  for (const override of controlOverrides.values()) {
+    const control = controls.get(override.key); if (!control) invalid(override.path, "This limit is not in the selected catalog.");
+    if (override.value === control.value) continue;
+    if (control.locked) invalid(override.path, "This limit cannot be changed.");
+    if (control.kind === "min_approvers" ? override.value < control.value : override.value > control.value) {
+      invalid(override.path, "This change would weaken a required limit.");
+    }
+    control.value = override.value; control.valueSource = "institution";
+  }
+  return {
+    ...base, stage: "configuration-only" as const,
+    channels: [...channels.values()].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0),
+    controls: [...controls.values()].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0),
+  };
+}

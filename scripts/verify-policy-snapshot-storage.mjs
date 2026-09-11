@@ -4,15 +4,22 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { capturePolicySnapshot } from '../src/lib/authority/policy-snapshot.ts';
+import { compilePolicyConfiguration } from '../src/lib/authority/policy-rule-compiler.ts';
 
 const cli = process.env.LOCAL_SUPABASE_CLI;
 assert.ok(cli, 'Set LOCAL_SUPABASE_CLI to the installed Supabase executable.');
 const organizationId = randomUUID();
+const content = compilePolicyConfiguration(organizationId, {
+  actions: [{ key: 'statements', label: "Account holder's café statements", meaning: 'Receive sample copies', category: 'information', accountTypes: ['sample'], riskTier: 'low', reviewGuidance: 'Review the sample.', enabled: true, unavailableReason: null, source: 'platform' }],
+  evidence: [{ key: 'identity', label: 'Identity evidence', purpose: 'Identify the sample representative', collectionMethod: 'upload', retentionClass: 'fixture-retention', reviewerRole: 'reviewer', required: true, lockedRequired: true, source: 'jurisdiction' }],
+  channels: [{ key: 'phone', label: 'Phone', enabled: true, accessLevel: 'view', separateIdentity: true, requiresMfa: false, requiresAcknowledgment: true, actionKeys: ['statements'], unavailableReason: null, source: 'platform' }],
+  controls: [{ key: 'duration', kind: 'max_duration_days', value: 30, currency: null, windowHours: null, actionKeys: ['statements'], locked: false, source: 'platform' }],
+}, { actionOverrides: [], evidenceOverrides: [], customActions: [], customEvidence: [], channelOverrides: [], controlOverrides: [{ key: 'duration', value: 14 }] });
 const snapshot = capturePolicySnapshot({
   format: 'passage-policy-snapshot-v1', organizationId, policyVersion: 'fixture-1',
   effectiveFrom: '2026-09-11T00:00:00.000Z',
   sources: { platform: { key: 'test-catalog', version: '1' }, jurisdiction: { key: 'test-only', version: '1' }, institution: { key: 'test-policy', version: '1' } },
-  content: { actions: { statements: { label: "Account holder's café statements", source: 'platform' } }, channels: ['phone', 'branch'], controls: {}, evidence: { identity: { required: true } } },
+  content,
 });
 const sql = readFileSync('supabase/tests/policy_snapshot_contents.sql','utf8')
   .replaceAll('__POLICY_ORGANIZATION__',organizationId)
