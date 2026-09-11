@@ -1,5 +1,7 @@
 # Passage Authority fresh-chat handoff
 
+Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+
 Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
 
 Latest: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) passed 32 browser cases. The app still requires JavaScript, but disabled-script visitors now see clear instructions instead of endless loading. Hosted cancellation replay and UAT preview SSO remain open.

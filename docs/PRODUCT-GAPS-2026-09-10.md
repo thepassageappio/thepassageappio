@@ -1,5 +1,7 @@
 # Product status and remaining gaps
 
+Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+
 Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
 
 Latest UX2 completion: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
