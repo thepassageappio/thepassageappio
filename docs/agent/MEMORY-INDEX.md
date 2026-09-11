@@ -1,16 +1,12 @@
 # Authority Compass memory index
 
-Latest POL1 evidence: [policy snapshot baseline](../POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled.
 
-Latest POL1 prerequisite: [accurate policy overview](../POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
-
-Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
-
-Latest UX2 evidence: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) and [shared-layout navigation](../KEYBOARD-NAVIGATION-2026-09-11.md). Release/database evidence: [hosted cancellation](../PENDING-CANCELLATION-HOSTED-2026-09-11.md). Earlier access restrictions are historical; Git/PR writes work. Hosted journey verification, UAT preview SSO, actual zoom/screen-reader and independent first-use checks remain open.
+See [release evidence](../RELEASE-AND-DEMO-STATUS-2026-09-11.md). Internal reconciliation is now **3/7**. Earlier checkpoint notes are historical.
 
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
 
-Updated September 10, 2026 UTC. This is the portable project memory; it does not claim an update to an unavailable account-wide memory service.
+Updated September 11, 2026 UTC. This is the portable project memory; it does not claim an update to an unavailable account-wide memory service.
 
 | Remember | Authoritative source |
 | --- | --- |

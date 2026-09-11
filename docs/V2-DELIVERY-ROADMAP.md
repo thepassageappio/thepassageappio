@@ -1,5 +1,7 @@
 ## Passage Authority V2 delivery roadmap
 
+> September 11 UTC: PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled. Internal reconciliation is **3/7**. [Current evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Older release/access/P0 descriptions below are historical; the fresh-demo and remaining P1/P2 gates remain open.
+
 Latest execution checkpoint: [product gaps](PRODUCT-GAPS-2026-09-10.md), [draft recovery](DRAFT-RECOVERY-2026-09-10.md). UX2 has progressed; WF1 and POL1 remain open.
 
 > **Active plan — September 10:** [Outreach-ready delivery plan](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md) now controls execution, completion criteria and release gates. [Market research](MARKET-RESEARCH-2026-09-10.md) supplies the evidence. Owner objective: a complete, beautiful, simple, easy-to-use product for truthful one-pagers and outreach. Start at UX1, then complete workflow/policy/security/operating gaps. P1/P2 remain open. The dated status lists and numerical scores below are historical and must not be used as the current readiness verdict.

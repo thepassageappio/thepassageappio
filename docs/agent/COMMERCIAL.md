@@ -1,5 +1,7 @@
 # Commercial playbook
 
+> September 11 UTC: PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled. Internal reconciliation is **3/7**. [Current evidence](../RELEASE-AND-DEMO-STATUS-2026-09-11.md). Older release/access/P0 descriptions below are historical; the fresh-demo and remaining P1/P2 gates remain open.
+
 > **September 10 UTC continuation:** [Latest evidence and remaining gates](../P1-FIRST-FIVE-DISCOVERY-BATCH-2026-09-09.md) supersedes older open-item summaries below. Persona matrix remains passed; P1/P2 remain open. Hosted security/terminal tests pass, internal reconciliation is 2/7, and first-five buyer research and unsent drafts are prepared.
 
 Load for positioning, pricing, buyer deck, outreach, CRM strategy, or LinkedIn.
