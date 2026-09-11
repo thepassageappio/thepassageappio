@@ -5,7 +5,16 @@ import { createCommercialInquiryAction } from "@/app/commercial-actions";
 import styles from "./contact.module.css";
 
 export function ContactForm({ children }: { children: ReactNode }) {
-  const [state, submit, pending] = useActionState(createCommercialInquiryAction, { error: null });
+  const [state, submit, pending] = useActionState(async (previous: { error: string | null }, data: FormData) => {
+    try {
+      return await createCommercialInquiryAction(previous, data);
+    } catch (error) {
+      // Fetch rejects with TypeError when the browser cannot reach the server.
+      // Preserve framework redirects and other errors for Next to handle.
+      if (error instanceof TypeError) return { error: "We could not reach Passage. Check your connection and try again." };
+      throw error;
+    }
+  }, { error: null });
   const errorRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (state.error) errorRef.current?.focus(); }, [state]);
   return <form className={styles.form} action={submit} aria-busy={pending} onSubmit={event => {
