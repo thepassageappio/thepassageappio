@@ -20,7 +20,7 @@ Updated September 11, 2026 UTC. Owner direction: finish a beautiful, simple, use
 
 ## Where we are
 
-The institution/principal/representative synthetic journey has passed, including scoped decisions, matching receipts, role boundaries and mobile checks. PR 110 is live at main `b207fb8bd60c84f73ddee326245064571fdfbae2`; earlier hosted cancellation and authenticated receipt evidence belongs to PR 108. See the [current gap assessment](PRODUCT-GAPS-2026-09-10.md). P1 and P2 are open. The current product is a controlled New York evaluation with two non-transactional actions, not the complete configurable institutional product.
+The institution/principal/representative synthetic journey has passed, including scoped decisions, matching receipts, role boundaries and mobile checks. PR 111 is live at main `70f059e8db6fd66e18929d81a36bd68fdeeca4ca`; earlier hosted cancellation and authenticated receipt evidence belongs to PR 108. See the [current gap assessment](PRODUCT-GAPS-2026-09-10.md). P1 and P2 are open. The current product is a controlled New York evaluation with two non-transactional actions, not the complete configurable institutional product.
 
 The [market assessment](MARKET-RESEARCH-2026-09-10.md) supports the institutional acceptance/servicing focus. It does not establish customer demand, competitor superiority, a dollar TAM or enterprise compliance. Build controls to meet real obligations and buyer needs; do not build a general compliance platform.
 
