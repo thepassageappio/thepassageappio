@@ -15,7 +15,7 @@ const resources = [
 export default function ResourcesPage() {
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>Passage resources</p><h1>Help with power of attorney requests.</h1><p>Short, plain-language notes for operations, compliance, product, and technology teams improving how authority requests are handled.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Passage resources</p><h1 id="page-content" tabIndex={-1}>Help with power of attorney requests.</h1><p>Short, plain-language notes for operations, compliance, product, and technology teams improving how authority requests are handled.</p></section>
     <div className={styles.content}><section className={styles.grid3}>{resources.map(([type, title, description, href]) => <article className={styles.card} key={href}><span>{type}</span><h2>{title}</h2><p>{description}</p><Link className={styles.secondary} href={href}>Read article</Link></article>)}</section></div>
     <CommercialFooter />
   </main>;

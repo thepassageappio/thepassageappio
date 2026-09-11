@@ -6,6 +6,7 @@ import polish from "./commercial-header-polish.module.css";
 export function CommercialHeader({ active }: { active?: "integrations" | "security" | "pricing" | "about" | "blog" }) {
   return (
     <header className={styles.header}>
+      <a className="skip-link" href="#page-content">Skip to page content</a>
       <Link className={`${styles.brand} ${polish.brand}`} href="/" aria-label="Passage Authority home">
         <Image src="/brand/logo-primary.svg" width={208} height={40} alt="Passage Authority" priority />
       </Link>

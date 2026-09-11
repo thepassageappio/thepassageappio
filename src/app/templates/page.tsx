@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Financial POA Templates", descriptio
 export default function Templates() {
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>Guided workflows</p><h1>Start with a ready-made checklist.</h1><p>A checklist shows each person what to do and helps the institution review the request.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Guided workflows</p><h1 id="page-content" tabIndex={-1}>Start with a ready-made checklist.</h1><p>A checklist shows each person what to do and helps the institution review the request.</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>
         <article className={styles.card}><span>Available now</span><h2>New York financial POA</h2><p>The current sample covers statement copies and account questions. Try the steps, review the documents, and see the saved decision and any later changes.</p><Link className={styles.secondary} href="/start">Use this template</Link></article>

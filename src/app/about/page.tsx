@@ -24,7 +24,7 @@ export default function AboutPage() {
       <CommercialHeader active="about" />
       <section className={`${styles.hero} ${plain.hero}`}>
         <p className={styles.eyebrow}>Passage in plain English</p>
-        <h1>Help someone with their account. Know what the bank needs.</h1>
+        <h1 id="page-content" tabIndex={-1}>Help someone with their account. Know what the bank needs.</h1>
         <p>A power of attorney is a legal document that lets someone act for another person. The bank still needs to review it. Passage keeps that request and the bank’s answer in one place.</p>
       </section>
 

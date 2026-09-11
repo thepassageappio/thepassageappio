@@ -21,7 +21,7 @@ export default function BlogPage() {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Passage Authority blog</p>
-          <h1>Clear answers about financial authority.</h1>
+          <h1 id="page-content" tabIndex={-1}>Clear answers about financial authority.</h1>
         </div>
         <p className={styles.heroIntro}>Practical explanations for families and the institution teams that review power of attorney requests.</p>
       </section>

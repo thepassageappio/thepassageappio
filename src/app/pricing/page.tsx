@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Pricing", description: "Try Passage 
 export default function Pricing() {
   return <main className={styles.page}>
     <CommercialHeader active="pricing" />
-    <section className={styles.hero}><p className={styles.eyebrow}>A clear path to production</p><h1>Try it free. Test it with your team for $5,000.</h1><p>Start with sample requests. No card needed. If it fits your needs, plan a paid trial with your team.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>A clear path to production</p><h1 id="page-content" tabIndex={-1}>Try it free. Test it with your team for $5,000.</h1><p>Start with sample requests. No card needed. If it fits your needs, plan a paid trial with your team.</p></section>
     <div className={styles.content}>
       <section className={styles.pricing}>
         <article className={styles.tier}><span>Try us free</span><h2>Evaluation</h2><div className={styles.price}>$0</div><p>Run five sample requests over 10 days. The clock starts when you send the first request.</p><ul><li>No card required</li><li>Complete financial POA workflow</li><li>Decision receipts and activity history</li></ul><Link className={styles.secondary} href="/start">Start free</Link></article>

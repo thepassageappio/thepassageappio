@@ -30,7 +30,7 @@ export default async function DeveloperSandbox({ searchParams }: Props) {
       <PortalHeader active="developer" />
       <div className={styles.content}>
         <section className={styles.intro}>
-          <div><p className={styles.eyebrow}>Developer experience · Observable by default</p><h1>API and webhook sandbox</h1></div>
+          <div><p className={styles.eyebrow}>Developer experience · Observable by default</p><h1 id="page-content" tabIndex={-1}>API and webhook sandbox</h1></div>
           <p className={styles.lede}>Create sample authority records, exercise failure states, inspect signed event payloads, and replay failed deliveries without touching a real person or institution.</p>
         </section>
         {messages.notice ? <div className={styles.notice} role="status">{messages.notice}</div> : null}

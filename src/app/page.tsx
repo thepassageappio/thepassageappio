@@ -24,7 +24,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>A clear path for financial power of attorney</p>
-          <h1>A clear way to ask a bank for help with someone else’s account.</h1>
+          <h1 id="page-content" tabIndex={-1}>A clear way to ask a bank for help with someone else’s account.</h1>
           <p className={styles.lede}>Helping a parent or grandparent with their bank account? Passage keeps the request, documents, and bank’s answer in one place. The bank checks the details and decides what you can do.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/contact">Book a 20-minute walkthrough <span>→</span></Link>

@@ -47,7 +47,7 @@ export default async function InstitutionQueue({ searchParams }: Props) {
       <PortalHeader active="institution" />
       <div className={styles.content}>
         <section className={styles.intro}>
-          <div><p className={styles.eyebrow}>Institution workspace</p><h1>Authority review queue</h1></div>
+          <div><p className={styles.eyebrow}>Institution workspace</p><h1 id="page-content" tabIndex={-1}>Authority review queue</h1></div>
           <div className={styles.introAction}><p className={styles.lede}>See who goes next, review the documents, and save each decision.</p><Link className={styles.primary} href="/institution/new">Start a request</Link></div>
         </section>
         {messages.notice ? <div className={styles.notice} role="status">{messages.notice}</div> : null}

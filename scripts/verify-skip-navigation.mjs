@@ -48,7 +48,7 @@ try {
     for (const width of [1280, 390, 360, 320]) {
       const context = await browser.newContext({ viewport: { width, height: 800 }, javaScriptEnabled: false });
       const page = await context.newPage();
-      await page.setContent(`<html lang="en"><head><style>${readFileSync('src/app/globals.css', 'utf8')}\n${[...css].join('\n')}</style></head><body>${html}</body></html>`);
+      await page.setContent(`<html lang="en"><head><style>${readFileSync('src/app/globals.css', 'utf8')}\n${readFileSync('src/app/interaction-feedback.css', 'utf8')}\n${[...css].join('\n')}</style></head><body>${html}</body></html>`);
       const hidden = await page.locator('.skip-link').boundingBox();
       assert.ok(hidden.y + hidden.height <= 0, 'Shortcut stays off screen before focus');
       await page.keyboard.press('Tab');

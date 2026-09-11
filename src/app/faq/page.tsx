@@ -25,7 +25,7 @@ export default function FaqPage() {
 
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Frequently asked questions</p>
-        <h1>Plain answers about what Passage does.</h1>
+        <h1 id="page-content" tabIndex={-1}>Plain answers about what Passage does.</h1>
         <p>Start with the real-life use case, then see how identity checks, institution decisions, organizations, roles, and the current evaluation work.</p>
         <nav className={styles.jumpLinks} aria-label="FAQ topics">
           <a href="#product">Product</a>

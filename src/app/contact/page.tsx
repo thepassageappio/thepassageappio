@@ -26,7 +26,7 @@ export default async function ContactPage({ searchParams }: Props) {
     <CommercialHeader />
     <section className={styles.hero}>
       <p className={styles.eyebrow}>Talk with Passage</p>
-      <h1>See how a request gets an answer.</h1>
+      <h1 id="page-content" tabIndex={-1}>See how a request gets an answer.</h1>
       <p>Tell us what you want to improve. We will tailor a short walkthrough to your institution and current process.</p>
     </section>
     <div className={contact.layout}>

@@ -18,8 +18,13 @@
   flex: none;
 }
 
+.brand {
+  min-width: 0;
+}
+
 .brand img {
   width: min(208px, 42vw);
+  max-width: 100%;
   height: auto;
 }
 

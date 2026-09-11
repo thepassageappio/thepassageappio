@@ -18,7 +18,7 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
       <div className={styles.shell}>
         <Link className={styles.back} href="/institution">Back to review queue</Link>
         <header className={styles.intro}>
-          <div><p className={styles.eyebrow}>New request</p><h1>Start a financial POA request</h1></div>
+          <div><p className={styles.eyebrow}>New request</p><h1 id="page-content" tabIndex={-1}>Start a financial POA request</h1></div>
           <p>Choose the account and requested actions. The account holder confirms first. Then the representative can continue.</p>
         </header>
         {error ? <div className={styles.error} role="alert">{error}</div> : null}

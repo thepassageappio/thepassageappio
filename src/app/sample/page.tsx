@@ -34,7 +34,7 @@ export default async function SampleWorkflowPage() {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Read-only product sample</p>
-          <h1>See one authority request from start to receipt.</h1>
+          <h1 id="page-content" tabIndex={-1}>See one authority request from start to receipt.</h1>
           <p className={styles.lede}>This example uses made-up people and a credit union. Sign in with Google or email, then agree to receive follow-up emails to open it. You do not need an authenticator app to view the example.</p>
           <div className={styles.heroActions}>
             <a className={styles.primary} href="#workflow">Start the sample <span>↓</span></a>

@@ -54,7 +54,7 @@ export default async function ResourceArticle({ params }: { params: Promise<{ sl
   if (!article) notFound();
   return <main className={styles.page}>
     <CommercialHeader />
-    <section className={styles.hero}><p className={styles.eyebrow}>Passage field note</p><h1>{article.title}</h1><p>{article.description}</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Passage field note</p><h1 id="page-content" tabIndex={-1}>{article.title}</h1><p>{article.description}</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>{article.sections.map(([title, body]) => <article className={styles.card} key={title}><h2>{title}</h2><p>{body}</p></article>)}</section>
       <section className={styles.callout}><div><h2>See the workflow in practice.</h2><p>Use sample information to experience the request from the institution and participant sides.</p></div><Link className={styles.cta} href="/start">Try Passage free</Link></section>

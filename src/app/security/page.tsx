@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Security and Boundaries", descriptio
 export default function Security() {
   return <main className={styles.page}>
     <CommercialHeader active="security" />
-    <section className={styles.hero}><p className={styles.eyebrow}>Security in plain English</p><h1>A private link protects access. It does not prove identity.</h1><p>The institution must separately check the account holder and representative using its required identity process. The current Passage evaluation uses sample data only.</p></section>
+    <section className={styles.hero}><p className={styles.eyebrow}>Security in plain English</p><h1 id="page-content" tabIndex={-1}>A private link protects access. It does not prove identity.</h1><p>The institution must separately check the account holder and representative using its required identity process. The current Passage evaluation uses sample data only.</p></section>
     <div className={styles.content}>
       <section className={styles.grid2}>
         <article className={styles.card}><span>What the email link does</span><h2>Opens one person&apos;s part of one request.</h2><ul><li>The account holder and representative receive different links</li><li>Each link works once and expires</li><li>A fresh link turns every earlier link for that person off</li><li>Each person sees only the steps assigned to their role</li></ul></article>

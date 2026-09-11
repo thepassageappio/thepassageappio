@@ -1,12 +1,8 @@
 # Current Passage checkpoint
 
-Latest UX2 progress: [native keyboard skip navigation](../KEYBOARD-NAVIGATION-2026-09-11.md) is implemented for workspace and account/participant layouts. Eight Chromium layout checks passed at 1280/390/360/320px with JavaScript disabled. Public commercial navigation, actual zoom/screen-reader and independent first-use checks remain open. Hosted database evidence is unchanged; no migration was repeated. Hosted authenticated cancellation replay and UAT preview SSO remain release work. The earlier documentation checkpoint was pushed as `060b7b6`; Git and PR metadata access are restored.
+New UX2 gap: with JavaScript disabled, the actual app stays on the streamed route loading screen. The native shortcut passes isolated no-JavaScript layout checks, but complete-page no-JavaScript support is not established. Public keyboard checks passed with JavaScript enabled; do not conflate those results.
 
-September 11, 01:53 UTC: full access restored normal Git operations. Local branch now matches the published code with only documentation changes pending. PR 108 title/body updated successfully. Demo preview dpl_BEHhSRiY2j1NbdyqqfETQk1N2Gx4 is Ready and /api/version verifies ccbbc8531b2a7703cfda32301e2c9a37a85e60e9 on the intended branch. UAT preview dpl_32JXKTNZUTXrkDLAXnTJZb5CQST6 is Ready, but its version endpoint redirects to Vercel SSO even through vercel curl. Deployment protection remains enabled. Production /api/version still verifies main 42976b096b7569174f3b290419a20610ea3ea638. Hosted authenticated browser replay remains open; no release or outreach was performed.
-
-Earlier access-blocker statements below are historical; the remaining preview access issue is UAT SSO.
-
-September 11 UTC checkpoint: [hosted cancellation evidence](../PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
+Latest work: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) extends the native shortcut to public headers and fixes the 320px header overflow. See that evidence file for verification and limits. The [hosted cancellation checkpoint](../PENDING-CANCELLATION-HOSTED-2026-09-11.md) remains the database/release record. Git and PR metadata access are restored; PR 108 remains unmerged. Hosted authenticated replay and UAT preview SSO remain open.
 
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
 

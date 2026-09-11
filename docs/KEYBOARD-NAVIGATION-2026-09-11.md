@@ -11,3 +11,6 @@ No request state, permissions, legal text, migrations, receipt history or provid
 Validation: TypeScript, optimized production build and all 172 domain tests passed. The initial verification-script lint naming issue was corrected; final lint and browser results are recorded before commit.
 
 Final verification: full-repository ESLint passed after the script correction; all eight browser checks passed again.
+
+
+Follow-up: public browser checks found the global link animation delayed shortcut visibility; `transition: none` fixes that, and this fixture now includes interaction-feedback.css. Native links work without JavaScript in these isolated layouts. The complete application currently needs JavaScript to reveal streamed page content; see [public-page evidence](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md).
