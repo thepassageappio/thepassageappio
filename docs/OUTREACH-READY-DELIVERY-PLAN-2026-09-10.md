@@ -1,5 +1,8 @@
 # Outreach-ready product delivery plan
 
+Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) is verified locally and pending release in PR 109. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
+
+
 PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled.
 
 See [release evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Internal reconciliation is now **3/7**. Earlier checkpoint notes are historical.

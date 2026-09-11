@@ -16,6 +16,7 @@ const record = () => ({ id: 'sample', organization_id: 'org', version: 4, status
   account_boundary: 'Sample account', purpose: 'financial_poa' });
 const rows = (table) => { const fixtures = {
   authority_records: record(),
+  authority_participant_invitations: ['principal', 'representative'].map(participant_role => ({ id: participant_role, participant_role, email_normalized: `${participant_role}@example.test`, status: 'pending', expires_at: date, version: 1 })),
   authority_events: [{ event_id: 'event', sequence: 1, summary: 'Saved history entry', detail: 'Earlier information preserved', occurred_at: date }],
   authority_requirements: [{ id: 'requirement', title: 'Identity document', status: 'review_pending' }],
   authority_evidence_artifacts: [{ id: 'artifact', version: 1, requirement_id: 'requirement', review_status: 'pending', original_filename: 'sample.pdf', byte_size: 100 }],
@@ -85,4 +86,23 @@ status = 'awaiting_principal'; participantRole = 'principal';
 assert.match(renderToStaticMarkup(await participantPage(props)), /Review and decide/);
 status = 'accepted'; participantRole = 'representative';
 assert.match(renderToStaticMarkup(await participantPage(props)), /Withdraw from responsibility/);
-console.log(`${cases + 4} rendered-page checks passed. Read fixtures only; not authenticated lifecycle verification.`);
+let accessCases = 0;
+for (const [requestStatus, coordinatorButtons] of [
+  ['awaiting_principal', 1], ['awaiting_representative', 1], ['evidence_required', 1],
+  ['ready_to_submit', 1], ['information_requested', 1], ['under_review', 0],
+  ['accepted', 2], ['accepted_with_limits', 2], ['rejected', 2], ['revoked', 2],
+  ['expired', 2], ['canceled', 2], ['declined', 0], ['withdrawn', 0],
+]) {
+  status = requestStatus;
+  for (role of ['owner', 'admin', 'staff', 'reviewer', 'auditor']) {
+    const html = renderToStaticMarkup(await institutionPage(props));
+    const buttons = html.match(/>Send (?:fresh link|secure resume link|receipt link)<\/button>/g) ?? [];
+    const expected = role === 'auditor' ? 0 : coordinatorButtons;
+    assert.equal(buttons.length, expected, `${role} in ${status}: send controls must match the database operator roles`);
+    assert.match(html, /principal@example.test/);
+    assert.match(html, /representative@example.test/);
+    if (expected === 0) assert.doesNotMatch(html, /Sending a fresh link turns every earlier link/);
+    accessCases++;
+  }
+}
+console.log(`${cases + 4} closed-page checks and ${accessCases} participant-access role/state checks passed. Read fixtures only; not authenticated lifecycle verification.`);

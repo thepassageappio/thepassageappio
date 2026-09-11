@@ -6,6 +6,8 @@ PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged 
 
 Read the [release evidence](../RELEASE-AND-DEMO-STATUS-2026-09-11.md) for source SHAs, deployment IDs, hash replay, test limits and cleanup. Earlier notes describing PR 108 as unmerged, cancellation as branch-only, Git as blocked or UAT preview access as blocked are historical.
 
+Latest UX2 follow-up: [participant-access controls](../PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) hides resend forms from auditors while preserving reviewer/operator access. All 70 role/state render checks and 76 closed-page checks pass. This change is pending in PR 109, not live. Read-only inbox searches supplied no invitation evidence; do not repeat sends or searches to regain context. Continue independent POL1 snapshot/publication work while fresh delivery evidence remains unavailable.
+
 ## Owner objective
 
 Finish a beautiful, simple product that supports truthful one-pagers and outreach. Use clear everyday language throughout the website and product; follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve legal meaning and saved decisions. The owner has authorized continuing engineering and normal tested pushes/releases; do not ask again for routine work within that scope.
