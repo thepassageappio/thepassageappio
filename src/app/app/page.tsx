@@ -111,7 +111,22 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
     </div>
     {mayCreate && mayPrepareDemo && entitlement ? <details className={polish.demoTools}>
       <summary>Presenter tools</summary>
-      <p>Create fresh sample requests for a practice run.</p>
+      <h2>Before you present</h2>
+      <ol>
+        <li>Open separate browser profiles for the institution, account holder and representative. Keep each person in their own profile.</li>
+        <li>Open both test inboxes. Check the recipient addresses in the draft before you send it.</li>
+        <li>Download the sample files below. Use made-up information for every step.</li>
+        <li>Practice the full story: confirm, upload, ask a question, answer, review and accept with limits. Compare the receipt in all three profiles.</li>
+      </ol>
+      <div className={styles.headerActions}>
+        <a className={styles.secondary} href="/samples/fictional-poa.pdf" download>Download sample power of attorney</a>
+        <a className={styles.secondary} href="/samples/fictional-identity.pdf" download>Download sample identity file</a>
+      </div>
+      <h3>If an invitation is missing</h3>
+      <p>Check the address shown on the request, then check that inbox and its spam folder. If you send a replacement from the request page, use only the newest email. Earlier links stop working.</p>
+      <p>Complete one practice run before the buyer call. If a person still cannot open their invitation, resolve that first.</p>
+      <h3>Start a new practice run</h3>
+      <p>This creates a new sample draft. It keeps earlier runs and does not send an email until you choose to send the request.</p>
       <form action={provisionHostedDemoRunAction}>
         <input type="hidden" name="expectedEntitlementVersion" value={Number(entitlement.version)} />
         <input type="hidden" name="idempotencyKey" value={randomUUID()} />
