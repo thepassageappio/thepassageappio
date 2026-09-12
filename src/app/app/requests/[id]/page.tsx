@@ -11,6 +11,7 @@ import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAu
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage, userErrorMessage } from "@/lib/authority/user-messages";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
+import { requestNextStep } from "@/lib/authority/request-next-step";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
 
@@ -142,23 +143,55 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   };
   const responseByRequest = new Map((informationResponses ?? []).map((item) => [String(item.information_request_id), item]));
   const openInformationRequest = (informationRequests ?? []).find((item) => !responseByRequest.has(String(item.id)));
-  const reviewerNextStep = access.membership?.role === "reviewer" && record.status === "under_review"
-    ? requirementsComplete
-      ? { href: "#institution-decision", label: "Record the institution decision", description: "All required information is complete." }
-      : { href: "#required-information", label: "Review the required information", description: "Check each submitted item before deciding." }
-    : null;
+
+  // Orientation summary: one plain-language line for where this case stands today,
+  // plus at most one primary next step. This intentionally supersedes the narrower
+  // reviewer-only "next step" notice that used to live further down the page, so
+  // there is a single, unambiguous answer to "what happens next" at the top —
+  // continuation of the orientation-fix diagnosis in docs/V2-DELIVERY-ROADMAP.md.
+  const nextStep = access.membership ? requestNextStep(record, access.membership.role) : null;
+  // A saved institution decision (accepted / accepted with limits / rejected) is a
+  // fact that never changes. The request's current status can still move on from
+  // there (a decision can later be revoked, or the request can simply expire).
+  // decisionSinceChanged flags exactly that split so the UI can show both facts
+  // instead of only the most recent one.
+  const decisionSinceChanged = Boolean(decision) && (record.status === "revoked" || record.status === "expired");
+  const stateHeadline = `${record.principalName} to ${record.representativeName}: ${hostedStatusLabel(record.status)}`;
+  const stateDescription = closedMessage
+    ? decisionSinceChanged && decision
+      ? `${closedMessage} The institution originally recorded "${hostedDecisionLabel(decision.outcome)}." That original decision has not changed — only the request's current status has.`
+      : closedMessage
+    : nextStep?.detail ?? "";
+  const primaryAction = record.status === "canceled"
+    ? { href: `/app/requests/${record.id}/receipt`, label: "Open cancellation receipt" }
+    : decision
+      ? { href: `/app/requests/${record.id}/receipt`, label: "Open the decision receipt" }
+      : closedMessage
+        ? null
+        : record.status === "draft" && canCoordinate
+          ? { href: "#review-and-send", label: "Continue this draft" }
+          : record.status === "under_review" && canRecordDecision
+            ? requirementsComplete
+              ? { href: "#institution-decision", label: "Record the institution decision" }
+              : { href: "#required-information", label: "Review the required information" }
+            : null;
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>{record.referenceCode}</p><h1>{record.principalName} to {record.representativeName}</h1><p>{record.accountBoundary}</p></div>
+      <div><p className={styles.eyebrow}>{record.referenceCode}</p><h1>{record.principalName} to {record.representativeName}</h1><p><strong>Covers:</strong> {record.accountBoundary}</p></div>
       <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
     </header>
-    {closedMessage ? <div className={styles.notice} role="status">{closedMessage} The saved history is still available below.</div> : null}
-    {record.status === "canceled" ? <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open cancellation receipt</Link> : null}
+    <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="request-next-step">
+      <div className={styles.progressCopy}>
+        <p className={styles.eyebrow}>Where this stands</p>
+        <h2 id="request-next-step">{stateHeadline}</h2>
+        <p>{stateDescription}</p>
+      </div>
+      {primaryAction ? <Link className={styles.primary} href={primaryAction.href}>{primaryAction.label}</Link> : null}
+    </section>
     {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
-    {reviewerNextStep ? <div className={styles.notice}><strong>Your next step: </strong>{reviewerNextStep.description} <a href={reviewerNextStep.href}>{reviewerNextStep.label}</a>.</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
       <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
@@ -166,20 +199,21 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>People</h2><p>Each person receives a separate secure link.</p></div></div>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>Contact details for both people</summary>
+          <p>Each person receives a separate secure link. Names are shown at the top of this page.</p>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}<br />{record.principalEmail}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
           </dl>
-        </section>
+        </details>
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
           <ul className={styles.checklist}>{record.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
         </section>
       </div>
       <div>
-        {record.status === "draft" ? <section className={styles.panel}>
+        {record.status === "draft" ? <section className={styles.panel} id="review-and-send">
           <div className={styles.panelHead}><div><h2>Review and send</h2><p>This draft is saved. Nothing has been sent or counted yet.</p></div><span className={styles.badge}>Saved</span></div>
           <ul className={styles.checklist}>
             <li>{record.principalName} gets a private link to check the requested actions</li>
@@ -192,8 +226,9 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <button className={styles.primary} type="submit">Send to the account holder</button>
           </form> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
-        </section> : <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Participant access</h2><p>{participantAccessDescription}</p></div><span className={styles.badge}>{invitations?.length ?? 0} people</span></div>
+        </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>Participant access ({invitations?.length ?? 0} people)</summary>
+          <p>{participantAccessDescription}</p>
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {
             const notification = notifications.find((item) => item.invitation_id === String(invitation.id));
             const role = invitation.participant_role === "principal" ? "principal" : "representative";
@@ -213,7 +248,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
             </li>;
           })}</ul>
           <Link className={styles.secondary} href="/app">Return to request queue</Link>
-        </section>}
+        </details>}
         {(requirements ?? []).length > 0 ? <section className={styles.panel} id="required-information">
           <div className={styles.panelHead}><div><h2>Required information</h2><p>{reviewFinished ? "These files and confirmations are part of the saved history." : "Review each file or confirmation before making a decision."}</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
           <ul className={styles.activity}>{(requirements ?? []).map((requirement) => {
@@ -274,10 +309,12 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
           <div className={styles.panelHead}><div><h2>Institution decision</h2><p>{reviewFinished ? "Any saved decision is shown here." : "Record the outcome after every required review step is complete."}</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : closedMessage ? "Closed" : decisionReady ? "Ready" : "Not ready"}</span></div>
           {decision ? <>
             <dl className={styles.policyFacts}>
-              <div><dt>Outcome</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
+              <div><dt title="What the institution decided at the time, based on the evidence reviewed. This does not change later.">Original decision</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
+              {decisionSinceChanged ? <div><dt title="What is true about this request right now. This can change after the original decision without altering the decision itself.">Current status</dt><dd>{hostedStatusLabel(record.status)}</dd></div> : null}
               <div><dt>Decision reason</dt><dd>{decision.reason}</dd></div>
-              <div><dt>Receipt</dt><dd>{decision.receiptCode}</dd></div>
+              <div><dt title="A receipt is the saved, shareable record of this decision. It does not change if the request's status changes later.">Receipt</dt><dd>{decision.receiptCode}</dd></div>
             </dl>
+            {decisionSinceChanged ? <p className={styles.supportingCopy}>The original decision above has not changed. Only the request&apos;s current status has — open the receipt for the full timeline.</p> : null}
             <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open decision receipt</Link>
           </> : closedMessage ? <p>No institution decision is saved for this request. Review the activity history for what happened.</p> : decisionReady && canRecordDecision ? <form action={recordInstitutionDecisionAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />
