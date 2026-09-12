@@ -67,8 +67,8 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
 
   return <>
     <header className={styles.pageHeader}>
-      <div><p className={styles.eyebrow}>Decision receipt {decision.receiptCode}</p><h1>{hostedDecisionLabel(decision.outcome)}</h1><p>{record.principalName} to {record.representativeName} for {record.accountBoundary}</p></div>
-      <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
+      <div><p className={styles.eyebrow}>Decision receipt {decision.receiptCode}</p><h1 title="The institution's original decision. It does not change even if the request's current status does.">{hostedDecisionLabel(decision.outcome)}</h1><p>{record.principalName} to {record.representativeName} for {record.accountBoundary}</p></div>
+      <span className={styles.badge} title="What is true about this request right now. See &quot;Changes after the decision&quot; for details.">{hostedStatusLabel(record.status)}</span>
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     {error ? <div className={styles.alert} role="alert">{error}</div> : null}
@@ -112,13 +112,13 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         </section>
 
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Accepted scope</h2><p>Only the actions listed below are included in this institution decision.</p></div></div>
+          <div className={styles.panelHead}><div><h2 title="Only these actions were part of what the institution accepted.">Accepted scope</h2><p>Only the actions listed below are included in this institution decision.</p></div></div>
           {decision.acceptedActionKeys.length ? <ul className={styles.checklist}>{decision.acceptedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul> : <p>No requested action was accepted.</p>}
           {decision.limitations.length ? <div className={receiptStyles.limits}><h3>Recorded limits</h3><ul>{decision.limitations.map((limit) => <li key={limit}>{limit}</li>)}</ul></div> : null}
         </section>
 
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Request boundary</h2><p>This receipt covers only the people, account, purpose, and end date shown here.</p></div></div>
+          <div className={styles.panelHead}><div><h2 title="The exact people, account, purpose, and end date this decision applies to.">Request boundary</h2><p>This receipt covers only the people, account, purpose, and end date shown here.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}</dd></div>
@@ -170,7 +170,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
           <summary>Receipt verification details</summary>
           <p>Use these details when confirming that two copies of a receipt match.</p>
           <dl className={styles.policyFacts}>
-            <div><dt>Receipt</dt><dd>{decision.receiptCode}</dd></div>
+            <div><dt title="A receipt is the saved, shareable record of this decision. It does not change if the request's status changes later.">Receipt</dt><dd>{decision.receiptCode}</dd></div>
             <div><dt>Decision record</dt><dd>{decision.recordVersion}</dd></div>
           </dl>
           <code className={receiptStyles.fingerprint}>{decision.receiptSha256}</code>
