@@ -55,8 +55,8 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     {errorMessage ? <div className={styles.alert} role="alert">{errorMessage}</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Workspace status">
-      <div className={styles.metric}><span>Evaluation usage</span><strong>{activated} of {transactionLimit}</strong></div>
-      <div className={styles.metric}><span>Complete results</span><strong>{progress.completedCount}</strong></div>
+      <div className={styles.metric}><span title="Counts a request once it has been sent to the account holder. Saved drafts do not count toward this.">Evaluation usage</span><strong>{activated} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span title="Requests where the institution has recorded a decision — accepted, accepted with limits, or not accepted.">Complete results</span><strong>{progress.completedCount}</strong></div>
       <div className={styles.metric}><span>{progress.daysRemaining == null ? "Evaluation timing" : "Days remaining"}</span><strong>{progress.daysRemaining == null ? "Starts on send" : progress.daysRemaining}</strong></div>
     </section>
     {access.membership.role !== "developer" ? <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="evaluation-next-step">
