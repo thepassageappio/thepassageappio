@@ -101,6 +101,7 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
     { label: "Invitation recovery", detail: expiredInvitations.length === 0 ? "No expired invitation needs attention." : `${expiredInvitations.length} expired invitation${expiredInvitations.length === 1 ? "" : "s"} need replacement.`, complete: expiredInvitations.length === 0 },
   ];
   const completeControls = setupControls.filter((control) => control.complete).length;
+  const billingNeedsAttention = mayViewBilling && plan?.status === "past_due";
 
   return (
     <>
@@ -121,6 +122,14 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
 
       {query.billing && billingMessages[query.billing] ? <p className={styles.alert}>{billingMessages[query.billing]}</p> : null}
 
+      {billingNeedsAttention ? <p className={styles.alert} role="alert">
+        <strong>Payment attention needed.</strong> {billing?.hosted_invoice_url
+          ? <>The institution&apos;s invoice needs attention. <a href={billing.hosted_invoice_url} target="_blank" rel="noreferrer">Open the hosted invoice</a> to resolve it.</>
+          : mayManageBilling
+            ? <>The institution&apos;s invoice needs attention. <Link href="/contact?topic=billing">Contact billing support</Link> to resolve it.</>
+            : "The institution's invoice needs attention. An organization owner or administrator can resolve this."}
+      </p> : null}
+
       <section className={styles.readinessPanel} aria-labelledby="readiness-heading">
         <div className={styles.readinessSummary}>
           <div><p className={styles.eyebrow}>Evaluation readiness</p><h2 id="readiness-heading">{completeControls} of {setupControls.length} controls ready</h2><p>This score describes the current workspace setup. It is not a security certification or production approval.</p></div>
@@ -133,7 +142,7 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
       <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Organization summary">
         <div className={styles.metric}><span>Active members</span><strong>{activeMembers.length}</strong></div>
         <div className={styles.metric}><span>Pending invitations</span><strong>{pendingInvitations.length}</strong></div>
-        <div className={styles.metric}><span>Recorded admin events</span><strong>{mayViewAudit ? auditResult.count ?? 0 : "Role limited"}</strong></div>
+        <div className={styles.metric}><span title="Organization access changes, such as invitations, role changes, and revocations. This does not include authority-request activity.">Recorded admin events</span><strong>{mayViewAudit ? auditResult.count ?? 0 : "Role limited"}</strong></div>
       </section>
 
       <div className={styles.grid} style={{ marginTop: 17 }}>
