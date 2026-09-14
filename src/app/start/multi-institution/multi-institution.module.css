@@ -1,0 +1,19 @@
+.wizard{display:grid;gap:20px}
+.steps{display:flex;gap:10px;padding:0;margin:0 0 6px;list-style:none;flex-wrap:wrap}
+.steps li{padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:800;color:var(--muted)}
+.stepActive{border-color:var(--green)!important;color:var(--green)!important;background:var(--green-soft)}
+.grid2{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+.confirmationBasis{margin:4px 0;padding:0;border:0;display:grid;gap:10px}
+.confirmationBasis legend{margin-bottom:8px;font-size:12px;font-weight:850;color:var(--ink)}
+.targetList{margin:0 0 14px;padding:0;display:grid;gap:10px;list-style:none}
+.targetRow{padding:13px 14px;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fafbf8}
+.targetRow strong{display:block;font-size:12px}
+.badgeMatched,.badgePending{display:inline-flex;margin-top:4px;height:20px;padding:0 8px;border-radius:999px;align-items:center;font-size:9px;font-weight:900;text-transform:uppercase}
+.badgeMatched{background:var(--green-soft);color:var(--green)}
+.badgePending{background:#f7f3e8;color:#8a6a2f}
+.addTarget{display:grid;gap:12px;padding:14px;border:1px dashed var(--line-strong);border-radius:12px}
+.searchResults{margin:0 0 4px;padding:0;list-style:none;display:grid;gap:6px}
+.searchResult,.searchResultSelected{width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
+.searchResultSelected{border-color:var(--green);background:var(--green-soft)}
+.uploadRow{cursor:pointer}
+@media(max-width:650px){.grid2{grid-template-columns:1fr}}
