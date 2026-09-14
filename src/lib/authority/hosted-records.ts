@@ -43,6 +43,10 @@ export type HostedAuthorityRecord = {
   activatedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Null for every institution-initiated record. Set only when this case was
+   * spawned from a multi-institution submission group (Phase 0, Demo only) -
+   * see docs/USER-INITIATED-MULTI-INSTITUTION-SCOPE-2026-09-13.md. */
+  originGroupId: string | null;
 };
 
 export type HostedAuthorityEvent = {
@@ -85,6 +89,7 @@ type HostedAuthorityRecordRow = {
   activated_at: string | null;
   created_at: string;
   updated_at: string;
+  origin_group_id?: string | null;
 };
 
 type HostedAuthorityEventRow = {
@@ -172,6 +177,7 @@ export function mapHostedAuthorityRecord(row: HostedAuthorityRecordRow): HostedA
     activatedAt: row.activated_at ? String(row.activated_at) : null,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
+    originGroupId: row.origin_group_id ? String(row.origin_group_id) : null,
   };
 }
 
