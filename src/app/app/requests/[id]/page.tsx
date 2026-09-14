@@ -38,7 +38,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
     { data: informationRequests, error: informationRequestError },
     { data: informationResponses, error: informationResponseError },
   ] = await Promise.all([
-    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
+    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at, origin_group_id").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
     supabase.from("authority_events").select("event_id, authority_record_id, sequence, event_type, summary, detail, occurred_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("sequence", { ascending: true }),
     supabase.from("organization_entitlements").select("status, transaction_limit, activated_count, period_started_at, period_ends_at, version").eq("organization_id", access.organization.id).maybeSingle(),
     supabase.from("authority_participant_invitations").select("id, participant_role, email_normalized, status, expires_at, version").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("participant_role", { ascending: true }),
@@ -179,8 +179,18 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   return <>
     <header className={styles.pageHeader}>
       <div><p className={styles.eyebrow}>{record.referenceCode}</p><h1>{record.principalName} to {record.representativeName}</h1><p><strong>Covers:</strong> {record.accountBoundary}</p></div>
-      <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+        <span className={styles.badge}>{hostedStatusLabel(record.status)}</span>
+        {record.originGroupId ? (
+          <span className={styles.badge} title="This requester also submitted evidence to other institutions in the same request. Each institution's case here is independent: its evidence is a private copy, and this institution's decision has no effect on any other institution's case.">
+            One of several institutions in this requester&rsquo;s submission
+          </span>
+        ) : null}
+      </div>
     </header>
+    {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
+    {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
+    {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="request-next-step">
       <div className={styles.progressCopy}>
         <p className={styles.eyebrow}>Where this stands</p>
@@ -189,9 +199,6 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
       </div>
       {primaryAction ? <Link className={styles.primary} href={primaryAction.href}>{primaryAction.label}</Link> : null}
     </section>
-    {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
-    {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
-    {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
       <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
