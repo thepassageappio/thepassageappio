@@ -1,30 +1,25 @@
 # Product status and remaining gaps
 
-Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+Latest POL1 prerequisite: [draft policy comparison](DRAFT-POLICY-COMPARISON-2026-09-11.md) returns exact changes and rejects foreign-institution, future and older replacement snapshots. Six new tests and all 243 domain tests, TypeScript, lint and build passed. The result is comparison-only, not activation permission; authenticated publication lookup, locking and explicit rebase remain unbuilt. No live or database change.
 
-Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
+Latest independent POL1 work: [strict saved-record reading](POLICY-ENVELOPE-READING-2026-09-11.md) rejects getters and unexpected properties before checking policy bytes. Eight new regression cases and all 237 domain tests, TypeScript, lint and build passed. This remains in open PR 109; no database or live product change. Publication, trusted history loading and request snapshot/rebase enforcement remain unfinished.
 
-Latest UX2 completion: [JavaScript recovery guidance](JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
+Latest release: PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) is live on both sites at verified main `326976fd1dc0a4009b18db5429dedf474d48c37c`. [HTTP contact recovery](CONTACT-HTTP-RECOVERY-2026-09-11.md) preserves entries after invalid 503/429/502 responses. The 172-test build, eight exception-boundary and seven action checks passed. Both exact previews and both live sites each passed 12 injected errors, four preflight denials and four honeypot redirects at four widths. Public smoke passed 44 routes/eight recovery states; both error scans returned zero records. No migration, inquiry or provider send occurred. The owner approved rehearsal email; the two recipient addresses remain pending.
 
-Latest follow-up: [public keyboard navigation](PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) adds native header shortcuts and repairs the 320px commercial-header overflow. This supersedes earlier statements that public-page skip navigation is unimplemented. Hosted replay, actual zoom/screen-reader and first-use verification remain open; no release or outreach occurred.
+Latest contact evidence: [local database replay](CONTACT-REPLAY-2026-09-11.md) passed three identical retries and one edited retry with the same reference, one inquiry/event/outbox, unchanged saved input, browser-role denial and rollback cleanup. No hosted write or provider delivery occurred. Committed HTTP response-loss and concurrency remain unverified.
 
-Latest UX2 progress: [native keyboard skip navigation](KEYBOARD-NAVIGATION-2026-09-11.md) is implemented for workspace and account/participant layouts. Eight Chromium layout checks passed at 1280/390/360/320px with JavaScript disabled. Public commercial navigation, actual zoom/screen-reader and independent first-use checks remain open. Hosted database evidence is unchanged; no migration was repeated. Hosted authenticated cancellation replay and UAT preview SSO remain release work. The earlier documentation checkpoint was pushed as `060b7b6`; Git and PR metadata access are restored.
+Latest UX2 follow-up: [auditor participant-access controls](PARTICIPANT-ACCESS-CONTROLS-2026-09-11.md) shipped in PR 110 and remains included in the current release. Reviewer resend access is preserved. Invitation arrival remains unverified; continue independent POL1 work without repeating provider sends.
 
-September 11, 01:53 UTC: full access restored normal Git operations. Local branch now matches the published code with only documentation changes pending. PR 108 title/body updated successfully. Demo preview dpl_BEHhSRiY2j1NbdyqqfETQk1N2Gx4 is Ready and /api/version verifies ccbbc8531b2a7703cfda32301e2c9a37a85e60e9 on the intended branch. UAT preview dpl_32JXKTNZUTXrkDLAXnTJZb5CQST6 is Ready, but its version endpoint redirects to Vercel SSO even through vercel curl. Deployment protection remains enabled. Production /api/version still verifies main 42976b096b7569174f3b290419a20610ea3ea638. Hosted authenticated browser replay remains open; no release or outreach was performed.
 
-Earlier access-blocker statements below are historical; the remaining preview access issue is UAT SSO.
+PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) is merged and live at `c64299e5ed3fa49b43e7ca62278b9c5c59088264` on both `thepassageapp.io` and `demo.thepassageapp.io`. Hosted cancellation checks passed in Demo and UAT. Production verification passed 44 public routes, eight recovery states and 30 authenticated institution receipt views. Preview configuration and UAT preview access are repaired; deployment protection remains enabled.
 
-September 11 UTC checkpoint: [hosted cancellation evidence](PENDING-CANCELLATION-HOSTED-2026-09-11.md). Code pushed at `ccbbc8531b2a7703cfda32301e2c9a37a85e60e9`; Demo/UAT migration and all three SQL rollback suites passed in each environment. Normalized function definitions match local. Vercel Git checks succeeded; exact-candidate hosted browser verification and production release remain pending. The connector returns no projects. This supersedes earlier hosted-migration-pending statements. No new reconciliation day or outreach release.
-
-Updated September 10, 2026 UTC after draft recovery and closed-request guidance.
-
-Latest local result: [closed-request guidance](CLOSED-REQUEST-GUIDANCE-2026-09-10.md) removes obsolete prompts and preserves saved decisions. The [pending cancellation command](PENDING-CANCELLATION-EVIDENCE-2026-09-10.md) has since passed local database and browser verification. Neither change is live. This is implementation evidence, not a new market research pass.
+See [release evidence](RELEASE-AND-DEMO-STATUS-2026-09-11.md). Updated September 11 UTC.
 
 ## Where we are
 
 Passage has a tested sample journey from institution request through separate participant steps to a recorded decision and matching receipts. The current sample is New York, with statement copies and account questions. It is not yet the complete configurable product or approved for general customer-data use.
 
-Production and origin/main were rechecked at `42976b096b7569174f3b290419a20610ea3ea638`. PR 108 remains unmerged. It contains team MFA visibility, workspace guidance, the broad copy rewrite, research/planning records and the draft-recovery improvement. Implemented and tested does not mean live.
+Production and origin/main are verified at `326976fd1dc0a4009b18db5429dedf474d48c37c`. PR 113 is merged and live; PR 112 remains included; see [connection recovery evidence](CONTACT-NETWORK-RECOVERY-2026-09-11.md).
 
 ## What the research means now
 
@@ -34,21 +29,21 @@ The [market report](MARKET-RESEARCH-2026-09-10.md) remains the external research
 
 | Gap | Current position | Next concrete result |
 | --- | --- | --- |
-| Simple guided journey | Workspace and broad copy pass checked; draft errors now keep entries and checkbox choices | Apply recovery to remaining forms; keyboard/zoom/screen-reader and independent first-use walkthrough |
-| Request cancellation | Awaiting-principal cancellation implemented and locally verified, including shared receipt and concurrency | Hosted migration and exact-candidate release; broader states and automatic notices remain separate |
+| Simple guided journey | Workspace/copy checked; draft and contact server/fetch errors retain entries; public text, keyboard, native zoom and form validation checked | Apply recovery to remaining forms; keyboard/zoom/screen-reader and independent first-use walkthrough |
+| Request cancellation | Awaiting-principal cancellation shipped; hosted seven-persona receipts, retry and role checks passed | Broader states and automatic notices remain separate |
 | Institution rules | Fixed sample checklist; general policy editor not shipped | Governed catalogs, immutable publish, snapshot pinning and explicit stale-draft rebase |
 | Real POA cases | Supported sample requires the account holder to participate | Approved intake/exclusions for incapacity, existing instruments, successor/co-agent and conflicting documents |
 | State requirements | New York sample; Pennsylvania not enabled | Qualified review of applicability, deadlines, notices and separate Pennsylvania acknowledgment |
 | Access/recovery | Team authenticator inventory tested | Broader MFA scope, phishing-resistant option assessment and controlled all-factors-lost recovery |
-| Reliable operations | Internal reconciliation 2/7 actual UTC days | Five further real days, separate provider comparison and dependable invitation delivery |
+| Reliable operations | Internal reconciliation 3/7 actual UTC days | Four further real days, separate provider comparison and dependable invitation delivery |
 | Restore/data lifecycle | Not closed by a working demo | Approved backup choice, actual isolated restore, retention/deletion and incident exercise |
 | Buyer proof | Research, first-five drafts and unsent one-pager exist | Real introductions, buyer interviews, process baseline and willingness-to-pay evidence |
-| Release | PR 108 is branch-only | Required checks, merge/deployment provenance and exact-SHA complete replay |
+| Release | PR 112 live with exact-SHA negative contact recovery; earlier authenticated receipt evidence belongs to PR 108 | Reliable invitation arrival and timed fresh full-story rehearsal |
 
 ## Next execution order
 
-1. Carry the draft-recovery result into the release candidate and extend UX2 to the remaining forms and complete accessibility replay.
-2. Release-verify the locally completed WF1 slice in approved hosted test environments; assess broader cancellation states and automatic notices separately.
+1. Close invitation reliability and fresh presenter rehearsal with the released application.
+2. Complete accessibility/first-use replay and assess broader cancellation states and automatic notices separately.
 3. Build POL1 catalog/policy publication and stale-draft recovery.
 4. Prepare WF2/LEG1 decisions for qualified review while engineering continues.
 5. Close SEC1, OPS1/OPS2, ASS1 and release gates with actual evidence. P1/P2 and real-data approval remain open.

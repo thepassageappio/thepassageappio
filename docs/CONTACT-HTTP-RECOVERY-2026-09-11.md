@@ -23,4 +23,10 @@ This does not prove a saved inquiry's response was lost, concurrent database rep
 
 ## Release status
 
-Local verification is complete; exact preview and production evidence will be recorded after the release gate. The application must not be described as shipped based only on this file.
+PR [113](https://github.com/thepassageappio/thepassageappio/pull/113) merged candidate b27668031178099cc10dc37bcb7ab23651dc8e6d as main 326976fd1dc0a4009b18db5429dedf474d48c37c. Both exact previews were Ready and passed the complete 20-step HTTP/preflight/honeypot test: UAT dpl_F8S1hd6ZPzEToJR14dfvCxkpbrXH; Demo dpl_CJ3U1grJbBMGQypbcVJwBdPwa7o5. Both Git statuses succeeded on the candidate.
+
+Both live sites then reported verified GitHub provenance at that exact main SHA and passed the same 20-step test each. Main deployments are Ready: UAT dpl_4exyaPibV4ZMFk3XNLuZVnFG8TMd and Demo dpl_5ZDfvx5et1bVGnyGULm78nsso168. Public smoke passed 44 routes and eight recovery states. Both deployment error queries returned zero records in their 30-minute windows. The clean main worktree passed local release provenance; that local gate reports no hosted SHA and is distinct from the live version checks.
+
+Each tested origin passed 12 browser-injected failures, four actual server preflight denials and four actual honeypot redirects. No inquiry, provider queue item or provider send was created. Existing local disconnect/retry checks also passed. Proof files are ignored under passage-demo-polish/work/http-*-proof.json and passage-authority/work/http-*.
+
+The owner subsequently approved rehearsal invitations and receipts. Only the two intended participant email addresses remain pending. No fresh authenticated rehearsal or inbox delivery has been completed.
