@@ -74,6 +74,34 @@ const errorMessages: Record<string, string> = {
   information_request_already_open: "This request already has an unanswered information request.",
   demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
   invitation_configuration_invalid: "We cannot send links from this site right now. Nothing was changed or sent. Ask Passage for help.",
+  // Multi-institution submission (Phase 0). Codes match the RPC error messages
+  // raised in 20260913150500_authority_multi_institution_submission_phase0_functions.sql
+  // and the validators in src/lib/authority/multi-institution-submission.ts.
+  requester_name_invalid: "Enter the requester's full name.",
+  requester_email_invalid: "Enter a valid email address.",
+  requester_relationship_invalid: "Choose how you are related to this request.",
+  requester_submission_rate_limited: "Too many submissions from this email in the last day. Try again later.",
+  requester_verification_unavailable: "This confirmation link is no longer active.",
+  requester_verification_expired: "This confirmation link has expired. Start a new request to get a fresh link.",
+  requester_session_unavailable: "Your secure session could not be opened. Use the confirmation link from your email again, or start a new request.",
+  submission_group_not_editable: "This request can no longer be edited.",
+  submission_group_changed: "This request changed since the page loaded. Refresh and try again.",
+  submission_group_not_found: "This request could not be found.",
+  submission_group_not_submittable: "This request is not ready to be submitted.",
+  submission_group_details_incomplete: "Complete the account holder and representative details before continuing.",
+  submission_group_target_count_invalid: "Name between 2 and 5 institutions before submitting.",
+  submission_group_target_limit_reached: "You can name up to 5 institutions.",
+  submission_group_evidence_incomplete: "Upload both documents before submitting.",
+  target_label_invalid: "Enter the institution's name.",
+  target_institution_type_invalid: "Enter the type of institution.",
+  target_organization_not_available: "That institution is not currently available on Passage.",
+  target_already_added: "That institution is already on your list.",
+  target_not_found: "That institution could not be found on your list.",
+  requirement_key_invalid: "Choose a valid document type.",
+  evidence_path_invalid: "The file could not be prepared for upload. Try again.",
+  requester_attestation_required: "Confirm the attestation before sending your request.",
+  principal_confirmation_basis_required: "Answer whether the account holder can confirm this request independently.",
+  principal_confirmation_reason_required: "Explain why the account holder cannot confirm this request independently.",
 };
 
 const noticeMessages: Record<string, string> = {
