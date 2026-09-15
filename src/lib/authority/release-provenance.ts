@@ -21,8 +21,7 @@ function readPassageEnvironmentLabel(env: NodeJS.ProcessEnv): string | null {
   return (
     readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT) ??
     readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT_GROK) ??
-    env.VERCEL_ENV?.trim() ||
-    null
+    (env.VERCEL_ENV?.trim() || null)
   );
 }
 
