@@ -2,6 +2,8 @@
 
 Owner direction, September 10, 2026: all website and product language must be easy to understand, natural, and useful. Aim for the simplicity of explaining a step to a five-year-old while treating the adult reader with respect. Do not claim a measured reading age without user testing.
 
+**Hard bar restated September 15, 2026:** no AI fluff, AI slop, or AI verbiage on the website or any external-facing surface. A five-year-old must fully understand and be able to use the product. Apply with special care to first-use orientation, multi-institution requester UI and badges, and document-review controls (status, next actor, next action, decision, and whether it is still current).
+
 ## Write for the person doing the task
 
 - Say what happened, who needs to act, and what to do next.
@@ -19,5 +21,7 @@ Owner direction, September 10, 2026: all website and product language must be ea
 ## Review coverage
 
 Apply this to public pages, metadata, navigation, buttons, forms, hints, empty states, errors, status messages, participant steps, receipts, team/security/billing guidance, emails, articles and guides. Include phone layouts and screen-reader labels. A wording change is not finished until it fits its screen and still means the same thing.
+
+Also apply to `/start/multi-institution/**`, multi-institution origin badges, and any document-review or orientation strip. A broad past copy pass does not by itself prove a first-time user needs no help.
 
 This is a permanent product acceptance rule, not a one-time copy cleanup.

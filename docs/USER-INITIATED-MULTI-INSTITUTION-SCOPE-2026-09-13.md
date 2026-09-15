@@ -1,6 +1,6 @@
 # User-initiated, multi-institution submission: scope and architecture
 
-**Status:** planning/spec only. Nothing in this document has been implemented. No schema in this document has been applied. This is the basis for a follow-up implementation plan, not a substitute for one.
+**Status (updated 2026-09-15):** Phase 0 is **implemented on `main` and applied on demo Supabase only** (`bklrclpertdtmhycpqlz`): schema, RPCs, RLS, requester UI at `/start/multi-institution/**`, and institution case-detail origin badge. Prod/UAT (`ywlrxdjibngroycwnujg`) does **not** have the Phase 0 migrations. Screenshot walkthrough and five-year-old copy audit remain open — see [MULTI-INSTITUTION-PHASE0-PROGRESS-2026-09-15.md](MULTI-INSTITUTION-PHASE0-PROGRESS-2026-09-15.md). Phases 1–3 below are still planning. This document remains the architecture basis; it is not a claim that Phase 0 is demo-ready or sellable.
 
 **Author context:** written at Steve's request after he confirmed, following pushback, that a requester (his example: a person and their grandmother) submitting a single POA-backed request that fans out to multiple institutions at once (their own bank, plus an insurer, plus several other banks, plus a funeral home) is table stakes for Passage Authority going forward.
 
@@ -8,9 +8,9 @@
 
 ---
 
-## 0. What exists today, and why it doesn't support this
+## 0. What existed when this spec was written (2026-09-13), and why it didn't support this
 
-Confirmed by reading the schema and the only request-creation code path in the repo:
+Confirmed by reading the schema and the only request-creation code path in the repo **before Phase 0 landed**:
 
 - `authority_records` has a required, single `organization_id` FK (`not null references public.organizations(id) on delete restrict`). One row is one institution's case, by construction.
 - `authority_institution_decisions.authority_record_id` is `unique` — at most one institution decision per record. This is enforced at the database level and is doing real work: it is the guarantee that one institution's decision can never be read as another's.
@@ -20,6 +20,8 @@ Confirmed by reading the schema and the only request-creation code path in the r
 - `authority_records.allowed_action_keys` is *also* a hard-coded `check (... <@ array['receive_duplicate_statements','discuss_service_issues'])`, and `authority_requirements` are seeded by a trigger that inserts exactly three fixed rows (`power_of_attorney`, `representative_certification`, `identity_evidence`) regardless of template. Today there is exactly one template (`ny_financial_poa`, enforced by name in `select_template_v1`). This means the action vocabulary and evidence checklist are financial-POA-shaped all the way down, not just the `organization_type` label.
 - Evidence (`authority_evidence_artifacts`) and disclosure/consent capture (`authority_disclosures`) are both scoped 1:1 to a single `authority_record_id`. There is no shared "upload once, use for N cases" primitive anywhere in the schema.
 - `docs/PARTICIPANT-AUTHORITY-PORTFOLIO-STRATEGY-2026-09-08.md` (PR #101) is explicitly labeled "not implemented, not a V2 launch gate." It sketches a *sequential*, participant-initiated, one-institution-at-a-time nomination flow (Phase C: "Allow a permitted participant to invite or nominate a receiving institution. Passage creates a new case..."). That is real prior art for identity/consent reasoning — its "four truths" framing (source authority / Passage relationship / institution recognition / downstream access must never collapse into one badge) and its `consent_grant` object are worth reusing — but it is not the same problem as true one-submission-to-N-institutions fan-out, and its own evidence bar ("one participant securely claims two unrelated Passage cases... institution A's decision is never presented as institution B's decision... invite abuse, duplicate identity, lost-device, deceased/incapacitated principal, and account-recovery paths fail safely") is stricter than anything this document proposes shipping in Phase 0.
+
+**After Phase 0 (demo only):** additive tables/RPCs and the public requester wizard exist as documented in the progress companion. The unique-per-record institution decision constraint remains untouched. Section text below still describes the intended architecture and later phases.
 
 ---
 
