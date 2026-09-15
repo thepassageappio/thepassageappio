@@ -117,7 +117,7 @@ function statusSentenceFor(
     case "expired":
       return "This request reached its end date.";
     default:
-      return `This request is at: ${record.status.replaceAll("_", " ")}.`;
+      return "This request was updated.";
   }
 }
 
@@ -197,7 +197,7 @@ function primaryActionFor(input: {
     return { href: "#participant-access", label: "Resend their link" };
   }
   if (record.status === "under_review" && canRecordDecision) {
-    // Empty checklist has no #documents-and-checks strip — send reviewers to the decision panel.
+    // Empty checklist has no #documents-and-checks strip, send reviewers to the decision panel.
     if (checklistEmpty || requirementsComplete) {
       if (checklistEmpty && !hasAskedFor) {
         return { href: "#what-they-may-ask-for", label: "Pick at least one thing to ask for." };
@@ -235,7 +235,7 @@ export function buildCaseOrientation(input: {
   const canCoordinate = Boolean(input.role && canCoordinateAuthorityRequests(input.role));
   const canRecordDecision = Boolean(input.role && canRecordAuthorityDecision(input.role));
   const checklistEmpty = requirements.length === 0;
-  // Empty checklist means there is no documents strip to finish — decision panel is reachable.
+  // Empty checklist means there is no documents strip to finish, decision panel is reachable.
   const requirementsComplete = checklistEmpty || requirements.every((item) => item.status === "completed");
   const hasAskedFor = input.record.allowedActionKeys.length > 0;
 
@@ -303,7 +303,7 @@ export function buildCaseOrientation(input: {
 
   return {
     statusSentence,
-    nextLine: `Next: ${actorName} (${role}) — ${ask}`,
+    nextLine: `Next: ${actorName} (${role}), ${ask}`,
     primaryAction: primaryActionFor({
       record: input.record,
       role: input.role,
@@ -371,7 +371,7 @@ export function buildDocumentReviewModel(input: {
     if (artifact && artifact.review_status === "pending") {
       missing.push({
         id: String(requirement.id),
-        title: `${requirement.title} — Received — not checked yet`,
+        title: `${requirement.title}, Received, not checked yet`,
         whoMustFix: "Bank reviewer",
         kind: "received",
       });
@@ -394,6 +394,6 @@ export function buildDocumentReviewModel(input: {
     missing,
     checked,
     ready,
-    readyLabel: ready ? "Yes" : input.hasDecision ? "Decision already saved" : "Not yet — finish the missing list.",
+    readyLabel: ready ? "Yes" : input.hasDecision ? "Decision already saved" : "Not yet, finish the missing list.",
   };
 }
