@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { prepareHostedAuthorityDraft } from "./hosted-records.ts";
+import { HOSTED_ACTIONS, prepareHostedAuthorityDraft } from "./hosted-records.ts";
 
 const validInput = {
   principalName: "  Eleanor Carter ",
@@ -53,4 +53,9 @@ test("hosted draft rejects an end date that has already passed", () => {
     ),
     /future/,
   );
+});
+
+test("hosted action display labels match locked P1 wording", () => {
+  assert.equal(HOSTED_ACTIONS.receive_duplicate_statements, "Get copies of account statements");
+  assert.equal(HOSTED_ACTIONS.discuss_service_issues, "Talk with the bank about the account");
 });

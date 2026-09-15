@@ -18,6 +18,19 @@ const valid = {
   decision_outcome: "accepted_with_limits",
   decision_reason: "The submitted evidence satisfies the institution policy.",
   accepted_action_keys: ["receive_duplicate_statements"],
+  accepted_permissions_snapshot: {
+    authority_type_key: "financial_poa",
+    legacy_provenance: true,
+    items: [{
+      key: "receive_duplicate_statements",
+      kind: "act",
+      source: "platform",
+      label: "Get copies of account statements",
+      help: "The helper asks the bank to send statement copies for this account.",
+      label_version: 1,
+      outcome: "accepted_with_limits",
+    }],
+  },
   limitations: ["Statements may be mailed only to the address on file."],
   decided_at: "2026-09-01T12:00:00.000Z",
   valid_until: "2026-12-01T12:00:00.000Z",
@@ -32,6 +45,7 @@ test("participant receipt maps only complete role-bound receipt data", () => {
   assert.equal(receipt?.participantRole, "representative");
   assert.equal(receipt?.outcome, "accepted_with_limits");
   assert.deepEqual(receipt?.limitations, valid.limitations);
+  assert.equal(receipt?.acceptedPermissionsSnapshot?.items[0]?.label, "Get copies of account statements");
   assert.equal(mapParticipantDecisionReceipt({ ...valid, participant_role: "owner" }), null);
   assert.equal(mapParticipantDecisionReceipt({ ...valid, receipt_code: null }), null);
 });
