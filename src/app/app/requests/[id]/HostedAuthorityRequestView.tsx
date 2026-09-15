@@ -5,11 +5,12 @@ import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
-import { hostedRequestNoticeMessage } from "@/lib/authority/user-messages";
+import { hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { requestNextStep } from "@/lib/authority/request-next-step";
 import styles from "@/components/app/app-shell.module.css";
 import { MultiInstitutionOriginBadge, MultiInstitutionOriginStripLine } from "@/components/app/MultiInstitutionOriginBadge";
+import { CopyAccessLink } from "./CopyAccessLink";
 import { HostedAuthorityRequestLower } from "./HostedAuthorityRequestLower";
 
 type ViewProps = {
@@ -36,6 +37,7 @@ type ViewProps = {
   decisionRow: unknown;
   informationRequests: any[];
   informationResponses: any[];
+  inviteAccessLinkFlash: { role: "principal" | "representative"; url: string } | null;
 };
 
 export function HostedAuthorityRequestView({
@@ -62,6 +64,7 @@ export function HostedAuthorityRequestView({
   decisionRow,
   informationRequests,
   informationResponses,
+  inviteAccessLinkFlash,
 }: ViewProps) {
   const invitationStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
@@ -97,11 +100,11 @@ export function HostedAuthorityRequestView({
   const deliveryStatusLabel = (status: string | undefined) => {
     const labels: Record<string, string> = {
       pending: "Delivery pending",
-      delivered: "Email delivery confirmed",
+      delivered: "Email reached the inbox (provider confirmed)",
       failed: "Delivery needs attention",
       canceled: "Held until prior step",
       retrying: "Delivery retry scheduled",
-      processing: "Provider accepted; final delivery pending",
+      processing: "Email accepted by the provider (not confirmed in the inbox yet)",
     };
     return status ? labels[status] ?? "Delivery updated" : "Delivery not started";
   };
@@ -188,6 +191,7 @@ export function HostedAuthorityRequestView({
       </div>
     </header>
     {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
+    {inviteAccessLinkFlash ? <CopyAccessLink recordId={record.id} role={inviteAccessLinkFlash.role} url={inviteAccessLinkFlash.url} /> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="request-next-step">
