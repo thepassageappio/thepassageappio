@@ -1,5 +1,9 @@
 import type { HostedActionKey, HostedAuthorityStatus } from "./hosted-records.ts";
 import type { HostedDecisionOutcome } from "./hosted-decisions.ts";
+import {
+  permissionsSnapshotFromUnknown,
+  type PermissionsSnapshot,
+} from "./permission-catalog.ts";
 
 export type ParticipantDecisionReceipt = {
   receiptCode: string;
@@ -17,6 +21,7 @@ export type ParticipantDecisionReceipt = {
   outcome: HostedDecisionOutcome;
   reason: string;
   acceptedActionKeys: HostedActionKey[];
+  acceptedPermissionsSnapshot: PermissionsSnapshot | null;
   limitations: string[];
   decidedAt: string;
   validUntil: string;
@@ -72,6 +77,7 @@ export function mapParticipantDecisionReceipt(value: unknown): ParticipantDecisi
     outcome,
     reason: required[8]!,
     acceptedActionKeys: textArray(row, "accepted_action_keys") as HostedActionKey[],
+    acceptedPermissionsSnapshot: permissionsSnapshotFromUnknown(row.accepted_permissions_snapshot),
     limitations: textArray(row, "limitations"),
     decidedAt: required[9]!,
     validUntil: required[10]!,
