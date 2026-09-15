@@ -1,4 +1,5 @@
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { offeredFinancialPoaPermissions } from "@/lib/authority/permission-catalog";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
 
@@ -14,14 +15,28 @@ export default async function PoliciesPage() {
     return <PolicyNotice title="This saved policy is not supported" detail="This version of Passage cannot show the saved policy. Ask your organization owner to check the policy setup." />;
   }
 
+  const offered = offeredFinancialPoaPermissions();
+
   return (
     <>
       <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Request rules</p><h1>New York financial power of attorney</h1><p>This checklist is for sample requests. The bank or credit union reviews the documents and decides what the representative may do.</p></div><span className={styles.badge}>Selected</span></header>
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>What this sample covers</h2><p>The sample covers statement copies and account questions. You cannot change the institution’s rules in Passage yet.</p></div></div>
+          <div className={styles.panelHead}><div><h2>What people may ask for</h2><p>These are the asks your organization currently offers on new New York financial power of attorney requests. Saving a different list for new requests comes later.</p></div></div>
+          <ul className={styles.checklist}>
+            {offered.map((item) => (
+              <li key={item.key}>
+                <strong>{item.label}</strong>
+                <span style={{ display: "block", color: "var(--muted)", fontSize: 12, marginTop: 4 }}>{item.help}</span>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.supportingCopy}>Passage records the ask and the bank’s answer. Passage does not move money or grant bank login access.</p>
+        </section>
+        <section className={styles.panel}>
+          <div className={styles.panelHead}><div><h2>What this sample covers</h2><p>The sample covers statement copies and ordinary account questions. You cannot change the institution’s rules in Passage yet.</p></div></div>
           <div className={styles.policyScope}>
-            <div className={styles.scopeCard}><h3>May be requested</h3><ul><li>Get statement copies for the named account</li><li>Ask about account service issues listed in the request</li></ul></div>
+            <div className={styles.scopeCard}><h3>May be requested</h3><ul>{offered.map((item) => <li key={item.key}>{item.label}</li>)}</ul></div>
             <div className={styles.scopeCard} data-tone="caution"><h3>Not available in Passage yet</h3><ul><li>Move, withdraw, or transfer money</li><li>Open or close accounts</li><li>Change account owners or beneficiaries</li><li>Change sign-in details or investments</li></ul></div>
           </div>
         </section>
