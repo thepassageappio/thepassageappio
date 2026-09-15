@@ -1,46 +1,62 @@
 # Current Passage checkpoint
 
-Latest POL1 evidence: [policy snapshot baseline](../POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
+Updated September 15, 2026 UTC after eng scoping aggregation. Codeword: **AUTHORITY COMPASS 771204**.
 
-Latest POL1 prerequisite: [accurate policy overview](../POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
+## Latest tip
 
-Latest UX2 completion: [JavaScript recovery guidance](../JAVASCRIPT-RECOVERY-2026-09-11.md) replaces unexplained waiting with clear browser-setting and reload instructions. All 32 actual browser cases passed across four routes and four widths, with scripts disabled and enabled. The application still requires JavaScript; this is recovery guidance, not complete no-script support. Hosted cancellation replay, UAT preview SSO and broader release gates remain open.
+GitHub `main` tip: `b1ba96cfbba00f9e0c3d4335018e3de866445be0` (2026-09-14). Same product SHA is intended for both Vercel projects (`passage-authority-uat` → `thepassageapp.io`, `passage-authority-demo` → `demo.thepassageapp.io`). **Supabase migration heads differ:** demo (`bklrclpertdtmhycpqlz`) includes multi-institution Phase 0; prod/UAT (`ywlrxdjibngroycwnujg`) does not.
 
-Latest work: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md) extends the native shortcut to public headers and fixes the 320px header overflow. See that evidence file for verification and limits. The [hosted cancellation checkpoint](../PENDING-CANCELLATION-HOSTED-2026-09-11.md) remains the database/release record. Git and PR metadata access are restored; PR 108 remains unmerged. Hosted authenticated replay and UAT preview SSO remain open.
+## Owner writing rule (hard)
 
-Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
+Every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). **Steve, 2026-09-15:** no AI fluff, AI slop, or AI verbiage on the website or any external-facing surface. A five-year-old must fully understand and be able to use the product. Enforce especially on orientation UX, multi-institution UI, and document-review controls. Preserve the meaning of legal text and saved decisions.
 
-Updated September 10, 2026 UTC. Codeword: **AUTHORITY COMPASS 771204**.
+## What landed since the prior CURRENT
+
+- **Multi-institution Phase 0 (demo only):** schema + RPCs + RLS + requester wizard at `/start/multi-institution/**` + institution case-detail origin badge. See [scope](../USER-INITIATED-MULTI-INSTITUTION-SCOPE-2026-09-13.md) and [Phase 0 progress](../MULTI-INSTITUTION-PHASE0-PROGRESS-2026-09-15.md). Screenshot walkthrough still pending resume — do not recreate from scratch.
+- **Orientation:** request-detail “Where this stands” (2026-09-12) and [reviewer/admin orientation pass](../REVIEWER-ADMIN-ORIENTATION-PASS-2026-09-13.md) (2026-09-13). First-time uncoached walkthrough still open (UX2).
+- **PR [#109](https://github.com/thepassageappio/thepassageappio/pull/109)** remains open: policy validation / immutable storage **groundwork only**. Do **not** merge wholesale. Do **not** market as complete POL1. Authenticated publication, request binding, and activation/rebase enforcement remain unfinished; some migrations were local-only.
+- **Never recreate** demo case `PA-F39449782D`.
+
+## Prior evidence still true (do not erase)
+
+- [Policy snapshot baseline](../POLICY-SNAPSHOT-BASELINE-2026-09-11.md): hosted creation events have template identifiers; **none** contain a full `policy_snapshot` object. Inventory only; authoring/publication/rebase unbuilt.
+- [Policy overview](../POLICY-OVERVIEW-2026-09-11.md): distinguishes saved / missing / failed / unsupported selections.
+- [Hosted cancellation](../PENDING-CANCELLATION-HOSTED-2026-09-11.md): migrations applied on Demo and UAT; **hosted authenticated browser replay still open**.
+- [JavaScript recovery](../JAVASCRIPT-RECOVERY-2026-09-11.md), [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-2026-09-11.md), [workspace guidance](../WORKSPACE-GUIDANCE-2026-09-10.md), [plain-language review](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md), [draft recovery](../DRAFT-RECOVERY-2026-09-10.md).
+- Core synthetic NY persona journey and scoped receipts pass. Pennsylvania, general policy configuration, and incapacitated-principal path are not shipped capabilities.
+- **P1 open; P2 open; outreach and buyer-demo release not approved** without explicit owner signoff. Real-data pilot approval remains separate.
+- Reconciliation and backup/PITR counts: re-verify before citing a day number (prior docs disagree across dates).
 
 ## Owner objective
 
 Finish a beautiful, simple, user-friendly product that supports truthful one-pagers and outreach. Follow the [active delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md), informed by the [market research](../MARKET-RESEARCH-2026-09-10.md). Use evidence and completion criteria, not a readiness score.
 
-## Actual status
-
-- Production was reverified at `42976b096b7569174f3b290419a20610ea3ea638` (PR 107). GitHub main provenance matches.
-- PR [108](https://github.com/thepassageappio/thepassageappio/pull/108) on `agent/p1-p2-closeout-20260909` contains tested team MFA enrollment visibility and evidence. It is unmerged. Its additive migration `20260910023630` is applied and boundary-tested in Demo and UAT.
-- Core synthetic persona journey and scoped receipts pass. Current evaluation is New York with two non-transactional action fixtures. General policy configuration, Pennsylvania and an incapacitated-principal path are not established as shipped capabilities.
-- UX1 core workspace guidance is implemented and locally verified: 169 domain tests, TypeScript, lint, build; actual local owner/staff/reviewer/auditor authentication and desktop/390/360 checks. See [workspace evidence](../WORKSPACE-GUIDANCE-2026-09-10.md). This is not a complete accessibility or lifecycle replay.
-- Internal reconciliation is **2/7** real clean UTC days; live-provider comparison remains separate. No additional day can be credited by rerunning.
-- P1 first-five research and unsent drafts exist. Actual warm introductions, final sender review and broader list validation remain open.
-- **P1 open; P2 open; outreach and buyer-demo release not approved.** Real-data pilot approval remains separate.
-
-- The broad plain-language pass is implemented and checked. See [copy review](../PLAIN-LANGUAGE-REVIEW-2026-09-10.md). Existing versioned legal articles remain unchanged, with separate plain explanations.
-
-- Draft recovery now retains entered values and selected actions on server/database errors. Real local save, append-only event, exact-POST idempotency replay and reviewer denial/visibility passed. See [draft evidence](../DRAFT-RECOVERY-2026-09-10.md) and [current gaps](../PRODUCT-GAPS-2026-09-10.md).
+**Demo-ready (= pilot-sellable):** product works end-to-end without hand-holding, and the demo environment is an identical walkthrough environment for a live client. Multi-institution Phase 0 may appear only on demo until promoted.
 
 ## Execute next
 
-1. UX2: continue the guided journey, including complete keyboard/zoom/screen-reader and first-time walkthrough checks; UX1 core workspace changes are locally verified.
-2. WF1: complete exact-candidate hosted browser release checks for cancellation; hosted migration and SQL verification passed; broader states and automatic cancellation notices remain outside this slice.
-3. POL1: implement governed institution policy/catalog publication and snapshot/rebase invariants.
-4. Prepare WF2/LEG1: principal unable to participate, state applicability, deadlines, acknowledgments and notices for qualified review.
-5. Continue SEC1/OPS1/OPS2/ASS1 and release-candidate QA. Only then record explicit outreach release.
+**M0 (allowed now — docs/resume only; no new product claims):**
+
+1. Resume interrupted multi-institution demo walkthrough and screenshots; keep [Phase 0 progress](../MULTI-INSTITUTION-PHASE0-PROGRESS-2026-09-15.md) current.
+2. Plain-language audit of `/start/multi-institution/**`, origin badge, and document-review controls against the hard bar above.
+3. Keep PR #109 as groundwork only.
+
+**M1 (hold product build until owner green-lights aggregated roadmap):**
+
+1. UX2: guided journey, keyboard/zoom/screen-reader, independent first-time walkthrough — five-year-old bar must pass.
+2. WF1: exact-candidate hosted authenticated browser release for cancellation.
+3. Env identity + presenter runbook; truthful claim ledger (NY sample; multi-inst demo-only if shown).
+4. REL1: timed rehearsal with matching receipts.
+
+**M2 / later (enterprise; Ops leads bar):**
+
+1. POL1 beyond inventory: governed publish, snapshots on new requests, stale-draft rebase — not a wholesale merge of #109.
+2. WF2/LEG1 prep with Compliance: jurisdiction packages and product supportability hooks.
+3. SEC1 / OPS1 / OPS2 / ASS1 with accurate scope.
 
 ## Persistent boundaries
 
-The institution decides; no automatic legal acceptance, universal registry, inferred consent, customer credential sharing or unacknowledged access-change claim. Preserve activated history. No new spending, real customer data, live payments, external messages or invented signoffs. Research and unsent asset preparation may proceed. Do not repeat migrations or provider sends to recover context.
+The institution decides; no automatic legal acceptance, universal registry, inferred consent, customer credential sharing or unacknowledged access-change claim. Keep identity evidence, authority evidence, and institution acceptance separate. Preserve activated history. No new spending, real customer data, live payments, external messages or invented signoffs. Research and unsent asset preparation may proceed. Do not repeat migrations or provider sends to recover context.
 
 ## Read only what the task needs
 
@@ -49,4 +65,4 @@ The institution decides; no automatic legal acceptance, universal registry, infe
 - [Prior evidence ledger](../P1-P2-CONTINUATION-2026-09-10.md)
 - [Engineering](ENGINEERING.md), [QA](QA.md), [releases](RELEASES.md), [commercial](COMMERCIAL.md), [providers](PROVIDERS.md), [jurisdictions](JURISDICTIONS.md)
 
-The previous checkpoint is preserved in `docs/archive/CURRENT-before-market-plan-2026-09-10.md`. Older scores and stale counts there are historical.
+The previous checkpoint body before this refresh is historical; older scores and stale counts in archived CURRENT files remain historical only.

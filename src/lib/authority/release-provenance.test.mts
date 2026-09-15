@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateProductionProvenance } from "./release-provenance.ts";
+import { readReleaseProvenance, validateProductionProvenance } from "./release-provenance.ts";
 
 const sha = "9182c21000000000000000000000000000000000";
 const valid = {
   environment: "production",
+  vercelEnvironment: "production",
   gitProvider: "github",
   repositoryOwner: "thepassageappio",
   repositorySlug: "thepassageappio",
@@ -25,6 +26,7 @@ test("rejects a branch deployment and a different expected main commit", () => {
 test("rejects manual production deployment metadata with no Git provenance", () => {
   const issues = validateProductionProvenance({
     environment: "production",
+    vercelEnvironment: "production",
     gitProvider: null,
     repositoryOwner: null,
     repositorySlug: null,
@@ -38,5 +40,59 @@ test("rejects manual production deployment metadata with no Git provenance", () 
 });
 
 test("does not apply the production gate to preview or local builds", () => {
-  assert.deepEqual(validateProductionProvenance({ ...valid, environment: "preview", commitRef: "feature" }), []);
+  assert.deepEqual(
+    validateProductionProvenance({ ...valid, environment: "preview", vercelEnvironment: "preview", commitRef: "feature" }),
+    [],
+  );
+});
+
+test("PASSAGE_ENVIRONMENT demo wins over VERCEL_ENV production for the label", () => {
+  const provenance = readReleaseProvenance({
+    PASSAGE_ENVIRONMENT: "demo",
+    VERCEL_ENV: "production",
+    VERCEL_GIT_PROVIDER: "github",
+    VERCEL_GIT_REPO_OWNER: "thepassageappio",
+    VERCEL_GIT_REPO_SLUG: "thepassageappio",
+    VERCEL_GIT_COMMIT_REF: "main",
+    VERCEL_GIT_COMMIT_SHA: sha,
+  });
+  assert.equal(provenance.environment, "demo");
+  assert.equal(provenance.vercelEnvironment, "production");
+  assert.deepEqual(validateProductionProvenance(provenance, sha), []);
+});
+
+test("PASSAGE_ENVIRONMENT_GROK is used when PASSAGE_ENVIRONMENT is unset", () => {
+  const provenance = readReleaseProvenance({
+    PASSAGE_ENVIRONMENT_GROK: "demo",
+    VERCEL_ENV: "production",
+  });
+  assert.equal(provenance.environment, "demo");
+  assert.equal(provenance.vercelEnvironment, "production");
+});
+
+test("PASSAGE_ENVIRONMENT_GROK is used when PASSAGE_ENVIRONMENT is invalid", () => {
+  assert.equal(
+    readReleaseProvenance({
+      PASSAGE_ENVIRONMENT: "taken-by-other-agent",
+      PASSAGE_ENVIRONMENT_GROK: "demo",
+      VERCEL_ENV: "production",
+    }).environment,
+    "demo",
+  );
+});
+
+test("PASSAGE_ENVIRONMENT wins over PASSAGE_ENVIRONMENT_GROK when both valid", () => {
+  assert.equal(
+    readReleaseProvenance({
+      PASSAGE_ENVIRONMENT: "preview",
+      PASSAGE_ENVIRONMENT_GROK: "demo",
+      VERCEL_ENV: "production",
+    }).environment,
+    "preview",
+  );
+});
+
+test("falls back to VERCEL_ENV when Passage labels are unset or invalid", () => {
+  assert.equal(readReleaseProvenance({ VERCEL_ENV: "preview" }).environment, "preview");
+  assert.equal(readReleaseProvenance({ PASSAGE_ENVIRONMENT: "staging", VERCEL_ENV: "production" }).environment, "production");
 });

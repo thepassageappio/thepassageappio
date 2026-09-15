@@ -13,7 +13,7 @@ type Props = {
   searchParams: Promise<{ intent?: string; next?: string; error?: string }>;
 };
 
-export const metadata: Metadata = { title: "Start an Evaluation", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Try Passage with sample details", robots: { index: false, follow: false } };
 
 export default async function StartPage({ searchParams }: Props) {
   const query = await searchParams;
@@ -32,17 +32,17 @@ export default async function StartPage({ searchParams }: Props) {
 
   return (
     <AccountFrame
-      eyebrow={returning ? "Welcome back" : sample ? "Sample workflow" : "Try Passage Authority"}
-      title={returning ? "Sign in securely" : sample ? "Sign in to view the sample" : "Create your evaluation workspace"}
+      eyebrow={returning ? "Welcome back" : sample ? "Sample workflow" : "TRY WITH SAMPLE DETAILS"}
+      title={returning ? "Sign in" : sample ? "Sign in to view the sample" : "Try Passage with sample details"}
       description={returning
         ? googleSignInEnabled
-          ? "Use Google for immediate access, or request a one-time link by email."
-          : "Request a one-time sign-in link using your work email."
+          ? "Use Google for immediate access, or we will email you a link to sign in."
+          : "We will email you a link to sign in. Use your work email."
         : sample
           ? googleSignInEnabled
-            ? "Sign in with Google or an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
-            : "Sign in with an email link. Then agree to receive follow-up emails to view the example. You do not need an authenticator app."
-        : "Explore up to five sample authority requests over 10 days. No card is required, and the clock starts only when you send the first request."}
+            ? "Sign in with Google or an email link. Then agree to receive follow-up emails to view the example. You do not need a phone app that shows a short code."
+            : "Sign in with an email link. Then agree to receive follow-up emails to view the example. You do not need a phone app that shows a short code."
+        : "You can try up to five practice requests in 10 days. You do not need a card. The 10 days start when you send the first request."}
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}
       {googleSignInEnabled ? <>
@@ -63,15 +63,15 @@ export default async function StartPage({ searchParams }: Props) {
         <div className={styles.field}>
           <label htmlFor="email">Work email</label>
           <input autoComplete="email" id="email" name="email" placeholder="alex@institution.com" required type="email" />
-          <small>Use the email address your organization will recognize.</small>
+          <small>Use your work email so your bank team can find you.</small>
         </div>
-        <button className={styles.primary} type="submit">Send me a one-time email link</button>
+        <button className={styles.primary} type="submit">Email me a sign-in link</button>
         <p className={styles.legal}>
-          By continuing, you acknowledge the <Link href="/legal/privacy">privacy notice</Link>. Use only approved sample information during this evaluation.
+          By continuing, you agree to the <Link href="/legal/privacy">privacy notice</Link>. Use only made-up sample details. Do not use real customer information.
         </p>
       </form>
       {sample ? <p className={styles.legal}>Signing in checks that you can access your account. We ask separately for permission to send follow-up emails.</p> : null}
-      {!returning && !sample ? <p className={styles.legal}>When you create a workspace, you become its owner. Set up an authenticator app to protect your account. It gives you a code to enter when you sign in. <Link href="/sample">Want to look around first? View the example.</Link></p> : null}
+      {!returning && !sample ? <p className={styles.legal}><Link href="/sample">Want to look first? See an example.</Link></p> : null}
     </AccountFrame>
   );
 }

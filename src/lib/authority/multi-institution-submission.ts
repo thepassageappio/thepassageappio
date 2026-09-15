@@ -24,7 +24,7 @@ export type SubmissionEvidenceRequirementKey = (typeof SUBMISSION_EVIDENCE_REQUI
 
 export const SUBMISSION_EVIDENCE_LABELS: Record<SubmissionEvidenceRequirementKey, string> = {
   power_of_attorney: "Power of attorney document",
-  identity_evidence: "Identity evidence",
+  identity_evidence: "Photo ID or other proof of who they are",
 };
 
 export const REQUESTER_ATTESTATION_TEXT_VERSION = "requester-attestation-2026-09-13";
@@ -37,17 +37,14 @@ export const MULTI_INSTITUTION_PURPOSE =
   "Request recognition of limited financial power of attorney authority (submitted alongside other institutions in one multi-institution request)";
 export const MULTI_INSTITUTION_ACCOUNT_BOUNDARY = "All accounts and relationships held with this institution";
 
-// Verbatim from docs/USER-INITIATED-MULTI-INSTITUTION-SCOPE-2026-09-13.md section 0
-// ("Legal boundary, restated"), reused rather than inventing new legal-sounding copy.
+// Hard-bar wording from docs/MULTI-INSTITUTION-CLARITY-P0.md (PD table).
 export const PASSAGE_AUTHORITY_BOUNDARY_NOTICE =
-  "Passage does not create, validate, or determine the legal validity of a power of attorney. It coordinates workflow and institutional review.";
+  "Passage does not decide if a power of attorney is valid. Each bank reviews and decides on its own.";
 
-// Adapted (singular -> plural target) from the exact event summary text
-// submit_submission_group_v1 writes to authority_events for every spawned case:
-// "This institution's case is independent: its evidence is a private copy, and
-// its decision has no effect on any other institution's case."
+// Requester-facing independence line from docs/MULTI-INSTITUTION-CLARITY-P0.md.
+// Spawned-case event summaries in the RPC stay unchanged.
 export const MULTI_INSTITUTION_CASE_INDEPENDENCE_NOTICE =
-  "Each institution's case is independent: its evidence is a private copy, and its decision has no effect on any other institution's case.";
+  "Each bank gets its own request. Each bank answers on its own.";
 
 export const MAX_GROUP_EVIDENCE_FILE_BYTES = 10 * 1024 * 1024;
 

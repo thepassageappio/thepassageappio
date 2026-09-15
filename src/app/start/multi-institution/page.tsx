@@ -14,9 +14,9 @@ export default async function StartMultiInstitutionPage({ searchParams }: Props)
 
   return (
     <AccountFrame
-      eyebrow="Multiple institutions, one request"
-      title="Name every institution in one place"
-      description="Submit one shared packet naming up to five institutions. Passage does not create, validate, or determine the legal validity of a power of attorney -- it coordinates workflow and institutional review. Each institution still reviews and decides independently."
+      eyebrow="Ask several banks in one go"
+      title="List every bank or credit union you need to ask"
+      description="Send one set of details to up to five banks. Passage does not decide if a power of attorney is valid. Each bank reviews and decides on its own."
     >
       {message ? <div className={styles.alert} role="alert">{message}</div> : null}
       <StartSubmissionForm idempotencyKey={randomUUID()} />

@@ -93,7 +93,7 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>What does a completed request look like?</h3>
-              <p>The institution records one of three outcomes: accepted, accepted with limits, or rejected. The receipt shows the people, account boundary, requested and accepted actions, limits, reason, decision date, and whether the result later changed or ended. The receipt records the institution&apos;s answer; it does not itself create login access or move money.</p>
+              <p>The institution records one of three outcomes: accepted, accepted with limits, or rejected. The receipt shows the people, which account this covers, requested and accepted actions, limits, reason, decision date, and whether the result later changed or ended. The receipt records the institution&apos;s answer; it does not itself create login access or move money.</p>
             </article>
             <article>
               <h3>Why would an emailed secure link stop working?</h3>
@@ -126,7 +126,7 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>Can an institution separate request operations from approval?</h3>
-              <p><strong>Yes.</strong> Staff can prepare and activate requests without deciding them. Reviewers can review evidence, request corrections, and record decisions without creating requests or managing team access. Owners and administrators have broader responsibilities for supervised evaluation.</p>
+              <p><strong>Yes.</strong> Staff can prepare and send requests without deciding them. Reviewers can review evidence, request corrections, and record decisions without creating requests or managing team access. Owners and administrators have broader responsibilities for supervised evaluation.</p>
             </article>
             <article>
               <h3>Is this ready for approved customer data?</h3>
@@ -147,7 +147,7 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>How does Passage connect to existing systems?</h3>
-              <p>Start by using Passage on its own. We can then plan how your system sends requests and receives updates. Your technical team can review the API and signed update messages.</p>
+              <p>Start by using Passage on its own. We can then plan how your system sends requests and receives updates. Your technical team can review the API and the signed messages that report what changed.</p>
             </article>
             <article>
               <h3>How is Passage priced?</h3>
