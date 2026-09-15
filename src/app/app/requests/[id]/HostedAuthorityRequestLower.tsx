@@ -138,7 +138,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
             <fieldset>
               <legend>Accepted actions</legend>
               <p>Keep only the actions this decision accepts. Written limits do not remove an action from the receipt.</p>
-              {record.allowedActionKeys.map((key: string) => <label className={styles.confirmation} key={key}>
+              {record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <label className={styles.confirmation} key={key}>
                 <input type="checkbox" name="acceptedActionKeys" value={key} defaultChecked /> <span>{HOSTED_ACTIONS[key]}</span>
               </label>)}
             </fieldset>
