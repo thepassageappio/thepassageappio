@@ -27,12 +27,15 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     </AccountFrame>;
   }
 
+  const laterChange = ["revoked", "expired", "withdrawn"].includes(receipt.currentStatus);
+  const currencyLabel = laterChange ? "A later change was recorded." : "This is the current answer.";
   const roleLabel = receipt.participantRole === "principal" ? "Person granting authority" : "Representative";
   return <AccountFrame
     eyebrow={`${receipt.institutionName} · ${receipt.referenceCode}`}
     title={hostedDecisionLabel(receipt.outcome)}
     description="This is the institution's recorded outcome for the exact request shown below."
   >
+    <div className={styles.notice} role="status">{currencyLabel}</div>
     <div className={styles.summary}>
       <h2>Institution decision</h2>
       <p>{receipt.reason}</p>
@@ -57,7 +60,7 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
       <p>{receipt.accountBoundary}</p>
     </div>
 
-    <div className={styles.summary}>
+    <div className={styles.summary} id="changes-after-decision">
       <h2>Changes after the decision</h2>
       <p>{receipt.lifecycleSummary ?? "Nothing has changed since the institution recorded its decision."}</p>
       {receipt.lifecycleReason ? <p>{receipt.lifecycleReason}</p> : null}
