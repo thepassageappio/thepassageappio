@@ -126,7 +126,7 @@ export function HostedAuthorityRequestView({
   );
   const canRecordDecision = Boolean(access.membership && canRecordAuthorityDecision(access.membership.role));
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
-  const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
+  const requirementsComplete = (requirements ?? []).every((item) => item.status === "completed");
   const decisionReady = requirementsComplete && record.status === "under_review" && !decision;
   const requirementStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
@@ -254,9 +254,9 @@ export function HostedAuthorityRequestView({
             />
           ) : null}
         </details>
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
-          <ul className={styles.checklist}>{record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
+        <section className={styles.panel} id="what-they-may-ask-for">
+          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : record.allowedActionKeys.length ? "Your team will decide which of these actions to accept." : "Pick at least one thing to ask for."}</p></div></div>
+          {record.allowedActionKeys.length ? <ul className={styles.checklist}>{record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul> : <p className={styles.supportingCopy}>Pick at least one thing to ask for.</p>}
         </section>
       </div>
       <div>

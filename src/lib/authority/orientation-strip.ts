@@ -142,17 +142,32 @@ function decisionLineFor(
   return decisionSinceChanged && laterChangeDetail ? `${base} Later: ${laterChangeDetail}.` : base;
 }
 
+export function participantBankOnlyLinkLine(bankName: string | null | undefined): string | null {
+  const name = typeof bankName === "string" ? bankName.trim() : "";
+  return name ? `This link is only for ${name}.` : null;
+}
+
 function primaryActionFor(input: {
   record: HostedAuthorityRecord;
   role: OrganizationRole | null;
   decision: HostedInstitutionDecision | null;
   decisionSinceChanged: boolean;
   requirementsComplete: boolean;
+  checklistEmpty: boolean;
   canCoordinate: boolean;
   canRecordDecision: boolean;
 }): OrientationPrimaryAction | null {
-  const { record, decision, decisionSinceChanged, requirementsComplete, canCoordinate, canRecordDecision } = input;
+  const {
+    record,
+    decision,
+    decisionSinceChanged,
+    requirementsComplete,
+    checklistEmpty,
+    canCoordinate,
+    canRecordDecision,
+  } = input;
   const receiptHref = `/app/requests/${record.id}/receipt`;
+  const hasAskedFor = record.allowedActionKeys.length > 0;
 
   if (decisionSinceChanged) {
     return { href: `${receiptHref}#changes-after-decision`, label: "See what changed" };
@@ -167,6 +182,9 @@ function primaryActionFor(input: {
     return null;
   }
   if (record.status === "draft" && canCoordinate) {
+    if (!hasAskedFor) {
+      return { href: "#what-they-may-ask-for", label: "Pick at least one thing to ask for." };
+    }
     return { href: "#review-and-send", label: "Send request" };
   }
   if (record.status === "awaiting_principal" && canCoordinate) {
@@ -179,9 +197,14 @@ function primaryActionFor(input: {
     return { href: "#participant-access", label: "Resend their link" };
   }
   if (record.status === "under_review" && canRecordDecision) {
-    return requirementsComplete
-      ? { href: "#institution-decision", label: "Review and decide" }
-      : { href: "#documents-and-checks", label: "Review and decide" };
+    // Empty checklist has no #documents-and-checks strip — send reviewers to the decision panel.
+    if (checklistEmpty || requirementsComplete) {
+      if (checklistEmpty && !hasAskedFor) {
+        return { href: "#what-they-may-ask-for", label: "Pick at least one thing to ask for." };
+      }
+      return { href: "#institution-decision", label: "Review and decide" };
+    }
+    return { href: "#documents-and-checks", label: "Review and decide" };
   }
   return null;
 }
@@ -211,7 +234,10 @@ export function buildCaseOrientation(input: {
 
   const canCoordinate = Boolean(input.role && canCoordinateAuthorityRequests(input.role));
   const canRecordDecision = Boolean(input.role && canRecordAuthorityDecision(input.role));
-  const requirementsComplete = requirements.length > 0 && requirements.every((item) => item.status === "completed");
+  const checklistEmpty = requirements.length === 0;
+  // Empty checklist means there is no documents strip to finish — decision panel is reachable.
+  const requirementsComplete = checklistEmpty || requirements.every((item) => item.status === "completed");
+  const hasAskedFor = input.record.allowedActionKeys.length > 0;
 
   const identity = requirementByKey(requirements, "identity_evidence");
   const authorityDoc = requirementByKey(requirements, "power_of_attorney");
@@ -221,7 +247,12 @@ export function buildCaseOrientation(input: {
   const authorityRequirements = [authorityDoc, certification].filter(Boolean) as OrientationRequirement[];
   let authorityState: OrientationChipState = "Not started";
   if (!authorityRequirements.length) {
-    authorityState = input.record.allowedActionKeys.length > 0 ? "Done" : "Not started";
+    // Never mark Done from action keys alone when the checklist is empty.
+    if (checklistEmpty) {
+      authorityState = hasAskedFor ? "Not started" : "Needed";
+    } else {
+      authorityState = hasAskedFor ? "Done" : "Not started";
+    }
   } else if (authorityRequirements.every((item) => item.status === "completed")) {
     authorityState = "Done";
   } else if (input.sampleOnly) {
@@ -250,13 +281,15 @@ export function buildCaseOrientation(input: {
     ? "see what changed"
     : input.decision
       ? "open the receipt"
-      : input.record.status === "draft"
-        ? "check emails, then send"
-        : input.record.status === "under_review"
-          ? (requirementsComplete ? "review and decide" : "finish the missing list")
-          : input.record.status === "awaiting_principal"
-            ? "confirm this request"
-            : "finish their steps";
+      : !hasAskedFor
+        ? "Pick at least one thing to ask for."
+        : input.record.status === "draft"
+          ? "check emails, then send"
+          : input.record.status === "under_review"
+            ? (requirementsComplete ? "review and decide" : "finish the missing list")
+            : input.record.status === "awaiting_principal"
+              ? "confirm this request"
+              : "finish their steps";
 
   let currencyLabel = "No decision yet.";
   let currencyKind: OrientationModel["currencyKind"] = "no_decision";
@@ -277,6 +310,7 @@ export function buildCaseOrientation(input: {
       decision: input.decision,
       decisionSinceChanged,
       requirementsComplete,
+      checklistEmpty,
       canCoordinate,
       canRecordDecision,
     }),

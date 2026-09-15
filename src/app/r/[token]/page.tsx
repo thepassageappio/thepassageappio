@@ -6,6 +6,7 @@ import styles from "@/components/account/account.module.css";
 import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { mapParticipantInvitationPreview, normalizeParticipantToken } from "@/lib/authority/participant-access";
+import { participantBankOnlyLinkLine } from "@/lib/authority/orientation-strip";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -68,6 +69,9 @@ export default async function ParticipantInvitationPage({ params, searchParams }
         ? "Your earlier choice is saved. Open the request to finish the remaining steps."
         : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
   >
+    {preview.originGroupId && preview.institutionName ? (
+      <div className={styles.notice} role="status">{participantBankOnlyLinkLine(preview.institutionName)}</div>
+    ) : null}
     <div className={styles.summary}>
       <h2>{authorityPurposeLabel(preview.purpose ?? "")}</h2>
       <p>{preview.accountBoundary}</p>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCaseOrientation, buildDocumentReviewModel } from "./orientation-strip.ts";
+import { buildCaseOrientation, buildDocumentReviewModel, participantBankOnlyLinkLine } from "./orientation-strip.ts";
 import type { HostedAuthorityRecord } from "./hosted-records.ts";
 import type { HostedInstitutionDecision } from "./hosted-decisions.ts";
 
@@ -175,4 +175,37 @@ test("draft orientation keeps send primary and offers change-emails secondary", 
   assert.equal(model.primaryAction?.label, "Send request");
   assert.equal(model.secondaryAction?.href, "#contact-details");
   assert.equal(model.secondaryAction?.label, "Change emails");
+});
+
+
+test("empty checklist under review does not jump to missing documents anchor", () => {
+  const model = buildCaseOrientation({
+    record: baseRecord,
+    role: "reviewer",
+    decision: null,
+    requirements: [],
+  });
+  assert.equal(model.primaryAction?.href, "#institution-decision");
+  assert.equal(model.primaryAction?.label, "Review and decide");
+  assert.equal(model.chips[1].label, "What they may ask for");
+  assert.equal(model.chips[1].state, "Not started");
+});
+
+test("empty checklist without asked-for actions uses locked empty copy", () => {
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, allowedActionKeys: [] },
+    role: "reviewer",
+    decision: null,
+    requirements: [],
+  });
+  assert.equal(model.primaryAction?.href, "#what-they-may-ask-for");
+  assert.equal(model.primaryAction?.label, "Pick at least one thing to ask for.");
+  assert.match(model.nextLine, /Pick at least one thing to ask for\./);
+  assert.equal(model.chips[1].state, "Needed");
+});
+
+test("participant bank-only link line uses locked multi-inst wording", () => {
+  assert.equal(participantBankOnlyLinkLine("Sample Bank"), "This link is only for Sample Bank.");
+  assert.equal(participantBankOnlyLinkLine("  "), null);
+  assert.equal(participantBankOnlyLinkLine(null), null);
 });

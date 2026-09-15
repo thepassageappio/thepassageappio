@@ -27,6 +27,7 @@ export type ParticipantInvitationPreview = {
   allowedActionKeys: string[];
   validUntil: string | null;
   invitationExpiresAt: string | null;
+  originGroupId: string | null;
 };
 
 export type ParticipantSessionContext = {
@@ -44,6 +45,7 @@ export type ParticipantSessionContext = {
   prohibitedActionKeys: string[];
   validUntil: string;
   sessionExpiresAt: string;
+  originGroupId: string | null;
 };
 
 export function participantDecisionTransition(input: {
@@ -131,6 +133,7 @@ export function mapParticipantInvitationPreview(value: unknown): ParticipantInvi
     allowedActionKeys: stringArray(row.allowed_action_keys),
     validUntil: stringValue(row.valid_until),
     invitationExpiresAt: stringValue(row.invitation_expires_at),
+    originGroupId: stringValue(row.origin_group_id),
   };
 }
 
@@ -159,5 +162,6 @@ export function mapParticipantSessionContext(value: unknown): ParticipantSession
     prohibitedActionKeys: stringArray(row.prohibited_action_keys),
     validUntil: required[8]!,
     sessionExpiresAt: required[9]!,
+    originGroupId: stringValue(row.origin_group_id),
   };
 }
