@@ -1,5 +1,10 @@
+const PASSAGE_ENVIRONMENTS = new Set(["local", "preview", "demo", "production"]);
+
 export type ReleaseProvenance = {
+  /** Product/env label for /api/version and demo guards. Prefers PASSAGE_ENVIRONMENT. */
   environment: string | null;
+  /** Vercel deploy class (VERCEL_ENV). Used for production provenance checks. */
+  vercelEnvironment: string | null;
   gitProvider: string | null;
   repositoryOwner: string | null;
   repositorySlug: string | null;
@@ -7,9 +12,16 @@ export type ReleaseProvenance = {
   commitSha: string | null;
 };
 
+function readPassageEnvironmentLabel(env: NodeJS.ProcessEnv): string | null {
+  const explicit = env.PASSAGE_ENVIRONMENT?.trim().toLowerCase() ?? "";
+  if (PASSAGE_ENVIRONMENTS.has(explicit)) return explicit;
+  return env.VERCEL_ENV?.trim() || null;
+}
+
 export function readReleaseProvenance(env: NodeJS.ProcessEnv = process.env): ReleaseProvenance {
   return {
-    environment: env.VERCEL_ENV?.trim() || null,
+    environment: readPassageEnvironmentLabel(env),
+    vercelEnvironment: env.VERCEL_ENV?.trim() || null,
     gitProvider: env.VERCEL_GIT_PROVIDER?.trim() || null,
     repositoryOwner: env.VERCEL_GIT_REPO_OWNER?.trim() || null,
     repositorySlug: env.VERCEL_GIT_REPO_SLUG?.trim() || null,
@@ -22,7 +34,9 @@ export function validateProductionProvenance(
   provenance: ReleaseProvenance,
   expectedSha?: string | null,
 ): string[] {
-  if (provenance.environment !== "production") return [];
+  // Gate on Vercel deploy class, not the Passage label — demo Production
+  // deploys can report environment:"demo" while VERCEL_ENV is still production.
+  if (provenance.vercelEnvironment !== "production") return [];
   const issues: string[] = [];
   if (provenance.gitProvider !== "github") issues.push("production_git_provider_not_github");
   if (provenance.repositoryOwner !== "thepassageappio" || provenance.repositorySlug !== "thepassageappio") {
