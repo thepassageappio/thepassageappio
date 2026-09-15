@@ -1,8 +1,8 @@
 import { AuthorityError } from "./errors.ts";
 
 export const HOSTED_ACTIONS = {
-  receive_duplicate_statements: "Receive duplicate monthly statements",
-  discuss_service_issues: "Discuss account-service issues",
+  receive_duplicate_statements: "Get copies of account statements",
+  discuss_service_issues: "Talk with the bank about the account",
 } as const;
 
 export type HostedActionKey = keyof typeof HOSTED_ACTIONS;
