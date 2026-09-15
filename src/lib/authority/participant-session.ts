@@ -16,7 +16,20 @@ export async function getParticipantRequestContext(authorityRecordId: string) {
     p_session_token: sessionToken,
     p_authority_record_id: authorityRecordId,
   });
-  return error ? null : mapParticipantSessionContext(data);
+  const context = error ? null : mapParticipantSessionContext(data);
+  if (!context) return null;
+
+  // Session already authorized this record; origin_group_id is additive clarity only.
+  const admin = createAuthorityAdminClient();
+  const { data: recordRow } = await admin
+    .from("authority_records")
+    .select("origin_group_id")
+    .eq("id", authorityRecordId)
+    .maybeSingle();
+  return {
+    ...context,
+    originGroupId: recordRow?.origin_group_id ? String(recordRow.origin_group_id) : null,
+  };
 }
 
 export async function getParticipantEvidenceContext(authorityRecordId: string) {
