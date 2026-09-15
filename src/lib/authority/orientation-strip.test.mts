@@ -162,3 +162,17 @@ test("document review keeps received separate from checked", () => {
   assert.match(model!.missing[0].title, /Received — not checked yet/);
   assert.equal(model!.ready, false);
 });
+
+test("draft orientation keeps send primary and offers change-emails secondary", () => {
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, status: "draft", activatedAt: null },
+    role: "staff",
+    decision: null,
+  });
+  assert.equal(model.statusSentence, "This request is not sent yet.");
+  assert.match(model.nextLine, /check emails, then send/);
+  assert.equal(model.primaryAction?.href, "#review-and-send");
+  assert.equal(model.primaryAction?.label, "Send request");
+  assert.equal(model.secondaryAction?.href, "#contact-details");
+  assert.equal(model.secondaryAction?.label, "Change emails");
+});

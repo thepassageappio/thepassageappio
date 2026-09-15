@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { activateHostedAuthorityRequestAction, reissueParticipantInvitationAction } from "@/app/account-actions";
+import { EditDraftEmailsForm } from "./EditDraftEmailsForm";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
@@ -145,7 +146,7 @@ export function HostedAuthorityRequestView({
       ? "ended"
       : record.status === "expired"
         ? "expired"
-        : record.status === "withdrawn"
+          : record.status === "withdrawn"
           ? "the representative withdrew"
           : "updated")
     : null;
@@ -234,13 +235,24 @@ export function HostedAuthorityRequestView({
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
-        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`} id="contact-details" open={record.status === "draft" ? true : undefined}>
           <summary>Contact details for both people</summary>
           <p>Each person receives a separate secure link. Names are shown at the top of this page.</p>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}<br />{record.principalEmail}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
           </dl>
+          {record.status === "draft" && canCoordinate ? (
+            <EditDraftEmailsForm
+              recordId={record.id}
+              version={record.version}
+              idempotencyKey={randomUUID()}
+              principalName={record.principalName}
+              principalEmail={record.principalEmail}
+              representativeName={record.representativeName}
+              representativeEmail={record.representativeEmail}
+            />
+          ) : null}
         </details>
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
