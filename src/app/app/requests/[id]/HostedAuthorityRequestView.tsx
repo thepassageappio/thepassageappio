@@ -82,7 +82,7 @@ export function HostedAuthorityRequestView({
       : "Each person used separate access for their role. Their saved decisions appear in the activity below.";
   const activityDetail = (event: { eventType: string; detail: string }) => {
     if (event.eventType === "participant.access_established") return "The secure invitation was opened for this person and this request.";
-    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder\u2019s link was prepared. The representative must wait for the account holder to confirm.";
+    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder's link was prepared. The representative must wait for the account holder to confirm.";
     if (event.eventType === "participant.invitation_delivered") return "The email provider accepted the invitation. Final delivery confirmation is pending.";
     return event.detail;
   };
@@ -142,7 +142,7 @@ export function HostedAuthorityRequestView({
   const stateHeadline = `${record.principalName} to ${record.representativeName}: ${hostedStatusLabel(record.status)}`;
   const stateDescription = closedMessage
     ? decisionSinceChanged && decision
-      ? `${closedMessage} The institution originally recorded "${hostedDecisionLabel(decision.outcome)}." That original decision has not changed \u2014 only the request's current status has.`
+      ? `${closedMessage} The institution originally recorded "${hostedDecisionLabel(decision.outcome)}." That original decision has not changed - only the request's current status has.`
       : closedMessage
     : nextStep?.detail ?? "";
   const primaryAction = record.status === "canceled"
