@@ -2,7 +2,6 @@ import type { OrganizationRole } from "./access.ts";
 import type { HostedDecisionOutcome, HostedInstitutionDecision } from "./hosted-decisions.ts";
 import { hostedDecisionLabel } from "./hosted-decisions.ts";
 import type { HostedAuthorityRecord, HostedAuthorityStatus } from "./hosted-records.ts";
-import type { ParticipantDecisionReceipt } from "./participant-receipt.ts";
 import { canCoordinateAuthorityRequests, canRecordAuthorityDecision } from "./role-capabilities.ts";
 
 export type OrientationChipState = "Done" | "Needed" | "Not started" | "Sample only";
