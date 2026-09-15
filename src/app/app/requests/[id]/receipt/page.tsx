@@ -8,10 +8,12 @@ import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
+import { buildCaseOrientation } from "@/lib/authority/orientation-strip";
 import { canRecordAuthorityDecision } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
+import { OrientationStrip } from "@/components/app/OrientationStrip";
 import receiptStyles from "./receipt.module.css";
 
 type Props = {
@@ -35,7 +37,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     { data: eventRows, error: eventError },
     { data: invitationRows, error: invitationError },
   ] = await Promise.all([
-    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
+    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at, origin_group_id").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
     supabase.from("authority_institution_decisions").select("id, receipt_code, authority_record_id, record_version, outcome, reason, accepted_action_keys, limitations, decided_by, decided_by_role, decided_at, receipt_sha256, receipt_snapshot").eq("organization_id", access.organization.id).eq("authority_record_id", id).maybeSingle(),
     supabase.from("authority_events").select("event_id, authority_record_id, sequence, event_type, summary, detail, occurred_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("sequence", { ascending: true }),
     supabase.from("authority_participant_invitations").select("participant_role, version").eq("organization_id", access.organization.id).eq("authority_record_id", id),
@@ -64,6 +66,17 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
   const roleLabels: Record<string, string> = { owner: "Institution owner", admin: "Institution administrator", reviewer: "Institution reviewer" };
   const notice = userNoticeMessage(query.notice);
   const error = userErrorMessage(query.error);
+  const decisionSinceChanged = record.status === "revoked" || record.status === "expired";
+  const laterChangeDetail = decisionSinceChanged
+    ? (lifecycleEvent?.summary
+      ?? (record.status === "revoked" ? "ended" : record.status === "expired" ? "expired" : "updated"))
+    : null;
+  const orientation = buildCaseOrientation({
+    record,
+    role: access.membership?.role ?? null,
+    decision,
+    laterChangeDetail,
+  });
 
   return <>
     <header className={styles.pageHeader}>
@@ -72,6 +85,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     </header>
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     {error ? <div className={styles.alert} role="alert">{error}</div> : null}
+    <OrientationStrip model={orientation} headingId="receipt-where-this-stands" />
     <section className={styles.metricGrid} aria-label="Receipt status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
       <div className={styles.metric}><span>Decision recorded</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(decision.decidedAt))}</strong></div>
@@ -135,7 +149,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
       </div>
 
       <div>
-        <section className={styles.panel}>
+        <section className={styles.panel} id="changes-after-decision">
           <div className={styles.panelHead}><div><h2>Changes after the decision</h2><p>Later changes appear separately. The original decision stays saved.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Current status</dt><dd>{hostedStatusLabel(record.status)}</dd></div>
@@ -177,7 +191,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         </details>
 
         <details className={`${styles.panel} ${styles.disclosurePanel}`}>
-          <summary>View activity history ({events.length})</summary>
+          <summary>Full history ({events.length})</summary>
           <p>Every saved change is listed in order.</p>
           <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{event.summary}</strong><span>{event.detail}</span></div><span>{dateTime(event.occurredAt)}</span></li>)}</ul>
         </details>
