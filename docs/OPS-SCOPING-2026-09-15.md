@@ -86,7 +86,7 @@ What this check confirmed against existing docs:
 3. **Schema drift is intentional demo work, not silent prod skew.** Multi-institution phase0 migrations are demo-only. Release parity checks that only compare app SHA will miss this.
 4. **Advisor noise vs real risk.** Default-deny RLS with no policies on `authority_private` is the designed boundary. Authenticated-callable `SECURITY DEFINER` RPCs need inventory, not panic. Disabled leaked-password protection is a real platform hygiene gap on Free.
 5. **Reconciliation streak math.** Clean days exist, but gaps on 12 and 14 break consecutive counting. Do not round up or invent days. Live provider three-way proof remains separate until Stripe/HubSpot live reads are in the job.
-6. **Ops connector coverage.** CRM and Google workspace connectors help commercial and calendar work. Payment (Stripe), email delivery (Resend), and DNS/edge (Cloudflare) are still blind spots for day-to-day Ops agents.
+6. **Ops connector coverage.** Stripe, Resend (API), and Cloudflare are connected as of 2026-09-15; use them for deliverability/recon/DNS work. Do not claim live Stripe recon until verified against Passage state.
 7. **Backup/SOC posture unchanged from earlier readiness docs.** Free plan, no vendor backups, no SOC report — same honest story as [RECOVERY-AND-INCIDENT-READINESS](RECOVERY-AND-INCIDENT-READINESS.md). Do not soften it for buyers.
 
 ---
@@ -115,6 +115,11 @@ What this check confirmed against existing docs:
 4. Prefer written control inventory + evidence links over marketing claims.
 
 ---
+
+
+## Deliverability (demo-ready blocker)
+
+Resend domain `thepassageapp.io` is verified (SPF/DKIM). Provider `delivered` is **not** inbox proof — Gmail can silently discard after SMTP accept (see PARTICIPANT/TEAM invitation findings Sept 6–7). Demo-ready fallback: in-product copyable access link + delivery status after send/reissue; QA verifies on Demo without dashboard hopping. Engineering owns UI; Ops owns provider evidence.
 
 ## When to connect Stripe / Resend / Cloudflare
 
@@ -160,4 +165,4 @@ These stay in force:
 
 ## Bottom line
 
-Production and demo apps are both healthy on the same `main` SHA, but demo still mislabels itself as production, demo schema is ahead on multi-institution migrations, the reconciliation streak is broken (not 7/7), Free-plan backup and SOC posture are unchanged, and Stripe/Resend/Cloudflare Ops connectors are still missing. Fix env identity and keep security/reconciliation honest before selling enterprise readiness.
+Production and demo apps are both healthy on the same `main` SHA, but demo still mislabels itself as production, demo schema is ahead on multi-institution migrations, the reconciliation streak is broken (not 7/7), Free-plan backup and SOC posture are unchanged, Stripe/Resend/Cloudflare are now connected for Ops (verify before claiming live Stripe recon). Fix demo env identity and keep security/reconciliation honest before selling enterprise readiness.
