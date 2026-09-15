@@ -2,10 +2,20 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const migration = readFileSync(
-  new URL("../../../supabase/migrations/20260915140000_permission_catalog_phase0_scaffolding.sql", import.meta.url),
-  "utf8",
-);
+const migration = [
+  readFileSync(
+    new URL("../../../supabase/migrations/20260915140000_permission_catalog_phase0_scaffolding.sql", import.meta.url),
+    "utf8",
+  ),
+  readFileSync(
+    new URL("../../../supabase/migrations/20260915140100_permission_catalog_phase0_decision_snapshots.sql", import.meta.url),
+    "utf8",
+  ),
+  readFileSync(
+    new URL("../../../supabase/migrations/20260915140200_permission_catalog_phase0_receipt_rpc.sql", import.meta.url),
+    "utf8",
+  ),
+].join("\n");
 
 test("Phase 0 seeds financial_poa pack_ready and hides other kinds", () => {
   assert.match(migration, /create table public\.authority_type_defs/i);
