@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  mapParticipantInvitationPreview,
   normalizeParticipantToken,
   participantDecisionTransition,
   participantEntryDecision,
@@ -161,4 +162,25 @@ test("participant decisions require explicit acknowledgment and declines require
     acknowledged: true,
     reason: "no",
   }), /participant_decline_reason_required/);
+});
+
+
+test("invitation preview maps origin_group_id when present", () => {
+  const preview = mapParticipantInvitationPreview({
+    entry_status: "ready",
+    access_purpose: "decision",
+    institution_name: "Sample Bank",
+    reference_code: "PA-TEST",
+    participant_role: "principal",
+    participant_name: "Alex",
+    other_person_name: "Riley",
+    purpose: "financial_poa",
+    account_boundary: "Checking",
+    allowed_action_keys: ["receive_duplicate_statements"],
+    valid_until: "2030-01-01T00:00:00.000Z",
+    invitation_expires_at: "2026-09-20T00:00:00.000Z",
+    origin_group_id: "group-1",
+  });
+  assert.equal(preview.originGroupId, "group-1");
+  assert.equal(preview.institutionName, "Sample Bank");
 });
