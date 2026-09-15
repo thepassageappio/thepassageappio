@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hostedRequestNoticeMessage } from "./user-messages.ts";
+import { hostedRequestNoticeMessage } from "./hosted-request-notice.ts";
 
 test("hosted request notices use the current delivery state", () => {
   assert.equal(
