@@ -18,6 +18,126 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+   slug: "what-passage-is-and-is-not",
+   title: "What Passage is (and is not)",
+   description:
+   "Passage Authority is the path for a bank or credit union to review a power-of-attorney ask, decide, and keep one current receipt.",
+   answer:
+   "Passage Authority is a guided path for the ask, the papers, your review, your decision, and a shared receipt that stays current when things change later. It does not create a power of attorney, move money, or give account access.",
+   published: "2026-09-16",
+   updated: "2026-09-16",
+   readingTime: "5 minute read",
+   category: "Plain-English guide",
+   sections: [
+   {
+   heading: "The decision still needs a clear home",
+   paragraphs: [
+   "When someone asks to act for an account holder, your team still has to decide.",
+   "That ask often lands in email, tickets, and folders. People redo the same questions. Staff rebuild \"where are we?\" by hand. The papers arrive. The decision still needs a clear home.",
+   "Passage Authority is that home: a guided path for the ask, the papers, your review, your decision, and a shared receipt that stays current when things change later.",
+   ],
+   },
+   {
+   heading: "What you see in one place",
+   paragraphs: [
+   "For a request in flight, your team should be able to answer three questions without hunting:",
+   ],
+   points: [
+   "What is the status? Where is this request right now?",
+   "Who acts next? Account holder, representative, or your staff?",
+   "What did we decide? Accept, limit, or refuse, and what may they do?",
+   ],
+   },
+   {
+   heading: "One receipt for everyone",
+   paragraphs: [
+   "After the decision, everyone sees the same receipt: the decision, what they may do, and any limits. If the answer changes later, the receipt should still show the current answer, not an old one people keep quoting from email.",
+   "You still make account changes in your own systems. Passage keeps the workflow and the saved decision record.",
+   ],
+   },
+   {
+   heading: "Who this is for",
+   paragraphs: [
+   "Community and regional banks and credit unions, usually deposit, member, or branch operations, that get stuck on power-of-attorney requests and want one small, clear process to try.",
+   "Current evaluation focus is New York, with sample people and sample papers first. That shows where work gets stuck before any separately approved use of real customer data.",
+   ],
+   },
+   {
+   heading: "What Passage does not do",
+   paragraphs: [
+   "Legal, identity, fraud, and account-access choices stay with the institution. Passage is the operating path and the saved decision after the papers arrive. It is not a stamp that the papers are good.",
+   ],
+   points: [
+   "It does not create a power of attorney.",
+   "It does not say a paper is legally valid.",
+   "It does not notarize.",
+   "It does not move money.",
+   "It does not give account access.",
+   "It does not replace your counsel or your policy.",
+   "It is not legal advice.",
+   ],
+   },
+   {
+   heading: "Neighbors, not replacements",
+   paragraphs: [
+   "Some tools help someone sign or notarize a document. That is a point-in-time event.",
+   "Passage keeps your decision about what to honor, and whether that decision is still current later. We are not asking you to throw those tools away.",
+   ],
+   },
+   {
+   heading: "A small way to try it",
+   paragraphs: [
+   "We offer a founding pilot: $5,000 for 60-90 days, for one institution, one named team, and one New York workflow. The pilot fee is credited toward year one if you continue under the pilot agreement.",
+   "Sample evaluation first. Real customer data only if separately approved. We agree success measures before setup, such as time, completion, handoffs, missing-info loops, and reviewer effort.",
+   ],
+   },
+   {
+   heading: "What we do not claim yet",
+   paragraphs: ["Stay accurate on this evaluation:"],
+   points: [
+   "Other states are not available in this evaluation.",
+   "We do not claim savings numbers or badges we have not earned.",
+   "Yearly price bands used in private discovery are not list prices on this page.",
+   ],
+   },
+   {
+   heading: "Bottom line",
+   paragraphs: [
+   "Someone asks to act for an account holder. Your team reviews the papers under your rules. You record accept, limit, or refuse. Everyone sees the same current answer.",
+   "That is what Passage is.",
+   "That is what it is not: a lawyer, a notary, a money mover, or a key to the account.",
+   ],
+   },
+   ],
+   questions: [
+   {
+   question: "Does Passage create a power of attorney?",
+   answer:
+   "No. Passage handles the request and the institution's saved decision after the papers arrive. Creating or interpreting a power of attorney is not what Passage does.",
+   },
+   {
+   question: "Does Passage move money or open account access?",
+   answer:
+   "No. The institution keeps account-access and money-movement choices. Passage keeps the workflow and the decision record.",
+   },
+   {
+   question: "Is this available outside New York?",
+   answer:
+   "This evaluation focus is New York, with sample people and sample papers first. Do not treat other states as available in this evaluation.",
+   },
+   ],
+   sources: [
+   {
+   label: "Passage Authority",
+   href: "https://thepassageapp.io",
+   },
+   {
+   label: "CFPB: What is a power of attorney?",
+   href: "https://www.consumerfinance.gov/ask-cfpb/what-is-a-power-of-attorney-poa-en-1149/",
+   },
+   ],
+  },
+  {
     slug: "how-a-bank-verifies-a-power-of-attorney-request",
     title: "How does a bank verify a power of attorney request?",
     description: "The bank verifies the people, reviews the legal document, confirms the requested account access, and makes its own decision. Passage keeps those steps in one clear record.",
