@@ -58,11 +58,41 @@ test("PASSAGE_ENVIRONMENT demo wins over VERCEL_ENV production for the label", (
   });
   assert.equal(provenance.environment, "demo");
   assert.equal(provenance.vercelEnvironment, "production");
-  // Provenance checks still run for Vercel production deploys.
   assert.deepEqual(validateProductionProvenance(provenance, sha), []);
 });
 
-test("falls back to VERCEL_ENV when PASSAGE_ENVIRONMENT is unset or invalid", () => {
+test("PASSAGE_ENVIRONMENT_GROK is used when PASSAGE_ENVIRONMENT is unset", () => {
+  const provenance = readReleaseProvenance({
+    PASSAGE_ENVIRONMENT_GROK: "demo",
+    VERCEL_ENV: "production",
+  });
+  assert.equal(provenance.environment, "demo");
+  assert.equal(provenance.vercelEnvironment, "production");
+});
+
+test("PASSAGE_ENVIRONMENT_GROK is used when PASSAGE_ENVIRONMENT is invalid", () => {
+  assert.equal(
+    readReleaseProvenance({
+      PASSAGE_ENVIRONMENT: "taken-by-other-agent",
+      PASSAGE_ENVIRONMENT_GROK: "demo",
+      VERCEL_ENV: "production",
+    }).environment,
+    "demo",
+  );
+});
+
+test("PASSAGE_ENVIRONMENT wins over PASSAGE_ENVIRONMENT_GROK when both valid", () => {
+  assert.equal(
+    readReleaseProvenance({
+      PASSAGE_ENVIRONMENT: "preview",
+      PASSAGE_ENVIRONMENT_GROK: "demo",
+      VERCEL_ENV: "production",
+    }).environment,
+    "preview",
+  );
+});
+
+test("falls back to VERCEL_ENV when Passage labels are unset or invalid", () => {
   assert.equal(readReleaseProvenance({ VERCEL_ENV: "preview" }).environment, "preview");
   assert.equal(readReleaseProvenance({ PASSAGE_ENVIRONMENT: "staging", VERCEL_ENV: "production" }).environment, "production");
 });
