@@ -3,16 +3,37 @@
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { createHostedAuthorityDraftAction } from "@/app/account-actions";
 import styles from "@/components/app/app-shell.module.css";
+import type { HostedActionKey } from "@/lib/authority/hosted-records";
+import { offeredFinancialPoaPermissions } from "@/lib/authority/permission-catalog";
 import requestStyles from "./request.module.css";
 
 type Props = { useSample: boolean; endDate: string; idempotencyKey: string };
 
+const OFFERED = offeredFinancialPoaPermissions();
+const OFFERED_KEYS = OFFERED.map((item) => item.key);
+
 export function DraftRequestForm({ useSample, endDate, idempotencyKey }: Props) {
   const [state, submitAction, pending] = useActionState(createHostedAuthorityDraftAction, { error: null });
   const [values, setValues] = useState({ principalName: useSample ? "Parker Quinn" : "", principalEmail: "", representativeName: useSample ? "Casey Quinn" : "", representativeEmail: "", accountBoundary: useSample ? "Sample deposit relationship ending 4405" : "", validUntil: endDate });
-  const [actions, setActions] = useState(["receive_duplicate_statements", "discuss_service_issues"]);
+  const [actions, setActions] = useState<HostedActionKey[]>([...OFFERED_KEYS]);
   const errorRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (state.error) errorRef.current?.focus(); }, [state]);
+
+  const allSelected = OFFERED_KEYS.every((key) => actions.includes(key));
+  const selectedCount = actions.filter((key) => OFFERED_KEYS.includes(key)).length;
+
+  function toggleKey(key: HostedActionKey, checked: boolean) {
+    setActions(checked ? [...new Set([...actions, key])] : actions.filter((item) => item !== key));
+  }
+
+  function selectAllOffered() {
+    setActions([...OFFERED_KEYS]);
+  }
+
+  function clearOffered() {
+    setActions([]);
+  }
+
   return (
     <form onSubmit={event => { event.preventDefault(); const data = new FormData(event.currentTarget); startTransition(() => submitAction(data)); }} action={submitAction} aria-busy={pending} className={requestStyles.form}>
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
@@ -34,9 +55,34 @@ export function DraftRequestForm({ useSample, endDate, idempotencyKey }: Props) 
         <div className={styles.panelHead}><div><h2>What you are asking for</h2><p>Anything not selected remains outside this request.</p></div></div>
         <label className={styles.field}>Account or relationship covered<input name="accountBoundary" required placeholder="For example, membership account ending 4821" value={values.accountBoundary} onChange={event => setValues({ ...values, accountBoundary: event.target.value })} /></label>
         <fieldset className={requestStyles.optionList}>
-          <legend>Requested actions</legend>
-          <label className={requestStyles.option}><input type="checkbox" name="allowedActionKeys" value="receive_duplicate_statements" checked={actions.includes("receive_duplicate_statements")} onChange={event => setActions(event.target.checked ? [...actions, "receive_duplicate_statements"] : actions.filter(key => key !== "receive_duplicate_statements"))} /><span><strong>Receive duplicate monthly statements</strong><small>Copies only for the account or relationship named above.</small></span></label>
-          <label className={requestStyles.option}><input type="checkbox" name="allowedActionKeys" value="discuss_service_issues" checked={actions.includes("discuss_service_issues")} onChange={event => setActions(event.target.checked ? [...actions, "discuss_service_issues"] : actions.filter(key => key !== "discuss_service_issues"))} /><span><strong>Discuss account-service issues</strong><small>Ask account questions. This does not include moving money.</small></span></label>
+          <legend>What people may ask for</legend>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 4 }}>
+            <button className={styles.secondary} type="button" onClick={selectAllOffered} disabled={allSelected}>
+              Select all that apply
+            </button>
+            <button className={styles.secondary} type="button" onClick={clearOffered} disabled={selectedCount === 0}>
+              Clear
+            </button>
+            <small style={{ color: "var(--muted)" }}>
+              {selectedCount} of {OFFERED_KEYS.length} selected
+              {selectedCount > 0 ? `: ${OFFERED.filter((item) => actions.includes(item.key)).map((item) => item.label).join("; ")}` : ""}
+            </small>
+          </div>
+          {OFFERED.map((item) => (
+            <label className={requestStyles.option} key={item.key}>
+              <input
+                type="checkbox"
+                name="allowedActionKeys"
+                value={item.key}
+                checked={actions.includes(item.key)}
+                onChange={(event) => toggleKey(item.key, event.target.checked)}
+              />
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.help}</small>
+              </span>
+            </label>
+          ))}
         </fieldset>
         <label className={styles.field}>Request end date<input name="validUntil" type="date" required value={values.validUntil} onChange={event => setValues({ ...values, validUntil: event.target.value })} /></label>
       </section>
