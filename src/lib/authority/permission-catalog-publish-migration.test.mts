@@ -2,10 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const migration = readFileSync(
-  new URL("../../../supabase/migrations/20260915170000_permission_catalog_publish_save_for_new_requests.sql", import.meta.url),
-  "utf8",
-);
+const migration = [
+  readFileSync(
+    new URL("../../../supabase/migrations/20260915170000_permission_catalog_publish_save_for_new_requests.sql", import.meta.url),
+    "utf8",
+  ),
+  readFileSync(
+    new URL("../../../supabase/migrations/20260915170100_permission_catalog_publish_rpc.sql", import.meta.url),
+    "utf8",
+  ),
+].join("\n");
 
 test("B1 publish RPCs are scoped per authority kind", () => {
   assert.match(migration, /get_published_permission_catalog_v1/i);
