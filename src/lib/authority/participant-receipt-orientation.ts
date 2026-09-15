@@ -77,10 +77,11 @@ export function buildParticipantReceiptOrientation(input: {
     decisionLine = `${decisionLine} Later: ${laterChangeDetail}.`;
   }
 
-  const receiptHref = `/request/${encodeURIComponent(input.authorityRecordId)}/receipt`;
-  const primaryAction: OrientationPrimaryAction | null = decisionSinceChanged
-    ? { href: `${receiptHref}#changes-after-decision`, label: "See what changed" }
-    : null;
+  const overviewHref = `/request/${encodeURIComponent(input.authorityRecordId)}/overview`;
+  const primaryAction: OrientationPrimaryAction = {
+    href: overviewHref,
+    label: decisionSinceChanged ? "See what changed" : "Back to request summary",
+  };
 
   const identity = requirementByKey(requirements, "identity_evidence");
   const authorityDoc = requirementByKey(requirements, "power_of_attorney");
@@ -105,7 +106,7 @@ export function buildParticipantReceiptOrientation(input: {
     statusSentence,
     nextLine: decisionSinceChanged
       ? `Next: ${receipt.participantName} — see what changed`
-      : `Next: ${receipt.participantName} — review this receipt`,
+      : `Next: ${receipt.participantName} — return to request summary`,
     primaryAction,
     secondaryAction: null,
     decisionLine,
