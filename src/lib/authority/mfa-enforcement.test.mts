@@ -6,8 +6,13 @@ const migration = readFileSync(
   new URL("../../../supabase/migrations/20260908030941_enforce_privileged_mfa.sql", import.meta.url),
   "utf8",
 );
+const draftUpdateMigration = readFileSync(
+  new URL("../../../supabase/migrations/20260915030000_update_authority_draft_v1.sql", import.meta.url),
+  "utf8",
+);
 const accessSource = readFileSync(new URL("./access.ts", import.meta.url), "utf8");
 const accountActions = readFileSync(new URL("../../app/account-actions.ts", import.meta.url), "utf8");
+const updateDraftAction = readFileSync(new URL("../../app/update-hosted-authority-draft-action.ts", import.meta.url), "utf8");
 const billingActions = readFileSync(new URL("../../app/billing-actions.ts", import.meta.url), "utf8");
 const mfaChallenge = readFileSync(new URL("../../components/app/MfaVerification.tsx", import.meta.url), "utf8");
 const factorManager = readFileSync(new URL("../../components/app/MfaFactorManager.tsx", import.meta.url), "utf8");
@@ -44,6 +49,17 @@ test("owner and admin RPC mutations require an aal2 JWT at the database boundary
     const body = migration.slice(start, next === -1 ? migration.length : next);
     assert.match(body, /require_privileged_mfa_v1\(p_organization_id\)/, `${rpc} must enforce MFA`);
   }
+
+  assert.match(
+    draftUpdateMigration,
+    /create or replace function public\.update_authority_draft_v1/,
+    "update_authority_draft_v1 must exist",
+  );
+  assert.match(
+    draftUpdateMigration,
+    /require_privileged_mfa_v1\(p_organization_id\)/,
+    "update_authority_draft_v1 must enforce MFA",
+  );
 });
 
 test("backup factors are usable for challenge and verified-factor deletion is not exposed", () => {
@@ -93,6 +109,12 @@ test("every post-onboarding organization Server Action uses the MFA-verified mut
       `${action} must enforce the mutation MFA gate`,
     );
   }
+
+  assert.match(
+    actionBody(updateDraftAction, "updateHostedAuthorityDraftAction"),
+    /getAuthorityMutationAccessContext\(\)/,
+    "updateHostedAuthorityDraftAction must enforce the mutation MFA gate",
+  );
 
   assert.match(
     actionBody(billingActions, "createFoundingPilotInvoiceAction"),

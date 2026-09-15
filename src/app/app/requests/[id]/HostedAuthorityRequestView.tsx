@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { activateHostedAuthorityRequestAction, reissueParticipantInvitationAction } from "@/app/account-actions";
+import { EditDraftEmailsForm } from "./EditDraftEmailsForm";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
-import { hostedRequestNoticeMessage } from "@/lib/authority/user-messages";
+import { hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
-import { requestNextStep } from "@/lib/authority/request-next-step";
+import { buildCaseOrientation, buildDocumentReviewModel } from "@/lib/authority/orientation-strip";
 import styles from "@/components/app/app-shell.module.css";
-import { MultiInstitutionOriginBadge, MultiInstitutionOriginStripLine } from "@/components/app/MultiInstitutionOriginBadge";
+import { MultiInstitutionOriginBadge } from "@/components/app/MultiInstitutionOriginBadge";
+import { OrientationStrip } from "@/components/app/OrientationStrip";
+import { DocumentReviewStrip } from "@/components/app/DocumentReviewStrip";
+import { CopyAccessLink } from "./CopyAccessLink";
 import { HostedAuthorityRequestLower } from "./HostedAuthorityRequestLower";
 
 type ViewProps = {
@@ -36,6 +40,7 @@ type ViewProps = {
   decisionRow: unknown;
   informationRequests: any[];
   informationResponses: any[];
+  inviteAccessLinkFlash: { role: "principal" | "representative"; url: string } | null;
 };
 
 export function HostedAuthorityRequestView({
@@ -62,6 +67,7 @@ export function HostedAuthorityRequestView({
   decisionRow,
   informationRequests,
   informationResponses,
+  inviteAccessLinkFlash,
 }: ViewProps) {
   const invitationStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
@@ -79,7 +85,7 @@ export function HostedAuthorityRequestView({
       : "Each person used separate access for their role. Their saved decisions appear in the activity below.";
   const activityDetail = (event: { eventType: string; detail: string }) => {
     if (event.eventType === "participant.access_established") return "The secure invitation was opened for this person and this request.";
-    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder’s link was prepared. The representative must wait for the account holder to confirm.";
+    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder\u2019s link was prepared. The representative must wait for the account holder to confirm.";
     if (event.eventType === "participant.invitation_delivered") return "The email provider accepted the invitation. Final delivery confirmation is pending.";
     return event.detail;
   };
@@ -97,11 +103,11 @@ export function HostedAuthorityRequestView({
   const deliveryStatusLabel = (status: string | undefined) => {
     const labels: Record<string, string> = {
       pending: "Delivery pending",
-      delivered: "Email delivery confirmed",
+      delivered: "Email reached the inbox (provider confirmed)",
       failed: "Delivery needs attention",
       canceled: "Held until prior step",
       retrying: "Delivery retry scheduled",
-      processing: "Provider accepted; final delivery pending",
+      processing: "Email accepted by the provider (not confirmed in the inbox yet)",
     };
     return status ? labels[status] ?? "Delivery updated" : "Delivery not started";
   };
@@ -120,7 +126,7 @@ export function HostedAuthorityRequestView({
   );
   const canRecordDecision = Boolean(access.membership && canRecordAuthorityDecision(access.membership.role));
   const decision = decisionRow ? mapHostedInstitutionDecision(decisionRow as never) : null;
-  const requirementsComplete = (requirements ?? []).length > 0 && (requirements ?? []).every((item) => item.status === "completed");
+  const requirementsComplete = (requirements ?? []).every((item) => item.status === "completed");
   const decisionReady = requirementsComplete && record.status === "under_review" && !decision;
   const requirementStatusLabel = (status: unknown) => {
     const labels: Record<string, string> = {
@@ -134,27 +140,48 @@ export function HostedAuthorityRequestView({
   const responseByRequest = new Map((informationResponses ?? []).map((item) => [String(item.information_request_id), item]));
   const openInformationRequest = (informationRequests ?? []).find((item) => !responseByRequest.has(String(item.id)));
 
-  const nextStep = access.membership ? requestNextStep(record, access.membership.role) : null;
-  const decisionSinceChanged = Boolean(decision) && (record.status === "revoked" || record.status === "expired");
-  const stateHeadline = `${record.principalName} to ${record.representativeName}: ${hostedStatusLabel(record.status)}`;
-  const stateDescription = closedMessage
-    ? decisionSinceChanged && decision
-      ? `${closedMessage} The institution originally recorded "${hostedDecisionLabel(decision.outcome)}." That original decision has not changed — only the request's current status has.`
-      : closedMessage
-    : nextStep?.detail ?? "";
-  const primaryAction = record.status === "canceled"
-    ? { href: `/app/requests/${record.id}/receipt`, label: "Open cancellation receipt" }
-    : decision
-      ? { href: `/app/requests/${record.id}/receipt`, label: "Open the decision receipt" }
-      : closedMessage
-        ? null
-        : record.status === "draft" && canCoordinate
-          ? { href: "#review-and-send", label: "Continue this draft" }
-          : record.status === "under_review" && canRecordDecision
-            ? requirementsComplete
-              ? { href: "#institution-decision", label: "Record the institution decision" }
-              : { href: "#required-information", label: "Review the required information" }
-            : null;
+  const decisionSinceChanged = Boolean(decision) && ["revoked", "expired", "withdrawn"].includes(record.status);
+  const laterChangeDetail = decisionSinceChanged
+    ? (record.status === "revoked"
+      ? "ended"
+      : record.status === "expired"
+        ? "expired"
+          : record.status === "withdrawn"
+          ? "the representative withdrew"
+          : "updated")
+    : null;
+  const orientation = buildCaseOrientation({
+    record,
+    role: access.membership?.role ?? null,
+    decision,
+    requirements: (requirements ?? []).map((item) => ({
+      id: String(item.id),
+      requirement_key: String(item.requirement_key),
+      title: String(item.title),
+      status: String(item.status),
+    })),
+    artifacts: (evidenceArtifacts ?? []).map((item) => ({
+      id: String(item.id),
+      requirement_id: String(item.requirement_id),
+      review_status: String(item.review_status),
+    })),
+    laterChangeDetail,
+  });
+  const documentReview = buildDocumentReviewModel({
+    requirements: (requirements ?? []).map((item) => ({
+      id: String(item.id),
+      requirement_key: String(item.requirement_key),
+      title: String(item.title),
+      status: String(item.status),
+    })),
+    artifacts: (evidenceArtifacts ?? []).map((item) => ({
+      id: String(item.id),
+      requirement_id: String(item.requirement_id),
+      review_status: String(item.review_status),
+    })),
+    recordStatus: record.status,
+    hasDecision: Boolean(decision),
+  });
 
   const lower = {
     access,
@@ -188,17 +215,19 @@ export function HostedAuthorityRequestView({
       </div>
     </header>
     {savedNotice && !closedMessage ? <div className={styles.notice} role="status">{savedNotice}</div> : null}
+    {inviteAccessLinkFlash ? <CopyAccessLink recordId={record.id} role={inviteAccessLinkFlash.role} url={inviteAccessLinkFlash.url} /> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
-    <section className={`${styles.panel} ${styles.progressPanel}`} aria-labelledby="request-next-step">
-      <div className={styles.progressCopy}>
-        <p className={styles.eyebrow}>Where this stands</p>
-        <h2 id="request-next-step">{stateHeadline}</h2>
-        <p>{stateDescription}</p>
-      </div>
-      {primaryAction ? <Link className={styles.primary} href={primaryAction.href}>{primaryAction.label}</Link> : null}
-      {record.originGroupId ? <MultiInstitutionOriginStripLine /> : null}
-    </section>
+    <OrientationStrip model={orientation} />
+    {documentReview ? (
+      <DocumentReviewStrip
+        model={documentReview}
+        canAsk={canRecordDecision && record.status === "under_review" && !decision}
+        canDecide={canRecordDecision && record.status === "under_review" && !decision}
+        askHref="#questions"
+        decideHref="#institution-decision"
+      />
+    ) : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
       <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
@@ -206,17 +235,28 @@ export function HostedAuthorityRequestView({
     </section>
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
-        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+        <details className={`${styles.panel} ${styles.disclosurePanel}`} id="contact-details" open={record.status === "draft" ? true : undefined}>
           <summary>Contact details for both people</summary>
           <p>Each person receives a separate secure link. Names are shown at the top of this page.</p>
           <dl className={styles.policyFacts}>
             <div><dt>Person granting authority</dt><dd>{record.principalName}<br />{record.principalEmail}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
           </dl>
+          {record.status === "draft" && canCoordinate ? (
+            <EditDraftEmailsForm
+              recordId={record.id}
+              version={record.version}
+              idempotencyKey={randomUUID()}
+              principalName={record.principalName}
+              principalEmail={record.principalEmail}
+              representativeName={record.representativeName}
+              representativeEmail={record.representativeEmail}
+            />
+          ) : null}
         </details>
-        <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
-          <ul className={styles.checklist}>{record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
+        <section className={styles.panel} id="what-they-may-ask-for">
+          <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : record.allowedActionKeys.length ? "Your team will decide which of these actions to accept." : "Pick at least one thing to ask for."}</p></div></div>
+          {record.allowedActionKeys.length ? <ul className={styles.checklist}>{record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul> : <p className={styles.supportingCopy}>Pick at least one thing to ask for.</p>}
         </section>
       </div>
       <div>
@@ -233,7 +273,7 @@ export function HostedAuthorityRequestView({
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <button className={styles.primary} type="submit">Send to the account holder</button>
           </form> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
-        </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+        </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`} id="participant-access">
           <summary>Participant access ({invitations?.length ?? 0} people)</summary>
           <p>{participantAccessDescription}</p>
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {

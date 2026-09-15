@@ -1,8 +1,8 @@
 import { AuthorityError } from "./errors.ts";
 
 export const HOSTED_ACTIONS = {
-  receive_duplicate_statements: "Receive duplicate monthly statements",
-  discuss_service_issues: "Discuss account-service issues",
+  receive_duplicate_statements: "Get copies of account statements",
+  discuss_service_issues: "Talk with the bank about the account",
 } as const;
 
 export type HostedActionKey = keyof typeof HOSTED_ACTIONS;
@@ -108,6 +108,35 @@ function invalid(message: string): never {
 
 function normalizedEmail(value: string) {
   return value.trim().toLowerCase();
+}
+
+export function prepareHostedAuthorityDraftContacts(input: {
+  principalName: string;
+  principalEmail: string;
+  representativeName: string;
+  representativeEmail: string;
+}) {
+  const principalName = input.principalName.trim();
+  const representativeName = input.representativeName.trim();
+  const principalEmail = normalizedEmail(input.principalEmail);
+  const representativeEmail = normalizedEmail(input.representativeEmail);
+
+  if (principalName.length < 2 || representativeName.length < 2) {
+    invalid("Enter the full name of each person.");
+  }
+  if (!principalEmail.includes("@") || !representativeEmail.includes("@")) {
+    invalid("Enter a valid email address for each person.");
+  }
+  if (principalEmail === representativeEmail) {
+    invalid("The person granting authority and the representative need a different email address.");
+  }
+
+  return {
+    principalName,
+    principalEmail,
+    representativeName,
+    representativeEmail,
+  };
 }
 
 export function prepareHostedAuthorityDraft(

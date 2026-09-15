@@ -1,12 +1,14 @@
 import { CancellationReceipt } from "@/components/app/CancellationReceipt";
-import { getParticipantCancellation } from "@/lib/authority/participant-session";
+import { OrientationStrip } from "@/components/app/OrientationStrip";
+import { getParticipantCancellation, getParticipantDecisionReceipt, getParticipantReceiptOrientationSupport } from "@/lib/authority/participant-session";
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
 import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
-import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
-import { getParticipantDecisionReceipt } from "@/lib/authority/participant-session";
+import { hostedStatusLabel } from "@/lib/authority/hosted-records";
+import { resolvePermissionLabels } from "@/lib/authority/permission-catalog";
+import { buildParticipantReceiptOrientation } from "@/lib/authority/orientation-strip";
 
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -27,13 +29,32 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     </AccountFrame>;
   }
 
+  const support = await getParticipantReceiptOrientationSupport(id);
+  const orientation = buildParticipantReceiptOrientation({
+    authorityRecordId: id,
+    receipt,
+    requirements: support?.requirements,
+    artifacts: support?.artifacts,
+    originGroupId: support?.originGroupId,
+  });
   const roleLabel = receipt.participantRole === "principal" ? "Person granting authority" : "Representative";
+  const changeSummary = receipt.lifecycleSummary
+    ?? (receipt.currentStatus === "withdrawn"
+      ? "The representative withdrew."
+      : receipt.currentStatus === "revoked"
+        ? "A revocation notice was recorded."
+        : receipt.currentStatus === "expired"
+          ? "This request reached its end date."
+          : "Nothing has changed since the institution recorded its decision.");
+
   return <AccountFrame
     eyebrow={`${receipt.institutionName} · ${receipt.referenceCode}`}
     title={hostedDecisionLabel(receipt.outcome)}
     description="This is the institution's recorded outcome for the exact request shown below."
   >
-    <div className={styles.summary}>
+    <OrientationStrip model={orientation} headingId="participant-receipt-where-this-stands" />
+    <p className={styles.notice} role="status">{orientation.currencyLabel}</p>
+    <div className={styles.summary} id="institution-decision">
       <h2>Institution decision</h2>
       <p>{receipt.reason}</p>
     </div>
@@ -44,9 +65,9 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
       <div className={styles.fact}><span>Request ends</span><strong>{dateTime(receipt.validUntil)}</strong></div>
     </div>
 
-    <p className={styles.legend}>Accepted scope</p>
+    <p className={styles.legend}>What the bank said yes to</p>
     {receipt.acceptedActionKeys.length
-      ? <ul className={styles.scope}>{receipt.acceptedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
+      ? <ul className={styles.scope}>{resolvePermissionLabels(receipt.acceptedActionKeys, receipt.acceptedPermissionsSnapshot).map((label, index) => <li key={`${receipt.acceptedActionKeys[index]}-${label}`}>{label}</li>)}</ul>
       : <div className={styles.notice}>No requested action was accepted.</div>}
     {receipt.limitations.length ? <><p className={styles.legend}>Recorded limits</p><ul className={styles.scope}>{receipt.limitations.map((limit) => <li key={limit}>{limit}</li>)}</ul></> : null}
 
@@ -57,9 +78,9 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
       <p>{receipt.accountBoundary}</p>
     </div>
 
-    <div className={styles.summary}>
+    <div className={styles.summary} id="changes-after-decision">
       <h2>Changes after the decision</h2>
-      <p>{receipt.lifecycleSummary ?? "Nothing has changed since the institution recorded its decision."}</p>
+      <p>{changeSummary}</p>
       {receipt.lifecycleReason ? <p>{receipt.lifecycleReason}</p> : null}
       {receipt.lifecycleEffectiveAt ? <p>Effective {dateTime(receipt.lifecycleEffectiveAt)}</p> : null}
     </div>

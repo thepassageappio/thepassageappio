@@ -6,7 +6,8 @@ import { closedRequestMessage } from "@/lib/authority/closed-request";
 import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { respondToAuthorityInformationAction, submitAuthorityForReviewAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
-import { getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
+import { getParticipantDecisionReceipt, getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
+import { participantBankOnlyLinkLine } from "@/lib/authority/orientation-strip";
 import decisionStyles from "../participant-decision.module.css";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -38,7 +39,8 @@ const STATUS_LABELS: Record<string, string> = {
   canceled: "Request canceled",
 };
 
-const RECEIPT_STATUSES = new Set(["accepted", "accepted_with_limits", "rejected", "revoked", "expired"]);
+const RECEIPT_STATUSES = new Set(["accepted", "accepted_with_limits", "rejected", "revoked", "expired", "withdrawn"]);
+const LATER_CHANGE_RECEIPT_STATUSES = new Set(["revoked", "expired", "withdrawn"]);
 
 const NOTICE_MESSAGES: Record<string, string> = {
   principal_confirm: "Your confirmation was saved. The representative can now review the request.",
@@ -84,8 +86,16 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
   const informationRequest = !isPrincipal && context.status === "information_requested"
     ? await getParticipantInformationRequest(id)
     : null;
+  // Withdrawn can happen before or after an institution decision; only show receipt CTAs when a decision receipt exists.
+  const withdrawnDecisionReceipt = context.status === "withdrawn"
+    ? await getParticipantDecisionReceipt(id)
+    : null;
+  const showDecisionReceipt = RECEIPT_STATUSES.has(context.status)
+    && (context.status !== "withdrawn" || Boolean(withdrawnDecisionReceipt));
+  const laterChange = LATER_CHANGE_RECEIPT_STATUSES.has(context.status) && showDecisionReceipt;
   const canDecide = isPrincipal ? context.status === "awaiting_principal" : context.status === "awaiting_representative";
   const nextPath = `/request/${encodeURIComponent(context.authorityRecordId)}/${isPrincipal ? "grant" : "responsibility"}`;
+  const receiptHref = `/request/${encodeURIComponent(context.authorityRecordId)}/receipt${laterChange ? "#changes-after-decision" : ""}`;
   const description = isPrincipal
     ? context.status === "awaiting_principal"
       ? "Review the exact request before deciding whether to confirm it. Nothing is granted by opening this page."
@@ -98,6 +108,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
     title={`Welcome, ${context.participantName}`}
     description={description}
   >
+    {context.originGroupId ? <div className={styles.notice} role="status">{participantBankOnlyLinkLine(context.institutionName)}</div> : null}
     <div className={styles.notice} role="status">{closedMessage ?? (notice && NOTICE_MESSAGES[notice] ? NOTICE_MESSAGES[notice] : "You can see the current request below.")}</div>
     {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
     {canDecide ? <div className={styles.summary}>
@@ -161,7 +172,14 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       </form>
     </details> : null}
     {context.status === "canceled" ? <Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/receipt`}>View cancellation receipt</Link> : null}
-    {RECEIPT_STATUSES.has(context.status) ? <div className={styles.summary}><h2>Your decision receipt</h2><p>See what the institution decided, what actions it accepted, any limits, and whether anything changed later.</p><Link className={styles.primary} href={`/request/${encodeURIComponent(context.authorityRecordId)}/receipt`}>View receipt</Link></div> : null}
+    {showDecisionReceipt ? <div className={styles.summary}>
+      <h2>Your decision receipt</h2>
+      <p role="status">{laterChange ? "A later change was recorded." : "This is the current answer."}</p>
+      <p>{laterChange
+        ? "See what changed after the institution's decision. The original decision stays saved."
+        : "See what the institution decided, what actions it accepted, any limits, and whether anything changed later."}</p>
+      <Link className={styles.primary} href={receiptHref}>{laterChange ? "See what changed" : "View receipt"}</Link>
+    </div> : null}
     <p className={styles.legal}>Opening this page does not create or accept legal authority.</p>
   </AccountFrame>;
 }
