@@ -1,4 +1,5 @@
 import { getAuthorityAccessContext } from "@/lib/authority/access";
+import { NY_PACK_REF, jurisdictionPackVersionLabel } from "@/lib/authority/jurisdiction-pack";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
 
@@ -14,6 +15,8 @@ export default async function PoliciesPage() {
     return <PolicyNotice title="This saved policy is not supported" detail="This version of Passage cannot show the saved policy. Ask your organization owner to check the policy setup." />;
   }
 
+  const packLabel = jurisdictionPackVersionLabel(NY_PACK_REF);
+
   return (
     <>
       <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Request rules</p><h1>New York financial power of attorney</h1><p>This checklist is for sample requests. The bank or credit union reviews the documents and decides what the representative may do.</p></div><span className={styles.badge}>Selected</span></header>
@@ -27,7 +30,7 @@ export default async function PoliciesPage() {
         </section>
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Saved policy</h2><p>Your organization selected this policy. Each request records the policy name and version used to prepare it.</p></div></div>
-          <dl className={styles.policyFacts}><div><dt>Policy</dt><dd>New York financial power of attorney</dd></div><div><dt>Version</dt><dd>{selection.template_version}</dd></div><div><dt>Who decides?</dt><dd>The bank or credit union</dd></div><div><dt>Does Passage decide if the document is legally valid?</dt><dd>No. The institution reviews it.</dd></div></dl>
+          <dl className={styles.policyFacts}><div><dt>Policy</dt><dd>New York financial power of attorney</dd></div><div><dt>Version</dt><dd>{selection.template_version}</dd></div><div><dt>Jurisdiction pack</dt><dd>{packLabel}</dd></div><div><dt>Who decides?</dt><dd>The bank or credit union</dd></div><div><dt>Does Passage decide if the document is legally valid?</dt><dd>No. The institution reviews it.</dd></div></dl>
         </section>
       </div>
     </>
