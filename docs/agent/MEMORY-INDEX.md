@@ -10,7 +10,7 @@ Latest UX2 evidence: [public keyboard navigation](../PUBLIC-KEYBOARD-NAVIGATION-
 
 Owner writing rule: every website and product screen must use clear, natural, everyday language. Follow the [plain-language standard](../PLAIN-LANGUAGE-STANDARD.md). Preserve the meaning of legal text and saved decisions.
 
-Updated September 10, 2026 UTC. This is the portable project memory; it does not claim an update to an unavailable account-wide memory service.
+Updated September 15, 2026 UTC (Ops scoping link). Prior product checkpoint remains September 10. This is the portable project memory; it does not claim an update to an unavailable account-wide memory service.
 
 | Remember | Authoritative source |
 | --- | --- |
@@ -26,6 +26,7 @@ Updated September 10, 2026 UTC. This is the portable project memory; it does not
 | Team enrollment inventory is tested; all-factors-lost recovery is open | [MFA evidence](../PRIVILEGED-MFA-TEAM-STATUS.md) |
 | Pricing is $5k scoped pilot; annual anchors are unvalidated | [Commercial](COMMERCIAL.md) |
 | Provider runs must not be replayed or backdated to invent days | [Reconciliation log](../RECONCILIATION-LOG.md), [providers](PROVIDERS.md) |
+| Ops platform current state, env identity, enterprise control roadmap | [Ops scoping 2026-09-15](../OPS-SCOPING-2026-09-15.md) |
 | Drafting is allowed; sending and release require applicable authorization/gates | [Delivery gates](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md) |
 
 ## Important corrections
