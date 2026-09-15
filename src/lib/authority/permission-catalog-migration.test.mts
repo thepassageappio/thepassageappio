@@ -16,6 +16,10 @@ const migration = [
     "utf8",
   ),
   readFileSync(
+    new URL("../../../supabase/migrations/20260915140160_permission_catalog_phase0_decision_write_public.sql", import.meta.url),
+    "utf8",
+  ),
+  readFileSync(
     new URL("../../../supabase/migrations/20260915140200_permission_catalog_phase0_receipt_rpc.sql", import.meta.url),
     "utf8",
   ),
