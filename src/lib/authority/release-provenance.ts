@@ -1,7 +1,7 @@
 const PASSAGE_ENVIRONMENTS = new Set(["local", "preview", "demo", "production"]);
 
 export type ReleaseProvenance = {
-  /** Product/env label for /api/version and demo guards. Prefers PASSAGE_ENVIRONMENT. */
+  /** Product/env label for /api/version and demo guards. Prefers PASSAGE_ENVIRONMENT, then PASSAGE_ENVIRONMENT_GROK. */
   environment: string | null;
   /** Vercel deploy class (VERCEL_ENV). Used for production provenance checks. */
   vercelEnvironment: string | null;
@@ -12,10 +12,18 @@ export type ReleaseProvenance = {
   commitSha: string | null;
 };
 
+function readValidatedPassageEnvironment(raw: string | undefined): string | null {
+  const value = raw?.trim().toLowerCase() ?? "";
+  return PASSAGE_ENVIRONMENTS.has(value) ? value : null;
+}
+
 function readPassageEnvironmentLabel(env: NodeJS.ProcessEnv): string | null {
-  const explicit = env.PASSAGE_ENVIRONMENT?.trim().toLowerCase() ?? "";
-  if (PASSAGE_ENVIRONMENTS.has(explicit)) return explicit;
-  return env.VERCEL_ENV?.trim() || null;
+  return (
+    readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT) ??
+    readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT_GROK) ??
+    env.VERCEL_ENV?.trim() ||
+    null
+  );
 }
 
 export function readReleaseProvenance(env: NodeJS.ProcessEnv = process.env): ReleaseProvenance {
