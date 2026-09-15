@@ -5,7 +5,7 @@ import { hostedRequestNoticeMessage } from "./user-messages.ts";
 test("hosted request notices use the current delivery state", () => {
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "delivered"),
-    "Email delivery confirmed.",
+    "Inbox delivery was reported. That still does not prove the person opened the email.",
   );
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "failed"),
@@ -14,6 +14,10 @@ test("hosted request notices use the current delivery state", () => {
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "retrying"),
     "Email delivery is being retried.",
+  );
+  assert.equal(
+    hostedRequestNoticeMessage("participant_invitation_submitted", "processing"),
+    "The email service accepted the new invitation. Delivery is not yet confirmed.",
   );
 });
 
