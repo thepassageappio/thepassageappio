@@ -8,7 +8,7 @@ import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolvePermissionLabels } from "@/lib/authority/permission-catalog";
-import { buildParticipantReceiptOrientation } from "@/lib/authority/orientation-strip";
+import { buildParticipantReceiptOrientation } from "@/lib/authority/participant-receipt-orientation";
 
 export const metadata = { robots: { index: false, follow: false } };
 
