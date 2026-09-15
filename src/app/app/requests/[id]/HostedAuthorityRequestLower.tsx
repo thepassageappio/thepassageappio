@@ -6,7 +6,30 @@ import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { CancelRequestForm } from "./CancelRequestForm";
 import styles from "@/components/app/app-shell.module.css";
 
-export function HostedAuthorityRequestLower({ p }: { p: any }) {
+type LowerProps = {
+  access: any;
+  record: any;
+  closedMessage: string | null;
+  reviewFinished: boolean;
+  events: any[];
+  canCoordinate: boolean;
+  canRecordDecision: boolean;
+  canReviewEvidence: boolean;
+  decision: any;
+  decisionReady: boolean;
+  decisionSinceChanged: boolean;
+  requirements: any[];
+  evidenceArtifacts: any[];
+  informationRequests: any[];
+  informationResponses: any[];
+  openInformationRequest: any;
+  responseByRequest: Map<string, any>;
+  requirementStatusLabel: (status: unknown) => string;
+  activityDetail: (event: { eventType: string; detail: string }) => string;
+  activitySummary: (event: { eventType: string; summary: string }) => string;
+};
+
+export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
   const {
     access,
     record,
@@ -30,11 +53,15 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
     activitySummary,
   } = p;
 
+  const requirementRows = requirements ?? [];
+  const evidenceRows = evidenceArtifacts ?? [];
+  const informationRequestRows = informationRequests ?? [];
+
   return <>
-        {(requirements ?? []).length > 0 ? <section className={styles.panel} id="required-information">
-          <div className={styles.panelHead}><div><h2>Required information</h2><p>{reviewFinished ? "These files and confirmations are part of the saved history." : "Review each file or confirmation before making a decision."}</p></div><span className={styles.badge}>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length} complete</span></div>
-          <ul className={styles.activity}>{(requirements ?? []).map((requirement) => {
-            const artifact = (evidenceArtifacts ?? []).find((item) => String(item.requirement_id) === String(requirement.id));
+        {requirementRows.length > 0 ? <section className={styles.panel} id="required-information">
+          <div className={styles.panelHead}><div><h2>Required information</h2><p>{reviewFinished ? "These files and confirmations are part of the saved history." : "Review each file or confirmation before making a decision."}</p></div><span className={styles.badge}>{requirementRows.filter((item) => item.status === "completed").length} of {requirementRows.length} complete</span></div>
+          <ul className={styles.activity}>{requirementRows.map((requirement) => {
+            const artifact = evidenceRows.find((item) => String(item.requirement_id) === String(requirement.id));
             return <li key={String(requirement.id)}>
               <div>
                 <strong>{String(requirement.title)}</strong>
@@ -70,9 +97,9 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
           })}</ul>
           <p>Accepting a file completes this review step. It does not decide whether the power of attorney is legally valid.</p>
         </section> : null}
-        {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel}>
+        {informationRequestRows.length > 0 || record.status === "under_review" ? <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Questions</h2><p>{reviewFinished ? "Questions and responses saved with this request." : "Ask the representative for missing or unclear information."}</p></div><span className={styles.badge}>{reviewFinished ? "Saved history" : openInformationRequest ? "Response needed" : "Up to date"}</span></div>
-          {(informationRequests ?? []).length > 0 ? <ul className={styles.activity}>{(informationRequests ?? []).map((item) => {
+          {informationRequestRows.length > 0 ? <ul className={styles.activity}>{informationRequestRows.map((item) => {
             const response = responseByRequest.get(String(item.id));
             return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>{reviewFinished ? "No response was saved" : "Waiting for the representative"}</span>}</div></li>;
           })}</ul> : null}
@@ -81,7 +108,7 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <label htmlFor="information-requirement">Related requirement</label>
-            <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{(requirements ?? []).map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
+            <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{requirementRows.map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
             <label htmlFor="information-message">What is still needed?</label>
             <textarea id="information-message" name="message" minLength={3} maxLength={500} required placeholder="Describe the exact information needed to continue this review." />
             <button className={styles.secondary} type="submit">Send information request</button>
@@ -111,7 +138,7 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
             <fieldset>
               <legend>Accepted actions</legend>
               <p>Keep only the actions this decision accepts. Written limits do not remove an action from the receipt.</p>
-              {record.allowedActionKeys.map((key) => <label className={styles.confirmation} key={key}>
+              {record.allowedActionKeys.map((key: string) => <label className={styles.confirmation} key={key}>
                 <input type="checkbox" name="acceptedActionKeys" value={key} defaultChecked /> <span>{HOSTED_ACTIONS[key]}</span>
               </label>)}
             </fieldset>
@@ -123,7 +150,7 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
             <button className={styles.primary} type="submit">Save decision and send receipt</button>
           </form> : <>
             <ul className={styles.checklist}>
-              <li>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length || 3} required review steps are complete</li>
+              <li>{requirementRows.filter((item) => item.status === "completed").length} of {requirementRows.length || 3} required review steps are complete</li>
               <li>The requested actions and account details stay the same</li>
               <li>{record.status === "ready_to_submit" ? "The representative must check what will be shared and send the request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
             </ul>
