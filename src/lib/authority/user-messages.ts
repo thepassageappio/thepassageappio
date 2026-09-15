@@ -109,6 +109,15 @@ const errorMessages: Record<string, string> = {
   requester_attestation_required: "Check the box that says you are allowed to share these details before sending.",
   principal_confirmation_basis_required: "Answer whether the account holder can confirm this request independently.",
   principal_confirmation_reason_required: "Explain why the account holder cannot confirm this request independently.",
+  permission_publish_not_allowed: "Only an owner or administrator can save what people may ask for on new requests.",
+  authority_type_not_available: "That kind of request is not available.",
+  authority_type_not_pack_ready: "That kind of request is not available in Passage yet.",
+  authority_type_publish_not_enabled: "Only New York financial power of attorney asks can be saved for new requests right now.",
+  permission_published_version_missing: "No saved list is ready for this kind of request yet. Ask Passage for help.",
+  permission_set_changed: "What people may ask for changed before your save finished. Reload the page and try again.",
+  permission_publish_items_required: "At least one ask must stay available before you save for new requests.",
+  permission_publish_input_invalid: "Review the page and try saving again.",
+  permission_publish_reason_invalid: "Keep the save note under 240 characters.",
 };
 
 const noticeMessages: Record<string, string> = {
@@ -132,6 +141,7 @@ const noticeMessages: Record<string, string> = {
   authority_expiration_saved: "The request expiration was saved to the receipt.",
   information_requested: "Your question was saved. The representative can now see it.",
   demo_run_prepared: "A fresh sample request is ready. Nothing was sent or counted, and earlier demo runs were not changed.",
+  permission_set_saved_for_new_requests: "Saved for new requests. Open drafts keep the list they already have until someone updates them.",
 };
 
 export function userErrorMessage(code: string | undefined) {
