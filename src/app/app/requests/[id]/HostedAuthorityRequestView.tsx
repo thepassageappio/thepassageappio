@@ -5,6 +5,7 @@ import { EditDraftEmailsForm } from "./EditDraftEmailsForm";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
+import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
@@ -183,6 +184,8 @@ export function HostedAuthorityRequestView({
     hasDecision: Boolean(decision),
   });
 
+  const { showNyPack, nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record);
+
   const lower = {
     access,
     record,
@@ -204,6 +207,8 @@ export function HostedAuthorityRequestView({
     requirementStatusLabel,
     activityDetail,
     activitySummary,
+    formClassLabel,
+    showSoleRefusalNotice: Boolean(showNyPack),
   };
 
   return <>
@@ -233,6 +238,12 @@ export function HostedAuthorityRequestView({
       <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(record.validUntil))}</strong></div>
     </section>
+    {nyRulesLabel || formClassLabel ? (
+      <dl className={styles.policyFacts} style={{ marginTop: 12 }} aria-label="New York request labels">
+        {nyRulesLabel ? <div><dt>New York rules</dt><dd>{nyRulesLabel}</dd></div> : null}
+        {formClassLabel ? <div><dt>Form type</dt><dd>{formClassLabel}</dd></div> : null}
+      </dl>
+    ) : null}
     <div className={styles.grid} style={{ marginTop: 17 }}>
       <div>
         <details className={`${styles.panel} ${styles.disclosurePanel}`} id="contact-details" open={record.status === "draft" ? true : undefined}>
