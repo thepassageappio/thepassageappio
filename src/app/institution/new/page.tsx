@@ -41,8 +41,8 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
             <label>Account or relationship boundary<input name="accountBoundary" required defaultValue="Membership account ending 4821" /></label>
             <fieldset>
               <legend>Permitted actions</legend>
-              <label className={styles.option}><input type="checkbox" name="allowedActionKeys" value="receive_duplicate_statements" defaultChecked /><span><strong>Receive duplicate monthly statements</strong><small>Copies only for the named account boundary.</small></span></label>
-              <label className={styles.option}><input type="checkbox" name="allowedActionKeys" value="discuss_service_issues" defaultChecked /><span><strong>Discuss account-service issues</strong><small>Non-transactional service conversations only.</small></span></label>
+              <label className={styles.option}><input type="checkbox" name="allowedActionKeys" value="receive_duplicate_statements" defaultChecked /><span><strong>Get copies of account statements</strong><small>The helper asks the bank to send statement copies for this account.</small></span></label>
+              <label className={styles.option}><input type="checkbox" name="allowedActionKeys" value="discuss_service_issues" defaultChecked /><span><strong>Talk with the bank about the account</strong><small>The helper may call or visit to ask ordinary service questions. This does not mean they can move money.</small></span></label>
             </fieldset>
             <label>Request end date<input name="validUntil" type="date" required defaultValue="2027-08-26" /></label>
           </section>
