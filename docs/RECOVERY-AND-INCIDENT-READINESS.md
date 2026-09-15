@@ -85,3 +85,12 @@ No customers hold real data yet, so there is no customer-notification obligation
 ## Bottom line for the P2 gate
 
 Backup/restore capability: **not present, tested today and confirmed absent, requires a paid-plan decision to close.** Incident-response process: **did not exist, now documented above.** Audit/evidence retention: **real and currently sufficient, but fragile — same root cause as backup/restore (Free-plan, single-instance, zero redundancy).** None of this should be read as ready for real institution data; it should be read as an accurate account of exactly what is and isn't true today, which is what the P2 gate calls for.
+
+
+## Checkpoint — 2026-09-15 (Ops reaffirmation)
+
+Live re-check via Supabase organization API: plan is still **`free`**. Automated daily backups and PITR remain **unavailable**. Neither UAT (`ywlrxdjibngroycwnujg`) nor Demo (`bklrclpertdtmhycpqlz`) has a vendor-side recovery path. This remains a **blocker for accepting real institution data**.
+
+No restore drill was run (nothing to restore from; no destructive tests). Security advisors still flag leaked-password protection as disabled — enable it as part of the enterprise control bar (see [OPS-SCOPING-2026-09-15.md](./OPS-SCOPING-2026-09-15.md)).
+
+The September 7 runbook above remains the operating incident process. Upgrade to Pro + one restore-to-new-project drill is still the owner spend decision that closes the backup/restore gap.
