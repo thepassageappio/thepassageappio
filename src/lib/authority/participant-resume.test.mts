@@ -15,12 +15,18 @@ test("representative access can be reissued for the initial decision and active 
 });
 
 test("both participants can receive a decision receipt after the institution decides", () => {
-  for (const status of ["accepted", "accepted_with_limits", "rejected", "revoked", "expired"] as const) {
+  for (const status of ["accepted", "accepted_with_limits", "rejected", "revoked", "expired", "withdrawn"] as const) {
     assert.equal(canReissueParticipantAccess("principal", status), true);
     assert.equal(canReissueParticipantAccess("representative", status), true);
     assert.equal(participantAccessPurpose("principal", status), "receipt");
     assert.equal(participantAccessPurpose("representative", status), "receipt");
   }
+});
+
+test("canceled requests keep receipt reissue available", () => {
+  assert.equal(canReissueParticipantAccess("principal", "canceled"), true);
+  assert.equal(canReissueParticipantAccess("representative", "canceled"), true);
+  assert.equal(participantAccessPurpose("principal", "canceled"), "receipt");
 });
 
 test("representative evidence states use resume language", () => {
