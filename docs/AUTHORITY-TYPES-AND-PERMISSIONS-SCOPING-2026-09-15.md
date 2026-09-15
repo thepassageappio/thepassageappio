@@ -198,25 +198,30 @@ Each type (financial_poa, decedent_servicing, vehicle_title_authority, executor_
 
 ---
 
-## D) Suggested build phases (after current Wave1 states + multi-inst)
+## D) Build phases — Steve-confirmed wedge (2026-09-15)
 
-Assumes Wave1 financial POA jurisdiction encode (NY harden → PA ack → CT UPOAA → NJ → MA) and multi-inst Phase 0 continue as committed product work.
+**Confirmed wedge (2–3 excellent use cases, same rails):**  
+1. **Financial POA** → 2. **Death certificate / decedent account servicing** → 3. **Vehicle / title authority**  
+
+Catalog configure/publish runs **in parallel with NY UI** (not after). Per-kind catalogs. **Hide** kinds until `pack_ready` — **no live death/vehicle offers yet**. Custom-perm guardrails + channels separate. Trustee / executor / guardianship stay **after** the wedge.
 
 | Phase | Focus | Exit signal |
 | --- | --- | --- |
-| **P0 (now)** | NY financial POA demo truth; synthetic data; multi-inst foundations | Honest NY-only demo E2E |
-| **P1** | Configurable **financial POA** permission catalog (standard + custom + select-all) + policy publish/snapshot (POL1) | Owner publishes catalog; request uses it; receipts match; stale draft rebase |
+| **P0 (now)** | NY financial POA demo truth; synthetic data; multi-inst foundations; NY pack Phase 0+ | Honest NY-only demo E2E |
+| **P1 (parallel with NY UI)** | Configurable **financial POA** permission catalog (standard + custom + select-all) + policy publish/snapshot | Owner publishes POA catalog; request uses it; receipts match; stale draft rebase |
 | **P2** | Wave1 state packs on financial POA (PA acknowledgment gate, CT/NJ/MA) | PA enableable only with ack workflow; others gated until green |
-| **P3** | Authority type #2: **decedent / death certificate** servicing (workflow variant without principal confirm) | Synthetic death-packet E2E + plain-language UX |
-| **P4** | Authority type #3: **trustee** (cert-of-trust first-class evidence) | Catalog + dual-trustee control + receipt |
-| **P5** | **Executor/estate** + **guardianship** (court letters; no invented powers) | Separate evidence packs; high-risk exclusions |
-| **P6** | **Vehicle/title** adjacency (VIN-bound; no DMV filing) | Optional Commercial priority |
+| **P3 (wedge #2)** | **Death / decedent** servicing (no-principal workflow; death cert + role evidence) | Synthetic death-packet E2E; kind still hidden until pack_ready then enable |
+| **P4 (wedge #3)** | **Vehicle / title** (VIN-bound; payoff/title/lien **packet** only; no DMV filing) | Synthetic vehicle E2E; hidden until pack_ready; DMV disclaimer |
+| **P5 (after wedge)** | **Trustee** (cert-of-trust) | Catalog + dual-trustee control + receipt |
+| **P6 (after wedge)** | **Executor/estate** + **guardianship** (court letters; institution may only narrow) | Separate evidence packs; high-risk exclusions |
 | **P7** | Later-state UPOAA-family reuse from CT template; Wave2 clock R&D (CA/TX/FL/IL) internal | Clarity → optional enable |
 
-**Product Designer:** IA for authority-type picker; permission multi-select + select-all; plain-language previews per persona; death/guardian careful copy.  
-**Engineering:** catalog schema per authority type; custom action namespace; snapshot/publish; workflow variants (no-principal); evidence registry extensions.  
-**Compliance:** encode vs institution per type; claim guardrails; jurisdiction locks only where we have packs.  
-**Commercial/Marketing:** no type advertised as live until Eng+QA enable flag is on.
+**Claim gates:** Live requester offers = NY financial POA only until each additional kind’s pack_ready + institution offer. Death/vehicle must not appear as selectable live kinds early.
+
+**Product Designer:** Authority-type cards (approved labels); multi-select/select-all; death/vehicle careful copy; hide unready kinds.  
+**Engineering:** Catalog schema per kind; POA catalog (#129) parallel with NY harden (#124); then death then vehicle packs.  
+**Compliance:** Encode vs institution per type; pack_ready reviews; claim guardrails.  
+**Commercial/Marketing:** No type advertised as live until Eng+QA enable flag is on.
 
 ---
 
@@ -226,4 +231,7 @@ Assumes Wave1 financial POA jurisdiction encode (NY harden → PA ack → CT UPO
 - [ ] Product Designer: UX flows for multi-select/select-all + authority-type switcher
 - [ ] CoS: file this brief in aggregate roadmap
 - [ ] Repo: add to PR #116 or sequel docs PR when push path free
-- [ ] Claims: unchanged — NY financial POA only until enablement
+- [x] Eng: Wave1 + catalog issues #124–#129 opened
+- [x] Product Designer: UX pass + P1 labels locked
+- [x] CoS: wedge confirmed POA → death → vehicle
+- [ ] Claims: NY financial POA only live; death/vehicle hidden until pack_ready
