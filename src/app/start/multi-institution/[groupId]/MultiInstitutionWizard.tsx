@@ -21,7 +21,7 @@ import {
 } from "@/lib/authority/multi-institution-submission";
 import wizardStyles from "../multi-institution.module.css";
 
-const STEPS = ["Details", "Institutions", "Evidence", "Review"] as const;
+const STEPS = ["Who the request is about", "Which banks", "Shared files", "Check before send"] as const;
 
 type EvidenceRequirementKey = "power_of_attorney" | "identity_evidence";
 
@@ -92,7 +92,7 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
     const label = unmatchedMode ? targetLabel : selectedOrganization?.displayName ?? "";
     const institutionType = unmatchedMode ? targetType : selectedOrganization?.organizationType ?? "";
     const organizationId = unmatchedMode ? null : selectedOrganization?.organizationId ?? null;
-    if (!label || !institutionType) { setError("Enter the institution's name and type, or pick a search result."); return; }
+    if (!label || !institutionType) { setError("Enter the bank's name and type, or pick a search result."); return; }
     startTransition(async () => {
       const result = await addSubmissionTargetAction({ groupId: context.groupId, expectedVersion: context.version, label, institutionType, organizationId });
       if (result.error || !result.context) { setError(result.error); return; }
@@ -144,6 +144,7 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
 
       {step === 0 ? (
         <section className={styles.form}>
+          <p className={styles.legend}>The <strong>account holder</strong> is the person whose accounts this is about. The <strong>representative</strong> is the person named to help.</p>
           <div className={wizardStyles.grid2}>
             <label className={styles.field}>Account holder&rsquo;s name
               <input value={details.principalName} onChange={(event) => setDetails({ ...details, principalName: event.target.value })} required />
@@ -159,18 +160,18 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
             </label>
           </div>
           <fieldset className={wizardStyles.confirmationBasis}>
-            <legend>Can the account holder confirm this request themselves, independently, for each institution?</legend>
+            <legend>Can the account holder confirm this request themselves, on their own, for each bank?</legend>
             <label className={styles.check}>
               <input type="radio" name="confirmationBasis" checked={details.principalConfirmationAvailable === true} onChange={() => setDetails({ ...details, principalConfirmationAvailable: true })} />
-              <span><strong>Yes</strong><small>Each institution will send the account holder their own confirmation link.</small></span>
+              <span><strong>Yes</strong><small>Each bank will send the account holder their own confirmation link.</small></span>
             </label>
             <label className={styles.check}>
               <input type="radio" name="confirmationBasis" checked={details.principalConfirmationAvailable === false} onChange={() => setDetails({ ...details, principalConfirmationAvailable: false })} />
-              <span><strong>No, and here is why</strong><small>Institutions will still send notice, and this request enters light review.</small></span>
+              <span><strong>No, and here is why</strong><small>Banks will still send notice. A staff person will read your note before the bank starts.</small></span>
             </label>
           </fieldset>
           {details.principalConfirmationAvailable === false ? (
-            <label className={styles.field}>Explain why the account holder cannot confirm independently
+            <label className={styles.field}>Explain why the account holder cannot confirm on their own
               <textarea rows={3} value={details.principalConfirmationUnavailableReason} onChange={(event) => setDetails({ ...details, principalConfirmationUnavailableReason: event.target.value })} required />
             </label>
           ) : null}
@@ -183,14 +184,14 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
 
       {step === 1 ? (
         <section className={styles.form}>
-          <p className={styles.legend}>Institutions named so far ({context.targets.length} of {MAX_SUBMISSION_TARGETS})</p>
+          <p className={styles.legend}>Banks named so far ({context.targets.length} of {MAX_SUBMISSION_TARGETS})</p>
           <ul className={wizardStyles.targetList}>
             {context.targets.map((target) => (
               <li key={target.id} className={wizardStyles.targetRow}>
                 <div>
                   <strong>{target.targetLabel}</strong>
                   <span className={target.matchStatus === "matched" ? wizardStyles.badgeMatched : wizardStyles.badgePending}>
-                    {target.matchStatus === "matched" ? "On Passage" : "Not yet on Passage"}
+                    {target.matchStatus === "matched" ? "On Passage" : "Not on Passage yet"}
                   </span>
                 </div>
                 <button className={styles.secondary} type="button" disabled={pending} onClick={() => removeTarget(target.id)}>Remove</button>
@@ -201,8 +202,8 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
             <div className={wizardStyles.addTarget}>
               {!unmatchedMode ? (
                 <>
-                  <label className={styles.field}>Search for an institution
-                    <input value={targetQuery} onChange={(event) => runSearch(event.target.value)} placeholder="Start typing an institution name" />
+                  <label className={styles.field}>Search for a bank or credit union
+                    <input value={targetQuery} onChange={(event) => runSearch(event.target.value)} placeholder="Start typing a bank name" />
                   </label>
                   {searchResults.length > 0 ? (
                     <ul className={wizardStyles.searchResults}>
@@ -215,25 +216,31 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
                       ))}
                     </ul>
                   ) : null}
-                  <button className={styles.secondary} type="button" onClick={() => setUnmatchedMode(true)}>My institution isn&rsquo;t listed</button>
+                  <button className={styles.secondary} type="button" onClick={() => setUnmatchedMode(true)}>My bank isn&rsquo;t listed</button>
                 </>
               ) : (
-                <div className={wizardStyles.grid2}>
-                  <label className={styles.field}>Institution name
-                    <input value={targetLabel} onChange={(event) => setTargetLabel(event.target.value)} />
-                  </label>
-                  <label className={styles.field}>Institution type
-                    <input value={targetType} onChange={(event) => setTargetType(event.target.value)} placeholder="For example, insurer, funeral home" />
-                  </label>
-                  <button className={styles.secondary} type="button" onClick={() => setUnmatchedMode(false)}>Search instead</button>
-                </div>
+                <>
+                  <p className={styles.legend}>Not on Passage yet. We can still note them. A bank on Passage can open a request when they join.</p>
+                  <div className={wizardStyles.grid2}>
+                    <label className={styles.field}>Bank name
+                      <input value={targetLabel} onChange={(event) => setTargetLabel(event.target.value)} />
+                    </label>
+                    <label className={styles.field}>Bank type
+                      <input value={targetType} onChange={(event) => setTargetType(event.target.value)} placeholder="For example, bank, credit union" />
+                    </label>
+                    <button className={styles.secondary} type="button" onClick={() => setUnmatchedMode(false)}>Search instead</button>
+                  </div>
+                </>
               )}
-              <button className={styles.primary} type="button" disabled={pending || (!unmatchedMode && !selectedOrganization)} onClick={addTarget}>{pending ? "Adding…" : "Add institution"}</button>
+              <button className={styles.primary} type="button" disabled={pending || (!unmatchedMode && !selectedOrganization)} onClick={addTarget}>{pending ? "Adding…" : "Add bank"}</button>
             </div>
           ) : null}
           <div className={styles.actions}>
             <button className={styles.secondary} type="button" onClick={() => goTo(0)}>Back</button>
-            <button className={styles.primary} type="button" disabled={!targetsComplete} onClick={() => goTo(2)}>Continue</button>
+            <div>
+              {!targetsComplete ? <p className={styles.legal}>Add at least {MIN_SUBMISSION_TARGETS} banks to continue.</p> : null}
+              <button className={styles.primary} type="button" disabled={!targetsComplete} onClick={() => goTo(2)}>Continue</button>
+            </div>
           </div>
         </section>
       ) : null}
@@ -265,15 +272,15 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
       {step === 3 ? (
         <section className={styles.form}>
           <div className={styles.summary}>
-            <h2>Ready to send</h2>
-            <p>{context.targets.length} institution{context.targets.length === 1 ? "" : "s"} named. {MULTI_INSTITUTION_CASE_INDEPENDENCE_NOTICE}</p>
+            <h2>Check before send</h2>
+            <p>{context.targets.length} bank{context.targets.length === 1 ? "" : "s"} named. {MULTI_INSTITUTION_CASE_INDEPENDENCE_NOTICE}</p>
           </div>
           <ul className={styles.scope}>
             {context.targets.map((target) => <li key={target.id}>{target.targetLabel}</li>)}
           </ul>
           <label className={styles.check}>
             <input type="checkbox" checked={attested} onChange={(event) => setAttested(event.target.checked)} />
-            <span>I confirm that I am authorized to make this request and to share the account holder&rsquo;s information with the institutions listed above.<small>{PASSAGE_AUTHORITY_BOUNDARY_NOTICE}</small></span>
+            <span>I say that I am allowed to share these details with the banks I listed. Passage records what I said. It does not check whether I am allowed.<small>{PASSAGE_AUTHORITY_BOUNDARY_NOTICE}</small></span>
           </label>
           <div className={styles.actions}>
             <button className={styles.secondary} type="button" onClick={() => goTo(2)}>Back</button>

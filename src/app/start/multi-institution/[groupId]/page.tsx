@@ -27,8 +27,8 @@ export default async function MultiInstitutionWizardPage({ params }: Props) {
   return (
     <AccountFrame
       eyebrow={`Reference ${context.referenceCode}`}
-      title="Build your request"
-      description="Add the people involved, name up to five institutions, and upload the shared evidence packet once."
+      title="Who the request is about"
+      description="Name the account holder and the person named to help. Then list up to five banks and upload shared files once."
     >
       <MultiInstitutionWizard initialContext={context} />
     </AccountFrame>
