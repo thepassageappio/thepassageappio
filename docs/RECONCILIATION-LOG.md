@@ -1,5 +1,26 @@
 # Daily reconciliation streak log
 
+## Latest evidence — September 15, 2026 UTC (Ops live read)
+
+Immutable rows in `authority_private.reconciliation_runs` (both UAT and Demo):
+
+| UTC calendar day | Status |
+| --- | --- |
+| 2026-09-07 | `blocked` |
+| 2026-09-08 | `blocked` |
+| 2026-09-09 | `clean` |
+| 2026-09-10 | `clean` |
+| 2026-09-11 | `clean` |
+| 2026-09-12 | **no recorded run** |
+| 2026-09-13 | `clean` |
+| 2026-09-14 | **no recorded run** |
+
+After three consecutive clean days (09–11), the missing 09-12 run **breaks** the streak. The solitary clean day on 09-13 does not restore a multi-day streak. **Current consecutive streak: 0** (gap days reset the clock). Do not invent or backdate runs for missing days. This remains internal Passage-state reconciliation only — not live Stripe/HubSpot API comparison. See [OPS-SCOPING-2026-09-15.md](./OPS-SCOPING-2026-09-15.md).
+
+Automation gap from earlier sections is unchanged: GitHub Actions workflow + `RECONCILIATION_*` secrets still required for unattended daily runs.
+
+---
+
 ## Latest evidence — September 10, 2026 UTC
 
 UAT and Demo each recorded a new immutable `clean` run on September 10, following the September 9 clean run: **2/7 consecutive internal reconciliation days**. Both returned `already_recorded_today: false`, run key `765a4257-92a8-d9ce-5a6b-ae9b0b453f49`; UAT recorded at `2026-09-10T02:20:43.130886Z`, Demo at `2026-09-10T02:20:44.414146Z`. The shared date-derived key is scoped to each separate project. Unresolved inbox/outbox and billing/usage/decision variance arrays were empty.
@@ -34,8 +55,8 @@ Today's change (`20260907153000_daily_reconciliation_check.sql`) builds a real c
 
 | Environment | Current streak | Streak start date | Last run date | Last status |
 | --- | --- | --- | --- | --- |
-| UAT | 0 | earliest possible start: 2026-09-09 UTC | 2026-09-08 | `blocked` (current computation clean after repair) |
-| Demo | 0 | earliest possible start: 2026-09-09 UTC | 2026-09-08 | `blocked` (current computation clean after repair) |
+| UAT | 0 (broken by missing 2026-09-12 and 09-14) | restart after next consecutive clean series | 2026-09-13 | `clean` (gap days since) |
+| Demo | 0 (broken by missing 2026-09-12 and 09-14) | restart after next consecutive clean series | 2026-09-13 | `clean` (gap days since) |
 
 ## Run log
 
