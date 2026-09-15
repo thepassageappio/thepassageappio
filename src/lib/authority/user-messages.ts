@@ -148,7 +148,7 @@ export function hostedRequestNoticeMessage(
   const message = userNoticeMessage(code);
   if (!code || !message || !deliveryNoticeCodes.has(code)) return message;
   if (currentDeliveryStatus === null) return null;
-  if (currentDeliveryStatus === "delivered") return "Email delivery confirmed.";
+  if (currentDeliveryStatus === "delivered") return "Inbox delivery was reported. That still does not prove the person opened the email.";
   if (currentDeliveryStatus === "failed") return "Email delivery needs attention. Send a fresh secure link.";
   if (currentDeliveryStatus === "retrying") return "Email delivery is being retried.";
   return message;
