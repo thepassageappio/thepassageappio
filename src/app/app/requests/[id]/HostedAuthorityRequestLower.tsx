@@ -70,8 +70,8 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
           })}</ul>
           <p>Accepting a file completes this review step. It does not decide whether the power of attorney is legally valid.</p>
         </section> : null}
-        {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Questions</h2><p>{reviewFinished ? "Questions and responses saved with this request." : "Ask the representative for missing or unclear information."}</p></div><span className={styles.badge}>{reviewFinished ? "Saved history" : openInformationRequest ? "Response needed" : "Up to date"}</span></div>
+        {(informationRequests ?? []).length > 0 || record.status === "under_review" ? <section className={styles.panel} id="questions">
+          <div className={styles.panelHead}><div><h2>Questions</h2><p>{reviewFinished ? "Questions and responses saved with this request." : "Ask them to send or fix something that is missing or unclear."}</p></div><span className={styles.badge}>{reviewFinished ? "Saved history" : openInformationRequest ? "Response needed" : "Up to date"}</span></div>
           {(informationRequests ?? []).length > 0 ? <ul className={styles.activity}>{(informationRequests ?? []).map((item) => {
             const response = responseByRequest.get(String(item.id));
             return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>{reviewFinished ? "No response was saved" : "Waiting for the representative"}</span>}</div></li>;
@@ -82,9 +82,9 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <label htmlFor="information-requirement">Related requirement</label>
             <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{(requirements ?? []).map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
-            <label htmlFor="information-message">What is still needed?</label>
+            <label htmlFor="information-message">What do you need them to send or fix?</label>
             <textarea id="information-message" name="message" minLength={3} maxLength={500} required placeholder="Describe the exact information needed to continue this review." />
-            <button className={styles.secondary} type="submit">Send information request</button>
+            <button className={styles.secondary} type="submit">Ask for something else</button>
           </form> : null}
         </section> : null}
         <section className={styles.panel} id="institution-decision">
@@ -120,7 +120,7 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
             <label htmlFor="decision-limitations">Limits, one per line</label>
             <textarea id="decision-limitations" name="limitations" maxLength={2400} placeholder="Required only for an acceptance with limits." />
             <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /> <span>I confirm this is the institution&apos;s decision for this request and it should become part of the shared receipt.</span></label>
-            <button className={styles.primary} type="submit">Save decision and send receipt</button>
+            <button className={styles.primary} type="submit">Save the bank&apos;s answer</button>
           </form> : <>
             <ul className={styles.checklist}>
               <li>{(requirements ?? []).filter((item) => item.status === "completed").length} of {(requirements ?? []).length || 3} required review steps are complete</li>
@@ -132,7 +132,7 @@ export function HostedAuthorityRequestLower({ p }: { p: any }) {
         </section>
         {record.status === "awaiting_principal" && canCoordinate ? <CancelRequestForm recordId={record.id} version={record.version} idempotencyKey={randomUUID()} /> : null}
         <details className={`${styles.panel} ${styles.disclosurePanel}`}>
-          <summary>View activity history ({events.length})</summary>
+          <summary>Full history ({events.length})</summary>
           <p>Every saved change is listed in order.</p>
           <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{activitySummary(event)}</strong><span>{activityDetail(event)}</span></div><span>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(event.occurredAt))}</span></li>)}</ul>
         </details>
