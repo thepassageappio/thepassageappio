@@ -23,11 +23,18 @@ export function OrientationStrip({ model, headingId = "request-next-step" }: Pro
 
       <p className={styles.nextLine}>{model.nextLine}</p>
 
-      {model.primaryAction ? (
+      {model.primaryAction || model.secondaryAction ? (
         <div className={styles.ctaRow}>
-          <Link className={shell.primary} href={model.primaryAction.href}>
-            {model.primaryAction.label}
-          </Link>
+          {model.primaryAction ? (
+            <Link className={shell.primary} href={model.primaryAction.href}>
+              {model.primaryAction.label}
+            </Link>
+          ) : null}
+          {model.secondaryAction ? (
+            <Link className={shell.secondary} href={model.secondaryAction.href}>
+              {model.secondaryAction.label}
+            </Link>
+          ) : null}
         </div>
       ) : null}
 
