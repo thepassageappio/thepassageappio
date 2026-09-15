@@ -120,4 +120,55 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
           </form> : null}
         </section> : null}
         <section className={styles.panel} id="institution-decision">
-          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>{reviewFinished ? "Any saved decision is shown here." : "Record the outcome after every required review step is complete."}</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : closedMessage ? "Cl
+          <div className={styles.panelHead}><div><h2>Institution decision</h2><p>{reviewFinished ? "Any saved decision is shown here." : "Record the outcome after every required review step is complete."}</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : closedMessage ? "Closed" : decisionReady ? "Ready" : "Not ready"}</span></div>
+          {formClassLabel ? <p className={styles.supportingCopy}>Form type on this request: {formClassLabel}.</p> : null}
+          <NySoleRefusalNotice show={Boolean(showSoleRefusalNotice && !decision && !closedMessage)} />
+          {decision ? <>
+            <dl className={styles.policyFacts}>
+              <div><dt title="What the institution decided at the time, based on the evidence reviewed. This does not change later.">Original decision</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
+              {decisionSinceChanged ? <div><dt title="What is true about this request right now. This can change after the original decision without altering the decision itself.">Current status</dt><dd>{hostedStatusLabel(record.status)}</dd></div> : null}
+              <div><dt>Decision reason</dt><dd>{decision.reason}</dd></div>
+              <div><dt title="A receipt is the saved, shareable record of this decision. It does not change if the request's status changes later.">Receipt</dt><dd>{decision.receiptCode}</dd></div>
+            </dl>
+            {decisionSinceChanged ? <p className={styles.supportingCopy}>The original decision above has not changed. Only the request&apos;s current status has. Open the receipt for the full timeline.</p> : null}
+            <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open decision receipt</Link>
+          </> : closedMessage ? <p>No institution decision is saved for this request. Review the activity history for what happened.</p> : decisionReady && canRecordDecision ? <form action={recordInstitutionDecisionAction} className={styles.field}>
+            <input type="hidden" name="recordId" value={record.id} />
+            <input type="hidden" name="expectedVersion" value={record.version} />
+            <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+            <label htmlFor="decision-outcome">Institution outcome</label>
+            <select id="decision-outcome" name="outcome" defaultValue="accepted_with_limits">
+              <option value="accepted_with_limits">Accept with limits</option>
+              <option value="accepted">Accept as submitted</option>
+              <option value="rejected">Do not accept</option>
+            </select>
+            <fieldset>
+              <legend>Accepted actions</legend>
+              <p>Keep only the actions this decision accepts. Written limits do not remove an action from the receipt.</p>
+              {record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <label className={styles.confirmation} key={key}>
+                <input type="checkbox" name="acceptedActionKeys" value={key} defaultChecked /> <span>{HOSTED_ACTIONS[key]}</span>
+              </label>)}
+            </fieldset>
+            <label htmlFor="decision-reason">Reason</label>
+            <textarea id="decision-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain why the institution reached this decision." />
+            <label htmlFor="decision-limitations">Limits, one per line</label>
+            <textarea id="decision-limitations" name="limitations" maxLength={2400} placeholder="Required only for an acceptance with limits." />
+            <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /> <span>I confirm this is the institution&apos;s decision for this request and it should become part of the shared receipt.</span></label>
+            <button className={styles.primary} type="submit">Save the bank&apos;s answer</button>
+          </form> : <>
+            <ul className={styles.checklist}>
+              <li>{requirementRows.filter((item) => item.status === "completed").length} of {requirementRows.length || 3} required review steps are complete</li>
+              <li>The requested actions and account details stay the same</li>
+              <li>{record.status === "ready_to_submit" ? "The representative must check what will be shared and send the request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
+            </ul>
+            <p>No outcome can be recorded while a source or certification still needs review.</p>
+          </>}
+        </section>
+        {record.status === "awaiting_principal" && canCoordinate ? <CancelRequestForm recordId={record.id} version={record.version} idempotencyKey={randomUUID()} /> : null}
+        <details className={`${styles.panel} ${styles.disclosurePanel}`}>
+          <summary>Full history ({events.length})</summary>
+          <p>Every saved change is listed in order.</p>
+          <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{activitySummary(event)}</strong><span>{activityDetail(event)}</span></div><span>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(event.occurredAt))}</span></li>)}</ul>
+        </details>
+  </>;
+}
