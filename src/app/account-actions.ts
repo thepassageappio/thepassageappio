@@ -1,1 +1,1 @@
-PLACEHOLDER_WILL_FAIL_IF_USED
+@file:///workspace/agent-tools/aa_content_only.txt
