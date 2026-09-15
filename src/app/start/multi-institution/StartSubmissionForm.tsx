@@ -22,15 +22,15 @@ export function StartSubmissionForm({ idempotencyKey }: Props) {
         <input name="requesterEmail" type="email" required autoComplete="email" placeholder="name@example.com" disabled={pending} />
       </label>
       <label className={styles.field}>
-        Your relationship to this request
+        How are you involved?
         <select name="requesterRelationship" required defaultValue="representative" disabled={pending}>
-          <option value="representative">I am the representative named in the power of attorney</option>
-          <option value="principal_self">I am the account holder, requesting for myself</option>
-          <option value="other">Other</option>
+          <option value="representative">I am the person named to help (the representative)</option>
+          <option value="principal_self">I am the account holder</option>
+          <option value="other">Someone else</option>
         </select>
       </label>
       <button className={styles.primary} type="submit" disabled={pending}>{pending ? "Sending…" : "Continue"}</button>
-      <p className={styles.legal}>We will email you a one-time link to confirm your address before you can name institutions.</p>
+      <p className={styles.legal}>We will email you a link to confirm your email. Then you can name the banks.</p>
     </form>
   );
 }
