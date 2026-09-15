@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { dismissInviteAccessLinkFlashAction } from "@/app/account-actions";
+import { dismissInviteAccessLinkFlashAction } from "@/lib/authority/invite-access-link-cookie";
 import styles from "@/components/app/app-shell.module.css";
 
 type Props = {
