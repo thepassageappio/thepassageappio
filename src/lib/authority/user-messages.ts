@@ -117,8 +117,8 @@ const noticeMessages: Record<string, string> = {
   access_revoked: "The person's access has been revoked.",
   invitation_revoked: "The invitation has been revoked.",
   draft_created: "Your draft is saved. Nothing was sent or counted.",
-  request_activated: "Your request started and counts toward your limit. The email service accepted the account holder’s invitation, but delivery is not yet confirmed. The representative must wait for the account holder to confirm.",
-  request_activated_delivery_pending: "Your request started and counts toward your limit. The email service did not accept the account holder’s invitation. The representative must wait.",
+  request_activated: "Your request started and counts toward your limit. The email service accepted the account holder's invitation, but delivery is not yet confirmed. The representative must wait for the account holder to confirm.",
+  request_activated_delivery_pending: "Your request started and counts toward your limit. The email service did not accept the account holder's invitation. The representative must wait.",
   participant_invitation_submitted: "The email service accepted the new invitation. Delivery is not yet confirmed.",
   participant_invitation_delivery_pending: "The new invitation is ready, but the email service did not accept it.",
   evidence_review_saved: "The evidence review was saved and the representative can see the current result.",
@@ -153,7 +153,7 @@ export function hostedRequestNoticeMessage(
   const message = userNoticeMessage(code);
   if (!code || !message || !deliveryNoticeCodes.has(code)) return message;
   if (currentDeliveryStatus === null) return null;
-  if (currentDeliveryStatus === "delivered") return "Email delivery confirmed.";
+  if (currentDeliveryStatus === "delivered") return "Email reached the inbox (provider confirmed).";
   if (currentDeliveryStatus === "failed") return "Email delivery needs attention. Send a fresh secure link.";
   if (currentDeliveryStatus === "retrying") return "Email delivery is being retried.";
   return message;
