@@ -1,8 +1,11 @@
 import { AuthorityError } from "./errors.ts";
 
+/** Live display labels for the fixed NY financial POA acts.
+ * Prefer receipt/decision permission snapshots when present (frozen at decide time).
+ * Locked P1 wording — see permission-catalog.ts / PERMISSION-LABELS-P1-LOCKED. */
 export const HOSTED_ACTIONS = {
-  receive_duplicate_statements: "Receive duplicate monthly statements",
-  discuss_service_issues: "Discuss account-service issues",
+  receive_duplicate_statements: "Get copies of account statements",
+  discuss_service_issues: "Talk with the bank about the account",
 } as const;
 
 export type HostedActionKey = keyof typeof HOSTED_ACTIONS;
