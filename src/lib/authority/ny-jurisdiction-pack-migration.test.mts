@@ -6,6 +6,14 @@ const migration = readFileSync(
   new URL("../../../supabase/migrations/20260915040000_authority_ny_jurisdiction_pack_phase0.sql", import.meta.url),
   "utf8",
 );
+const rls = readFileSync(
+  new URL("../../../supabase/migrations/20260915040100_authority_ny_jurisdiction_pack_phase0_rls.sql", import.meta.url),
+  "utf8",
+);
+const rpcs = readFileSync(
+  new URL("../../../supabase/migrations/20260915040150_authority_ny_jurisdiction_pack_phase0_rpcs.sql", import.meta.url),
+  "utf8",
+);
 
 test("Phase 0 seeds versioned US-NY pack with 10/7 timer defaults", () => {
   assert.match(migration, /create table public\.jurisdiction_packs/);
@@ -32,12 +40,13 @@ test("Phase 0 adds form_class, timer pins, certified-copy flag, and affidavit sc
   assert.match(migration, /timer_followup_business_days/);
   assert.match(migration, /attorney_certified_copy boolean/);
   assert.match(migration, /create table public\.authority_affidavit_exchanges/);
-  assert.match(migration, /request_affidavit_exchange_service_v1/);
 });
 
-test("Phase 0 stays additive and service-bounds the affidavit stub", () => {
+test("Phase 0 RPCs stay additive and service-bound the affidavit stub", () => {
+  assert.match(rls, /enable row level security/);
+  assert.match(rpcs, /request_affidavit_exchange_service_v1/);
   assert.doesNotMatch(migration, /drop table public\.authority_records/i);
   assert.doesNotMatch(migration, /PA-F39449782D/);
-  assert.match(migration, /grant execute on function public\.request_affidavit_exchange_service_v1[\s\S]+to service_role/);
-  assert.match(migration, /revoke execute on function public\.request_affidavit_exchange_service_v1[\s\S]+from public, anon, authenticated/);
+  assert.match(rpcs, /grant execute on function public\.request_affidavit_exchange_service_v1[\s\S]+to service_role/);
+  assert.match(rpcs, /revoke execute on function public\.request_affidavit_exchange_service_v1[\s\S]+from public, anon, authenticated/);
 });
