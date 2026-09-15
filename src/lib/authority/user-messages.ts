@@ -1,1 +1,160 @@
-PLACEHOLDER
+import { requestCoordinatorRecoveryMessage } from "./role-capabilities.ts";
+
+const errorMessages: Record<string, string> = {
+  access_unavailable: "Account access is temporarily unavailable. Please try again shortly.",
+  access_revoked: "Your previous organization access was removed. Contact an organization owner if you believe access should be restored.",
+  email_invalid: "Enter a valid work email address.",
+  google_sign_in_unavailable: "Google sign-in is not connected yet. Use the email option or ask a Passage administrator to finish the Google connection.",
+  link_unavailable: "This sign-in link is no longer available. Request a new secure link.",
+  authorized_use_required: "Confirm that you have permission to try Passage for your organization.",
+  organization_details_incomplete: "Complete each required organization field.",
+  organization_exists: "Your account already belongs to an organization. Sign in to continue.",
+  acceptances_required: "Review and confirm all three required statements.",
+  terms_changed: "The documents changed before you finished. Review the current versions and confirm again.",
+  template_unavailable: "This template is not available for your organization.",
+  role_invalid: "Choose an available role.",
+  member_exists: "This person already has access to the organization.",
+  invitation_pending: "A current invitation already exists for this email address.",
+  role_not_allowed: "Your role cannot grant that level of access.",
+  member_management_not_allowed: "Your role cannot manage organization access.",
+  last_owner_protected: "Add another owner before removing or changing the final owner.",
+  member_changed: "This person's access changed before your action completed. Review the current status and try again.",
+  invitation_changed: "This invitation changed before your action completed. Review the current status and try again.",
+  invitation_unavailable: "This invitation is no longer available. Ask the organization to send a new one.",
+  invitation_expired: "This invitation has expired. Ask the organization to send a new one.",
+  invitation_email_mismatch: "Sign in with the same email address that received this invitation.",
+  mfa_required: "Verify with your authenticator before completing that action.",
+  request_failed: "We could not complete that action. Nothing was changed. Please try again.",
+  request_creation_not_allowed: requestCoordinatorRecoveryMessage,
+  request_activation_not_allowed: requestCoordinatorRecoveryMessage,
+  organization_not_ready: "Complete organization setup before creating a request.",
+  participant_name_invalid: "Enter the full name of each person.",
+  participant_email_invalid: "Enter a valid email address for each person.",
+  participant_roles_must_be_distinct: "Use different email addresses for the account holder and the representative.",
+  account_boundary_invalid: "Describe the account or relationship covered by this request.",
+  valid_until_invalid: "Choose a valid future end date.",
+  allowed_action_invalid: "Choose at least one supported action.",
+  request_changed: "The request details changed during submission. Review them and try again.",
+  request_unavailable: "This authority request is not available.",
+  request_not_activatable: "This request has already moved beyond the draft stage.",
+  evaluation_unavailable: "Evaluation access is temporarily unavailable. Nothing was sent or counted.",
+  evaluation_expired: "The free evaluation has ended. Existing requests remain available.",
+  evaluation_limit_reached: "You have used all five free requests. You can still open your saved requests.",
+  evidence_review_not_allowed: "Your role cannot review evidence for this request.",
+  evidence_review_not_available: "Evidence review is not available in the current request state.",
+  evidence_changed: "The evidence changed before your action completed. Review the current status and try again.",
+  evidence_review_invalid: "Choose an available evidence review action.",
+  evidence_review_note_required: "Explain exactly what the representative needs to correct.",
+  institution_decision_acknowledgment_required: "Confirm that this is the institution's decision for this request.",
+  institution_decision_outcome_invalid: "Choose an available institution decision.",
+  institution_decision_reason_required: "Record a clear decision reason using 3 to 500 characters.",
+  institution_decision_limit_invalid: "Use no more than 10 limits, with 240 characters or fewer for each limit.",
+  institution_decision_limit_required: "List at least one limit for a limited acceptance.",
+  institution_decision_limit_not_allowed: "Limits can be recorded only when the institution accepts with limits.",
+  institution_decision_scope_invalid: "Choose only actions requested in this authority workflow.",
+  institution_decision_scope_not_allowed: "A request that is not accepted cannot retain accepted actions.",
+  institution_decision_scope_required: "Choose at least one action the institution accepts.",
+  institution_decision_full_scope_required: "Accept as submitted must include every requested action.",
+  institution_decision_not_allowed: "Your role cannot record the institution decision.",
+  institution_decision_not_ready: "Complete every required review step before recording the institution decision.",
+  institution_decision_request_expired: "This request has reached its end date and cannot be accepted.",
+  institution_decision_requirements_incomplete: "Complete every required review step before recording the institution decision.",
+  institution_decision_already_recorded: "The institution decision is already saved. Review the current receipt.",
+  authority_lifecycle_acknowledgment_required: "Confirm that this change should be saved to the receipt.",
+  authority_lifecycle_action_invalid: "Choose one of the available changes.",
+  authority_lifecycle_reason_required: "Record a clear revocation reason using 3 to 500 characters.",
+  authority_lifecycle_not_allowed: "Your role cannot make this change.",
+  authority_lifecycle_not_available: "This change is not available for this decision.",
+  authority_lifecycle_not_expired: "This request has not reached its recorded end date.",
+  institution_decision_unavailable: "The institution decision receipt is not available.",
+  information_request_message_required: "Explain what information is still needed.",
+  information_request_not_allowed: "Your role cannot request information for this review.",
+  information_request_not_available: "More information can be requested only while the institution is reviewing the request.",
+  information_request_requirement_invalid: "Choose a current policy requirement.",
+  information_request_already_open: "This request already has an unanswered information request.",
+  demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
+  invitation_configuration_invalid: "We cannot send links from this site right now. Nothing was changed or sent. Ask Passage for help.",
+  // Multi-institution submission (Phase 0). Codes match the RPC error messages
+  // raised in 20260913150500_authority_multi_institution_submission_phase0_functions.sql
+  // and the validators in src/lib/authority/multi-institution-submission.ts.
+  requester_name_invalid: "Enter your full name.",
+  requester_email_invalid: "Enter your email address.",
+  requester_relationship_invalid: "Choose how you are involved.",
+  requester_submission_rate_limited: "Too many submissions from this email in the last day. Try again later.",
+  requester_verification_unavailable: "This confirmation link is no longer active. Start a new request to get a fresh link.",
+  requester_verification_expired: "This confirmation link has expired. Start a new request to get a fresh link.",
+  requester_session_unavailable: "Your secure session could not be opened. Use the confirmation link from your email again, or start a new request.",
+  submission_group_not_editable: "This request can no longer be edited.",
+  submission_group_changed: "This request changed since the page loaded. Refresh and try again.",
+  submission_group_not_found: "This request could not be found. Start a new request, or open the link from your email again.",
+  submission_group_not_submittable: "This request is not ready to send. Add at least two banks, upload both files, and confirm the attestation.",
+  submission_group_details_incomplete: "Fill in the account holder and representative names and emails before continuing.",
+  submission_group_target_count_invalid: "Name between 2 and 5 banks before sending.",
+  submission_group_target_limit_reached: "You can name up to 5 banks.",
+  submission_group_evidence_incomplete: "Upload both files before sending.",
+  target_label_invalid: "Enter the bank's name.",
+  target_institution_type_invalid: "Enter the type of bank or credit union.",
+  target_organization_not_available: "That bank is not currently available on Passage.",
+  target_already_added: "That bank is already on your list.",
+  target_not_found: "That bank could not be found on your list.",
+  requirement_key_invalid: "Choose a valid document type.",
+  evidence_path_invalid: "The file could not be prepared for upload. Try again.",
+  evidence_file_required: "Choose a file to upload.",
+  evidence_file_type_not_allowed: "Use a PDF, JPG, or PNG file.",
+  evidence_file_empty: "That file looks empty. Choose another file.",
+  evidence_file_too_large: "That file is too large. Use a file under 10MB.",
+  evidence_storage_unavailable: "We could not save that file. Try again in a moment.",
+  requester_attestation_required: "Check the box that says you are allowed to share these details before sending.",
+  principal_confirmation_basis_required: "Answer whether the account holder can confirm this request independently.",
+  principal_confirmation_reason_required: "Explain why the account holder cannot confirm this request independently.",
+};
+
+const noticeMessages: Record<string, string> = {
+  invitation_sent: "The secure invitation is ready for the recipient.",
+  invitation_created: "The invitation is saved. Delivery is pending.",
+  invitation_accepted: "Your organization access is active.",
+  role_updated: "The person's role has been updated.",
+  access_revoked: "The person's access has been revoked.",
+  invitation_revoked: "The invitation has been revoked.",
+  draft_created: "Your draft is saved. Nothing was sent or counted.",
+  request_activated: "Your request started and counts toward your limit. The email service accepted the account holder’s invitation, but delivery is not yet confirmed. The representative must wait for the account holder to confirm.",
+  request_activated_delivery_pending: "Your request started and counts toward your limit. The email service did not accept the account holder’s invitation. The representative must wait.",
+  participant_invitation_submitted: "The email service accepted the new invitation. Delivery is not yet confirmed.",
+  participant_invitation_delivery_pending: "The new invitation is ready, but the email service did not accept it.",
+  evidence_review_saved: "The evidence review was saved and the representative can see the current result.",
+  institution_decision_saved: "The decision and receipt were saved together.",
+  institution_decision_saved_receipts_submitted: "The decision was saved. Both receipt emails were passed to the email service. Delivery is not yet confirmed.",
+  institution_decision_saved_receipts_pending: "The decision was saved. One or more receipt emails need attention; send a fresh receipt link below.",
+  authority_revocation_saved: "The revocation notice was saved. The receipt now says the institution should no longer rely on it.",
+  authority_expiration_saved: "The request expiration was saved to the receipt.",
+  information_requested: "Your question was saved. The representative can now see it.",
+  demo_run_prepared: "A fresh sample request is ready. Nothing was sent or counted, and earlier demo runs were not changed.",
+};
+
+export function userErrorMessage(code: string | undefined) {
+  return code ? errorMessages[code] ?? errorMessages.request_failed : null;
+}
+
+export function userNoticeMessage(code: string | undefined) {
+  return code ? noticeMessages[code] ?? null : null;
+}
+
+const deliveryNoticeCodes = new Set([
+  "request_activated",
+  "request_activated_delivery_pending",
+  "participant_invitation_submitted",
+  "participant_invitation_delivery_pending",
+]);
+
+export function hostedRequestNoticeMessage(
+  code: string | undefined,
+  currentDeliveryStatus: string | null | undefined,
+) {
+  const message = userNoticeMessage(code);
+  if (!code || !message || !deliveryNoticeCodes.has(code)) return message;
+  if (currentDeliveryStatus === null) return null;
+  if (currentDeliveryStatus === "delivered") return "Email reached the inbox (provider confirmed).";
+  if (currentDeliveryStatus === "failed") return "Email delivery needs attention. Send a fresh secure link.";
+  if (currentDeliveryStatus === "retrying") return "Email delivery is being retried.";
+  return message;
+}
