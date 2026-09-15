@@ -28,3 +28,13 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 Run `pnpm verify:release-provenance` before release. The current detached dirty checkout must fail this check.
 
 Historical deployment detail lives in [../V2-DELIVERY-ROADMAP.md](../V2-DELIVERY-ROADMAP.md) and the closeout documents; load only when reconciling a specific release.
+
+## Checkpoint — 2026-09-15 (Ops)
+
+Live verification (no dirty-tree deploy):
+
+- `origin/main`, production `/api/version`, and demo `/api/version` all report SHA `b1ba96cfbba00f9e0c3d4335018e3de866445be0` with verified provenance.
+- Production Vercel deployment `dpl_JBNiTNX18ZmnfgF3ED6ThKoN7kQM` (project `passage-authority-uat`) and demo deployment `dpl_pt4oroFEeJqnJ1pDbyR5wnQMvZEJ` (project `passage-authority-demo`) are both READY from `main`.
+- **Migration heads do not match:** demo includes multi-institution phase0 migrations (`authority_multi_institution_submission_phase0`, `…_functions`, `…_rls`); production does not. Do **not** promote those migrations to production until Steve decides in the aggregate roadmap.
+- Demo `/api/version` incorrectly labels `environment` as `production`; fix toward explicit demo identity per [DEMO-ENVIRONMENT-ARCHITECTURE.md](../DEMO-ENVIRONMENT-ARCHITECTURE.md).
+- Full ops current-state, research, and roadmap: [OPS-SCOPING-2026-09-15.md](../OPS-SCOPING-2026-09-15.md).

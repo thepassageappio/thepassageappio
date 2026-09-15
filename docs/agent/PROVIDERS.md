@@ -32,6 +32,13 @@ Load for Supabase, Stripe, HubSpot, Resend, email delivery, or reconciliation.
 - Production Supabase remains on the Free plan with zero backups; upgrading is an owner spending decision and a real-data gate.
 - Full three-way Passage/Stripe/HubSpot reconciliation remains unavailable until HubSpot credentials and provider reads are configured; a clean internal reconciliation must not be described as that broader proof.
 
+## Checkpoint — 2026-09-15 (Ops)
+
+- Supabase organization is still **Free** (confirmed). Automated backups and PITR remain unavailable. See [RECOVERY-AND-INCIDENT-READINESS.md](../RECOVERY-AND-INCIDENT-READINESS.md) and [OPS-SCOPING-2026-09-15.md](../OPS-SCOPING-2026-09-15.md).
+- Internal reconciliation immutable runs: **clean** on 2026-09-09, 09-10, 09-11, and 09-13 (both UAT and Demo). **No recorded run** on 09-12 or 09-14. The consecutive streak is broken; do not claim 7/7. Update detail lives in [RECONCILIATION-LOG.md](../RECONCILIATION-LOG.md).
+- Internal clean days still do **not** prove live Stripe or HubSpot API comparison.
+- Ops Grok Bot connectors: Vercel, Supabase, GitHub, and HubSpot were already connected. Stripe, Resend, and Cloudflare were flagged for Steve to connect (in progress as of this checkpoint). **Do not claim live Stripe reconciliation from Ops tooling until Stripe is connected and verified.**
+
 ## Supabase MFA plan facts
 
 - Supabase's current product documentation says app-level TOTP MFA is free and enabled on all projects; the pricing table includes Basic MFA on Free.

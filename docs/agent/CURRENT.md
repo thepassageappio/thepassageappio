@@ -58,11 +58,14 @@ Finish a beautiful, simple, user-friendly product that supports truthful one-pag
 
 The institution decides; no automatic legal acceptance, universal registry, inferred consent, customer credential sharing or unacknowledged access-change claim. Keep identity evidence, authority evidence, and institution acceptance separate. Preserve activated history. No new spending, real customer data, live payments, external messages or invented signoffs. Research and unsent asset preparation may proceed. Do not repeat migrations or provider sends to recover context.
 
+
+Ops platform checkpoint (2026-09-15): live SHA `b1ba96cf` on prod and demo; migration drift and Free-plan backup gap documented in [ops scoping](../OPS-SCOPING-2026-09-15.md). Do not promote multi-institution phase0 to prod until Steve decides.
+
 ## Read only what the task needs
 
 - [Memory index](MEMORY-INDEX.md)
 - [Delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md)
 - [Prior evidence ledger](../P1-P2-CONTINUATION-2026-09-10.md)
-- [Engineering](ENGINEERING.md), [QA](QA.md), [releases](RELEASES.md), [commercial](COMMERCIAL.md), [providers](PROVIDERS.md), [jurisdictions](JURISDICTIONS.md)
+- [Engineering](ENGINEERING.md), [QA](QA.md), [releases](RELEASES.md), [commercial](COMMERCIAL.md), [providers](PROVIDERS.md), [jurisdictions](JURISDICTIONS.md), [ops scoping](../OPS-SCOPING-2026-09-15.md)
 
 The previous checkpoint body before this refresh is historical; older scores and stale counts in archived CURRENT files remain historical only.
