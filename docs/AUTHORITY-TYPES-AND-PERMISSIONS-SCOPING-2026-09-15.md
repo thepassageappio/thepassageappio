@@ -203,7 +203,7 @@ Each type (financial_poa, decedent_servicing, vehicle_title_authority, executor_
 Assumes Wave1 financial POA jurisdiction encode (NY harden → PA ack → CT UPOAA → NJ → MA) and multi-inst Phase 0 continue as committed product work.
 
 | Phase | Focus | Exit signal |
-| --- | --- |
+| --- | --- | --- |
 | **P0 (now)** | NY financial POA demo truth; synthetic data; multi-inst foundations | Honest NY-only demo E2E |
 | **P1** | Configurable **financial POA** permission catalog (standard + custom + select-all) + policy publish/snapshot (POL1) | Owner publishes catalog; request uses it; receipts match; stale draft rebase |
 | **P2** | Wave1 state packs on financial POA (PA acknowledgment gate, CT/NJ/MA) | PA enableable only with ack workflow; others gated until green |
