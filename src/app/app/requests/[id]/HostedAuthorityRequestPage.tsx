@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
@@ -5,6 +6,7 @@ import { userErrorMessage } from "@/lib/authority/user-messages";
 import { closedRequestMessage } from "@/lib/authority/closed-request";
 import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import { createClient } from "@/lib/supabase/server";
+import { INVITE_ACCESS_LINK_COOKIE, parseInviteAccessLinkFlash } from "@/lib/authority/invite-access-link-flash";
 import { HostedAuthorityRequestView } from "./HostedAuthorityRequestView";
 
 type Props = {
@@ -65,6 +67,11 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   const canCoordinate = Boolean(access.membership && canCoordinateAuthorityRequests(access.membership.role));
   const canActivate = canCoordinate && !evaluationLimitReached;
   const nextCount = activatedCount + 1;
+  const cookieStore = await cookies();
+  const inviteAccessLinkFlash = parseInviteAccessLinkFlash(
+    cookieStore.get(INVITE_ACCESS_LINK_COOKIE)?.value,
+    record.id,
+  );
 
   return (
     <HostedAuthorityRequestView
@@ -91,6 +98,7 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
       decisionRow={decisionRow}
       informationRequests={informationRequests ?? []}
       informationResponses={informationResponses ?? []}
+      inviteAccessLinkFlash={inviteAccessLinkFlash}
     />
   );
 }
