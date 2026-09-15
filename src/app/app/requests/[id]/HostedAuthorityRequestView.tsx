@@ -216,7 +216,7 @@ export function HostedAuthorityRequestView({
         </details>
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Requested actions</h2><p>{reviewFinished ? "These are the actions that were requested. Any saved institution decision appears below." : "Your team will decide which of these actions to accept."}</p></div></div>
-          <ul className={styles.checklist}>{record.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
+          <ul className={styles.checklist}>{record.allowedActionKeys.map((key: keyof typeof HOSTED_ACTIONS) => <li key={key}>{HOSTED_ACTIONS[key]}</li>)}</ul>
         </section>
       </div>
       <div>
