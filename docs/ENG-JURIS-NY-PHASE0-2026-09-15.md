@@ -14,7 +14,7 @@ Passage = workflow + decision record. Does **not** validate POAs or create autho
 2. `jurisdiction_reason_codes` structure + NY theme seed codes (including sole-refusal warn codes). FI overlay placeholder only.
 3. Request pin columns: `jurisdiction_code`, pack key/version, `form_class`, recorded timer days. Evidence hook: `attorney_certified_copy` on artifacts. Affidavit request/response table + service-only stub RPC.
 4. Org settings table for institution-configurable timer defaults.
-5. Minimal staff UI: pack version shown on `/app/policies` and decision receipt (plain language).
+5. Minimal staff UI: pack version shown on `/app/policies` (plain language).
 6. TypeScript helpers + migration/unit tests.
 
 ## Remaining checklist items (follow-up PRs — do not claim done)
@@ -27,6 +27,7 @@ Passage = workflow + decision record. Does **not** validate POAs or create autho
 - [ ] Opinion-of-counsel / supplemental request hooks end-to-end.
 - [ ] Synthetic NY happy / refuse / affidavit-request acceptance matrix with matching receipts.
 - [ ] Pin pack on new draft creation RPC (today: backfill + settings; creation path still uses `ny_financial_poa` template).
+- [ ] Show pack version on decision receipt / case surfaces (policies page only in Phase 0).
 - [ ] POL1 full policy snapshot body (separate track).
 
 ## Non-claims
