@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
 import { authorityPurposeLabel } from "./display-copy.ts";
+import { createAuthorityAdminClient } from "@/lib/supabase/admin";
+import { setInviteAccessLinkFlash } from "@/lib/authority/invite-access-link-cookie";
 
 export type ParticipantInvitationDelivery = {
   invitationId: string;
@@ -137,7 +139,32 @@ export function buildParticipantInvitationEmail(delivery: ParticipantInvitationD
   return { subject, preview, text, html };
 }
 
+async function flashInviteAccessLink(delivery: ParticipantInvitationDelivery) {
+  // Demo-first Ops QA: cookie flash of absolute /r/<token> URL after activate/reissue.
+  // Token stays hash-only in DB; plaintext URL lives only in this short-lived cookie.
+  try {
+    if (!delivery.secureUrl || !delivery.invitationId) return;
+    const admin = createAuthorityAdminClient();
+    const { data: inv } = await admin
+      .from("authority_participant_invitations")
+      .select("authority_record_id")
+      .eq("id", delivery.invitationId)
+      .maybeSingle();
+    const recordId = inv?.authority_record_id ? String(inv.authority_record_id) : "";
+    if (!recordId) return;
+    await setInviteAccessLinkFlash({
+      recordId,
+      role: delivery.participantRole,
+      url: delivery.secureUrl,
+    });
+  } catch {
+    // Soft: never block invitation delivery on flash failure.
+  }
+}
+
 export async function deliverParticipantInvitation(delivery: ParticipantInvitationDelivery): Promise<ParticipantDeliveryResult> {
+  await flashInviteAccessLink(delivery);
+
   if (!isDemoEmailRecipientAllowed(delivery.email)) {
     return { accepted: false, provider: "disabled", reason: "recipient_not_allowed" };
   }

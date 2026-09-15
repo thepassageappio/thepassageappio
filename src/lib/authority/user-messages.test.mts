@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hostedRequestNoticeMessage } from "./user-messages.ts";
+import { hostedRequestNoticeMessage } from "./hosted-request-notice.ts";
 
 test("hosted request notices use the current delivery state", () => {
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "delivered"),
-    "Email delivery confirmed.",
+    "Email reached the inbox (provider confirmed).",
   );
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "failed"),
@@ -14,6 +14,10 @@ test("hosted request notices use the current delivery state", () => {
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_submitted", "retrying"),
     "Email delivery is being retried.",
+  );
+  assert.equal(
+    hostedRequestNoticeMessage("participant_invitation_submitted", "processing"),
+    "The email service accepted the new invitation. Delivery is not yet confirmed.",
   );
 });
 
