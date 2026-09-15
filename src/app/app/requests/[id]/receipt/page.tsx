@@ -8,6 +8,7 @@ import { getAuthorityAccessContext } from "@/lib/authority/access";
 import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { HOSTED_ACTIONS, hostedStatusLabel, mapHostedAuthorityEvent, mapHostedAuthorityRecord } from "@/lib/authority/hosted-records";
+import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
 import { buildCaseOrientation } from "@/lib/authority/orientation-strip";
 import { canRecordAuthorityDecision } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
@@ -39,7 +40,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     { data: requirementRows, error: requirementError },
     { data: evidenceRows, error: evidenceError },
   ] = await Promise.all([
-    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at, origin_group_id").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
+    supabase.from("authority_records").select("id, reference_code, organization_id, created_by, version, status, template_key, template_version, purpose, account_boundary, principal_name, principal_email_normalized, representative_name, representative_email_normalized, allowed_action_keys, valid_until, activated_at, created_at, updated_at, origin_group_id, jurisdiction_code, jurisdiction_pack_key, jurisdiction_pack_version, form_class").eq("organization_id", access.organization.id).eq("id", id).maybeSingle(),
     supabase.from("authority_institution_decisions").select("id, receipt_code, authority_record_id, record_version, outcome, reason, accepted_action_keys, limitations, decided_by, decided_by_role, decided_at, receipt_sha256, receipt_snapshot").eq("organization_id", access.organization.id).eq("authority_record_id", id).maybeSingle(),
     supabase.from("authority_events").select("event_id, authority_record_id, sequence, event_type, summary, detail, occurred_at").eq("organization_id", access.organization.id).eq("authority_record_id", id).order("sequence", { ascending: true }),
     supabase.from("authority_participant_invitations").select("participant_role, version").eq("organization_id", access.organization.id).eq("authority_record_id", id),
@@ -106,6 +107,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     artifacts,
     laterChangeDetail,
   });
+  const { nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record);
 
   return <>
     <header className={styles.pageHeader}>
@@ -151,6 +153,8 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
             <div><dt>Recorded by</dt><dd>{roleLabels[decision.decidedByRole] ?? "Authorized institution reviewer"}</dd></div>
             <div><dt>Recorded at</dt><dd>{dateTime(decision.decidedAt)}</dd></div>
             <div><dt>Workflow</dt><dd>New York financial power of attorney</dd></div>
+            {nyRulesLabel ? <div><dt>New York rules</dt><dd>{nyRulesLabel}</dd></div> : null}
+            {formClassLabel ? <div><dt>Form type</dt><dd>{formClassLabel}</dd></div> : null}
           </dl>
         </section>
 

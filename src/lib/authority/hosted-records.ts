@@ -47,6 +47,12 @@ export type HostedAuthorityRecord = {
    * spawned from a multi-institution submission group (Phase 0, Demo only) -
    * see docs/USER-INITIATED-MULTI-INSTITUTION-SCOPE-2026-09-13.md. */
   originGroupId: string | null;
+  /** Pinned US-XX code when present (Phase 0+). Null on legacy unmapped rows. */
+  jurisdictionCode: string | null;
+  jurisdictionPackKey: string | null;
+  jurisdictionPackVersion: string | null;
+  /** Recorded form class when pinned. Null when never set. */
+  formClass: string | null;
 };
 
 export type HostedAuthorityEvent = {
@@ -90,6 +96,10 @@ type HostedAuthorityRecordRow = {
   created_at: string;
   updated_at: string;
   origin_group_id?: string | null;
+  jurisdiction_code?: string | null;
+  jurisdiction_pack_key?: string | null;
+  jurisdiction_pack_version?: string | null;
+  form_class?: string | null;
 };
 
 type HostedAuthorityEventRow = {
@@ -207,6 +217,10 @@ export function mapHostedAuthorityRecord(row: HostedAuthorityRecordRow): HostedA
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
     originGroupId: row.origin_group_id ? String(row.origin_group_id) : null,
+    jurisdictionCode: row.jurisdiction_code ? String(row.jurisdiction_code) : null,
+    jurisdictionPackKey: row.jurisdiction_pack_key ? String(row.jurisdiction_pack_key) : null,
+    jurisdictionPackVersion: row.jurisdiction_pack_version ? String(row.jurisdiction_pack_version) : null,
+    formClass: row.form_class ? String(row.form_class) : null,
   };
 }
 

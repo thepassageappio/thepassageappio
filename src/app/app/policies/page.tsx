@@ -27,12 +27,12 @@ export default async function PoliciesPage() {
           <div className={styles.panelHead}><div><h2>What people may ask for</h2><p>These are the asks your organization currently offers on new New York financial power of attorney requests. Saving a different list for new requests comes later.</p></div></div>
           <ul className={styles.scope}>
             {offered.map((item) => (
-              <li key={item.key}><strong>{item.label}</strong> — {item.help}</li>
+              <li key={item.key}><strong>{item.label}</strong>. {item.help}</li>
             ))}
           </ul>
         </section>
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>What this sample covers</h2><p>The sample covers statement copies and account questions. You cannot change the institution’s rules in Passage yet.</p></div></div>
+          <div className={styles.panelHead}><div><h2>What this sample covers</h2><p>The sample covers statement copies and account questions. You cannot change the institution's rules in Passage yet.</p></div></div>
           <div className={styles.policyScope}>
             <div className={styles.scopeCard}><h3>May be requested</h3><ul><li>Get copies of account statements</li><li>Talk with the bank about the account</li></ul></div>
             <div className={styles.scopeCard} data-tone="caution"><h3>Not available in Passage yet</h3><ul><li>Move, withdraw, or transfer money</li><li>Open or close accounts</li><li>Change account owners or beneficiaries</li><li>Change sign-in details or investments</li></ul></div>

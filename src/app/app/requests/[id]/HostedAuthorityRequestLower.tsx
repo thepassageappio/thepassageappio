@@ -2,6 +2,7 @@ import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { recordInstitutionDecisionAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
+import { NySoleRefusalNotice } from "@/components/app/NySoleRefusalNotice";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { CancelRequestForm } from "./CancelRequestForm";
 import styles from "@/components/app/app-shell.module.css";
@@ -27,6 +28,8 @@ type LowerProps = {
   requirementStatusLabel: (status: unknown) => string;
   activityDetail: (event: { eventType: string; detail: string }) => string;
   activitySummary: (event: { eventType: string; summary: string }) => string;
+  formClassLabel: string | null;
+  showSoleRefusalNotice: boolean;
 };
 
 export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
@@ -51,6 +54,8 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
     requirementStatusLabel,
     activityDetail,
     activitySummary,
+    formClassLabel,
+    showSoleRefusalNotice,
   } = p;
 
   const requirementRows = requirements ?? [];
@@ -116,6 +121,8 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
         </section> : null}
         <section className={styles.panel} id="institution-decision">
           <div className={styles.panelHead}><div><h2>Institution decision</h2><p>{reviewFinished ? "Any saved decision is shown here." : "Record the outcome after every required review step is complete."}</p></div><span className={styles.badge}>{decision ? hostedDecisionLabel(decision.outcome) : closedMessage ? "Closed" : decisionReady ? "Ready" : "Not ready"}</span></div>
+          {formClassLabel ? <p className={styles.supportingCopy}>Form type on this request: {formClassLabel}.</p> : null}
+          <NySoleRefusalNotice show={Boolean(showSoleRefusalNotice && !decision && !closedMessage)} />
           {decision ? <>
             <dl className={styles.policyFacts}>
               <div><dt title="What the institution decided at the time, based on the evidence reviewed. This does not change later.">Original decision</dt><dd>{hostedDecisionLabel(decision.outcome)}</dd></div>
@@ -123,7 +130,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
               <div><dt>Decision reason</dt><dd>{decision.reason}</dd></div>
               <div><dt title="A receipt is the saved, shareable record of this decision. It does not change if the request's status changes later.">Receipt</dt><dd>{decision.receiptCode}</dd></div>
             </dl>
-            {decisionSinceChanged ? <p className={styles.supportingCopy}>The original decision above has not changed. Only the request&apos;s current status has — open the receipt for the full timeline.</p> : null}
+            {decisionSinceChanged ? <p className={styles.supportingCopy}>The original decision above has not changed. Only the request&apos;s current status has. Open the receipt for the full timeline.</p> : null}
             <Link className={styles.primary} href={`/app/requests/${record.id}/receipt`}>Open decision receipt</Link>
           </> : closedMessage ? <p>No institution decision is saved for this request. Review the activity history for what happened.</p> : decisionReady && canRecordDecision ? <form action={recordInstitutionDecisionAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />

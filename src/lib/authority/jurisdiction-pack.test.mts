@@ -3,10 +3,12 @@ import test from "node:test";
 import {
   NY_DEFAULT_TIMER_POLICY,
   NY_PACK_REF,
+  formClassPlainLabel,
   jurisdictionPackVersionLabel,
   isSupportedLiveJurisdiction,
   normalizeFormClass,
   soleRefusalWarningCodes,
+  NY_SOLE_REFUSAL_SOFT_NOTICE,
 } from "./jurisdiction-pack.ts";
 
 test("NY pack defaults match Phase 0 10 BD then 7 BD timer policy", () => {
@@ -58,4 +60,15 @@ test("pack version label is plain language for staff surfaces", () => {
     jurisdictionPackVersionLabel(NY_PACK_REF),
     "New York financial power of attorney · pack 2026.1",
   );
+});
+
+test("form_class plain labels stay short and non-jargon", () => {
+  assert.equal(formClassPlainLabel("statutory_short"), "Statutory short form");
+  assert.equal(formClassPlainLabel("non_statutory"), "Not a statutory short form");
+  assert.equal(formClassPlainLabel("unknown"), "Form type unknown");
+});
+
+test("sole-refusal soft notice is plain language without em dashes", () => {
+  assert.match(NY_SOLE_REFUSAL_SOFT_NOTICE, /statutory short form/);
+  assert.doesNotMatch(NY_SOLE_REFUSAL_SOFT_NOTICE, /\u2014/);
 });

@@ -45,6 +45,21 @@ export const NY_PACK_REF: JurisdictionPackRef = {
   displayName: "New York financial power of attorney",
 };
 
+
+/** Plain-language staff label for recorded form_class. */
+export function formClassPlainLabel(formClass: JurisdictionFormClass) {
+  if (formClass === "statutory_short") return "Statutory short form";
+  if (formClass === "non_statutory") return "Not a statutory short form";
+  return "Form type unknown";
+}
+
+/**
+ * Read-only soft notice near decide panel when no reason-code picker exists.
+ * Soft-warn only; does not block. Plain language hard bar.
+ */
+export const NY_SOLE_REFUSAL_SOFT_NOTICE =
+  "Reminder: If this is a New York statutory short form, do not refuse only because it is not your bank's form, or only because of the form's age. Add another reason if you decide not to accept.";
+
 /** Plain-language staff label for receipt / case surfaces. */
 export function jurisdictionPackVersionLabel(pack: Pick<JurisdictionPackRef, "displayName" | "packVersion">) {
   return `${pack.displayName} · pack ${pack.packVersion}`;
