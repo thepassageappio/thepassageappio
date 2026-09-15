@@ -16,10 +16,16 @@ export type OrientationPrimaryAction = {
   label: string;
 };
 
+export type OrientationSecondaryAction = {
+  href: string;
+  label: string;
+};
+
 export type OrientationModel = {
   statusSentence: string;
   nextLine: string;
   primaryAction: OrientationPrimaryAction | null;
+  secondaryAction: OrientationSecondaryAction | null;
   decisionLine: string;
   currencyLabel: string;
   currencyKind: "current" | "later_change" | "no_decision";
@@ -245,7 +251,7 @@ export function buildCaseOrientation(input: {
     : input.decision
       ? "open the receipt"
       : input.record.status === "draft"
-        ? "finish and send"
+        ? "check emails, then send"
         : input.record.status === "under_review"
           ? (requirementsComplete ? "review and decide" : "finish the missing list")
           : input.record.status === "awaiting_principal"
@@ -274,6 +280,9 @@ export function buildCaseOrientation(input: {
       canCoordinate,
       canRecordDecision,
     }),
+    secondaryAction: input.record.status === "draft" && canCoordinate
+      ? { href: "#contact-details", label: "Change emails" }
+      : null,
     decisionLine: decisionLineFor(input.decision, decisionSinceChanged, laterChangeDetail),
     currencyLabel,
     currencyKind,
