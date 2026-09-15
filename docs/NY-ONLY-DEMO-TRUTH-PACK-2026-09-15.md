@@ -61,24 +61,26 @@ Do not swap ICP or demo presets to CA/TX/FL/IL.
 
 ---
 
-## 4. M1 build: do not block on counsel — unless the claim would be false
+## 4. M1 build rules (Steve 2026-09-15)
 
-### Ship without waiting on counsel
-- NY-only demo + identical E2E paths.
+**Counsel engagement is off the active plan for now** — do not block M1 on counsel packets.
+
+### Ship
+- NY-only demo + identical E2E paths; **synthetic data only** (demo always synthetic).
 - Boundary copy and receipt language already in product SoT.
 - PA remains unavailable; no PA UI path that implies compliance.
 - Placeholder “roadmap” language for five states (not availability).
-- Internal docs: this truth pack + counsel question queue.
+- Free / no-PITR noted only as accepted-risk language (not a compliance workstream).
 
-### Must wait / refuse if it would make a false claim
-- Enabling `US-PA` or marketing PA/NJ/CT/MA as live.
+### Must refuse (would be a false claim)
+- Enabling `US-PA` or marketing PA/NJ/CT/MA as live before built.
 - Labeling generic certification as PA Acknowledgment.
-- “Counsel-approved jurisdiction package” badges without counsel.
-- Any “validated POA” / “creates authority” wording.
-- Shipping CA/TX/FL/IL as live jurisdiction packs.
+- “Counsel-approved,” “certified,” “validated POA,” or “creates authority” wording.
+- Shipping CA/TX/FL/IL or other non–five-state packs as live product in M1.
+- Real customer PII in demo or before Steve accepts Free-plan risk for a named pilot.
 
 ### Optional NY modeling (illustrative, watermarked — not “NY law compliance”)
-Research notes GOL §5-1504-style clocks (~10 business days honor / written reject / affidavit; then ~7). May appear only as **institution-configured timers** or **demo presets clearly labeled illustrative** — never as Passage legal determination.
+Research notes GOL §5-1504-style clocks (≈10 business days honor / written reject / affidavit; then ≈7). May appear only as **institution-configured timers** or **demo presets clearly labeled illustrative** — never as Passage legal determination.
 
 ---
 

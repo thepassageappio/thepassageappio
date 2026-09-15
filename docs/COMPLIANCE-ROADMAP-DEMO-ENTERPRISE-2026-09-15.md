@@ -22,7 +22,7 @@ Companion: [NY-only demo truth pack](./NY-ONLY-DEMO-TRUTH-PACK-2026-09-15.md) ·
 2. Fixed synthetic NY policy + decision receipt OK.
 3. PA unavailable; never relabel `representative_certification` as PA compliance.
 4. Five-state language = roadmap only, not availability.
-5. Counsel questions queued for Steve — **do not block M1 build** unless a claim would be false.
+5. Counsel engagement **off active plan** (Steve 2026-09-15). Full-50 encode matrix = clarity track; M1 claims stay NY-only. Synthetic PII for demo.
 6. Plain-language external copy (Steve bar).
 
 ## Enterprise-ready
@@ -41,4 +41,4 @@ Passage supports gates, locked statutory evidence (when counsel-defined), option
 
 ## False claims (never ship)
 
-Multi-state available; PA live; Passage validates/creates POA; safe harbor; counsel-approved without counsel; CA/TX/FL/IL as product set in M1.
+Multi-state available; PA live; Passage validates/creates POA; safe harbor; “counsel-approved” badges; CA/TX/FL/IL as product set in M1; real PII in demo.

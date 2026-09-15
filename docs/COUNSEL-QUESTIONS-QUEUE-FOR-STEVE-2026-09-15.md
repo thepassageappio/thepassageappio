@@ -1,7 +1,7 @@
 # Counsel questions queue for Steve — 2026-09-15
 
-**Status:** Queued for Steve / outside counsel. **Does not block Milestone 1** NY-only demo build unless a proposed claim would be false (see NY-only demo truth pack).  
-**Not legal advice.** Product/engineering prep only.
+**Status:** ARCHIVED — counsel engagement **removed from active plan** (Steve 2026-09-15). Kept as optional reference only. **Not a workstream. Do not block M1.**  
+**Not legal advice.**
 
 ## P2 / real-data gate (from LEGAL-REVIEW-BRIEFING-PACKET)
 

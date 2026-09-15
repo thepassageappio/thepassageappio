@@ -28,7 +28,7 @@ Pennsylvania determination, September 8: the existing `representative_certificat
 | PA | Disabled; gap documented | Separate acknowledgment workflow post-counsel |
 | Timers / checklists | Optional illustrative NY presets, watermarked | Counsel-gated reason codes + clocks |
 | Policy | Fixed synthetic NY policy OK | POL1 authoring + immutable snapshots |
-| Counsel | Queue for Steve; do not block M1 unless claim would be false | Required before real-data / state enablement |
+| Counsel | Off active plan (Steve 2026-09-15); do not block M1 | Optional later; not required to ship NY-only M1 |
 
 ## Required per state
 
@@ -54,4 +54,4 @@ Passage does not create, validate, or make a POA binding. Avoid “safe harbor�
 
 Primary starting sources are recorded in [../AUTHORITY-COMPASS-EXECUTION-UPDATE-2026-09-07.md](../AUTHORITY-COMPASS-EXECUTION-UPDATE-2026-09-07.md). Counsel determines the operative requirements and approved product language.
 
-Counsel questions for Steve are queued separately (Compliance M1) and must not block NY-only demo build unless a proposed claim would be false.
+Counsel engagement is off the active plan (Steve 2026-09-15). Full 50-state encode-vs-institution matrix is the clarity track; build order remains NY→PA→NJ→CT→MA. M1 claims remain New York only. Synthetic data for demo.
