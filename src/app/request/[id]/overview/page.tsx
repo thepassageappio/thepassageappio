@@ -7,6 +7,7 @@ import { authorityPurposeLabel } from "@/lib/authority/display-copy";
 import { respondToAuthorityInformationAction, submitAuthorityForReviewAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { getParticipantDecisionReceipt, getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
+import { participantBankOnlyLinkLine } from "@/lib/authority/orientation-strip";
 import decisionStyles from "../participant-decision.module.css";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -107,6 +108,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
     title={`Welcome, ${context.participantName}`}
     description={description}
   >
+    {context.originGroupId ? <div className={styles.notice} role="status">{participantBankOnlyLinkLine(context.institutionName)}</div> : null}
     <div className={styles.notice} role="status">{closedMessage ?? (notice && NOTICE_MESSAGES[notice] ? NOTICE_MESSAGES[notice] : "You can see the current request below.")}</div>
     {error ? <div className={styles.alert} role="alert">{ERROR_MESSAGES[error] ?? "We could not save that change. Review the latest request and try again."}</div> : null}
     {canDecide ? <div className={styles.summary}>
