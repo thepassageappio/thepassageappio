@@ -45,7 +45,8 @@ export function CopyAccessLink({ recordId, role, url }: Props) {
       <strong>Access link for the {roleLabel}</strong>
       <p style={{ margin: "6px 0 12px" }}>
         Email can be slow or miss the inbox. Copy this one-time link and share it with the {roleLabel} now.
-        Anyone with this link can open this role. Share it only with the intended person. A newer link turns this one off.
+        Anyone with this link can open this role. Do not open it yourself — opening uses it up for everyone else.
+        Share it only with the intended person. A newer link turns this one off.
       </p>
       <div className={styles.field}>
         <label htmlFor="invite-access-link">Secure access link</label>
