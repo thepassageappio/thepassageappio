@@ -2,7 +2,7 @@
 DO $test$
 declare
   actor uuid := gen_random_uuid(); org uuid := gen_random_uuid(); other_org uuid := gen_random_uuid();
-  rec uuid := gen_random_uuid(); inv uuid; key uuid := gen_random_uuid(); result jsonb; replay jsonb;
+  rec uuid := gen_random_uuid(); inv uuid; key uuid := gen_random_uuid(); draft_key uuid; result jsonb; draft_result jsonb; replay jsonb;
   receipt jsonb; session_result jsonb; fresh jsonb; role_name text; participant text;
   failure text; before_snapshot jsonb; events_before bigint; invite_version bigint;
 begin
@@ -46,11 +46,22 @@ begin
   exception when invalid_parameter_value then null; end;
   begin perform public.cancel_pending_request_v1(org,rec,1,'Duplicate request',true,null); raise exception 'null key accepted';
   exception when invalid_parameter_value then null; end;
-  foreach role_name in array array['draft','awaiting_representative','evidence_required','ready_to_submit','under_review','information_requested','accepted','accepted_with_limits','rejected','declined','withdrawn','revoked','expired','canceled'] loop
+  foreach role_name in array array['awaiting_representative','evidence_required','ready_to_submit','under_review','information_requested','accepted','accepted_with_limits','rejected','declined','withdrawn','revoked','expired','canceled'] loop
     update public.authority_records set status=role_name,activated_at=case when role_name='draft' then null else now() end where id=rec;
     begin perform public.cancel_pending_request_v1(org,rec,1,'Duplicate request',true,key); raise exception 'nonpending state accepted';
     exception when invalid_parameter_value then if sqlerrm <> 'cancellation_not_available' then raise; end if; end;
   end loop;
+  -- Draft cancel uses the same command before anything is sent.
+  update public.authority_records set status='draft',activated_at=null,version=1 where id=rec;
+  draft_key := gen_random_uuid();
+  draft_result := public.cancel_pending_request_v1(org,rec,1,'Draft no longer needed',true,draft_key);
+  if (select status from public.authority_records where id=rec)<>'canceled' then raise exception 'draft not canceled'; end if;
+  if (draft_result->>'receipt_code') is null then raise exception 'draft cancel missing receipt'; end if;
+  -- Reset fixtures for awaiting_principal coverage.
+  delete from public.authority_request_cancellations where authority_record_id=rec;
+  delete from public.authority_events where authority_record_id=rec and event_type='authority.canceled';
+  delete from authority_private.command_receipts where command_name='cancel_pending_request' and idempotency_key=draft_key;
+  update public.authority_records set status='awaiting_principal',activated_at=(before_snapshot->>'activated_at')::timestamptz,version=1 where id=rec;
   update public.authority_records set status='awaiting_principal',activated_at=(before_snapshot->>'activated_at')::timestamptz where id=rec;
   foreach participant in array array['principal','representative'] loop
     inv:=gen_random_uuid();
