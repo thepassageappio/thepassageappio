@@ -15,16 +15,17 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
   return (
     <div className={styles.shell}>
       <a className="skip-link" href="#page-content">Skip to page content</a>
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${polish.sidebarShell}`}>
         <Link className={styles.brand} href="/app">
           <span aria-hidden="true"><i /><i /></span>
           Passage Authority
         </Link>
-        <div className={styles.organization}>
+        <div className={`${styles.organization} ${polish.organizationWrap}`}>
           <span>Organization</span>
           <strong>{access.organization.displayName}</strong>
           <small>{roleLabel(access.membership.role)}</small>
         </div>
+        {/* Narrow: polish.navigation is the constrained scrollport (≤720px). */}
         <nav className={polish.navigation} aria-label="Organization workspace">
           <Link href="/app">{overviewLabel}</Link>
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}

@@ -5,16 +5,19 @@
     grid-auto-columns: max-content;
     grid-template-columns: none;
     justify-content: start;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .navigation::-webkit-scrollbar {
-    display: none;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 8px;
   }
 
   .navigation a {
     padding-inline: 14px;
+    white-space: nowrap;
   }
 
   .tableWrap {
@@ -79,6 +82,26 @@
 
   .table td:last-child a {
     width: 100%;
+  }
+}
+
+.sidebarShell {
+  /* Desktop unchanged; narrow constraints below. */
+}
+
+.organizationWrap strong {
+  /* Desktop unchanged; narrow wrap below. */
+}
+
+@media (max-width: 720px) {
+  .sidebarShell {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .organizationWrap strong {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }
 .demoTools { margin-top: 24px; color: var(--muted); font-size: 13px; }
