@@ -4,7 +4,7 @@ import { hostedDecisionLabel } from "./hosted-decisions.ts";
 import type { HostedAuthorityRecord, HostedAuthorityStatus } from "./hosted-records.ts";
 import { canCoordinateAuthorityRequests, canRecordAuthorityDecision } from "./role-capabilities.ts";
 
-export type OrientationChipState = "Done" | "Needed" | "Not started" | "Sample only";
+export type OrientationChipState = "Done" | "Needed" | "Not started" | "Sample only" | "Ended";
 
 export type OrientationChip = {
   label: "Who they are" | "What they may ask for" | "Bank's answer";
@@ -47,16 +47,6 @@ export type OrientationArtifact = {
   review_status: string;
 };
 
-function rolePhrase(status: HostedAuthorityStatus): string {
-  if (status === "awaiting_principal") return "account holder";
-  if (["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"].includes(status)) {
-    return "representative";
-  }
-  if (status === "draft") return "staff";
-  if (status === "under_review") return "reviewer";
-  return "viewer";
-}
-
 function requirementByKey(requirements: OrientationRequirement[], key: string) {
   return requirements.find((item) => item.requirement_key === key) ?? null;
 }
@@ -78,8 +68,69 @@ function chipStateForRequirement(
 
 function bankAnswerChip(decision: HostedInstitutionDecision | null, decisionSinceChanged: boolean): OrientationChipState {
   if (!decision) return "Not started";
-  if (decisionSinceChanged) return "Needed";
+  if (decisionSinceChanged) return "Ended";
   return "Done";
+}
+
+
+function withSingleTerminalPeriod(sentence: string): string {
+  const trimmed = sentence.replace(/\s+/g, " ").trim();
+  if (!trimmed) return "";
+  return `${trimmed.replace(/[.。]+$/u, "")}.`;
+}
+
+/** Map short status tokens (and caller overrides) to Design-locked Later copy. */
+function laterChangeLine(_status: HostedAuthorityStatus, override: string | null | undefined): string {
+  const raw = (override ?? "").trim();
+  const token = raw.toLowerCase();
+  // Callers historically passed short tokens ("ended", "expired", "the representative withdrew").
+  // Design lock: one clear Later sentence — never jam into Decision.
+  if (!raw || ["ended", "expired", "updated"].includes(token) || token.includes("withdrew")) {
+    return "This answer ended. It is not the current answer.";
+  }
+  return withSingleTerminalPeriod(raw).replace(/\.$/u, "");
+}
+
+function nextActorLine(input: {
+  record: HostedAuthorityRecord;
+  decision: HostedInstitutionDecision | null;
+  decisionSinceChanged: boolean;
+  hasAskedFor: boolean;
+  requirementsComplete: boolean;
+  bankReviewPending: boolean;
+  staffDisplayName?: string | null;
+}): string {
+  const { record, decision, decisionSinceChanged, hasAskedFor, requirementsComplete, bankReviewPending } = input;
+  if (bankReviewPending) {
+    return "Next: Bank reviewer — check the received files.";
+  }
+  if (decisionSinceChanged) {
+    return "Next: Anyone on this request — open the receipt to see what changed.";
+  }
+  if (decision) {
+    return "Next: Anyone on this request — open the receipt.";
+  }
+  if (!hasAskedFor) {
+    return "Next: Your bank team — pick at least one thing to ask for.";
+  }
+  if (record.status === "draft") {
+    const name = (input.staffDisplayName ?? "").trim();
+    if (name) {
+      return `Next: ${name} (bank staff) — check the emails, then send this request.`;
+    }
+    return "Next: Your bank team — check the emails, then send this request.";
+  }
+  if (record.status === "awaiting_principal") {
+    return `Next: ${record.principalName} (account holder) — confirm this request.`;
+  }
+  if (["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"].includes(record.status)) {
+    return `Next: ${record.representativeName} (representative) — finish their steps.`;
+  }
+  if (record.status === "under_review") {
+    const ask = requirementsComplete ? "review and decide." : "finish the missing list.";
+    return `Next: Bank reviewer (reviewer) — ${ask}`;
+  }
+  return "Next: Anyone on this request — open the receipt.";
 }
 
 function statusSentenceFor(
@@ -121,25 +172,24 @@ function statusSentenceFor(
   }
 }
 
-function decisionLineFor(
-  decision: HostedInstitutionDecision | null,
-  decisionSinceChanged: boolean,
-  laterChangeDetail: string | null,
-): string {
+function decisionLineFor(decision: HostedInstitutionDecision | null): string {
   if (!decision) return "Not decided yet.";
   const outcome = hostedDecisionLabel(decision.outcome as HostedDecisionOutcome);
   if (decision.outcome === "accepted_with_limits") {
-    const limits = decision.limitations.slice(0, 2).join("; ");
-    const base = limits ? `Accepted with limits: ${limits}.` : "Accepted with limits.";
-    return decisionSinceChanged && laterChangeDetail ? `${base} Later: ${laterChangeDetail}.` : base;
+    const limits = decision.limitations
+      .slice(0, 2)
+      .map((item) => item.replace(/\s+/g, " ").trim().replace(/[.。]+$/u, ""))
+      .filter(Boolean)
+      .join("; ");
+    if (!limits) return "Accepted with limits.";
+    return withSingleTerminalPeriod(`Accepted with limits: ${limits}`);
   }
   if (decision.outcome === "rejected") {
     const reason = decision.reason.trim().slice(0, 120);
-    const base = reason ? `Rejected: ${reason}.` : "Rejected.";
-    return decisionSinceChanged && laterChangeDetail ? `${base} Later: ${laterChangeDetail}.` : base;
+    if (!reason) return "Rejected.";
+    return withSingleTerminalPeriod(`Rejected: ${reason}`);
   }
-  const base = `${outcome}.`;
-  return decisionSinceChanged && laterChangeDetail ? `${base} Later: ${laterChangeDetail}.` : base;
+  return withSingleTerminalPeriod(outcome);
 }
 
 export function participantBankOnlyLinkLine(bankName: string | null | undefined): string | null {
@@ -222,14 +272,7 @@ export function buildCaseOrientation(input: {
   const artifacts = input.artifacts ?? [];
   const decisionSinceChanged = Boolean(input.decision) && ["revoked", "expired", "withdrawn"].includes(input.record.status);
   const laterChangeDetail = decisionSinceChanged
-    ? (input.laterChangeDetail
-      ?? (input.record.status === "revoked"
-        ? "ended"
-        : input.record.status === "expired"
-          ? "expired"
-          : input.record.status === "withdrawn"
-            ? "the representative withdrew"
-            : "updated"))
+    ? laterChangeLine(input.record.status, input.laterChangeDetail)
     : null;
 
   const canCoordinate = Boolean(input.role && canCoordinateAuthorityRequests(input.role));
@@ -272,43 +315,29 @@ export function buildCaseOrientation(input: {
   }
 
   const statusSentence = statusSentenceFor(input.record, input.decision, decisionSinceChanged);
-  const actorName = input.record.status === "awaiting_principal"
-    ? input.record.principalName
-    : ["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"].includes(input.record.status)
-      ? input.record.representativeName
-      : input.record.status === "draft"
-        ? "Staff"
-        : input.record.status === "under_review"
-          ? "Reviewer"
-          : "Anyone viewing";
-  const role = rolePhrase(input.record.status);
-  const ask = decisionSinceChanged
-    ? "see what changed"
-    : input.decision
-      ? "open the receipt"
-      : !hasAskedFor
-        ? "Pick at least one thing to ask for."
-        : input.record.status === "draft"
-          ? "check emails, then send"
-          : input.record.status === "under_review"
-            ? (requirementsComplete ? "review and decide" : "finish the missing list")
-            : input.record.status === "awaiting_principal"
-              ? "confirm this request"
-              : "finish their steps";
 
   let currencyLabel = "No decision yet.";
   let currencyKind: OrientationModel["currencyKind"] = "no_decision";
   if (decisionSinceChanged) {
     currencyLabel = "A later change was recorded.";
-    currencyKind = "later_change";
+    currencyKind = "current";
   } else if (input.decision) {
     currencyLabel = "This is the current answer.";
     currencyKind = "current";
   }
 
+  const nextLine = nextActorLine({
+    record: input.record,
+    decision: input.decision,
+    decisionSinceChanged,
+    hasAskedFor,
+    requirementsComplete,
+    bankReviewPending,
+  });
+
   return {
     statusSentence: bankReviewPending ? "The bank needs to check the received files." : statusSentence,
-    nextLine: bankReviewPending ? "Next: Bank reviewer, check the received files" : `Next: ${actorName} (${role}), ${ask}`,
+    nextLine,
     primaryAction: bankReviewPending ? { href: "#required-information", label: "Review received files" } : primaryActionFor({
       record: input.record,
       role: input.role,
@@ -322,7 +351,7 @@ export function buildCaseOrientation(input: {
     secondaryAction: input.record.status === "draft" && canCoordinate
       ? { href: "#contact-details", label: "Change emails" }
       : null,
-    decisionLine: decisionLineFor(input.decision, decisionSinceChanged, laterChangeDetail),
+    decisionLine: decisionLineFor(input.decision),
     currencyLabel,
     currencyKind,
     laterChangeDetail,
