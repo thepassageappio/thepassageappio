@@ -1,3 +1,5 @@
+September 22 owner-approved synthetic release and Grok handoff: see [current handoff](../GROK-RELEASE-HANDOFF-2026-09-22.md). Both participant receipt paths match the institution; synthetic revocation preserves the original receipt. Independent usability, operating-day and remaining negative-path evidence are explicitly outstanding.
+
 # Current Passage checkpoint
 
 September 22 release update: the owner resumed implementation. PR #145 (delivery recovery) and PR #146 (NY provenance/draft revisions) are merged. Both domains serve `9ec4313200e8c8938458b6c0a7b70a3dbecc36e6`. Both migrations and hosted SQL checks passed; historical fingerprints are unchanged. Hosted email arrival and requester verification passed, as did an explicit browser draft revision with its durable event and no send/usage. Full participant/provider acceptance is waiting on approved test-role addresses. Today's internal reconciliation is clean in both environments, **1/7 actual consecutive days**. See the [current release and journey checkpoint](../RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md) for evidence, open gates and the explicit demo/pilot HOLD. All pause and older release statements below are historical.
@@ -84,3 +86,4 @@ The institution decides; no automatic legal acceptance, universal registry, infe
 - [Engineering](ENGINEERING.md), [QA](QA.md), [releases](RELEASES.md), [commercial](COMMERCIAL.md), [providers](PROVIDERS.md), [jurisdictions](JURISDICTIONS.md)
 
 The previous checkpoint body before this refresh is historical; older scores and stale counts in archived CURRENT files remain historical only.
+

@@ -57,7 +57,7 @@ export function DocumentReviewStrip({
             {model.checked.map((item) => (
               <li key={item.id}>
                 <strong>{item.title}</strong>
-                <span>Checked by the bank</span>
+                <span>{item.whoMustFix}</span>
               </li>
             ))}
           </ul>
