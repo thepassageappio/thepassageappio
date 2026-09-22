@@ -201,7 +201,7 @@ export function HostedAuthorityRequestView({
         <tbody>{governingSnapshotChanges(governingContext.saved, governingContext.current).map(change => <tr key={change.label}>
           <th scope="row">{change.label}</th><td>{change.before}</td><td>{change.after}</td>
         </tr>)}</tbody>
-      </div></details>
+      </table></div></details>
       {canCoordinate && governingContext.currentHash ? <form action={rebaseHostedAuthorityDraftAction}>
         <input type="hidden" name="recordId" value={record.id} />
         <input type="hidden" name="expectedVersion" value={record.version} />
