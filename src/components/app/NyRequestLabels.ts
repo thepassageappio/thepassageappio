@@ -1,9 +1,8 @@
 import {
-  NY_PACK_REF,
   formClassPlainLabel,
-  jurisdictionPackVersionLabel,
   normalizeFormClass,
 } from "@/lib/authority/jurisdiction-pack";
+import { governingRulesLabel, snapshotObject } from "@/lib/authority/governing-snapshot";
 
 type RecordPins = {
   templateKey?: string | null;
@@ -11,22 +10,20 @@ type RecordPins = {
   jurisdictionPackKey?: string | null;
   jurisdictionPackVersion?: string | null;
   formClass?: string | null;
+  governingSnapshot?: Record<string, unknown> | null;
 };
 
-export function resolveNyRequestLabels(record: RecordPins) {
+export function resolveNyRequestLabels(record: RecordPins, receiptSnapshot?: Record<string, unknown>) {
   const showNyPack =
     record.templateKey === "ny_financial_poa"
     || record.jurisdictionCode === "US-NY"
     || Boolean(record.jurisdictionPackKey);
-  const nyRulesLabel = showNyPack
-    ? jurisdictionPackVersionLabel({
-        displayName: NY_PACK_REF.displayName,
-        packVersion: record.jurisdictionPackVersion || NY_PACK_REF.packVersion,
-      })
-    : null;
-  const formClassPinned = record.formClass != null && String(record.formClass).length > 0;
+  const snapshot = receiptSnapshot === undefined ? record.governingSnapshot : snapshotObject(receiptSnapshot.governing_snapshot);
+  const nyRulesLabel = showNyPack ? governingRulesLabel(snapshot) : null;
+  const formClass = receiptSnapshot === undefined ? record.formClass : typeof receiptSnapshot.governing_form_class === "string" ? receiptSnapshot.governing_form_class : null;
+  const formClassPinned = formClass != null && String(formClass).length > 0;
   const formClassLabel = formClassPinned
-    ? formClassPlainLabel(normalizeFormClass(record.formClass))
+    ? formClassPlainLabel(normalizeFormClass(formClass))
     : null;
   return { showNyPack, nyRulesLabel, formClassLabel };
 }

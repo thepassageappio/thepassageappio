@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { INVITE_ACCESS_LINK_COOKIE, parseInviteAccessLinkFlash } from "@/lib/authority/invite-access-link-flash";
 import { HostedAuthorityRequestView } from "./HostedAuthorityRequestView";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
+import { mapGoverningContext } from "@/lib/authority/governing-snapshot";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -57,6 +58,12 @@ export async function loadHostedAuthorityRequest({ params, searchParams }: Props
   if (!recordRow) notFound();
 
   const record = mapHostedAuthorityRecord(recordRow as never);
+  const { data: governingData, error: governingError } = await supabase.rpc("get_authority_governing_context_v1", {
+    p_organization_id: access.organization.id, p_authority_record_id: id,
+  });
+  if (governingError) throw governingError;
+  const governingContext = mapGoverningContext(governingData);
+  record.governingSnapshot = governingContext.saved;
   const closedMessage = closedRequestMessage(record.status);
   const reviewFinished = Boolean(closedMessage) || ["accepted", "accepted_with_limits"].includes(record.status);
   const events = (eventRows ?? []).map((row) => mapHostedAuthorityEvent(row as never));
@@ -66,7 +73,7 @@ export async function loadHostedAuthorityRequest({ params, searchParams }: Props
   const periodEndsAt = entitlement?.period_ends_at ? String(entitlement.period_ends_at) : null;
   const evaluationLimitReached = activatedCount >= transactionLimit;
   const canCoordinate = Boolean(access.membership && canCoordinateAuthorityRequests(access.membership.role));
-  const canActivate = canCoordinate && !evaluationLimitReached;
+  const canActivate = canCoordinate && !evaluationLimitReached && !governingContext.stale;
   const nextCount = activatedCount + 1;
   const cookieStore = await cookies();
   const inviteAccessLinkFlash = access.membership && mayProvisionDemoRun(access.user.email, access.membership.role) ? parseInviteAccessLinkFlash(
@@ -80,6 +87,7 @@ export async function loadHostedAuthorityRequest({ params, searchParams }: Props
     error: error,
     demo: demo,
     record: record,
+    governingContext,
     closedMessage: closedMessage,
     reviewFinished: reviewFinished,
     events: events,

@@ -107,7 +107,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
     artifacts,
     laterChangeDetail,
   });
-  const { nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record);
+  const { nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record, decision.receiptSnapshot);
 
   return <>
     <header className={styles.pageHeader}>

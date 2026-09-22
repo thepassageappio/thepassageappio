@@ -53,6 +53,8 @@ export type HostedAuthorityRecord = {
   jurisdictionPackVersion: string | null;
   /** Recorded form class when pinned. Null when never set. */
   formClass: string | null;
+  governingSnapshot?: Record<string, unknown> | null;
+  governingProvenance?: string | null;
 };
 
 export type HostedAuthorityEvent = {
@@ -100,6 +102,8 @@ type HostedAuthorityRecordRow = {
   jurisdiction_pack_key?: string | null;
   jurisdiction_pack_version?: string | null;
   form_class?: string | null;
+  governing_snapshot?: Record<string, unknown> | null;
+  governing_provenance?: string | null;
 };
 
 type HostedAuthorityEventRow = {
@@ -221,6 +225,8 @@ export function mapHostedAuthorityRecord(row: HostedAuthorityRecordRow): HostedA
     jurisdictionPackKey: row.jurisdiction_pack_key ? String(row.jurisdiction_pack_key) : null,
     jurisdictionPackVersion: row.jurisdiction_pack_version ? String(row.jurisdiction_pack_version) : null,
     formClass: row.form_class ? String(row.form_class) : null,
+    governingSnapshot: row.governing_snapshot ?? null,
+    governingProvenance: row.governing_provenance ?? null,
   };
 }
 
