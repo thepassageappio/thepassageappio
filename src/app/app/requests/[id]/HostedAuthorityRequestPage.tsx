@@ -8,13 +8,14 @@ import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilitie
 import { createClient } from "@/lib/supabase/server";
 import { INVITE_ACCESS_LINK_COOKIE, parseInviteAccessLinkFlash } from "@/lib/authority/invite-access-link-flash";
 import { HostedAuthorityRequestView } from "./HostedAuthorityRequestView";
+import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ notice?: string; error?: string; demo?: string }>;
 };
 
-export default async function HostedAuthorityRequestPage({ params, searchParams }: Props) {
+export async function loadHostedAuthorityRequest({ params, searchParams }: Props) {
   const access = await getAuthorityAccessContext();
   if (!access?.organization) return null;
   const { id } = await params;
@@ -68,37 +69,40 @@ export default async function HostedAuthorityRequestPage({ params, searchParams 
   const canActivate = canCoordinate && !evaluationLimitReached;
   const nextCount = activatedCount + 1;
   const cookieStore = await cookies();
-  const inviteAccessLinkFlash = parseInviteAccessLinkFlash(
+  const inviteAccessLinkFlash = access.membership && mayProvisionDemoRun(access.user.email, access.membership.role) ? parseInviteAccessLinkFlash(
     cookieStore.get(INVITE_ACCESS_LINK_COOKIE)?.value,
     record.id,
-  );
+  ) : null;
 
-  return (
-    <HostedAuthorityRequestView
-      access={access}
-      notice={notice}
-      error={error}
-      demo={demo}
-      record={record}
-      closedMessage={closedMessage}
-      reviewFinished={reviewFinished}
-      events={events}
-      savedError={savedError}
-      activatedCount={activatedCount}
-      transactionLimit={transactionLimit}
-      periodEndsAt={periodEndsAt}
-      evaluationLimitReached={evaluationLimitReached}
-      canCoordinate={canCoordinate}
-      canActivate={canActivate}
-      nextCount={nextCount}
-      invitations={invitations ?? []}
-      notificationData={notificationData}
-      requirements={requirements ?? []}
-      evidenceArtifacts={evidenceArtifacts ?? []}
-      decisionRow={decisionRow}
-      informationRequests={informationRequests ?? []}
-      informationResponses={informationResponses ?? []}
-      inviteAccessLinkFlash={inviteAccessLinkFlash}
-    />
-  );
+  return {
+    access: access,
+    notice: notice,
+    error: error,
+    demo: demo,
+    record: record,
+    closedMessage: closedMessage,
+    reviewFinished: reviewFinished,
+    events: events,
+    savedError: savedError,
+    activatedCount: activatedCount,
+    transactionLimit: transactionLimit,
+    periodEndsAt: periodEndsAt,
+    evaluationLimitReached: evaluationLimitReached,
+    canCoordinate: canCoordinate,
+    canActivate: canActivate,
+    nextCount: nextCount,
+    invitations: invitations ?? [],
+    notificationData: notificationData,
+    requirements: requirements ?? [],
+    evidenceArtifacts: evidenceArtifacts ?? [],
+    decisionRow: decisionRow,
+    informationRequests: informationRequests ?? [],
+    informationResponses: informationResponses ?? [],
+    inviteAccessLinkFlash: inviteAccessLinkFlash,
+  };
+}
+
+export default async function HostedAuthorityRequestPage(props: Props) {
+  const data = await loadHostedAuthorityRequest(props);
+  return data ? <HostedAuthorityRequestView {...data} /> : null;
 }

@@ -1,5 +1,11 @@
 # Current Passage checkpoint
 
+## September 22 audit and candidate update
+
+The September 15 checkpoint below is historical. The September 21 audit verified main at `61ee1260b9281389ea79653034d093617293c169`; both live websites served `ff7d5ff0cfebaec444162acd7d2dc7e2429f24d2` (16 commits behind). Both hosted databases already contain the September 15 multi-institution/NY/catalog groundwork. Demo was restored from inactivity and is healthy. The claim below that these migrations are absent from UAT is superseded.
+
+The consolidated hardening candidate and rollout requirements are in [RELEASE-HARDENING-2026-09-22.md](../RELEASE-HARDENING-2026-09-22.md). Its source checks and clean local migration replay passed; hosted application and migration rollout are not yet established. Submission recovery, NY provenance/pinning, full hosted persona QA, and the seven-day reconciliation evidence remain open. Do not describe the candidate as shipped based on a branch push.
+
 Updated September 15, 2026 UTC after eng scoping aggregation. Codeword: **AUTHORITY COMPASS 771204**.
 
 ## Latest tip

@@ -17,7 +17,7 @@ function readValidatedPassageEnvironment(raw: string | undefined): string | null
   return PASSAGE_ENVIRONMENTS.has(value) ? value : null;
 }
 
-function readPassageEnvironmentLabel(env: NodeJS.ProcessEnv): string | null {
+function readPassageEnvironmentLabel(env: Readonly<Record<string, string | undefined>>): string | null {
   return (
     readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT) ??
     readValidatedPassageEnvironment(env.PASSAGE_ENVIRONMENT_GROK) ??
@@ -25,7 +25,7 @@ function readPassageEnvironmentLabel(env: NodeJS.ProcessEnv): string | null {
   );
 }
 
-export function readReleaseProvenance(env: NodeJS.ProcessEnv = process.env): ReleaseProvenance {
+export function readReleaseProvenance(env: Readonly<Record<string, string | undefined>> = process.env): ReleaseProvenance {
   return {
     environment: readPassageEnvironmentLabel(env),
     vercelEnvironment: env.VERCEL_ENV?.trim() || null,

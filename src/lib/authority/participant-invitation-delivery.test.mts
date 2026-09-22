@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildParticipantInvitationEmail, participantInvitationIdempotencyKey } from "./participant-invitation-delivery.ts";
+import { buildParticipantInvitationEmail, deliverParticipantInvitation, participantInvitationIdempotencyKey } from "./participant-invitation-delivery.ts";
 
 const delivery = {
   invitationId: "invitation-1",
@@ -15,6 +15,40 @@ const delivery = {
   expiresAt: "2026-09-01T12:00:00.000Z",
   secureUrl: "https://authority.example/r/secure-token",
 };
+
+test("production disabled delivery never accesses Demo cookies or the database", async () => {
+  const originalEnvironment = process.env.PASSAGE_ENVIRONMENT;
+  const originalProvider = process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY;
+  try {
+    process.env.PASSAGE_ENVIRONMENT = "production";
+    process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY = "disabled";
+    assert.deepEqual(await deliverParticipantInvitation(delivery), {
+      accepted: false, provider: "disabled", reason: "configuration_missing",
+    });
+  } finally {
+    if (originalEnvironment === undefined) delete process.env.PASSAGE_ENVIRONMENT;
+    else process.env.PASSAGE_ENVIRONMENT = originalEnvironment;
+    if (originalProvider === undefined) delete process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY;
+    else process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY = originalProvider;
+  }
+});
+
+test("unlisted Demo recipients are rejected before access-link side effects", async () => {
+  const originalEnvironment = process.env.PASSAGE_ENVIRONMENT;
+  const originalAllowlist = process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST;
+  try {
+    process.env.PASSAGE_ENVIRONMENT = "demo";
+    process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST = "different@example.invalid";
+    assert.deepEqual(await deliverParticipantInvitation(delivery), {
+      accepted: false, provider: "disabled", reason: "recipient_not_allowed",
+    });
+  } finally {
+    if (originalEnvironment === undefined) delete process.env.PASSAGE_ENVIRONMENT;
+    else process.env.PASSAGE_ENVIRONMENT = originalEnvironment;
+    if (originalAllowlist === undefined) delete process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST;
+    else process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST = originalAllowlist;
+  }
+});
 
 test("participant invitation explains the sender, role, other person, scope, expiration, and decision boundary", () => {
   const message = buildParticipantInvitationEmail(delivery);

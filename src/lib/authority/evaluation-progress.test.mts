@@ -10,6 +10,7 @@ function record(id: string, status: HostedAuthorityStatus): HostedAuthorityRecor
     principalName: "Casey Quinn", principalEmail: "casey@example.test", representativeName: "Parker Quinn",
     representativeEmail: "parker@example.test", allowedActionKeys: ["receive_duplicate_statements"],
     validUntil: "2027-01-01T00:00:00.000Z", activatedAt: null, createdAt: "2026-09-01T00:00:00.000Z",
+    originGroupId: null, jurisdictionCode: null, jurisdictionPackKey: null, jurisdictionPackVersion: null, formClass: null,
     updatedAt: "2026-09-01T00:00:00.000Z",
   };
 }

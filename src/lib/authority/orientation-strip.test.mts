@@ -25,6 +25,7 @@ const baseRecord: HostedAuthorityRecord = {
   createdAt: "2026-09-01T00:00:00.000Z",
   updatedAt: "2026-09-01T00:00:00.000Z",
   originGroupId: null,
+  jurisdictionCode: null, jurisdictionPackKey: null, jurisdictionPackVersion: null, formClass: null,
 };
 
 test("under review answers five questions without a decision", () => {
@@ -110,7 +111,7 @@ test("later revoke keeps original decision and loud later-change currency", () =
 
 
 test("post-decision withdrawal counts as a later change", () => {
-  const decision = {
+  const decision: HostedInstitutionDecision = {
     id: "dec-1",
     receiptCode: "R-1",
     authorityRecordId: "rec-1",
@@ -159,7 +160,7 @@ test("document review keeps received separate from checked", () => {
   assert.ok(model);
   assert.equal(model!.checked.length, 1);
   assert.equal(model!.missing.length, 1);
-  assert.match(model!.missing[0].title, /Received — not checked yet/);
+  assert.match(model!.missing[0].title, /Received, not checked yet/);
   assert.equal(model!.ready, false);
 });
 

@@ -78,7 +78,7 @@ export async function startSubmissionGroupAction(
       relationship: textField(formData, "requesterRelationship"),
     });
 
-    const supabase = await createClient();
+    const supabase = createAuthorityAdminClient();
     const { data, error } = await supabase.rpc("start_submission_group_v1", {
       p_requester_name: input.name,
       p_requester_email: input.email,
@@ -292,6 +292,11 @@ export async function uploadSubmissionEvidenceAction(formData: FormData): Promis
     const sessionToken = await getRequesterSessionToken();
     if (!sessionToken) throw new Error("requester_session_unavailable");
 
+    const authorized = await fetchContext(groupId, sessionToken);
+    if (!authorized || authorized.groupId !== groupId) throw new Error("requester_session_unavailable");
+    if (authorized.status !== "draft") throw new Error("submission_group_not_submittable");
+    if (authorized.version !== expectedVersion) throw new Error("version_conflict");
+
     const file = formData.get("evidenceFile");
     if (!(file instanceof File)) throw new Error("evidence_file_required");
     const prepared = prepareGroupEvidenceUpload({ name: file.name, type: file.type, size: file.size });
@@ -308,8 +313,7 @@ export async function uploadSubmissionEvidenceAction(formData: FormData): Promis
     });
     if (uploadError && uploadError.message !== "The resource already exists") throw new Error("evidence_storage_unavailable");
 
-    const supabase = await createClient();
-    const { error } = await supabase.rpc("record_submission_group_evidence_upload_v1", {
+    const { error } = await admin.rpc("record_submission_group_evidence_upload_v1", {
       p_session_token: sessionToken,
       p_group_id: groupId,
       p_expected_version: expectedVersion,
@@ -346,7 +350,7 @@ export async function submitSubmissionGroupAction(input: {
     if (!sessionToken) throw new Error("requester_session_unavailable");
     const attestation = prepareRequesterAttestation({ acknowledged: input.attested });
 
-    const supabase = await createClient();
+    const supabase = createAuthorityAdminClient();
     const { data, error } = await supabase.rpc("submit_submission_group_v1", {
       p_session_token: sessionToken,
       p_group_id: input.groupId,
