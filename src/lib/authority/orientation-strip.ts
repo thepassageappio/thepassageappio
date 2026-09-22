@@ -67,6 +67,7 @@ function chipStateForRequirement(
 }
 
 function bankAnswerChip(decision: HostedInstitutionDecision | null, decisionSinceChanged: boolean): OrientationChipState {
+  // HARD-BAR-FIX-D2: later-ended answers use Ended (never Needed). Sole builder for revoked overview.
   if (!decision) return "Not started";
   if (decisionSinceChanged) return "Ended";
   return "Done";
@@ -128,7 +129,7 @@ function nextActorLine(input: {
   }
   if (record.status === "under_review") {
     const ask = requirementsComplete ? "review and decide." : "finish the missing list.";
-    return `Next: Bank reviewer (reviewer) — ${ask}`;
+    return `Next: Bank reviewer — ${ask}`;
   }
   return "Next: Anyone on this request — open the receipt.";
 }
