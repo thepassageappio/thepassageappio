@@ -40,7 +40,7 @@ test("under review answers five questions without a decision", () => {
     ],
   });
   assert.equal(model.statusSentence, "The bank can decide now.");
-  assert.match(model.nextLine, /Bank reviewer \(reviewer\)/);
+  assert.match(model.nextLine, /Bank reviewer/);
   assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
   assert.equal(model.primaryAction?.label, "Review and decide");
   assert.equal(model.decisionLine, "Not decided yet.");
@@ -113,6 +113,38 @@ test("later revoke keeps original decision and loud later-change currency", () =
   assert.equal(model.nextLine, "Next: Anyone on this request — open the receipt to see what changed.");
   assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)/);
   assert.equal(model.primaryAction?.label, "See what changed");
+});
+
+test("revoked without View laterChangeDetail token still locks Later copy", () => {
+  const decision: HostedInstitutionDecision = {
+    id: "dec-1",
+    receiptCode: "R-1",
+    authorityRecordId: "rec-1",
+    recordVersion: 1,
+    outcome: "accepted_with_limits",
+    reason: "Limited",
+    acceptedActionKeys: ["receive_duplicate_statements"],
+    limitations: [
+      "Copies of account statements only. Bank discussion was not included.",
+      "Synthetic demonstration only; no real accounts or customer authority.",
+    ],
+    decidedBy: "user-2",
+    decidedByRole: "reviewer",
+    decidedAt: "2026-09-10T00:00:00.000Z",
+    receiptSha256: "abc",
+    receiptSnapshot: {},
+  };
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, status: "revoked" },
+    role: "admin",
+    decision,
+  });
+  assert.equal(model.chips[2].state, "Ended");
+  assert.equal(model.laterChangeDetail, "This answer ended. It is not the current answer.");
+  assert.doesNotMatch(model.decisionLine, /Later:/);
+  assert.doesNotMatch(model.decisionLine, /authority\.\./);
+  assert.equal(model.nextLine, "Next: Anyone on this request — open the receipt to see what changed.");
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(reviewer\)/);
 });
 
 test("post-decision withdrawal counts as a later change", () => {
