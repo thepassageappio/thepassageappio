@@ -4,7 +4,11 @@
 
 The September 15 checkpoint below is historical. The September 21 audit verified main at `61ee1260b9281389ea79653034d093617293c169`; both live websites served `ff7d5ff0cfebaec444162acd7d2dc7e2429f24d2` (16 commits behind). Both hosted databases already contain the September 15 multi-institution/NY/catalog groundwork. Demo was restored from inactivity and is healthy. The claim below that these migrations are absent from UAT is superseded.
 
-The consolidated hardening candidate and rollout requirements are in [RELEASE-HARDENING-2026-09-22.md](../RELEASE-HARDENING-2026-09-22.md). Its source checks and clean local migration replay passed; hosted application and migration rollout are not yet established. Submission recovery, NY provenance/pinning, full hosted persona QA, and the seven-day reconciliation evidence remain open. Do not describe the candidate as shipped based on a branch push.
+The consolidated hardening candidate is [PR #144](https://github.com/thepassageappio/thepassageappio/pull/144), commit `15335f5`. CI and both Vercel previews passed. Its server-boundary migration has been applied once to Demo and Production and passed rollback-based security checks on both. Application merge/deployment remains pending explicit approval after automatic approval review rejected the merge. The older application's submission start/submit path fails closed until the matching application is released. Do not describe the frontend as shipped based on a branch push.
+
+The next priority, [submission delivery recovery](../SUBMISSION-DELIVERY-RECOVERY-2026-09-22.md), is implemented as a separate candidate: 228 domain tests, typecheck, lint, build, clean migration replay, and five SQL suites pass locally. A synthetic authenticated browser retry persisted file-copy failures, kept invitations unsent, preserved one case, and retained pending status after refresh. No external email was sent. Hosted recovery migration, worker configuration, scheduled execution, and full persona acceptance remain open. NY provenance/pinning is next after delivery recovery acceptance; seven-day reconciliation evidence is still incomplete.
+
+The owner authorized implementation and pushes on September 21. Historical M0-only/M1-build-hold wording below does not supersede that instruction. The active roadmap checkpoint takes precedence over historical status rows.
 
 Updated September 15, 2026 UTC after eng scoping aggregation. Codeword: **AUTHORITY COMPASS 771204**.
 

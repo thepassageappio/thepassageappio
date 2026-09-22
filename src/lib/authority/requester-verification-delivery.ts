@@ -114,11 +114,11 @@ export function buildRequesterVerificationEmail(delivery: RequesterVerificationD
 }
 
 export function buildRequesterSubmittedEmail(delivery: RequesterSubmittedDelivery) {
-  const subject = `Your Passage request was sent (${delivery.referenceCode})`;
-  const preview = "Your shared evidence packet was sent to the institutions you named.";
-  const matchedLine = `Your request (reference ${delivery.referenceCode}) was sent to ${delivery.matchedCount} institution${delivery.matchedCount === 1 ? "" : "s"} already on Passage.`;
+  const subject = `Your Passage request is saved (${delivery.referenceCode})`;
+  const preview = "Open your request to check file and invitation delivery.";
+  const matchedLine = `Your request (reference ${delivery.referenceCode}) is saved for ${delivery.matchedCount} institution${delivery.matchedCount === 1 ? "" : "s"} already on Passage.`;
   const unmatchedLine = delivery.unmatchedCount > 0
-    ? ` ${delivery.unmatchedCount} institution${delivery.unmatchedCount === 1 ? "" : "s"} you named are not yet on Passage; Passage will reach out to them separately.`
+    ? ` ${delivery.unmatchedCount} institution${delivery.unmatchedCount === 1 ? "" : "s"} you named are not yet on Passage; no request has been sent to those institutions.`
     : "";
 
   const text = [
@@ -131,7 +131,7 @@ export function buildRequesterSubmittedEmail(delivery: RequesterSubmittedDeliver
     "Each institution makes its own, independent decision on its own copy of the evidence you provided. Passage does not create legal authority, determine the validity of a power of attorney, or decide any institution's case.",
   ].join("\n");
 
-  const html = shell(subject, preview, "Your request was sent", `
+  const html = shell(subject, preview, "Your request is saved", `
             <p style="margin:0 0 16px;font-size:16px;line-height:1.5">Hello, ${escapeHtml(delivery.requesterName)}. ${escapeHtml(matchedLine)}${escapeHtml(unmatchedLine)}</p>
             ${buttonHtml(delivery.secureUrl, "View request status")}
             <p style="margin:0;color:#4e625d;font-size:13px;line-height:1.5">Each institution makes its own, independent decision on its own copy of the evidence you provided. Passage does not create legal authority, determine the validity of a power of attorney, or decide any institution's case.</p>`);

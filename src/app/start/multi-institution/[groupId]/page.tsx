@@ -5,6 +5,7 @@ import styles from "@/components/account/account.module.css";
 import { MultiInstitutionWizard } from "./MultiInstitutionWizard";
 
 export const metadata = { robots: { index: false, follow: false } };
+export const maxDuration = 60;
 
 type Props = { params: Promise<{ groupId: string }> };
 

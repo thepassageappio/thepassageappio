@@ -1,5 +1,7 @@
 ## Passage Authority V2 delivery roadmap
 
+September 22, 2026 UTC: the [active execution checkpoint](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md#current-execution-checkpoint--september-22-2026-utc) supersedes historical release status below. Security migration verified on Demo and Production; PR #144 application merge awaits owner approval. OPS1 durable submission delivery recovery is the next selected implementation item. Neither full release QA nor buyer/pilot readiness is marked complete.
+
 Latest execution checkpoint: [product gaps](PRODUCT-GAPS-2026-09-10.md), [draft recovery](DRAFT-RECOVERY-2026-09-10.md). UX2 has progressed; WF1 and POL1 remain open.
 
 > **Active plan — September 10:** [Outreach-ready delivery plan](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md) now controls execution, completion criteria and release gates. [Market research](MARKET-RESEARCH-2026-09-10.md) supplies the evidence. Owner objective: a complete, beautiful, simple, easy-to-use product for truthful one-pagers and outreach. Start at UX1, then complete workflow/policy/security/operating gaps. P1/P2 remain open. The dated status lists and numerical scores below are historical and must not be used as the current readiness verdict.

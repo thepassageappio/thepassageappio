@@ -34,6 +34,6 @@ jobs:
       - run: supabase db start
       - name: Verify authorization and recovery
         run: |
-          for test in submission_server_boundary authority_public_security_boundary authority_reviewer_role_boundary authority_terminal_and_recovery; do
+          for test in submission_server_boundary submission_delivery_recovery authority_public_security_boundary authority_reviewer_role_boundary authority_terminal_and_recovery; do
             docker exec -i supabase_db_passage-authority psql -U postgres -d postgres -v ON_ERROR_STOP=1 < "supabase/tests/$test.sql"
           done

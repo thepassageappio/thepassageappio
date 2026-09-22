@@ -1,5 +1,13 @@
 # Outreach-ready product delivery plan
 
+## Current execution checkpoint — September 22, 2026 UTC
+
+The older notes below are historical. PR [#144](https://github.com/thepassageappio/thepassageappio/pull/144), head `15335f5`, passes both GitHub jobs and both Vercel preview builds. Its security migration is applied once to Demo and Production; hosted rollback tests pass with zero test rows remaining. The application PR is still unmerged: explicit merge/release approval is pending. Restricted submission commands fail closed until compatible code is deployed. Do not mark REL1 complete.
+
+Next selected item: **OPS1 submission delivery recovery**. The candidate saves copy/invitation work atomically with submission, leases attempts, retries incomplete work without recreating cases, verifies evidence hashes, preserves attempt history, and shows delivery status accurately. Local application checks and clean migration replay pass. Hosted browser/provider acceptance and cron configuration remain separate release evidence. See the [recovery contract](SUBMISSION-DELIVERY-RECOVERY-2026-09-22.md).
+
+After this item: NY historical provenance and draft pinning, then exact-candidate hosted persona/recovery/accessibility QA. Seven actual reconciliation days remain unproved. [Latest owner decisions](STEVE-DECISIONS-COMPLIANCE-2026-09-15.md) remove counsel engagement and paid backup upgrades from active M1; those decisions supersede older rows below.
+
 Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
 
 Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
