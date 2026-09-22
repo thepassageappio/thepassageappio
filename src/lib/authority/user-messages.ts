@@ -146,23 +146,3 @@ export function userErrorMessage(code: string | undefined) {
 export function userNoticeMessage(code: string | undefined) {
   return code ? noticeMessages[code] ?? null : null;
 }
-
-const deliveryNoticeCodes = new Set([
-  "request_activated",
-  "request_activated_delivery_pending",
-  "participant_invitation_submitted",
-  "participant_invitation_delivery_pending",
-]);
-
-export function hostedRequestNoticeMessage(
-  code: string | undefined,
-  currentDeliveryStatus: string | null | undefined,
-) {
-  const message = userNoticeMessage(code);
-  if (!code || !message || !deliveryNoticeCodes.has(code)) return message;
-  if (currentDeliveryStatus === null) return null;
-  if (currentDeliveryStatus === "delivered") return "Email delivery confirmed.";
-  if (currentDeliveryStatus === "failed") return "Email delivery needs attention. Send a fresh secure link.";
-  if (currentDeliveryStatus === "retrying") return "Email delivery is being retried.";
-  return message;
-}
