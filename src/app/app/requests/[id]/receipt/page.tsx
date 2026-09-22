@@ -128,7 +128,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         {canSendReceipts ? <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2>Participant receipt links</h2><p>Each person receives separate access to this same saved decision.</p></div></div>
           <div className={styles.panelActions}>
-            {(["principal", "representative"] as const).map((participantRole) => {
+            {["principal", "representative"].map((participantRole) => {
               const invitation = invitationRows?.find((item) => item.participant_role === participantRole);
               if (!invitation) return null;
               const participantName = participantRole === "principal" ? record.principalName : record.representativeName;
@@ -167,7 +167,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><h2 title="The exact people, account, purpose, and end date this decision applies to.">Request boundary</h2><p>This receipt covers only the people, account, purpose, and end date shown here.</p></div></div>
           <dl className={styles.policyFacts}>
-            <div><dt>Person granting authority</dt><dd>{record.principalName}</dd></div>
+            <div><dt>Account holder</dt><dd>{record.principalName}</dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}</dd></div>
             <div><dt>Purpose</dt><dd>{authorityPurposeLabel(record.purpose)}</dd></div>
             <div><dt>Account relationship</dt><dd>{record.accountBoundary}</dd></div>
