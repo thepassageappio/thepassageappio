@@ -44,7 +44,7 @@ export function OrientationStrip({ model, headingId = "request-next-step" }: Pro
       </p>
 
       {model.currencyKind === "later_change" && model.laterChangeDetail ? (
-        <p className={styles.laterDetail}>Later: {model.laterChangeDetail}. See history on the receipt.</p>
+        <p className={styles.laterDetail}>Later: {model.laterChangeDetail}</p>
       ) : null}
 
       <ul className={styles.chips} aria-label="Checks that stay separate">
