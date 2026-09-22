@@ -25,6 +25,7 @@ export function AppShell({ access, children }: { access: AuthorityAccessContext;
           <strong>{access.organization.displayName}</strong>
           <small>{roleLabel(access.membership.role)}</small>
         </div>
+        {/* Narrow: polish.navigation is the constrained scrollport (≤720px). */}
         <nav className={polish.navigation} aria-label="Organization workspace">
           <Link href="/app">{overviewLabel}</Link>
           {canCoordinate ? <Link href="/app/requests/new">Start a request</Link> : null}
