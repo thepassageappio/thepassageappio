@@ -237,6 +237,11 @@ export function buildCaseOrientation(input: {
   const checklistEmpty = requirements.length === 0;
   // Empty checklist means there is no documents strip to finish, decision panel is reachable.
   const requirementsComplete = checklistEmpty || requirements.every((item) => item.status === "completed");
+  const pendingRequirements = requirements.filter((item) => item.status !== "completed");
+  const bankReviewPending = input.record.status === "evidence_required"
+    && pendingRequirements.length > 0
+    && pendingRequirements.every((item) => artifacts.some((artifact) =>
+      String(artifact.requirement_id) === String(item.id) && artifact.review_status === "pending"));
   const hasAskedFor = input.record.allowedActionKeys.length > 0;
 
   const identity = requirementByKey(requirements, "identity_evidence");
@@ -302,9 +307,9 @@ export function buildCaseOrientation(input: {
   }
 
   return {
-    statusSentence,
-    nextLine: `Next: ${actorName} (${role}), ${ask}`,
-    primaryAction: primaryActionFor({
+    statusSentence: bankReviewPending ? "The bank needs to check the received files." : statusSentence,
+    nextLine: bankReviewPending ? "Next: Bank reviewer, check the received files" : `Next: ${actorName} (${role}), ${ask}`,
+    primaryAction: bankReviewPending ? { href: "#required-information", label: "Review received files" } : primaryActionFor({
       record: input.record,
       role: input.role,
       decision: input.decision,
@@ -363,7 +368,9 @@ export function buildDocumentReviewModel(input: {
       checked.push({
         id: String(requirement.id),
         title: requirement.title,
-        whoMustFix: "Checked by the bank",
+        whoMustFix: requirement.requirement_key === "representative_certification"
+          ? "Confirmed by the representative"
+          : "Checked by the bank",
         kind: "checked",
       });
       continue;

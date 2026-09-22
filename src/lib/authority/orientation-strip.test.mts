@@ -210,3 +210,19 @@ test("participant bank-only link line uses locked multi-inst wording", () => {
   assert.equal(participantBankOnlyLinkLine("  "), null);
   assert.equal(participantBankOnlyLinkLine(null), null);
 });
+
+test("received evidence directs the bank while preserving representative work", () => {
+  const requirements = [
+    { id: "1", requirement_key: "power_of_attorney", title: "POA", status: "review_pending" },
+    { id: "2", requirement_key: "representative_certification", title: "Certification", status: "completed" },
+  ];
+  const artifacts = [{ id: "a", requirement_id: "1", review_status: "pending" }];
+  const input = { record: { ...baseRecord, status: "evidence_required" as const }, role: "owner" as const, decision: null, requirements, artifacts };
+  const model = buildCaseOrientation(input);
+  assert.equal(model.primaryAction?.href, "#required-information");
+  assert.match(model.nextLine, /Bank reviewer/);
+  const documents = buildDocumentReviewModel({ requirements, artifacts, recordStatus: "evidence_required", hasDecision: false });
+  assert.equal(documents?.checked[0].whoMustFix, "Confirmed by the representative");
+  const unfinished = buildCaseOrientation({ ...input, requirements: requirements.map(item => item.id === "2" ? { ...item, status: "pending" } : item) });
+  assert.match(unfinished.nextLine, /Riley Rep/);
+});
