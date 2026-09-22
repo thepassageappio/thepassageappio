@@ -1,6 +1,6 @@
 # Passage journey and north star — September 22, 2026
 
-Implementation is paused at the owner's request. This is a planning checkpoint; it does not authorize another deployment, migration, provider send, or new feature. Resume from the priorities below when the owner resumes work.
+The owner resumed this plan. PRs #145 and #146 are merged and live; recovery and NY provenance safeguards have shipped. The [current release and journey checkpoint](RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md) supersedes the historical status table and resume instructions below. Full hosted acceptance remains incomplete, so buyer-demo and real-data pilot release remain on hold. The north star and staged journey below remain unchanged.
 
 ## North star
 

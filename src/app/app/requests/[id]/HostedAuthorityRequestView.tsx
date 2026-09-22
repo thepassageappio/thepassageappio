@@ -34,6 +34,7 @@ export function HostedAuthorityRequestView({
   transactionLimit,
   periodEndsAt,
   evaluationLimitReached,
+  evaluationExpired,
   canCoordinate,
   canActivate,
   nextCount,
@@ -201,14 +202,15 @@ export function HostedAuthorityRequestView({
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
     {governingContext.stale ? <section className={styles.panel} aria-labelledby="draft-rules-title">
       <h2 id="draft-rules-title">Review the changed rules before sending</h2>
-      <p>This draft uses earlier settings. Review each change below, then save a new draft revision. The earlier settings stay in the request history.</p>
+      <p>{governingContext.saved ? "The settings changed after this draft was saved." : "The rules were not saved with this earlier draft."} Review the current settings below before saving a new draft revision. The earlier revision stays in the request history.</p>
+      <details><summary>Review every changed setting</summary>
       <div style={{ overflowX: "auto" }}><table>
         <caption>Changes from this saved draft to the current New York settings</caption>
         <thead><tr><th scope="col">Setting</th><th scope="col">Saved draft</th><th scope="col">Current setting</th></tr></thead>
         <tbody>{governingSnapshotChanges(governingContext.saved, governingContext.current).map(change => <tr key={change.label}>
           <th scope="row">{change.label}</th><td>{change.before}</td><td>{change.after}</td>
         </tr>)}</tbody>
-      </table></div>
+      </table></div></details>
       {canCoordinate && governingContext.currentHash ? <form action={rebaseHostedAuthorityDraftAction}>
         <input type="hidden" name="recordId" value={record.id} />
         <input type="hidden" name="expectedVersion" value={record.version} />
@@ -268,10 +270,11 @@ export function HostedAuthorityRequestView({
       <div>
         {record.status === "draft" ? <section className={styles.panel} id="review-and-send">
           <div className={styles.panelHead}><div><h2>Review and send</h2><p>This draft is saved. Nothing has been sent or counted yet.</p></div><span className={styles.badge}>Saved</span></div>
+          {evaluationExpired ? <p className={styles.alert}>The free evaluation has ended. This draft stays saved and cannot be sent. Existing requests remain available.</p> : null}
           <ul className={styles.checklist}>
             <li>{record.principalName} gets a private link to check the requested actions</li>
             <li>{record.representativeName} can continue after the account holder confirms</li>
-            <li>{evaluationLimitReached ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Sending uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Sending starts the 10-day trial and uses request ${nextCount} of ${transactionLimit}`}</li>
+            <li>{evaluationLimitReached || evaluationExpired ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Sending uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Sending starts the 10-day trial and uses request ${nextCount} of ${transactionLimit}`}</li>
           </ul>
           {canActivate ? <form action={activateHostedAuthorityRequestAction}>
             <input type="hidden" name="recordId" value={record.id} />

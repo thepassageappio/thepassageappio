@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/internal/reconciliation/process",
+      "schedule": "0 8 * * *"
+    },
+    {
       "path": "/api/internal/hubspot/process",
       "schedule": "0 6 * * *"
     },

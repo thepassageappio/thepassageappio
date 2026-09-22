@@ -2,7 +2,7 @@
 
 ## Current execution checkpoint — September 22, 2026 UTC
 
-**Implementation paused by the owner for a journey review.** The [journey and north star](JOURNEY-AND-NORTH-STAR-2026-09-22.md) is the current planning summary. Do not begin the next implementation or rollout until the owner resumes work.
+**Implementation resumed.** Recovery PR #145 and NY provenance/draft revision PR #146 are merged and live. Use the [current release and journey checkpoint](RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md) for verified evidence, remaining acceptance and the demo/pilot HOLD. The older status paragraphs and workstream rows below are historical where they conflict with that checkpoint.
 
 The north star is a simple, dependable way for people and financial institutions to reach and keep track of an institution-specific authority decision, with clear scope, limits, evidence, and matching receipts. Our immediate destination is an uncoached, reliable synthetic New York demonstration; buyer-demo readiness and real-data pilot readiness remain separate decisions.
 

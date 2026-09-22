@@ -71,9 +71,10 @@ export async function loadHostedAuthorityRequest({ params, searchParams }: Props
   const activatedCount = Number(entitlement?.activated_count ?? 0);
   const transactionLimit = Number(entitlement?.transaction_limit ?? 5);
   const periodEndsAt = entitlement?.period_ends_at ? String(entitlement.period_ends_at) : null;
+  const evaluationExpired = Boolean(periodEndsAt && new Date(periodEndsAt).getTime() <= Date.now());
   const evaluationLimitReached = activatedCount >= transactionLimit;
   const canCoordinate = Boolean(access.membership && canCoordinateAuthorityRequests(access.membership.role));
-  const canActivate = canCoordinate && !evaluationLimitReached && !governingContext.stale;
+  const canActivate = canCoordinate && !evaluationLimitReached && !evaluationExpired && !governingContext.stale;
   const nextCount = activatedCount + 1;
   const cookieStore = await cookies();
   const inviteAccessLinkFlash = access.membership && mayProvisionDemoRun(access.user.email, access.membership.role) ? parseInviteAccessLinkFlash(
@@ -96,6 +97,7 @@ export async function loadHostedAuthorityRequest({ params, searchParams }: Props
     transactionLimit: transactionLimit,
     periodEndsAt: periodEndsAt,
     evaluationLimitReached: evaluationLimitReached,
+    evaluationExpired,
     canCoordinate: canCoordinate,
     canActivate: canActivate,
     nextCount: nextCount,
