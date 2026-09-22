@@ -39,7 +39,9 @@ export default async function ParticipantRequirementsPage({ params, searchParams
   return <AccountFrame
     eyebrow={`${participant.institutionName} · ${participant.referenceCode}`}
     title="Complete the requirements"
-    description={`${completed} of ${evidence.requirements.length} complete. Finish each item below, then send the request to the institution.`}
+    description={allComplete
+      ? `${completed} of ${evidence.requirements.length} complete. Review and send the request to the institution.`
+      : `${completed} of ${evidence.requirements.length} complete. Finish each item below, then send the request to the institution.`}
   >
     {noticeMessage ? <div className={styles.notice} role="status">{noticeMessage}</div> : null}
     {query.error ? <div className={styles.alert} role="alert">{ERRORS[query.error] ?? "That action could not be completed. Nothing was changed."}</div> : null}

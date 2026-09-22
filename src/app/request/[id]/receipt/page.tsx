@@ -13,7 +13,15 @@ import { buildParticipantReceiptOrientation } from "@/lib/authority/participant-
 export const metadata = { robots: { index: false, follow: false } };
 
 function dateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  }).format(new Date(value));
 }
 
 export default async function ParticipantDecisionReceiptPage({ params }: { params: Promise<{ id: string }> }) {

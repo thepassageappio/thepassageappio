@@ -47,13 +47,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 
   const filename = source.original_filename?.trim() || "evidence";
   const mediaType = source.media_type?.trim() || blob.type || "application/octet-stream";
-  const bytes = Buffer.from(await blob.arrayBuffer());
-  return new NextResponse(bytes, {
+  return new NextResponse(blob.stream(), {
     status: 200,
     headers: {
       "Content-Type": mediaType,
       "Content-Disposition": contentDispositionAttachment(filename),
-      "Content-Length": String(bytes.byteLength),
+      "Content-Length": String(blob.size),
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },
