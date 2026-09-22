@@ -164,7 +164,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}
         </section>
-        {record.status === "awaiting_principal" && canCoordinate ? <CancelRequestForm recordId={record.id} version={record.version} idempotencyKey={randomUUID()} /> : null}
+        {(record.status === "draft" || record.status === "awaiting_principal") && canCoordinate ? <CancelRequestForm recordId={record.id} version={record.version} idempotencyKey={randomUUID()} /> : null}
         <details className={`${styles.panel} ${styles.disclosurePanel}`}>
           <summary>Full history ({events.length})</summary>
           <p>Every saved change is listed in order.</p>
