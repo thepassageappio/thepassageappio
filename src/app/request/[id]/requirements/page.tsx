@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
 import { evidenceRequirementStatusLabel } from "@/lib/authority/participant-evidence";
+import { participantRequirementsNotice } from "@/lib/authority/participant-requirements-notice";
 import { getParticipantEvidenceContext, getParticipantRequestContext } from "@/lib/authority/participant-session";
 import { submitRepresentativeCertificationAction, uploadParticipantEvidenceAction } from "@/app/participant-actions";
 
@@ -17,11 +18,6 @@ const ERRORS: Record<string, string> = {
   evidence_unavailable: "These requirements are not available for this request.",
   evidence_changed: "This requirement changed. Review the current status and try again.",
   certification_required: "Confirm the certification before continuing.",
-};
-
-const NOTICES: Record<string, string> = {
-  file_received: "Your file is saved privately. It is waiting for the institution to review it.",
-  certification_saved: "Your statement was saved, including the words you agreed to and the time.",
 };
 
 export default async function ParticipantRequirementsPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ notice?: string; error?: string }> }) {
@@ -39,12 +35,13 @@ export default async function ParticipantRequirementsPage({ params, searchParams
 
   const completed = evidence.requirements.filter((item) => item.status === "completed").length;
   const allComplete = completed === evidence.requirements.length;
+  const noticeMessage = participantRequirementsNotice(query.notice, allComplete);
   return <AccountFrame
     eyebrow={`${participant.institutionName} · ${participant.referenceCode}`}
     title="Complete the requirements"
     description={`${completed} of ${evidence.requirements.length} complete. Finish each item below, then send the request to the institution.`}
   >
-    {query.notice && NOTICES[query.notice] ? <div className={styles.notice} role="status">{NOTICES[query.notice]}</div> : null}
+    {noticeMessage ? <div className={styles.notice} role="status">{noticeMessage}</div> : null}
     {query.error ? <div className={styles.alert} role="alert">{ERRORS[query.error] ?? "That action could not be completed. Nothing was changed."}</div> : null}
     <div className={styles.documentList}>
       {evidence.requirements.map((requirement) => <section className={styles.document} key={requirement.id}>
