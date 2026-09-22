@@ -84,6 +84,26 @@
     width: 100%;
   }
 }
+
+.sidebarShell {
+  /* Desktop unchanged; narrow constraints below. */
+}
+
+.organizationWrap strong {
+  /* Desktop unchanged; narrow wrap below. */
+}
+
+@media (max-width: 720px) {
+  .sidebarShell {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .organizationWrap strong {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
 .demoTools { margin-top: 24px; color: var(--muted); font-size: 13px; }
 .demoTools summary { display: list-item; width: fit-content; min-height: 44px; padding: 12px 4px; cursor: pointer; }
 .demoTools summary:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
