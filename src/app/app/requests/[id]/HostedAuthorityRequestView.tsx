@@ -119,15 +119,7 @@ export function HostedAuthorityRequestView({
   const openInformationRequest = (informationRequests ?? []).find((item) => !responseByRequest.has(String(item.id)));
 
   const decisionSinceChanged = Boolean(decision) && ["revoked", "expired", "withdrawn"].includes(record.status);
-  const laterChangeDetail = decisionSinceChanged
-    ? (record.status === "revoked"
-      ? "ended"
-      : record.status === "expired"
-        ? "expired"
-          : record.status === "withdrawn"
-          ? "the representative withdrew"
-          : "updated")
-    : null;
+  // HARD-BAR-FIX-D2: one builder owns later-ended copy — do not pass short tokens from the View.
   const orientation = buildCaseOrientation({
     record,
     role: access.membership?.role ?? null,
@@ -143,7 +135,6 @@ export function HostedAuthorityRequestView({
       requirement_id: String(item.requirement_id),
       review_status: String(item.review_status),
     })),
-    laterChangeDetail,
   });
   const documentReview = buildDocumentReviewModel({
     requirements: (requirements ?? []).map((item) => ({
