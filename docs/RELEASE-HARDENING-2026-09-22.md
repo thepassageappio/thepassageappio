@@ -20,6 +20,10 @@ Tests use synthetic addresses and send no email. The existing local database and
 
 ## Rollout
 
+Owner-approved release completed: PR #144 merged as `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. Both live domains report this exact main SHA with no provenance issues; both Vercel deployments and both merge-commit CI jobs passed. This supersedes the approval-pending and temporary interruption status in the earlier update below. Public/owner smoke verification is release evidence, not a new full participant/provider acceptance run.
+
+September 22 update: PR #144 (`15335f5`) has green CI and both preview builds. The security migration was applied once to each hosted database, Demo first, then Production. Rollback-based hosted boundary checks passed; follow-up queries found zero synthetic test rows. No recovery migration was applied. Main merge and application rollout await explicit approval after automatic approval review rejected the merge; the old submission commands currently fail closed. The steps below are the release procedure, not a claim that deployment has completed.
+
 1. Confirm the PR head matches green CI and review the application/migration pair together.
 2. Apply only the new forward migration through the tracked migration process on Demo, then Production after Demo validation. Do not replay already-applied historical migrations to reconcile different hosted migration timestamps.
 3. Release the reviewed Git commit through the repository's Git-triggered Vercel path. Old submission initiation/submission commands fail closed between the migration and compatible application deployment; coordinate that short interruption. Server service-role configuration is required, as it already is for evidence uploads.

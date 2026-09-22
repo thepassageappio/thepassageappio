@@ -9,8 +9,6 @@ import {
   mapInstitutionSearchResults,
   mapRequesterSessionContext,
   mapSubmitSubmissionGroupResult,
-  MULTI_INSTITUTION_ACCOUNT_BOUNDARY,
-  MULTI_INSTITUTION_PURPOSE,
   prepareGroupEvidenceUpload,
   prepareParticipantDetails,
   prepareRequesterAttestation,
@@ -22,7 +20,7 @@ import {
   type InstitutionSearchResult,
   type RequesterSessionContext,
 } from "@/lib/authority/multi-institution-submission";
-import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
+import { processSubmissionDelivery } from "@/lib/authority/submission-delivery-worker";
 import { deliverRequesterSubmittedEmail, deliverRequesterVerificationEmail } from "@/lib/authority/requester-verification-delivery";
 import { userErrorMessage } from "@/lib/authority/user-messages";
 import { createAuthorityAdminClient } from "@/lib/supabase/admin";
@@ -57,13 +55,6 @@ async function fetchContext(groupId: string, sessionToken: string): Promise<Requ
   });
   if (error) return null;
   return mapRequesterSessionContext(data);
-}
-
-function mediaTypeFromPath(path: string) {
-  if (path.endsWith(".pdf")) return "application/pdf";
-  if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-  if (path.endsWith(".png")) return "image/png";
-  return "application/octet-stream";
 }
 
 export async function startSubmissionGroupAction(
@@ -344,121 +335,62 @@ export async function submitSubmissionGroupAction(input: {
   expectedVersion: number;
   attested: boolean;
 }): Promise<{ error: string | null }> {
-  let destination: string | null = null;
   try {
     const sessionToken = await getRequesterSessionToken();
     if (!sessionToken) throw new Error("requester_session_unavailable");
     const attestation = prepareRequesterAttestation({ acknowledged: input.attested });
-
-    const supabase = createAuthorityAdminClient();
-    const { data, error } = await supabase.rpc("submit_submission_group_v1", {
-      p_session_token: sessionToken,
-      p_group_id: input.groupId,
-      p_expected_version: input.expectedVersion,
-      p_requester_attestation_text_version: attestation.textVersion,
-      p_idempotency_key: randomUUID(),
-    });
-    if (error) throw error;
-
-    const result = mapSubmitSubmissionGroupResult(data);
-    if (!result) throw new Error("submission_group_not_submittable");
-
-    // Storage copy: evidence_copy_operations spans two buckets
-    // (authority-submission-evidence -> authority-evidence), so Supabase JS's
-    // single-bucket .copy() cannot be used -- download from the source bucket,
-    // then upload to the destination bucket with the admin/service-role client.
-    // The DB rows are already committed at this point, so a copy failure here is
-    // recoverable/retriable, not a reason to fail the whole submission.
-    const admin = createAuthorityAdminClient();
-    let copyFailureCount = 0;
-    for (const op of result.evidenceCopyOperations) {
-      try {
-        const { data: fileData, error: downloadError } = await admin.storage.from(op.fromBucket).download(op.fromPath);
-        if (downloadError || !fileData) throw downloadError ?? new Error("download_failed");
-        const bytes = Buffer.from(await fileData.arrayBuffer());
-        const { error: uploadError } = await admin.storage.from(op.toBucket).upload(op.toPath, bytes, {
-          contentType: mediaTypeFromPath(op.toPath),
-          upsert: false,
-        });
-        if (uploadError && uploadError.message !== "The resource already exists") throw uploadError;
-      } catch (copyError) {
-        copyFailureCount += 1;
-        console.error("multi_institution_evidence_copy_failed", { groupId: input.groupId, op, copyError });
-      }
-    }
-
     const context = await fetchContext(input.groupId, sessionToken);
-    const authorityAppUrl = getAuthorityAppUrl();
-
-    if (context) {
-      // Participant invitation emails are not optional -- without them a spawned
-      // case is unusable. Reuses the existing deliverParticipantInvitation()
-      // unchanged, once per role per spawned record, awaited so a failure is
-      // logged before this action returns rather than dropped as an orphaned
-      // fire-and-forget promise.
-      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
-      for (const spawned of result.spawned) {
-        const [principalDelivery, representativeDelivery] = await Promise.allSettled([
-          deliverParticipantInvitation({
-            invitationId: spawned.authorityRecordId,
-            invitationVersion: 1,
-            participantRole: "principal",
-            email: context.principalEmailNormalized ?? "",
-            institutionName: spawned.institutionName,
-            participantName: context.principalName ?? "",
-            otherPersonName: context.representativeName ?? "",
-            purpose: MULTI_INSTITUTION_PURPOSE,
-            accountBoundary: MULTI_INSTITUTION_ACCOUNT_BOUNDARY,
-            expiresAt,
-            secureUrl: new URL(`/r/${spawned.principalToken}`, authorityAppUrl).toString(),
-          }),
-          deliverParticipantInvitation({
-            invitationId: spawned.authorityRecordId,
-            invitationVersion: 2,
-            participantRole: "representative",
-            email: context.representativeEmailNormalized ?? "",
-            institutionName: spawned.institutionName,
-            participantName: context.representativeName ?? "",
-            otherPersonName: context.principalName ?? "",
-            purpose: MULTI_INSTITUTION_PURPOSE,
-            accountBoundary: MULTI_INSTITUTION_ACCOUNT_BOUNDARY,
-            expiresAt,
-            secureUrl: new URL(`/r/${spawned.representativeToken}`, authorityAppUrl).toString(),
-          }),
-        ]);
-        if (principalDelivery.status === "rejected" || (principalDelivery.status === "fulfilled" && !principalDelivery.value.accepted)) {
-          console.error("multi_institution_principal_invitation_not_delivered", { groupId: input.groupId, authorityRecordId: spawned.authorityRecordId, principalDelivery });
-        }
-        if (representativeDelivery.status === "rejected" || (representativeDelivery.status === "fulfilled" && !representativeDelivery.value.accepted)) {
-          console.error("multi_institution_representative_invitation_not_delivered", { groupId: input.groupId, authorityRecordId: spawned.authorityRecordId, representativeDelivery });
-        }
-      }
-
-      // Requester's own "submitted" confirmation is a nice-to-have per spec --
-      // awaited (so it isn't silently orphaned) but its failure never affects
-      // the outcome returned to the requester.
+    if (!context) throw new Error("requester_session_unavailable");
+    // Reopening a committed submission resumes its durable work; it never spawns cases again.
+    if (context.status !== "fanned_out") {
+      const admin = createAuthorityAdminClient();
+      const { data, error } = await admin.rpc("submit_submission_group_with_delivery_v1", {
+        p_session_token: sessionToken, p_group_id: input.groupId,
+        p_expected_version: input.expectedVersion,
+        p_requester_attestation_text_version: attestation.textVersion,
+        p_idempotency_key: input.groupId,
+      });
+      if (error) throw error;
+      const result = mapSubmitSubmissionGroupResult(data);
+      if (!result) throw new Error("submission_group_not_submittable");
+      // Optional requester acknowledgment remains separate from participant delivery.
       const cookieStore = await cookies();
       const requesterEmail = cookieStore.get(REQUESTER_EMAIL_COOKIE)?.value;
       if (requesterEmail) {
         await deliverRequesterSubmittedEmail({
-          kind: "submitted",
-          groupId: input.groupId,
-          email: requesterEmail,
-          requesterName: context.requesterName,
-          referenceCode: context.referenceCode,
-          matchedCount: result.matchedCount,
-          unmatchedCount: result.unmatchedCount,
-          secureUrl: new URL(`/start/multi-institution/${input.groupId}/submitted`, authorityAppUrl).toString(),
-        }).catch((deliveryError) => {
-          console.error("multi_institution_submitted_confirmation_failed", { groupId: input.groupId, deliveryError });
-        });
+          kind: "submitted", groupId: input.groupId, email: requesterEmail,
+          requesterName: context.requesterName, referenceCode: context.referenceCode,
+          matchedCount: result.matchedCount, unmatchedCount: result.unmatchedCount,
+          secureUrl: new URL(`/start/multi-institution/${input.groupId}/submitted`, getAuthorityAppUrl()).toString(),
+        }).catch(() => undefined);
       }
     }
-
-    revalidatePath(`/start/multi-institution/${input.groupId}`);
-    destination = `/start/multi-institution/${input.groupId}/submitted${copyFailureCount > 0 ? "?copyIssues=1" : ""}`;
+    // A timeout or failure leaves the persisted jobs available for retry.
+    await processSubmissionDelivery(input.groupId).catch(() => undefined);
   } catch (error) {
     return { error: userErrorMessage(multiInstitutionErrorCode(error)) };
   }
-  redirect(destination);
+  revalidatePath(`/start/multi-institution/${input.groupId}`);
+  redirect(`/start/multi-institution/${input.groupId}/submitted`);
+}
+
+export async function getSubmissionDeliveryStatusAction(groupId: string) {
+  const sessionToken = await getRequesterSessionToken();
+  if (!sessionToken) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_submission_delivery_status_v1", {
+    p_session_token: sessionToken, p_group_id: groupId,
+  });
+  if (error || !data) return null;
+  return { total: Number(data.total), completed: Number(data.completed), pending: Number(data.pending), needs_attention: Number(data.needs_attention), retry_at: typeof data.retry_at === "string" ? data.retry_at : null };
+}
+
+export async function retrySubmissionDeliveryAction(formData: FormData) {
+  const groupId = textField(formData, "groupId");
+  const sessionToken = await getRequesterSessionToken();
+  const context = sessionToken ? await fetchContext(groupId, sessionToken) : null;
+  if (!context || context.status !== "fanned_out") throw new Error("requester_session_unavailable");
+  await processSubmissionDelivery(groupId).catch(() => undefined);
+  revalidatePath(`/start/multi-institution/${groupId}/submitted`);
+  redirect(`/start/multi-institution/${groupId}/submitted`);
 }

@@ -3,6 +3,10 @@
     {
       "path": "/api/internal/hubspot/process",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/internal/submission-delivery/process",
+      "schedule": "0 7 * * *"
     }
   ]
 }

@@ -1,10 +1,20 @@
 # Current Passage checkpoint
 
-## September 22 audit and candidate update
+September 22 resume: the owner has resumed work and requested completion of all four roadmap steps. The pause below is historical. Hosted synthetic email testing is authorized to the inbox supplied in the task; extra role aliases require confirmation. Recovery rollout now uses an explicit queued-submission RPC so old inline senders cannot also enqueue. Source checks and all five SQL suites pass after this handover change. No new hosted recovery acceptance is claimed yet.
 
-The September 15 checkpoint below is historical. The September 21 audit verified main at `61ee1260b9281389ea79653034d093617293c169`; both live websites served `ff7d5ff0cfebaec444162acd7d2dc7e2429f24d2` (16 commits behind). Both hosted databases already contain the September 15 multi-institution/NY/catalog groundwork. Demo was restored from inactivity and is healthy. The claim below that these migrations are absent from UAT is superseded.
+## September 22 — implementation paused for owner review
 
-The consolidated hardening candidate and rollout requirements are in [RELEASE-HARDENING-2026-09-22.md](../RELEASE-HARDENING-2026-09-22.md). Its source checks and clean local migration replay passed; hosted application and migration rollout are not yet established. Submission recovery, NY provenance/pinning, full hosted persona QA, and the seven-day reconciliation evidence remain open. Do not describe the candidate as shipped based on a branch push.
+The owner asked to pause implementation and review the overall journey. Roadmap documentation may be updated; do not start another feature, migration, provider send, or rollout until work is resumed. See [Journey and north star](../JOURNEY-AND-NORTH-STAR-2026-09-22.md) and the [active delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md).
+
+PR #144 is merged and live on Production and Demo at `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. The submission security migration is applied and verified on both. Both deployments and merge-commit CI passed. Production owner workspace, saved case/receipt and both submission entry forms passed browser smoke. Demo's inactivity pause was restored. A fresh full participant/provider acceptance run remains open.
+
+PR #145 targets main and remains draft. Durable submission delivery recovery is implemented and locally verified: 228 domain tests, typecheck, lint, build, full migration replay, five SQL suites, and authenticated browser failure/retry persistence. Implementation CI/previews passed. No hosted recovery migration, worker rollout, or external email was performed. Documentation-only follow-ups do not change that implementation evidence.
+
+We are between a proven core workflow and a dependable, uncoached synthetic New York demo. On resume: recovery hosted acceptance, NY provenance and draft pinning/rebase, complete hosted persona/accessibility/recovery rehearsal, then operating evidence and explicit demo-release review. General configuration, complete commercial-provider reconciliation, seven actual clean days, and branch-check enforcement remain open.
+
+Latest owner decisions supersede historical counsel/paid-backup gates: counsel engagement is outside active M1; Free/no-PITR is accepted risk; synthetic data remains the current boundary; state build order is NY → PA → NJ → CT → MA. A named real-data pilot is a later separate decision.
+
+## Historical checkpoint — not current execution instructions
 
 Updated September 15, 2026 UTC after eng scoping aggregation. Codeword: **AUTHORITY COMPASS 771204**.
 

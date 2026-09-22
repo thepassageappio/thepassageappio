@@ -1,5 +1,21 @@
 # Outreach-ready product delivery plan
 
+## Current execution checkpoint — September 22, 2026 UTC
+
+**Implementation paused by the owner for a journey review.** The [journey and north star](JOURNEY-AND-NORTH-STAR-2026-09-22.md) is the current planning summary. Do not begin the next implementation or rollout until the owner resumes work.
+
+The north star is a simple, dependable way for people and financial institutions to reach and keep track of an institution-specific authority decision, with clear scope, limits, evidence, and matching receipts. Our immediate destination is an uncoached, reliable synthetic New York demonstration; buyer-demo readiness and real-data pilot readiness remain separate decisions.
+
+PR #144 is merged and live on Production and Demo at `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. Both deployments and merge-commit CI passed. Hosted submission security boundaries were repaired and verified. Release smoke, Production owner workspace/saved case/receipt, and both submission entry forms passed. This is not a fresh full participant/provider acceptance run.
+
+Recovery PR #145 targets main and remains draft. Its implementation passed 228 domain tests, typecheck, lint, build, clean migration replay, five SQL suites, local browser retry checks, and CI/previews. Its hosted migration and delivery-worker rollout have not occurred. See the [recovery contract](SUBMISSION-DELIVERY-RECOVERY-2026-09-22.md).
+
+**Resume order:** hosted delivery recovery acceptance → NY historical provenance and new-draft pinning/rebase → exact-release persona, failure-path, accessibility and timed-demo acceptance → operating/provider evidence and explicit demo-release decision. General institution configuration and full commercial automation remain unfinished. Seven actual clean reconciliation days are not established; required branch-check enforcement remains open.
+
+[Latest owner decisions](STEVE-DECISIONS-COMPLIANCE-2026-09-15.md) remove counsel engagement and paid backup upgrades from active M1. Synthetic data remains the current boundary. Map all 50 states; build NY → PA → NJ → CT → MA. These decisions and this checkpoint supersede historical status rows, old counts, holds, and dates below.
+
+## Historical evidence and prior plan
+
 Latest POL1 evidence: [policy snapshot baseline](POLICY-SNAPSHOT-BASELINE-2026-09-11.md) audited local, Demo and UAT without writes. All 26 hosted requests have matching creation-event template identifiers; none of those events contains a policy snapshot object. Preserve historical references explicitly and capture full policy content for new requests. The audit and read-only edge-case fixtures pass. This completes inventory only; schema, authoring, publication and rebase remain next. No migration or release occurred.
 
 Latest POL1 prerequisite: [accurate policy overview](POLICY-OVERVIEW-2026-09-11.md) now distinguishes saved, missing, failed and unsupported policy selections instead of showing a fallback active version. Eight page-state checks and 28 browser layout checks passed, alongside 172 domain tests, TypeScript, lint and build. Policy authoring/publication remains unimplemented; immutable versions and request snapshots are the next substantive POL1 step. Hosted cancellation replay and UAT preview access remain release work.
