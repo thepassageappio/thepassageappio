@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { normalizeParticipantToken, PARTICIPANT_SESSION_COOKIE, participantOverviewPath, type ParticipantDecision } from "@/lib/authority/participant-access";
+import { readInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
+import { normalizeInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
 import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
 import { prepareHostedSubmission } from "@/lib/authority/hosted-submission";
@@ -237,8 +239,14 @@ function participantDecisionPath(recordId: string, decision: string) {
 
 export async function exchangeParticipantInvitationAction(formData: FormData) {
   const token = normalizeParticipantToken(textField(formData, "token"));
-  const idempotencyKey = textField(formData, "idempotencyKey");
+  // Prefer browser-bound cookie (middleware) over remounted form UUID so double-submit
+  // replays the same exchange instead of racing into already_used.
+  const idempotencyKey =
+    (await readInviteExchangeIdempotencyKey())
+    ?? normalizeInviteExchangeIdempotencyKey(textField(formData, "idempotencyKey"))
+    ?? "";
   if (!token) redirect("/?error=link_unavailable");
+  if (!idempotencyKey) redirect(`/r/${token}?error=session_unavailable`);
 
   let destination = `/r/${token}`;
 

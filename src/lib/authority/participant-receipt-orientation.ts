@@ -65,13 +65,17 @@ export function buildParticipantReceiptOrientation(input: {
 
   let decisionLine: string;
   if (receipt.outcome === "accepted_with_limits") {
-    const limits = receipt.limitations.slice(0, 2).join("; ");
+    const limits = receipt.limitations
+      .slice(0, 2)
+      .map((item) => item.replace(/\s+/g, " ").trim().replace(/[.。]+$/u, ""))
+      .filter(Boolean)
+      .join("; ");
     decisionLine = limits ? `Accepted with limits: ${limits}.` : "Accepted with limits.";
   } else if (receipt.outcome === "rejected") {
-    const reason = receipt.reason.trim().slice(0, 120);
+    const reason = receipt.reason.trim().slice(0, 120).replace(/[.。]+$/u, "");
     decisionLine = reason ? `Rejected: ${reason}.` : "Rejected.";
   } else {
-    decisionLine = `${hostedDecisionLabel(receipt.outcome)}.`;
+    decisionLine = `${hostedDecisionLabel(receipt.outcome).replace(/[.。]+$/u, "")}.`;
   }
   if (decisionSinceChanged && laterChangeDetail) {
     decisionLine = `${decisionLine} Later: ${laterChangeDetail}.`;

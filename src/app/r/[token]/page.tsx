@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
 import Link from "next/link";
 import { exchangeParticipantInvitationAction } from "@/app/participant-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
@@ -45,6 +46,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
   const ready = preview.entryStatus === "ready" && preview.participantRole && preview.participantName;
   const resuming = ready && preview.participantRole === "representative" && preview.accessPurpose === "resume";
   const viewingReceipt = ready && preview.accessPurpose === "receipt";
+  const exchangeIdempotencyKey = (ready ? await readInviteExchangeIdempotencyKey() : null) ?? randomUUID();
 
   if (unavailable || preview.entryStatus === "unavailable" || error || expired || used) {
     const message = error ?? (expired ? errorCopy.link_expired : used ? errorCopy.link_used : errorCopy.link_unavailable);
@@ -85,7 +87,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     <ul className={styles.scope}>{preview.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key as keyof typeof HOSTED_ACTIONS] ?? key}</li>)}</ul>
     {waiting ? <div className={styles.notice} role="status">No action is required yet. The institution will notify you when the request is ready.</div> : ready ? <form action={exchangeParticipantInvitationAction} className={styles.form}>
       <input name="token" type="hidden" value={token!} />
-      <input name="idempotencyKey" type="hidden" value={randomUUID()} />
+      <input name="idempotencyKey" type="hidden" value={exchangeIdempotencyKey} />
       <button className={styles.primary} type="submit">{viewingReceipt ? "View receipt" : resuming ? "Resume secure request" : "Open secure request"}</button>
       <p className={styles.legal}>This link can be used once and gives you 30 minutes of access to this request.</p>
     </form> : null}
