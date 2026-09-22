@@ -1,16 +1,18 @@
 # Current Passage checkpoint
 
-## September 22 audit and candidate update
+## September 22 — implementation paused for owner review
 
-Latest release update: the owner approved PR #144, which merged as `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. Both live domains verify that exact main SHA; both deployments and merge-commit CI jobs passed. The matching application is now deployed, superseding the pending-approval and old-code interruption statements below. Production owner workspace/saved-case access and both submission entry pages pass browser smoke checks. Recovery PR #145 targets main but remains draft pending its coordinated rollout and hosted acceptance.
+The owner asked to pause implementation and review the overall journey. Roadmap documentation may be updated; do not start another feature, migration, provider send, or rollout until work is resumed. See [Journey and north star](../JOURNEY-AND-NORTH-STAR-2026-09-22.md) and the [active delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md).
 
-The September 15 checkpoint below is historical. The September 21 audit verified main at `61ee1260b9281389ea79653034d093617293c169`; both live websites served `ff7d5ff0cfebaec444162acd7d2dc7e2429f24d2` (16 commits behind). Both hosted databases already contain the September 15 multi-institution/NY/catalog groundwork. Demo was restored from inactivity and is healthy. The claim below that these migrations are absent from UAT is superseded.
+PR #144 is merged and live on Production and Demo at `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. The submission security migration is applied and verified on both. Both deployments and merge-commit CI passed. Production owner workspace, saved case/receipt and both submission entry forms passed browser smoke. Demo's inactivity pause was restored. A fresh full participant/provider acceptance run remains open.
 
-The consolidated hardening candidate is [PR #144](https://github.com/thepassageappio/thepassageappio/pull/144), commit `15335f5`. CI and both Vercel previews passed. Its server-boundary migration has been applied once to Demo and Production and passed rollback-based security checks on both. Application merge/deployment remains pending explicit approval after automatic approval review rejected the merge. The older application's submission start/submit path fails closed until the matching application is released. Do not describe the frontend as shipped based on a branch push.
+PR #145 targets main and remains draft. Durable submission delivery recovery is implemented and locally verified: 228 domain tests, typecheck, lint, build, full migration replay, five SQL suites, and authenticated browser failure/retry persistence. Implementation CI/previews passed. No hosted recovery migration, worker rollout, or external email was performed. Documentation-only follow-ups do not change that implementation evidence.
 
-The next priority, [submission delivery recovery](../SUBMISSION-DELIVERY-RECOVERY-2026-09-22.md), is implemented as a separate candidate: 228 domain tests, typecheck, lint, build, clean migration replay, and five SQL suites pass locally. A synthetic authenticated browser retry persisted file-copy failures, kept invitations unsent, preserved one case, and retained pending status after refresh. No external email was sent. Hosted recovery migration, worker configuration, scheduled execution, and full persona acceptance remain open. NY provenance/pinning is next after delivery recovery acceptance; seven-day reconciliation evidence is still incomplete.
+We are between a proven core workflow and a dependable, uncoached synthetic New York demo. On resume: recovery hosted acceptance, NY provenance and draft pinning/rebase, complete hosted persona/accessibility/recovery rehearsal, then operating evidence and explicit demo-release review. General configuration, complete commercial-provider reconciliation, seven actual clean days, and branch-check enforcement remain open.
 
-The owner authorized implementation and pushes on September 21. Historical M0-only/M1-build-hold wording below does not supersede that instruction. The active roadmap checkpoint takes precedence over historical status rows.
+Latest owner decisions supersede historical counsel/paid-backup gates: counsel engagement is outside active M1; Free/no-PITR is accepted risk; synthetic data remains the current boundary; state build order is NY → PA → NJ → CT → MA. A named real-data pilot is a later separate decision.
+
+## Historical checkpoint — not current execution instructions
 
 Updated September 15, 2026 UTC after eng scoping aggregation. Codeword: **AUTHORITY COMPASS 771204**.
 
