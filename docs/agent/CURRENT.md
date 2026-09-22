@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+September 22 release update: the owner resumed implementation. PR #145 (delivery recovery) and PR #146 (NY provenance/draft revisions) are merged. Both domains serve `9ec4313200e8c8938458b6c0a7b70a3dbecc36e6`. Both migrations and hosted SQL checks passed; historical fingerprints are unchanged. Hosted email arrival and requester verification passed, as did an explicit browser draft revision with its durable event and no send/usage. Full participant/provider acceptance is waiting on approved test-role addresses. Today's internal reconciliation is clean in both environments, **1/7 actual consecutive days**. See the [current release and journey checkpoint](../RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md) for evidence, open gates and the explicit demo/pilot HOLD. All pause and older release statements below are historical.
+
 September 22 resume: the owner has resumed work and requested completion of all four roadmap steps. The pause below is historical. Hosted synthetic email testing is authorized to the inbox supplied in the task; extra role aliases require confirmation. Recovery rollout now uses an explicit queued-submission RPC so old inline senders cannot also enqueue. Source checks and all five SQL suites pass after this handover change. No new hosted recovery acceptance is claimed yet.
 
 ## September 22 — implementation paused for owner review

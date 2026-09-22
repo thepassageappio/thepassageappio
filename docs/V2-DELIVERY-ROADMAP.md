@@ -1,6 +1,6 @@
 ## Passage Authority V2 delivery roadmap
 
-September 22, 2026: implementation is paused for owner review. The [journey and north star](JOURNEY-AND-NORTH-STAR-2026-09-22.md) and [active execution checkpoint](OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md#current-execution-checkpoint--september-22-2026-utc) supersede historical status and forecast dates below. PR #144 is live on Production and Demo at `7a3a09d`. Recovery PR #145 is implemented and tested but remains draft and unshipped. We are progressing from a working core toward a dependable, uncoached synthetic NY demo; buyer-demo and real-data pilot readiness are not complete.
+September 22, 2026: the owner resumed implementation. Recovery PR #145 and NY provenance/draft safeguards PR #146 are merged and live. The [current release and journey checkpoint](RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md) supersedes historical status, pauses and forecast dates below. Full hosted participant/provider acceptance and independent first-use/accessibility remain open. Internal reconciliation is 1/7 actual days; daily scheduling and two QA refinements are in PR #147. Buyer-demo and real-data pilot release remain HOLD pending their separate acceptance gates.
 
 Latest execution checkpoint: [product gaps](PRODUCT-GAPS-2026-09-10.md), [draft recovery](DRAFT-RECOVERY-2026-09-10.md). UX2 has progressed; WF1 and POL1 remain open.
 

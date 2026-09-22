@@ -1,5 +1,9 @@
 # Daily reconciliation streak log
 
+## Current evidence — September 22, 2026 UTC
+
+Both environments recorded a new immutable clean internal run: Demo at `2026-09-22T10:27:53.970535Z`, Production/UAT at `2026-09-22T10:27:55.018735Z`. Run key `f5421d7b-7cde-8a48-6970-b66a299b0a48` is independently scoped to each project. Variance and unresolved-provider arrays were empty. Current streak: **1/7**, not the historical 2/7 below. The prior latest day was September 15; missing days are not credited. This remains internal reconciliation, not live Stripe/HubSpot comparison. See the [current checkpoint](RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md).
+
 ## Latest evidence — September 10, 2026 UTC
 
 UAT and Demo each recorded a new immutable `clean` run on September 10, following the September 9 clean run: **2/7 consecutive internal reconciliation days**. Both returned `already_recorded_today: false`, run key `765a4257-92a8-d9ce-5a6b-ae9b0b453f49`; UAT recorded at `2026-09-10T02:20:43.130886Z`, Demo at `2026-09-10T02:20:44.414146Z`. The shared date-derived key is scoped to each separate project. Unresolved inbox/outbox and billing/usage/decision variance arrays were empty.
