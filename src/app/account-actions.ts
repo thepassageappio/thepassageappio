@@ -42,6 +42,11 @@ function errorCode(error: unknown) {
 
   const message = String(error.message);
   const map: Record<string, string> = {
+    jurisdiction_configuration_unavailable: "jurisdiction_configuration_unavailable",
+    jurisdiction_draft_stale: "jurisdiction_draft_stale",
+    jurisdiction_draft_changed: "jurisdiction_draft_changed",
+    jurisdiction_review_required: "jurisdiction_review_required",
+    request_changed: "request_changed",
     authority_access_unavailable: "access_unavailable",
     authority_app_url_insecure: "invitation_configuration_invalid",
     authority_app_url_mismatch: "invitation_configuration_invalid",
@@ -614,6 +619,28 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
     destination = withMessage(`/app/requests/${recordId}`, "notice", deliveryNotice);
   } catch (error) {
     destination = withMessage(`/app/requests/${recordId}`, "error", errorCode(error));
+  }
+  redirect(destination);
+}
+
+export async function rebaseHostedAuthorityDraftAction(formData: FormData) {
+  const recordId = textField(formData, "recordId");
+  let destination = `/app/requests/${recordId}`;
+  try {
+    const access = await getAuthorityMutationAccessContext();
+    if (!access?.membership || !canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_creation_not_allowed");
+    if (!checkbox(formData, "reviewedChanges")) throw new Error("jurisdiction_review_required");
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("rebase_authority_ny_draft_v1", {
+      p_organization_id: access.membership.organizationId, p_authority_record_id: recordId,
+      p_expected_version: Number(textField(formData, "expectedVersion")),
+      p_current_hash: textField(formData, "currentHash"), p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    revalidatePath(`/app/requests/${recordId}`);
+    destination = withMessage(destination, "notice", "draft_rules_updated");
+  } catch (error) {
+    destination = withMessage(destination, "error", error instanceof Error ? error.message : errorCode(error));
   }
   redirect(destination);
 }

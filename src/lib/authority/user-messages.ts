@@ -1,6 +1,10 @@
 import { requestCoordinatorRecoveryMessage } from "./role-capabilities.ts";
 
 const errorMessages: Record<string, string> = {
+  jurisdiction_configuration_unavailable: "The current rules could not be loaded. Keep this draft saved and contact Passage before sending it.",
+  jurisdiction_draft_stale: "The rules changed or were not saved with this draft. Review the changes before sending.",
+  jurisdiction_draft_changed: "The rules changed again while you were reviewing them. Reload and review the latest changes.",
+  jurisdiction_review_required: "Confirm that you reviewed the changes before updating this draft.",
   access_unavailable: "Account access is temporarily unavailable. Please try again shortly.",
   access_revoked: "Your previous organization access was removed. Contact an organization owner if you believe access should be restored.",
   email_invalid: "Enter a valid work email address.",
@@ -112,6 +116,7 @@ const errorMessages: Record<string, string> = {
 };
 
 const noticeMessages: Record<string, string> = {
+  draft_rules_updated: "The draft now uses the reviewed rules. The previous version stays in its history. Nothing was sent.",
   invitation_sent: "The secure invitation is ready for the recipient.",
   invitation_created: "The invitation is saved. Delivery is pending.",
   invitation_accepted: "Your organization access is active.",

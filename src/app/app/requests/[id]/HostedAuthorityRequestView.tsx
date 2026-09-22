@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
-import { activateHostedAuthorityRequestAction, reissueParticipantInvitationAction } from "@/app/account-actions";
+import { activateHostedAuthorityRequestAction, reissueParticipantInvitationAction, rebaseHostedAuthorityDraftAction } from "@/app/account-actions";
+import { governingSnapshotChanges } from "@/lib/authority/governing-snapshot";
 import { EditDraftEmailsForm } from "./EditDraftEmailsForm";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
@@ -24,6 +25,7 @@ export function HostedAuthorityRequestView({
   notice,
   demo,
   record,
+  governingContext,
   closedMessage,
   reviewFinished,
   events,
@@ -158,7 +160,7 @@ export function HostedAuthorityRequestView({
     hasDecision: Boolean(decision),
   });
 
-  const { showNyPack, nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record);
+  const { showNyPack, nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record, decision?.receiptSnapshot);
 
   const lower = {
     access,
@@ -197,6 +199,25 @@ export function HostedAuthorityRequestView({
     {inviteAccessLinkFlash ? <CopyAccessLink recordId={record.id} role={inviteAccessLinkFlash.role} url={inviteAccessLinkFlash.url} /> : null}
     {isDemoRunView ? <div className={styles.notice}><strong>Your demo starts here.</strong> Check the test email addresses and requested actions below. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> before sending.</div> : null}
     {savedError ? <div className={styles.alert} role="alert">{savedError}</div> : null}
+    {governingContext.stale ? <section className={styles.panel} aria-labelledby="draft-rules-title">
+      <h2 id="draft-rules-title">Review the changed rules before sending</h2>
+      <p>This draft uses earlier settings. Review each change below, then save a new draft revision. The earlier settings stay in the request history.</p>
+      <div style={{ overflowX: "auto" }}><table>
+        <caption>Changes from this saved draft to the current New York settings</caption>
+        <thead><tr><th scope="col">Setting</th><th scope="col">Saved draft</th><th scope="col">Current setting</th></tr></thead>
+        <tbody>{governingSnapshotChanges(governingContext.saved, governingContext.current).map(change => <tr key={change.label}>
+          <th scope="row">{change.label}</th><td>{change.before}</td><td>{change.after}</td>
+        </tr>)}</tbody>
+      </table></div>
+      {canCoordinate && governingContext.currentHash ? <form action={rebaseHostedAuthorityDraftAction}>
+        <input type="hidden" name="recordId" value={record.id} />
+        <input type="hidden" name="expectedVersion" value={record.version} />
+        <input type="hidden" name="currentHash" value={governingContext.currentHash} />
+        <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+        <label><input type="checkbox" name="reviewedChanges" required /> I reviewed these changes.</label>
+        <button type="submit" className={styles.secondary}>Save draft with these settings</button>
+      </form> : <p>{requestCoordinatorRecoveryMessage}</p>}
+    </section> : null}
     <OrientationStrip model={orientation} />
     {documentReview ? (
       <DocumentReviewStrip
@@ -257,7 +278,7 @@ export function HostedAuthorityRequestView({
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <button className={styles.primary} type="submit">Send to the account holder</button>
-          </form> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
+          </form> : governingContext.stale ? <p>Review and save the changed rules above before sending.</p> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
         </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`} id="participant-access">
           <summary>Participant access ({invitations?.length ?? 0} people)</summary>
           <p>{participantAccessDescription}</p>
