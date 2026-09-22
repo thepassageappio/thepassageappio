@@ -6,7 +6,7 @@ import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
-import { hostedDecisionLabel, mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
+import { mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import { hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { buildCaseOrientation, buildDocumentReviewModel } from "@/lib/authority/orientation-strip";
@@ -17,37 +17,11 @@ import { DocumentReviewStrip } from "@/components/app/DocumentReviewStrip";
 import { CopyAccessLink } from "./CopyAccessLink";
 import { HostedAuthorityRequestLower } from "./HostedAuthorityRequestLower";
 
-type ViewProps = {
-  access: any;
-  notice?: string;
-  error?: string;
-  demo?: string;
-  record: any;
-  closedMessage: string | null;
-  reviewFinished: boolean;
-  events: any[];
-  savedError: string | null;
-  activatedCount: number;
-  transactionLimit: number;
-  periodEndsAt: string | null;
-  evaluationLimitReached: boolean;
-  canCoordinate: boolean;
-  canActivate: boolean;
-  nextCount: number;
-  invitations: any[];
-  notificationData: unknown;
-  requirements: any[];
-  evidenceArtifacts: any[];
-  decisionRow: unknown;
-  informationRequests: any[];
-  informationResponses: any[];
-  inviteAccessLinkFlash: { role: "principal" | "representative"; url: string } | null;
-};
+export type ViewProps = NonNullable<Awaited<ReturnType<typeof import("./HostedAuthorityRequestPage").loadHostedAuthorityRequest>>>;
 
 export function HostedAuthorityRequestView({
   access,
   notice,
-  error: _error,
   demo,
   record,
   closedMessage,

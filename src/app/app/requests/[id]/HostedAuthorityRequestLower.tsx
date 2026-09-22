@@ -1,3 +1,5 @@
+import type { ViewProps } from "./HostedAuthorityRequestView";
+import type { HostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { recordInstitutionDecisionAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
@@ -8,23 +10,23 @@ import { CancelRequestForm } from "./CancelRequestForm";
 import styles from "@/components/app/app-shell.module.css";
 
 type LowerProps = {
-  access: any;
-  record: any;
+  access: ViewProps["access"];
+  record: ViewProps["record"];
   closedMessage: string | null;
   reviewFinished: boolean;
-  events: any[];
+  events: ViewProps["events"];
   canCoordinate: boolean;
   canRecordDecision: boolean;
   canReviewEvidence: boolean;
-  decision: any;
+  decision: HostedInstitutionDecision | null;
   decisionReady: boolean;
   decisionSinceChanged: boolean;
-  requirements: any[];
-  evidenceArtifacts: any[];
-  informationRequests: any[];
-  informationResponses: any[];
-  openInformationRequest: any;
-  responseByRequest: Map<string, any>;
+  requirements: ViewProps["requirements"];
+  evidenceArtifacts: ViewProps["evidenceArtifacts"];
+  informationRequests: ViewProps["informationRequests"];
+  informationResponses: ViewProps["informationResponses"];
+  openInformationRequest: ViewProps["informationRequests"][number] | undefined;
+  responseByRequest: Map<string, ViewProps["informationResponses"][number]>;
   requirementStatusLabel: (status: unknown) => string;
   activityDetail: (event: { eventType: string; detail: string }) => string;
   activitySummary: (event: { eventType: string; summary: string }) => string;
@@ -34,7 +36,6 @@ type LowerProps = {
 
 export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
   const {
-    access,
     record,
     closedMessage,
     reviewFinished,
@@ -48,7 +49,6 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
     requirements,
     evidenceArtifacts,
     informationRequests,
-    informationResponses,
     openInformationRequest,
     responseByRequest,
     requirementStatusLabel,

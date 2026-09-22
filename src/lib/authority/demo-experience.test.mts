@@ -81,13 +81,13 @@ test("mobile institution navigation and request rows do not require a desktop-wi
 });
 
 test("reviewers and participants receive a visible next action before supporting detail", () => {
-  const institutionRequest = source("../../app/app/requests/[id]/page.tsx");
+  const institutionRequest = source("../../app/app/requests/[id]/HostedAuthorityRequestView.tsx");
   const participantOverview = source("../../app/request/[id]/overview/page.tsx");
   const participantRequirements = source("../../app/request/[id]/requirements/page.tsx");
 
-  assert.match(institutionRequest, /Your next step:/);
-  assert.match(institutionRequest, /href: "#institution-decision"/);
-  assert.match(institutionRequest, /href: "#required-information"/);
+  assert.match(institutionRequest, /<OrientationStrip model=\{orientation\}/);
+  assert.match(institutionRequest, /<DocumentReviewStrip/);
+  assert.match(institutionRequest, /decideHref="#institution-decision"/);
   assert.match(participantOverview, /Your next step: review and decide/);
   assert.match(participantOverview, /You can see the current request below/);
   assert.match(participantRequirements, /allComplete \? "Review and send"/);

@@ -1,8 +1,6 @@
 import { Resend } from "resend";
 import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
 import { authorityPurposeLabel } from "./display-copy.ts";
-import { createAuthorityAdminClient } from "@/lib/supabase/admin";
-import { setInviteAccessLinkFlash } from "@/lib/authority/invite-access-link-cookie";
 
 export type ParticipantInvitationDelivery = {
   invitationId: string;
@@ -144,6 +142,12 @@ async function flashInviteAccessLink(delivery: ParticipantInvitationDelivery) {
   // Token stays hash-only in DB; plaintext URL lives only in this short-lived cookie.
   try {
     if (!delivery.secureUrl || !delivery.invitationId) return;
+    const { getAuthorityAccessContext } = await import("@/lib/authority/access");
+    const { mayProvisionDemoRun } = await import("./demo-boundary.ts");
+    const access = await getAuthorityAccessContext();
+    if (!access?.membership || !mayProvisionDemoRun(access.user.email, access.membership.role)) return;
+    const { createAuthorityAdminClient } = await import("@/lib/supabase/admin");
+    const { setInviteAccessLinkFlash } = await import("@/lib/authority/invite-access-link-cookie");
     const admin = createAuthorityAdminClient();
     const { data: inv } = await admin
       .from("authority_participant_invitations")
@@ -163,10 +167,12 @@ async function flashInviteAccessLink(delivery: ParticipantInvitationDelivery) {
 }
 
 export async function deliverParticipantInvitation(delivery: ParticipantInvitationDelivery): Promise<ParticipantDeliveryResult> {
-  await flashInviteAccessLink(delivery);
-
   if (!isDemoEmailRecipientAllowed(delivery.email)) {
     return { accepted: false, provider: "disabled", reason: "recipient_not_allowed" };
+  }
+
+  if (process.env.PASSAGE_ENVIRONMENT?.trim().toLowerCase() === "demo") {
+    await flashInviteAccessLink(delivery);
   }
 
   const provider = process.env.AUTHORITY_PARTICIPANT_INVITATION_DELIVERY?.trim().toLowerCase();

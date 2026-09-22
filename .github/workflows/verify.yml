@@ -1,0 +1,39 @@
+name: Release checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.1
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+      - run: supabase db start
+      - name: Verify authorization and recovery
+        run: |
+          for test in submission_server_boundary authority_public_security_boundary authority_reviewer_role_boundary authority_terminal_and_recovery; do
+            docker exec -i supabase_db_passage-authority psql -U postgres -d postgres -v ON_ERROR_STOP=1 < "supabase/tests/$test.sql"
+          done

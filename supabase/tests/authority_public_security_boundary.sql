@@ -107,7 +107,7 @@ end $$;
 select pg_temp.expect_denied('foreign organization activate', $q$select public.activate_authority_request_v1('22000000-0000-4000-8000-000000000099','32000000-0000-4000-8000-000000000001',1,gen_random_uuid())$q$, 'authority_request_creation_not_allowed');
 select pg_temp.expect_denied('foreign organization reissue', $q$select public.reissue_participant_invitation_v1('22000000-0000-4000-8000-000000000099','32000000-0000-4000-8000-000000000001','principal',1,1,gen_random_uuid())$q$, 'authority_request_creation_not_allowed');
 select pg_temp.expect_denied('foreign organization review', $q$select public.review_evidence_artifact_v1('22000000-0000-4000-8000-000000000099','32000000-0000-4000-8000-000000000001','32000000-0000-4000-8000-000000000099',1,1,'accepted',null,gen_random_uuid())$q$, 'authority_request_creation_not_allowed');
-select pg_temp.expect_denied('foreign organization status', $q$select public.get_authority_notification_status_v1('22000000-0000-4000-8000-000000000099','32000000-0000-4000-8000-000000000001')$q$, 'authority_request_creation_not_allowed');
+select pg_temp.expect_denied('foreign organization status', $q$select public.get_authority_notification_status_v1('22000000-0000-4000-8000-000000000099','32000000-0000-4000-8000-000000000001')$q$, 'authority_request_not_found');
 
 reset role;
 update public.organization_memberships set role='admin'
@@ -134,3 +134,4 @@ do $$ begin
 end $$;
 select * from security_boundary_results order by label;
 rollback;
+
