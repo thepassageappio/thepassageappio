@@ -4,7 +4,7 @@ September 10, 2026. Narrow WF1 implementation is now locally verified; not shipp
 
 ## First supported transition
 
-`awaiting_principal -> canceled`. The institution can stop an unneeded request before the account holder confirms. Do not use participant decline, institution rejection or legal revocation for this action. Broader cancellation during review remains a separate scope decision.
+`draft -> canceled` and `awaiting_principal -> canceled`. The institution can discard an unsent draft or stop an unneeded request before the account holder confirms. Do not use participant decline, institution rejection or legal revocation for this action. Broader cancellation during review remains a separate scope decision.
 
 Active, email-confirmed owner/admin/staff in the same ready, active organization may coordinate this action; reviewer/auditor/developer may not. Apply existing privileged MFA requirements. Database authorization must repeat the server check.
 
