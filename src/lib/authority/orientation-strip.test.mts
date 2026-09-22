@@ -40,7 +40,8 @@ test("under review answers five questions without a decision", () => {
     ],
   });
   assert.equal(model.statusSentence, "The bank can decide now.");
-  assert.match(model.nextLine, /Reviewer/);
+  assert.match(model.nextLine, /Bank reviewer \(reviewer\)/);
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
   assert.equal(model.primaryAction?.label, "Review and decide");
   assert.equal(model.decisionLine, "Not decided yet.");
   assert.equal(model.currencyLabel, "No decision yet.");
@@ -105,10 +106,14 @@ test("later revoke keeps original decision and loud later-change currency", () =
   });
   assert.equal(model.statusSentence, "The bank's answer changed later.");
   assert.equal(model.currencyLabel, "A later change was recorded.");
-  assert.match(model.decisionLine, /Later: ended/);
+  assert.equal(model.decisionLine, "Accepted.");
+  assert.doesNotMatch(model.decisionLine, /Later:/);
+  assert.equal(model.laterChangeDetail, "This answer ended. It is not the current answer.");
+  assert.equal(model.chips[2].state, "Ended");
+  assert.equal(model.nextLine, "Next: Anyone on this request — open the receipt to see what changed.");
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)/);
   assert.equal(model.primaryAction?.label, "See what changed");
 });
-
 
 test("post-decision withdrawal counts as a later change", () => {
   const decision: HostedInstitutionDecision = {
@@ -133,7 +138,10 @@ test("post-decision withdrawal counts as a later change", () => {
   });
   assert.equal(model.statusSentence, "The bank's answer changed later.");
   assert.equal(model.currencyLabel, "A later change was recorded.");
-  assert.match(model.decisionLine, /Later: the representative withdrew/);
+  assert.doesNotMatch(model.decisionLine, /Later:/);
+  assert.equal(model.laterChangeDetail, "This answer ended. It is not the current answer.");
+  assert.equal(model.chips[2].state, "Ended");
+  assert.equal(model.nextLine, "Next: Anyone on this request — open the receipt to see what changed.");
   assert.equal(model.primaryAction?.label, "See what changed");
 });
 
@@ -171,13 +179,13 @@ test("draft orientation keeps send primary and offers change-emails secondary", 
     decision: null,
   });
   assert.equal(model.statusSentence, "This request is not sent yet.");
-  assert.match(model.nextLine, /check emails, then send/);
+  assert.equal(model.nextLine, "Next: Your bank team — check the emails, then send this request.");
+  assert.doesNotMatch(model.nextLine, /\(staff\)|\(viewer\)/);
   assert.equal(model.primaryAction?.href, "#review-and-send");
   assert.equal(model.primaryAction?.label, "Send request");
   assert.equal(model.secondaryAction?.href, "#contact-details");
   assert.equal(model.secondaryAction?.label, "Change emails");
 });
-
 
 test("empty checklist under review does not jump to missing documents anchor", () => {
   const model = buildCaseOrientation({
@@ -201,7 +209,8 @@ test("empty checklist without asked-for actions uses locked empty copy", () => {
   });
   assert.equal(model.primaryAction?.href, "#what-they-may-ask-for");
   assert.equal(model.primaryAction?.label, "Pick at least one thing to ask for.");
-  assert.match(model.nextLine, /Pick at least one thing to ask for\./);
+  assert.match(model.nextLine, /pick at least one thing to ask for/i);
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)/);
   assert.equal(model.chips[1].state, "Needed");
 });
 
@@ -221,8 +230,83 @@ test("received evidence directs the bank while preserving representative work", 
   const model = buildCaseOrientation(input);
   assert.equal(model.primaryAction?.href, "#required-information");
   assert.match(model.nextLine, /Bank reviewer/);
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
   const documents = buildDocumentReviewModel({ requirements, artifacts, recordStatus: "evidence_required", hasDecision: false });
   assert.equal(documents?.checked[0].whoMustFix, "Confirmed by the representative");
   const unfinished = buildCaseOrientation({ ...input, requirements: requirements.map(item => item.id === "2" ? { ...item, status: "pending" } : item) });
   assert.match(unfinished.nextLine, /Riley Rep/);
+});
+
+test("accepted with limits later-change keeps Decision and Later separate without doubled periods", () => {
+  const decision: HostedInstitutionDecision = {
+    id: "dec-1",
+    receiptCode: "R-1",
+    authorityRecordId: "rec-1",
+    recordVersion: 2,
+    outcome: "accepted_with_limits",
+    reason: "Limited",
+    acceptedActionKeys: ["receive_duplicate_statements"],
+    limitations: [
+      "Copies of account statements only. Bank discussion was not included.",
+      "Synthetic demonstration only; no real accounts or customer authority.",
+    ],
+    decidedBy: "user-2",
+    decidedByRole: "reviewer",
+    decidedAt: "2026-09-10T00:00:00.000Z",
+    receiptSha256: "abc",
+    receiptSnapshot: {},
+  };
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, status: "revoked" },
+    role: "admin",
+    decision,
+    laterChangeDetail: "ended",
+  });
+  assert.equal(
+    model.decisionLine,
+    "Accepted with limits: Copies of account statements only. Bank discussion was not included; Synthetic demonstration only; no real accounts or customer authority.",
+  );
+  assert.doesNotMatch(model.decisionLine, /authority\.\./);
+  assert.doesNotMatch(model.decisionLine, /Later:/);
+  assert.equal(model.laterChangeDetail, "This answer ended. It is not the current answer.");
+  assert.equal(model.chips[2].state, "Ended");
+  assert.equal(model.nextLine, "Next: Anyone on this request — open the receipt to see what changed.");
+});
+
+test("single limitation ending in period does not double the terminal period", () => {
+  const decision: HostedInstitutionDecision = {
+    id: "dec-2",
+    receiptCode: "R-2",
+    authorityRecordId: "rec-1",
+    recordVersion: 2,
+    outcome: "accepted_with_limits",
+    reason: "Limited",
+    acceptedActionKeys: ["receive_duplicate_statements"],
+    limitations: ["Synthetic demonstration only; no real accounts or customer authority."],
+    decidedBy: "user-2",
+    decidedByRole: "reviewer",
+    decidedAt: "2026-09-10T00:00:00.000Z",
+    receiptSha256: "abc",
+    receiptSnapshot: {},
+  };
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, status: "accepted_with_limits" },
+    role: "admin",
+    decision,
+  });
+  assert.equal(
+    model.decisionLine,
+    "Accepted with limits: Synthetic demonstration only; no real accounts or customer authority.",
+  );
+  assert.doesNotMatch(model.decisionLine, /\.\./);
+});
+
+test("awaiting principal next line uses account holder gloss without raw role codes", () => {
+  const model = buildCaseOrientation({
+    record: { ...baseRecord, status: "awaiting_principal" },
+    role: "staff",
+    decision: null,
+  });
+  assert.equal(model.nextLine, "Next: Alex Account (account holder) — confirm this request.");
+  assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
 });

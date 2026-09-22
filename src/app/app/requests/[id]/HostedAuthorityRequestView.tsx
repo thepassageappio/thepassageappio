@@ -59,11 +59,11 @@ export function HostedAuthorityRequestView({
   const participantAccessDescription = record.status === "awaiting_principal"
     ? "The account holder goes first. The representative can continue after the account holder confirms."
     : record.status === "awaiting_representative"
-      ? "The person granting authority confirmed. The representative can now review the request."
+      ? "The account holder confirmed. The representative can now review the request."
       : "Each person used separate access for their role. Their saved decisions appear in the activity below.";
   const activityDetail = (event: { eventType: string; detail: string }) => {
     if (event.eventType === "participant.access_established") return "The secure invitation was opened for this person and this request.";
-    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder\u2019s link was prepared. The representative must wait for the account holder to confirm.";
+    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder’s link was prepared. The representative must wait for the account holder to confirm.";
     if (event.eventType === "participant.invitation_delivered") return "The email provider accepted the invitation. Final delivery confirmation is pending.";
     return event.detail;
   };
@@ -247,7 +247,7 @@ export function HostedAuthorityRequestView({
           <summary>Contact details for both people</summary>
           <p>Each person receives a separate secure link. Names are shown at the top of this page.</p>
           <dl className={styles.policyFacts}>
-            <div><dt>Person granting authority</dt><dd>{record.principalName}<br />{record.principalEmail}</dd></div>
+            <div><dt>Account holder</dt><dd>{record.principalName}<br />{record.principalEmail}<br /><span style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500 }}>The person who owns the account</span></dd></div>
             <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
           </dl>
           {record.status === "draft" && canCoordinate ? (
@@ -291,7 +291,7 @@ export function HostedAuthorityRequestView({
             const canReissue = (canCoordinate || canReviewEvidence) && canReissueParticipantAccess(role, record.status);
             const accessPurpose = participantAccessPurpose(role, record.status);
             return <li key={String(invitation.id)}>
-              <span>{role === "principal" ? "Person granting authority" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {deliveryStatusLabel(notification?.delivery_status)})</span>
+              <span>{role === "principal" ? "Account holder" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {deliveryStatusLabel(notification?.delivery_status)})</span>
               {canReissue ? <form action={reissueParticipantInvitationAction}>
                 <input type="hidden" name="recordId" value={record.id} />
                 <input type="hidden" name="participantRole" value={role} />
