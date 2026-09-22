@@ -342,3 +342,42 @@ test("awaiting principal next line uses account holder gloss without raw role co
   assert.equal(model.nextLine, "Next: Alex Account (account holder) — confirm this request.");
   assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
 });
+
+test("checks complete before submit waits on representative and keeps decide blocked", () => {
+  const requirements = [
+    { id: "1", requirement_key: "power_of_attorney", title: "POA", status: "completed" },
+    { id: "2", requirement_key: "identity_evidence", title: "Identity", status: "completed" },
+    { id: "3", requirement_key: "representative_certification", title: "Certification", status: "completed" },
+  ];
+  const model = buildDocumentReviewModel({
+    requirements,
+    artifacts: [],
+    recordStatus: "ready_to_submit",
+    hasDecision: false,
+  });
+  assert.ok(model);
+  assert.equal(model!.missing.length, 0);
+  assert.equal(model!.checked.length, 3);
+  assert.equal(model!.ready, false);
+  assert.equal(
+    model!.readyLabel,
+    "All required checks are complete. Waiting for the representative to review and send.",
+  );
+});
+
+test("under_review with checks complete stays ready for bank decide", () => {
+  const requirements = [
+    { id: "1", requirement_key: "power_of_attorney", title: "POA", status: "completed" },
+    { id: "2", requirement_key: "identity_evidence", title: "Identity", status: "completed" },
+    { id: "3", requirement_key: "representative_certification", title: "Certification", status: "completed" },
+  ];
+  const model = buildDocumentReviewModel({
+    requirements,
+    artifacts: [],
+    recordStatus: "under_review",
+    hasDecision: false,
+  });
+  assert.ok(model);
+  assert.equal(model!.ready, true);
+  assert.equal(model!.readyLabel, "Yes");
+});

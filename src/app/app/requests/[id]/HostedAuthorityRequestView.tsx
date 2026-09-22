@@ -8,7 +8,7 @@ import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordina
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
 import { mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
-import { hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
+import { deliveryStatusFaceLabel, hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { buildCaseOrientation, buildDocumentReviewModel } from "@/lib/authority/orientation-strip";
 import styles from "@/components/app/app-shell.module.css";
@@ -78,17 +78,7 @@ export function HostedAuthorityRequestView({
     delivery_status: string;
     attempts: number;
   }> : [];
-  const deliveryStatusLabel = (status: string | undefined) => {
-    const labels: Record<string, string> = {
-      pending: "Delivery pending",
-      delivered: "Email reached the inbox (provider confirmed)",
-      failed: "Delivery needs attention",
-      canceled: "Held until prior step",
-      retrying: "Delivery retry scheduled",
-      processing: "Email accepted by the provider (not confirmed in the inbox yet)",
-    };
-    return status ? labels[status] ?? "Delivery updated" : "Delivery not started";
-  };
+  const deliveryStatusLabel = deliveryStatusFaceLabel;
   const activeDeliveryRole = record.status === "awaiting_principal"
     ? "principal"
     : record.status === "awaiting_representative"

@@ -427,10 +427,19 @@ export function buildDocumentReviewModel(input: {
   }
 
   const ready = missing.length === 0 && !input.hasDecision && input.recordStatus === "under_review";
+  let readyLabel = "Not yet, finish the missing list.";
+  if (ready) {
+    readyLabel = "Yes";
+  } else if (input.hasDecision) {
+    readyLabel = "Decision already saved";
+  } else if (missing.length === 0) {
+    // Checks complete but representative has not submitted into bank decide yet.
+    readyLabel = "All required checks are complete. Waiting for the representative to review and send.";
+  }
   return {
     missing,
     checked,
     ready,
-    readyLabel: ready ? "Yes" : input.hasDecision ? "Decision already saved" : "Not yet, finish the missing list.",
+    readyLabel,
   };
 }
