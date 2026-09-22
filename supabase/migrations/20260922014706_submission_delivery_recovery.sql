@@ -36,7 +36,8 @@ create function authority_private.enqueue_submission_delivery() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare op jsonb; spawned jsonb; artifact public.authority_evidence_artifacts%rowtype; inv public.authority_participant_invitations%rowtype;
 begin
-  if new.command_name <> 'submit_submission_group' then return new; end if;
+  if new.command_name <> 'submit_submission_group'
+    or current_setting('passage.submission_delivery_mode',true) is distinct from 'queued' then return new; end if;
   for op in select value from jsonb_array_elements(new.result->'evidence_copy_operations') loop
     select * into strict artifact from public.authority_evidence_artifacts where storage_path = op->>'to_path' and storage_bucket = op->>'to_bucket';
     insert into authority_private.submission_delivery_jobs(group_id,receipt_key,record_id,kind,job_key,payload)
@@ -55,6 +56,22 @@ end $$;
 create trigger submission_delivery_enqueue after insert on authority_private.submission_group_command_receipts
 for each row execute function authority_private.enqueue_submission_delivery();
 revoke all on function authority_private.enqueue_submission_delivery() from public,anon,authenticated;
+
+-- Explicit new server command makes mixed-version deployment safe. Older app
+-- instances keep inline delivery and never enqueue; the new app only queues.
+create function public.submit_submission_group_with_delivery_v1(
+  p_session_token text,p_group_id uuid,p_expected_version bigint,
+  p_requester_attestation_text_version text,p_idempotency_key uuid
+) returns jsonb language plpgsql security definer set search_path='' as $$
+declare result jsonb; previous_mode text:=current_setting('passage.submission_delivery_mode',true);
+begin
+  perform set_config('passage.submission_delivery_mode','queued',true);
+  result:=authority_private.submit_submission_group_v1(p_session_token,p_group_id,p_expected_version,p_requester_attestation_text_version,p_idempotency_key);
+  perform set_config('passage.submission_delivery_mode',coalesce(previous_mode,''),true);
+  return result;
+end $$;
+revoke all on function public.submit_submission_group_with_delivery_v1(text,uuid,bigint,text,uuid) from public,anon,authenticated;
+grant execute on function public.submit_submission_group_with_delivery_v1(text,uuid,bigint,text,uuid) to service_role;
 
 create function public.claim_submission_delivery_v1(p_group_id uuid default null) returns jsonb
 language plpgsql security definer set search_path = '' as $$

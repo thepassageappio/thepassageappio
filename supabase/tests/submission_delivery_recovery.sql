@@ -18,9 +18,10 @@ begin
   insert into public.authority_submission_group_evidence(group_id,requirement_key,storage_path,original_filename,media_type,byte_size,sha256_hex)
   values(gid,'power_of_attorney',gid||'/poa.pdf','synthetic.pdf','application/pdf',1,repeat('a',64)),
         (gid,'identity_evidence',gid||'/id.pdf','synthetic-id.pdf','application/pdf',1,repeat('b',64));
-  result:=public.submit_submission_group_v1(verified->>'session_token',gid,2,'requester-attestation-2026-09-13',key);
+  result:=public.submit_submission_group_with_delivery_v1(verified->>'session_token',gid,2,'requester-attestation-2026-09-13',key);
+  if current_setting('passage.submission_delivery_mode',true)='queued' then raise exception 'Queue mode leaked into legacy commands'; end if;
   if (select count(*) from authority_private.submission_delivery_jobs where group_id=gid) <> 4 then raise exception 'Atomic delivery plan missing'; end if;
-  perform public.submit_submission_group_v1(verified->>'session_token',gid,2,'requester-attestation-2026-09-13',key);
+  perform public.submit_submission_group_with_delivery_v1(verified->>'session_token',gid,2,'requester-attestation-2026-09-13',key);
   if (select count(*) from authority_private.submission_delivery_jobs where group_id=gid) <> 4 then raise exception 'Replay duplicated work'; end if;
   if (select count(*) from public.authority_records where origin_group_id=gid) <> 1 then raise exception 'Replay duplicated case'; end if;
   first_job:=public.claim_submission_delivery_v1(gid);
@@ -72,7 +73,23 @@ begin
     update authority_private.submission_delivery_events set detail='rewritten';
     raise exception 'Delivery history mutable';
   exception when raise_exception then if sqlerrm<>'delivery_events_are_append_only' then raise; end if; end;
-  if has_function_privilege('anon','public.claim_submission_delivery_v1(uuid)','EXECUTE') or has_function_privilege('authenticated','public.finish_submission_delivery_v1(uuid,uuid,boolean,text,text)','EXECUTE') then raise exception 'Worker exposed to browser'; end if;
+  if has_function_privilege('anon','public.claim_submission_delivery_v1(uuid)','EXECUTE') or has_function_privilege('authenticated','public.finish_submission_delivery_v1(uuid,uuid,boolean,text,text)','EXECUTE') or has_function_privilege('anon','public.submit_submission_group_with_delivery_v1(text,uuid,bigint,text,uuid)','EXECUTE') then raise exception 'Worker exposed to browser'; end if;
+end $$;
+-- A still-running old application must not create queue work and also send inline.
+do $$
+declare started jsonb; verified jsonb; gid uuid;
+begin
+  started:=public.start_submission_group_v1('Legacy Requester','legacy-recovery@example.invalid','other',gen_random_uuid());
+  verified:=public.verify_requester_email_v1(started->>'verification_token',gen_random_uuid());
+  gid:=(started->>'group_id')::uuid;
+  update public.authority_submission_groups set principal_name='Synthetic Principal',principal_email_normalized='principal@example.invalid',representative_name='Synthetic Rep',representative_email_normalized='rep@example.invalid',principal_confirmation_available=true where id=gid;
+  insert into public.authority_submission_group_targets(group_id,ordinal,organization_id,target_label,target_institution_type,match_status)
+    values(gid,1,'22000000-0000-4000-8000-000000000010','Recovery Test Bank','regional_bank','matched'),(gid,2,null,'Legacy Unmatched Bank','regional_bank','unmatched');
+  insert into public.authority_submission_group_evidence(group_id,requirement_key,storage_path,original_filename,media_type,byte_size,sha256_hex)
+    values(gid,'power_of_attorney',gid||'/poa.pdf','synthetic.pdf','application/pdf',1,repeat('a',64)),(gid,'identity_evidence',gid||'/id.pdf','synthetic-id.pdf','application/pdf',1,repeat('b',64));
+  perform public.submit_submission_group_v1(verified->>'session_token',gid,2,'requester-attestation-2026-09-13',gen_random_uuid());
+  if exists(select 1 from authority_private.submission_delivery_jobs where group_id=gid) then raise exception 'Legacy inline sender also queued invitations'; end if;
+  if (select count(*) from public.authority_records where origin_group_id=gid)<>1 then raise exception 'Legacy handover lost request'; end if;
 end $$;
 select 'submission delivery recovery: PASS' as result;
 rollback;

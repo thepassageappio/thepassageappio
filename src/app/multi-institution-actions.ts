@@ -344,7 +344,7 @@ export async function submitSubmissionGroupAction(input: {
     // Reopening a committed submission resumes its durable work; it never spawns cases again.
     if (context.status !== "fanned_out") {
       const admin = createAuthorityAdminClient();
-      const { data, error } = await admin.rpc("submit_submission_group_v1", {
+      const { data, error } = await admin.rpc("submit_submission_group_with_delivery_v1", {
         p_session_token: sessionToken, p_group_id: input.groupId,
         p_expected_version: input.expectedVersion,
         p_requester_attestation_text_version: attestation.textVersion,

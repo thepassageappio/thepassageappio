@@ -1,5 +1,7 @@
 # Current Passage checkpoint
 
+September 22 resume: the owner has resumed work and requested completion of all four roadmap steps. The pause below is historical. Hosted synthetic email testing is authorized to the inbox supplied in the task; extra role aliases require confirmation. Recovery rollout now uses an explicit queued-submission RPC so old inline senders cannot also enqueue. Source checks and all five SQL suites pass after this handover change. No new hosted recovery acceptance is claimed yet.
+
 ## September 22 — implementation paused for owner review
 
 The owner asked to pause implementation and review the overall journey. Roadmap documentation may be updated; do not start another feature, migration, provider send, or rollout until work is resumed. See [Journey and north star](../JOURNEY-AND-NORTH-STAR-2026-09-22.md) and the [active delivery plan](../OUTREACH-READY-DELIVERY-PLAN-2026-09-10.md).
