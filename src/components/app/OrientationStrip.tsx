@@ -8,6 +8,7 @@ type Props = {
   headingId?: string;
 };
 
+/** HARD-BAR-FIX-D2: Decision then Later as separate lines; Later copy comes from buildCaseOrientation. */
 export function OrientationStrip({ model, headingId = "request-next-step" }: Props) {
   return (
     <section className={styles.strip} aria-labelledby={headingId}>
