@@ -2,6 +2,8 @@
 
 ## Current execution checkpoint — September 22, 2026 UTC
 
+Release update after owner approval: PR #144 is merged as `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. Production and Demo `/api/version` both report this exact main commit; both deployments and both merge-commit CI jobs passed. Production's authenticated owner workspace and saved case load, and submission entry pages render on both domains. The older approval-pending/interruption note below is superseded. Fresh participant/provider acceptance remains separate from these smoke checks. Recovery PR #145 now targets main and remains draft; its migration has not been applied to hosted databases.
+
 The older notes below are historical. PR [#144](https://github.com/thepassageappio/thepassageappio/pull/144), head `15335f5`, passes both GitHub jobs and both Vercel preview builds. Its security migration is applied once to Demo and Production; hosted rollback tests pass with zero test rows remaining. The application PR is still unmerged: explicit merge/release approval is pending. Restricted submission commands fail closed until compatible code is deployed. Do not mark REL1 complete.
 
 Next selected item: **OPS1 submission delivery recovery**. The candidate saves copy/invitation work atomically with submission, leases attempts, retries incomplete work without recreating cases, verifies evidence hashes, preserves attempt history, and shows delivery status accurately. Local application checks and clean migration replay pass. Hosted browser/provider acceptance and cron configuration remain separate release evidence. See the [recovery contract](SUBMISSION-DELIVERY-RECOVERY-2026-09-22.md).

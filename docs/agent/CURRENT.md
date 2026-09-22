@@ -2,6 +2,8 @@
 
 ## September 22 audit and candidate update
 
+Latest release update: the owner approved PR #144, which merged as `7a3a09dfa6ce0f3e1ae1c6f97edace5bb34dea62`. Both live domains verify that exact main SHA; both deployments and merge-commit CI jobs passed. The matching application is now deployed, superseding the pending-approval and old-code interruption statements below. Production owner workspace/saved-case access and both submission entry pages pass browser smoke checks. Recovery PR #145 targets main but remains draft pending its coordinated rollout and hosted acceptance.
+
 The September 15 checkpoint below is historical. The September 21 audit verified main at `61ee1260b9281389ea79653034d093617293c169`; both live websites served `ff7d5ff0cfebaec444162acd7d2dc7e2429f24d2` (16 commits behind). Both hosted databases already contain the September 15 multi-institution/NY/catalog groundwork. Demo was restored from inactivity and is healthy. The claim below that these migrations are absent from UAT is superseded.
 
 The consolidated hardening candidate is [PR #144](https://github.com/thepassageappio/thepassageappio/pull/144), commit `15335f5`. CI and both Vercel previews passed. Its server-boundary migration has been applied once to Demo and Production and passed rollback-based security checks on both. Application merge/deployment remains pending explicit approval after automatic approval review rejected the merge. The older application's submission start/submit path fails closed until the matching application is released. Do not describe the frontend as shipped based on a branch push.
