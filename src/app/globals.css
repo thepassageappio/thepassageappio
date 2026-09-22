@@ -44,3 +44,10 @@
 @media (max-width: 600px) {
   .javascript-notice { margin: 24px 16px; padding: 24px; }
 }
+
+@media (max-width: 720px) {
+  #page-content header h1 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
