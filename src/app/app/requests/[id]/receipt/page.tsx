@@ -14,6 +14,7 @@ import { canRecordAuthorityDecision } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
+import { formatEasternDateTime } from "@/lib/authority/format-eastern-datetime";
 import { OrientationStrip } from "@/components/app/OrientationStrip";
 import receiptStyles from "./receipt.module.css";
 
@@ -23,7 +24,7 @@ type Props = {
 };
 
 function dateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeStyle: "short" }).format(new Date(value));
+  return formatEasternDateTime(value);
 }
 
 export default async function HostedDecisionReceiptPage({ params, searchParams }: Props) {
