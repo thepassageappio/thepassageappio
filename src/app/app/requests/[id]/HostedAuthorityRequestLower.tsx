@@ -8,6 +8,7 @@ import { NySoleRefusalNotice } from "@/components/app/NySoleRefusalNotice";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { CancelRequestForm } from "./CancelRequestForm";
 import styles from "@/components/app/app-shell.module.css";
+import { formatEasternDateTime } from "@/lib/authority/format-eastern-datetime";
 
 type LowerProps = {
   access: ViewProps["access"];
@@ -168,7 +169,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
         <details className={`${styles.panel} ${styles.disclosurePanel}`}>
           <summary>Full history ({events.length})</summary>
           <p>Every saved change is listed in order.</p>
-          <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{activitySummary(event)}</strong><span>{activityDetail(event)}</span></div><span>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(event.occurredAt))}</span></li>)}</ul>
+          <ul className={styles.activity}>{events.map((event) => <li key={event.eventId}><div><strong>{activitySummary(event)}</strong><span>{activityDetail(event)}</span></div><span>{formatEasternDateTime(event.occurredAt)}</span></li>)}</ul>
         </details>
   </>;
 }
