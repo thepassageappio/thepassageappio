@@ -22,7 +22,7 @@ const errorCopy: Record<string, string> = {
   link_expired: "This link has expired. Ask the institution to send a fresh invitation.",
   link_used: "This one-time link was already opened. Continue from that device, or ask the institution for a fresh invitation.",
   not_ready: "The person granting authority must confirm the request before representative access can open.",
-  session_unavailable: "The secure session could not be opened. Ask the institution to send a fresh invitation.",
+  session_unavailable: "The secure session could not be opened. Try again, or ask the institution to send a fresh invitation.",
 };
 
 export default async function ParticipantInvitationPage({ params, searchParams }: Props) {
@@ -39,11 +39,16 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     if (!error) preview = mapParticipantInvitationPreview(data);
   }
 
-  const error = query.error ? errorCopy[query.error] ?? errorCopy.link_unavailable : null;
   const waiting = preview.entryStatus === "waiting";
   const expired = preview.entryStatus === "expired";
   const used = preview.entryStatus === "already_used";
   const ready = preview.entryStatus === "ready" && preview.participantRole && preview.participantName;
+  // session_unavailable on a still-ready invite is retryable (key/cookie edge) — do not show burned-link face.
+  const softSessionError = query.error === "session_unavailable" && Boolean(ready);
+  const error = query.error && !softSessionError
+    ? errorCopy[query.error] ?? errorCopy.link_unavailable
+    : null;
+  const softError = softSessionError ? errorCopy.session_unavailable : null;
   const resuming = ready && preview.participantRole === "representative" && preview.accessPurpose === "resume";
   const viewingReceipt = ready && preview.accessPurpose === "receipt";
   const exchangeIdempotencyKey = (ready ? await readInviteExchangeIdempotencyKey() : null) ?? randomUUID();
@@ -85,6 +90,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
     </div>
     <p className={styles.legend}>Requested actions</p>
     <ul className={styles.scope}>{preview.allowedActionKeys.map((key) => <li key={key}>{HOSTED_ACTIONS[key as keyof typeof HOSTED_ACTIONS] ?? key}</li>)}</ul>
+    {softError ? <div className={styles.alert} role="alert">{softError}</div> : null}
     {waiting ? <div className={styles.notice} role="status">No action is required yet. The institution will notify you when the request is ready.</div> : ready ? <form action={exchangeParticipantInvitationAction} className={styles.form}>
       <input name="token" type="hidden" value={token!} />
       <input name="idempotencyKey" type="hidden" value={exchangeIdempotencyKey} />

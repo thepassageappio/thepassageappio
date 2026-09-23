@@ -5,8 +5,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { normalizeParticipantToken, PARTICIPANT_SESSION_COOKIE, participantOverviewPath, type ParticipantDecision } from "@/lib/authority/participant-access";
-import { readInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
-import { normalizeInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
+import { writeInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
+import { INVITE_EXCHANGE_IDEMPOTENCY_COOKIE, resolveInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
 import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
 import { prepareHostedSubmission } from "@/lib/authority/hosted-submission";
@@ -239,14 +239,21 @@ function participantDecisionPath(recordId: string, decision: string) {
 
 export async function exchangeParticipantInvitationAction(formData: FormData) {
   const token = normalizeParticipantToken(textField(formData, "token"));
-  // Prefer browser-bound cookie (middleware) over remounted form UUID so double-submit
-  // replays the same exchange instead of racing into already_used.
-  const idempotencyKey =
-    (await readInviteExchangeIdempotencyKey())
-    ?? normalizeInviteExchangeIdempotencyKey(textField(formData, "idempotencyKey"))
-    ?? "";
   if (!token) redirect("/?error=link_unavailable");
-  if (!idempotencyKey) redirect(`/r/${token}?error=session_unavailable`);
+
+  const cookieStore = await cookies();
+  // Prefer browser-bound cookie (proxy) over remounted form UUID so double-submit
+  // replays the same exchange instead of racing into already_used.
+  // If both are missing (rare client edge), mint once and persist before consume.
+  const idempotencyKey =
+    resolveInviteExchangeIdempotencyKey({
+      cookieValue: cookieStore.get(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE)?.value,
+      formValue: textField(formData, "idempotencyKey"),
+    })
+    ?? randomUUID();
+
+  const secure = getAuthorityAppUrl().startsWith("https://");
+  await writeInviteExchangeIdempotencyKey(idempotencyKey, { secure });
 
   let destination = `/r/${token}`;
 
@@ -267,10 +274,9 @@ export async function exchangeParticipantInvitationAction(formData: FormData) {
       throw new Error("participant_session_unavailable");
     }
 
-    const cookieStore = await cookies();
     cookieStore.set(PARTICIPANT_SESSION_COOKIE, result.session_token, {
       httpOnly: true,
-      secure: getAuthorityAppUrl().startsWith("https://"),
+      secure,
       sameSite: "lax",
       path: `/request/${result.authority_record_id}`,
       expires: new Date(result.session_expires_at),

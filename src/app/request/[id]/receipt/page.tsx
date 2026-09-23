@@ -9,19 +9,12 @@ import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolvePermissionLabels } from "@/lib/authority/permission-catalog";
 import { buildParticipantReceiptOrientation } from "@/lib/authority/participant-receipt-orientation";
+import { formatEasternDateTime } from "@/lib/authority/format-eastern-datetime";
 
 export const metadata = { robots: { index: false, follow: false } };
 
 function dateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/New_York",
-    timeZoneName: "short",
-  }).format(new Date(value));
+  return formatEasternDateTime(value);
 }
 
 export default async function ParticipantDecisionReceiptPage({ params }: { params: Promise<{ id: string }> }) {
