@@ -73,7 +73,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
                 <strong>{String(requirement.title)}</strong>
                 <span>{String(requirement.reason)}</span>
                 <span>Status: {requirementStatusLabel(requirement.status)}</span>
-                {artifact ? <><span>Source: {String(artifact.original_filename)} · {Math.max(1, Math.round(Number(artifact.byte_size) / 1024))} KB</span><Link href={`/app/evidence/${encodeURIComponent(String(artifact.id))}`}>Open authorized source</Link></> : null}
+                {artifact ? <><span>Source: {String(artifact.original_filename)} · {Math.max(1, Math.round(Number(artifact.byte_size) / 1024))} KB</span><a href={`/app/evidence/${encodeURIComponent(String(artifact.id))}`} download>Open authorized source</a></> : null}
                 {artifact?.reviewer_note ? <span>Reviewer note: {String(artifact.reviewer_note)}</span> : null}
               </div>
               {artifact && artifact.review_status === "pending" && canReviewEvidence && !reviewFinished ? <div>
