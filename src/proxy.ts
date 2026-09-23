@@ -1,19 +1,41 @@
 import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 import {
+  INVITE_EXCHANGE_BOUND_TOKEN_COOKIE,
   INVITE_EXCHANGE_IDEMPOTENCY_COOKIE,
   INVITE_EXCHANGE_IDEMPOTENCY_COOKIE_PATH,
+  normalizeInviteExchangeBoundToken,
   normalizeInviteExchangeIdempotencyKey,
+  shouldReuseInviteExchangeIdempotencyKey,
 } from "@/lib/authority/invite-exchange-idempotency";
 
+function inviteTokenFromPath(pathname: string): string | null {
+  const match = pathname.match(/^\/r\/([0-9a-f]{64})\/?$/i);
+  return normalizeInviteExchangeBoundToken(match?.[1] ?? null);
+}
+
 export async function proxy(request: NextRequest) {
-  const needsInviteCookie = request.nextUrl.pathname.startsWith("/r/")
-    && !normalizeInviteExchangeIdempotencyKey(request.cookies.get(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE)?.value);
+  const inviteToken = inviteTokenFromPath(request.nextUrl.pathname);
+  const existingKey = normalizeInviteExchangeIdempotencyKey(
+    request.cookies.get(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE)?.value,
+  );
+  const boundToken = normalizeInviteExchangeBoundToken(
+    request.cookies.get(INVITE_EXCHANGE_BOUND_TOKEN_COOKIE)?.value,
+  );
+  const reuse = Boolean(
+    inviteToken
+    && existingKey
+    && shouldReuseInviteExchangeIdempotencyKey({ inviteToken, boundToken }),
+  );
+  const needsInviteCookie = Boolean(inviteToken) && !reuse;
   const exchangeKey = needsInviteCookie ? crypto.randomUUID() : null;
   // Forward the new cookie on this request, so the first form render and POST agree.
-  if (exchangeKey) request.cookies.set(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE, exchangeKey);
-  const response = await updateSession(request);
   if (exchangeKey) {
+    request.cookies.set(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE, exchangeKey);
+    if (inviteToken) request.cookies.set(INVITE_EXCHANGE_BOUND_TOKEN_COOKIE, inviteToken);
+  }
+  const response = await updateSession(request);
+  if (exchangeKey && inviteToken) {
     // Clear legacy Path=/r cookie if present so Path=/ is the only value browsers send.
     response.cookies.set({
       name: INVITE_EXCHANGE_IDEMPOTENCY_COOKIE,
@@ -27,6 +49,15 @@ export async function proxy(request: NextRequest) {
     response.cookies.set({
       name: INVITE_EXCHANGE_IDEMPOTENCY_COOKIE,
       value: exchangeKey,
+      httpOnly: true,
+      secure: request.nextUrl.protocol === "https:",
+      sameSite: "lax",
+      path: INVITE_EXCHANGE_IDEMPOTENCY_COOKIE_PATH,
+      maxAge: 60 * 60,
+    });
+    response.cookies.set({
+      name: INVITE_EXCHANGE_BOUND_TOKEN_COOKIE,
+      value: inviteToken,
       httpOnly: true,
       secure: request.nextUrl.protocol === "https:",
       sameSite: "lax",

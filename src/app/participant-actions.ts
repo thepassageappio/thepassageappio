@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { normalizeParticipantToken, PARTICIPANT_SESSION_COOKIE, participantOverviewPath, type ParticipantDecision } from "@/lib/authority/participant-access";
 import { writeInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
-import { INVITE_EXCHANGE_IDEMPOTENCY_COOKIE, resolveInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
+import { INVITE_EXCHANGE_BOUND_TOKEN_COOKIE, INVITE_EXCHANGE_IDEMPOTENCY_COOKIE, resolveInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
 import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
 import { prepareHostedSubmission } from "@/lib/authority/hosted-submission";
@@ -249,11 +249,13 @@ export async function exchangeParticipantInvitationAction(formData: FormData) {
     resolveInviteExchangeIdempotencyKey({
       cookieValue: cookieStore.get(INVITE_EXCHANGE_IDEMPOTENCY_COOKIE)?.value,
       formValue: textField(formData, "idempotencyKey"),
+      inviteToken: token,
+      boundToken: cookieStore.get(INVITE_EXCHANGE_BOUND_TOKEN_COOKIE)?.value,
     })
     ?? randomUUID();
 
   const secure = getAuthorityAppUrl().startsWith("https://");
-  await writeInviteExchangeIdempotencyKey(idempotencyKey, { secure });
+  await writeInviteExchangeIdempotencyKey(idempotencyKey, { secure, boundToken: token });
 
   let destination = `/r/${token}`;
 

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { readInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
+import { readInviteExchangeBoundToken, readInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency-cookie";
+import { resolveInviteExchangeIdempotencyKey } from "@/lib/authority/invite-exchange-idempotency";
 import Link from "next/link";
 import { exchangeParticipantInvitationAction } from "@/app/participant-actions";
 import { AccountFrame } from "@/components/account/AccountFrame";
@@ -51,7 +52,14 @@ export default async function ParticipantInvitationPage({ params, searchParams }
   const softError = softSessionError ? errorCopy.session_unavailable : null;
   const resuming = ready && preview.participantRole === "representative" && preview.accessPurpose === "resume";
   const viewingReceipt = ready && preview.accessPurpose === "receipt";
-  const exchangeIdempotencyKey = (ready ? await readInviteExchangeIdempotencyKey() : null) ?? randomUUID();
+  const exchangeIdempotencyKey = ready
+    ? (resolveInviteExchangeIdempotencyKey({
+        cookieValue: await readInviteExchangeIdempotencyKey(),
+        formValue: null,
+        inviteToken: token,
+        boundToken: await readInviteExchangeBoundToken(),
+      }) ?? randomUUID())
+    : randomUUID();
 
   if (unavailable || preview.entryStatus === "unavailable" || error || expired || used) {
     const message = error ?? (expired ? errorCopy.link_expired : used ? errorCopy.link_used : errorCopy.link_unavailable);
