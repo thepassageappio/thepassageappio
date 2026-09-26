@@ -1,5 +1,23 @@
 # Passage Authority — owner roadmap update, September 22, 2026
 
+## September 25 status update
+
+The [release audit](RELEASE-AUDIT-2026-09-25.md) supersedes the current-state
+statements below. Main and both live domains match `1af3a1a`; 267 domain tests
+and fresh public smoke passed. Guided Path B demos are owner-approved; outbound
+and real-data pilots remain separate gates. Do not re-open resolved participant
+receipt and staff source-download issues without a fresh failure.
+
+The immediate commercial work is local institutional discovery, a short synthetic
+follow-up video, and a small consumer discovery experiment. The $5,000 / 60–90-day
+sales-assisted pilot remains the offer; no sends are authorized by this update.
+No new feature is implied by consumer discovery. Permission publication #143
+still needs draft binding and activation/rebase verification. #119's additional
+scheduler is superseded by main's Vercel cron. Hosted evidence now confirms **4/7
+clean internal days**, September 22–25 UTC, in both environments. Day seven is
+possible September 28 if the next three days are clean. The older sequence below is
+historical and must not reset the approved guided-demo scope.
+
 Owner-directed session. Supersedes nothing evidentiary in `RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md` or `JOURNEY-AND-NORTH-STAR-2026-09-22.md`; this doc records a sequencing decision on top of that evidence.
 
 ## Ground truth at time of writing
