@@ -31,9 +31,18 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.117.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.1
       - run: supabase db start
       - name: Verify authorization and recovery
         run: |
-          for test in submission_server_boundary submission_delivery_recovery authority_public_security_boundary authority_reviewer_role_boundary authority_terminal_and_recovery ny_provenance_and_draft_pin; do
+          for test in submission_server_boundary submission_delivery_recovery authority_public_security_boundary authority_reviewer_role_boundary authority_terminal_and_recovery ny_provenance_and_draft_pin permission_publication_draft_binding; do
             docker exec -i supabase_db_passage-authority psql -U postgres -d postgres -v ON_ERROR_STOP=1 < "supabase/tests/$test.sql"
           done
+      - name: Verify immutable policy bytes and permissions
+        env:
+          POLICY_TEST_DATABASE: postgres
+        run: |
+          node --experimental-strip-types scripts/verify-policy-snapshot-storage.mjs
+          node --experimental-strip-types scripts/verify-policy-source-storage.mjs

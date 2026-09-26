@@ -1,4 +1,21 @@
-# Current checkpoint — September 25, 2026
+# Current checkpoint — September 26, 2026 UTC
+
+Owner directed completion of the remaining current Authority work. The consolidated
+permission-publication and policy-foundation release replaces the unfinished code
+in #143 and selectively ports the reusable groundwork from #109. See
+[implementation and verification](../POLICY-PUBLICATION-COMPLETION-2026-09-26.md).
+New requests use the published permission version; older drafts require explicit
+review and revision, and saved decisions retain their original labels and hashes.
+This supports the two existing NY choices only, not custom permission editing.
+
+Local evidence: 340 domain tests, typecheck, lint, build, fresh migration replay,
+seven database regression suites, two immutable-storage suites, and an authenticated
+owner/MFA browser flow through create, publish, stale draft and explicit revision.
+Release/hosted evidence must be checked against the merged SHA; local evidence alone
+is not a deployment claim. Existing receipt/source-download fixes remain resolved.
+Guided Path B demos remain approved; outbound and real-data pilots remain separate.
+
+## Historical September 25 audit
 
 Read the [September 25 release audit](../RELEASE-AUDIT-2026-09-25.md) first.
 GitHub main and both live domains were verified at `1af3a1a`; release CI passed.

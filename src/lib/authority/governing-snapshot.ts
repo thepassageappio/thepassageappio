@@ -17,6 +17,10 @@ export function mapGoverningContext(value: unknown): GoverningContext {
 }
 
 const labels: Record<string, string> = {
+  permission_catalog: "Request choices", id: "Saved version ID", version: "Version", content_hash: "Content fingerprint",
+  items: "Choices", key: "Reference", kind: "Choice type", offered: "Available", help: "Explanation",
+  label_version: "Wording version", group_key: "Group", risk_tier: "Review level", availability: "Availability",
+  account_product_scope: "Account scope", platform_permission_def_id: "Choice reference", platform_semantic_version: "Meaning version",
   schema_version: "Saved settings format", template_key: "Workflow", template_version: "Workflow version",
   jurisdiction_code: "State", pack_key: "Rules reference", pack_version: "Rules version", display_name: "Rules name",
   effective_at: "Effective date", source_citation: "Source", notes: "Notes", default_form_class: "Default form type",

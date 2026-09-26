@@ -4,15 +4,13 @@ import { startTransition, useActionState, useEffect, useRef, useState } from "re
 import { createHostedAuthorityDraftAction } from "@/app/account-actions";
 import styles from "@/components/app/app-shell.module.css";
 import type { HostedActionKey } from "@/lib/authority/hosted-records";
-import { offeredFinancialPoaPermissions } from "@/lib/authority/permission-catalog";
+import type { OfferedFinancialPermission } from "@/lib/authority/permission-catalog";
 import requestStyles from "./request.module.css";
 
-type Props = { useSample: boolean; endDate: string; idempotencyKey: string };
+type Props = { useSample: boolean; endDate: string; idempotencyKey: string; offered: OfferedFinancialPermission[]; publishedVersionId: string };
 
-const OFFERED = offeredFinancialPoaPermissions();
-const OFFERED_KEYS = OFFERED.map((item) => item.key);
-
-export function DraftRequestForm({ useSample, endDate, idempotencyKey }: Props) {
+export function DraftRequestForm({ useSample, endDate, idempotencyKey, offered: OFFERED, publishedVersionId }: Props) {
+  const OFFERED_KEYS = OFFERED.map(item => item.key);
   const [state, submitAction, pending] = useActionState(createHostedAuthorityDraftAction, { error: null });
   const [values, setValues] = useState({ principalName: useSample ? "Parker Quinn" : "", principalEmail: "", representativeName: useSample ? "Casey Quinn" : "", representativeEmail: "", accountBoundary: useSample ? "Sample deposit relationship ending 4405" : "", validUntil: endDate });
   const [actions, setActions] = useState<HostedActionKey[]>([...OFFERED_KEYS]);
@@ -37,6 +35,7 @@ export function DraftRequestForm({ useSample, endDate, idempotencyKey }: Props) 
   return (
     <form onSubmit={event => { event.preventDefault(); const data = new FormData(event.currentTarget); startTransition(() => submitAction(data)); }} action={submitAction} aria-busy={pending} className={requestStyles.form}>
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+      <input type="hidden" name="expectedPublishedVersionId" value={publishedVersionId} />
       {state.error ? <div className={styles.alert} role="alert" tabIndex={-1} ref={errorRef}><strong>Check your request</strong><p>{state.error}</p><p>Your entries are still here. Fix the problem and save again.</p></div> : null}
       <fieldset disabled={pending} className={requestStyles.fields}>
       <section className={styles.panel}>
