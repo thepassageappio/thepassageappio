@@ -1,5 +1,20 @@
 # Daily reconciliation streak log
 
+## Current evidence — September 25, 2026 UTC
+
+Read-only queries of `authority_private.reconciliation_runs` confirm **4/7
+consecutive clean internal days** in both environments: September 22, 23, 24,
+and 25 UTC. Today's saved runs are Demo `2026-09-25T08:23:55.505187Z` and UAT
+`2026-09-25T08:31:33.757689Z`. Both projects report ACTIVE_HEALTHY. No job was
+rerun, no provider message was sent, and no missing day was credited.
+
+Current main schedules the existing reconciliation endpoint through Vercel at
+08:00 UTC. PR #119's additional GitHub scheduler is superseded. Earliest possible
+day seven is September 28 UTC, only if September 26–28 are each recorded clean
+in both environments. These are internal invariants; independent live provider
+comparison and real-data pilot approval remain separate. See the
+[September 25 audit](RELEASE-AUDIT-2026-09-25.md).
+
 ## Current evidence — September 22, 2026 UTC
 
 Both environments recorded a new immutable clean internal run: Demo at `2026-09-22T10:27:53.970535Z`, Production/UAT at `2026-09-22T10:27:55.018735Z`. Run key `f5421d7b-7cde-8a48-6970-b66a299b0a48` is independently scoped to each project. Variance and unresolved-provider arrays were empty. Current streak: **1/7**, not the historical 2/7 below. The prior latest day was September 15; missing days are not credited. This remains internal reconciliation, not live Stripe/HubSpot comparison. See the [current checkpoint](RELEASE-AND-JOURNEY-CHECKPOINT-2026-09-22.md).

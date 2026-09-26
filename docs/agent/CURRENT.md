@@ -1,4 +1,30 @@
-September 22 owner-approved synthetic release and Grok handoff: see [current handoff](../GROK-RELEASE-HANDOFF-2026-09-22.md). Both participant receipt paths match the institution; synthetic revocation preserves the original receipt. Independent usability, operating-day and remaining negative-path evidence are explicitly outstanding.
+# Current checkpoint — September 25, 2026
+
+Read the [September 25 release audit](../RELEASE-AUDIT-2026-09-25.md) first.
+GitHub main and both live domains were verified at `1af3a1a`; release CI passed.
+Fresh public checks passed 44 routes/eight recovery states, and all 267 domain
+tests passed. There is no newer merged application release waiting to deploy.
+
+Owner scope: guided Path B buyer demos are approved. Outbound remains HOLD.
+Do not claim sell-clean, a proven seven-minute run, frictionless self-serve,
+real-data readiness, or live API/core sync. Receipt/source-download fixes are
+resolved per prior evidence; do not reopen them without a new reproduced failure.
+
+PR #119 proposes a scheduler superseded by the Vercel cron already on main.
+PR #143 remains unfinished: merge conflict plus permission-version binding and
+activation/rebase proof. PR #109 must not be merged wholesale. Older Passage Zero
+and funeral-home branches are not current Authority releases. See the audit for
+specific evidence and next work. Read-only hosted evidence confirms **4/7 clean
+internal reconciliation days**, September 22–25 UTC, in both environments.
+Earliest possible day seven is September 28 UTC if every remaining day is clean.
+
+## Historical checkpoints below
+
+These retain dated evidence. Their old pause instructions, SHAs, HOLD wording,
+and streak counts do not override the September 25 checkpoint or later owner
+instructions.
+
+September 22 owner-approved synthetic release and Grok handoff: see [historical handoff](../GROK-RELEASE-HANDOFF-2026-09-22.md). Both participant receipt paths match the institution; synthetic revocation preserves the original receipt. Independent usability, operating-day and remaining negative-path evidence are explicitly outstanding.
 
 # Current Passage checkpoint
 
