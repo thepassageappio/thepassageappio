@@ -42,6 +42,8 @@ function errorCode(error: unknown) {
 
   const message = String(error.message);
   const map: Record<string, string> = {
+    stale_permission_published_version: "permission_set_changed",
+    permission_published_version_missing: "permission_published_version_missing",
     jurisdiction_configuration_unavailable: "jurisdiction_configuration_unavailable",
     jurisdiction_draft_stale: "jurisdiction_draft_stale",
     jurisdiction_draft_changed: "jurisdiction_draft_changed",
@@ -535,7 +537,8 @@ export async function createHostedAuthorityDraftAction(_previous: { error: strin
     });
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("create_authority_draft_v1", {
+    const { data, error } = await supabase.rpc("create_authority_draft_v2", {
+      p_expected_published_version_id: textField(formData, "expectedPublishedVersionId"),
       p_organization_id: access.membership.organizationId,
       p_principal_name: input.principalName,
       p_principal_email: input.principalEmail,

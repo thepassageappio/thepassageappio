@@ -1,5 +1,20 @@
 # Passage Authority — owner roadmap update, September 22, 2026
 
+## September 26 UTC implementation update
+
+The owner resumed and requested completion of the remaining Authority release work.
+Permission publication now binds new drafts to the published version, rejects stale
+activation, and requires an explicit revision that preserves prior history. The
+two existing NY choices are the supported scope; custom policy authoring is not
+being advertised. Immutable policy bytes, source resolution and validation from
+#109 have been selectively integrated and tested rather than merging its obsolete
+branch. See [release evidence](POLICY-PUBLICATION-COMPLETION-2026-09-26.md).
+
+The remaining elapsed-day reconciliation gate cannot be completed by replaying
+tests. Independent provider reconciliation, broader policy authoring and real-data
+pilot approval remain separate work. Guided demos remain approved; outbound stays
+HOLD. No new commercial send is authorized by this engineering release.
+
 ## September 25 status update
 
 The [release audit](RELEASE-AUDIT-2026-09-25.md) supersedes the current-state

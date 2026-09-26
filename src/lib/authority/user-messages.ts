@@ -1,6 +1,13 @@
 import { requestCoordinatorRecoveryMessage } from "./role-capabilities.ts";
 
 const errorMessages: Record<string, string> = {
+  permission_set_changed: "Your organization saved a newer version of these choices. Reload the request rules and review them before saving again.",
+  permission_publish_not_allowed: "Only an organization owner or administrator can save these rules.",
+  permission_published_version_missing: "We could not load your saved request rules. Ask your organization owner to check them.",
+  permission_publish_input_invalid: "Reload the request rules and try saving again.",
+  permission_publish_items_required: "These choices are not ready to save. Ask your organization owner to check them.",
+  authority_type_publish_not_enabled: "Only New York financial power of attorney requests are available here.",
+  authority_type_not_pack_ready: "This kind of request is not available yet.",
   jurisdiction_configuration_unavailable: "The current rules could not be loaded. Keep this draft saved and contact Passage before sending it.",
   jurisdiction_draft_stale: "The rules changed or were not saved with this draft. Review the changes before sending.",
   jurisdiction_draft_changed: "The rules changed again while you were reviewing them. Reload and review the latest changes.",
@@ -116,6 +123,7 @@ const errorMessages: Record<string, string> = {
 };
 
 const noticeMessages: Record<string, string> = {
+  permission_set_saved_for_new_requests: "Saved for new requests. Older drafts need a review before sending. Existing decisions have not changed.",
   draft_rules_updated: "The draft now uses the reviewed rules. The previous version stays in its history. Nothing was sent.",
   invitation_sent: "The secure invitation is ready for the recipient.",
   invitation_created: "The invitation is saved. Delivery is pending.",

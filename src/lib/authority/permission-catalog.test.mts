@@ -6,6 +6,7 @@ import {
   buildDecisionPermissionSnapshots,
   lockedPermissionLabel,
   offeredFinancialPoaPermissions,
+  parsePublishedPermissionCatalog,
   resolvePermissionLabels,
 } from "./permission-catalog.ts";
 
@@ -75,4 +76,39 @@ test("acceptedLabelsFromReceiptSnapshot reads frozen receipt payload", () => {
   });
   assert.deepEqual(labels, ["Talk with the bank about the account"]);
   assert.equal(acceptedLabelsFromReceiptSnapshot({}), null);
+});
+
+test("parsePublishedPermissionCatalog reads per-kind offered items", () => {
+  const parsed = parsePublishedPermissionCatalog({
+    organization_id: "org-1",
+    authority_type_key: "financial_poa",
+    pack_ready: true,
+    published: {
+      id: "ver-1",
+      version: "2026.9.15.2",
+      content_hash: "a".repeat(64),
+      platform_semantic_version: "2026.9.15.1",
+      jurisdiction_package_key: "US-NY",
+      jurisdiction_package_version: "2026.1",
+      published_at: "2026-09-15T12:00:00Z",
+      published_by: null,
+      publish_reason: "Save for new requests",
+    },
+    items: [{
+      permission_key: "receive_duplicate_statements",
+      kind: "act",
+      source: "platform",
+      offered: true,
+      label: "Get copies of account statements",
+      help: "help",
+      group_key: "information",
+      risk_tier: 1,
+      availability: "production",
+      label_version: 1,
+    }],
+  });
+  assert.equal(parsed?.authority_type_key, "financial_poa");
+  assert.equal(parsed?.published?.version, "2026.9.15.2");
+  assert.equal(parsed?.items.length, 1);
+  assert.equal(parsePublishedPermissionCatalog(null), null);
 });
