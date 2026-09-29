@@ -118,8 +118,11 @@ test("allowlist-skip reason renders plainly on the team page", () => {
   assert.equal(teamInvitationDeliveryLabel({ delivery_status: "failed", delivery_error_code: "recipient_not_allowed" }, null), DEMO_EMAIL_NOT_APPROVED);
   assert.equal(teamInvitationDeliveryLabel({ delivery_status: "pending" }, "configuration_missing"), "Not sent. Email is not set up here.");
   assert.equal(teamInvitationDeliveryLabel({ delivery_status: "pending", delivery_provider: "manual_link" }, "recipient_not_allowed"), "Link copied. No email sent.");
+  assert.equal(teamInvitationDeliveryLabel({ delivery_status: "pending", delivery_provider: "manual_link" }, "configuration_missing"), "Link copied. No email sent.");
+  assert.equal(teamInvitationDeliveryLabel({ delivery_status: "pending", delivery_provider: "manual_link" }, null), "Link copied.");
   assert.equal(teamInvitationDeliveryLabel({ delivery_status: "pending" }, null), "Not sent");
   assert.equal(teamInvitationDeliveryLabel({ delivery_status: "delivered" }, null), "Delivered");
+  assert.equal(teamInvitationDeliveryLabel({ delivery_status: "delivered", delivery_provider: "manual_link" }, null), "Delivered");
   assert.doesNotMatch(teamInvitationDeliveryLabel({ delivery_status: "processing" }, null), /^Delivered/);
   assert.match(teamPage, /teamInvitationDeliveryLabel\(invitation, blocker\)/);
   assert.match(teamPage, /teamInvitationDeliveryBlocker\(invitation\.email_normalized\)/);
