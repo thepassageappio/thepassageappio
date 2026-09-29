@@ -13,7 +13,7 @@ const valid = {
   current_version: 8,
   decision_record_version: 8,
   purpose: "Request recognition of limited financial power of attorney authority",
-  account_boundary: "Membership account ending 4821",
+  account_boundary: "Joint checking",
   requested_action_keys: ["receive_duplicate_statements", "discuss_service_issues"],
   decision_outcome: "accepted_with_limits",
   decision_reason: "The submitted evidence satisfies the institution policy.",

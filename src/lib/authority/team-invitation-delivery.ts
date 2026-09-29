@@ -2,6 +2,7 @@ import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { Resend } from "resend";
 import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
+import { teamInvitationDeliveryIdempotencyKey } from "./team-invitation-reissue.ts";
 
 export type TeamInvitationDelivery = {
   invitationId: string;
@@ -10,9 +11,11 @@ export type TeamInvitationDelivery = {
   role: string;
   expiresAt: string;
   secureUrl: string;
+  /** Set for a reissued link so the email service does not dedupe it against the earlier email. */
+  invitationVersion?: number;
 };
 
-type DeliveryResult =
+export type DeliveryResult =
   | { delivered: true; provider: "local" | "resend"; messageId?: string }
   | { delivered: false; provider: "disabled" | "resend"; reason: "configuration_missing" | "provider_rejected" | "recipient_not_allowed" };
 
@@ -119,7 +122,7 @@ async function deliverTeamInvitationWithResend(delivery: TeamInvitationDelivery)
         text: message.text,
         html: message.html,
       },
-      { headers: { "Idempotency-Key": `authority-team-invitation-${delivery.invitationId}` } },
+      { headers: { "Idempotency-Key": teamInvitationDeliveryIdempotencyKey(delivery.invitationId, delivery.invitationVersion) } },
     );
 
     if (error || !data?.id) {
@@ -130,6 +133,24 @@ async function deliverTeamInvitationWithResend(delivery: TeamInvitationDelivery)
   } catch {
     return { delivered: false, provider: "resend", reason: "provider_rejected" };
   }
+}
+
+/**
+ * What would stop a team invitation email from going out right now, without
+ * sending anything: the Demo recipient allowlist, or email not set up.
+ * Returns only a reason category, never the allowlist itself.
+ */
+export function teamInvitationDeliveryBlocker(
+  email: string,
+  env: Record<string, string | undefined> = process.env,
+): "recipient_not_allowed" | "configuration_missing" | null {
+  if (!isDemoEmailRecipientAllowed(email, env.PASSAGE_ENVIRONMENT, env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST)) {
+    return "recipient_not_allowed";
+  }
+  const provider = env.AUTHORITY_TEAM_INVITATION_DELIVERY?.trim().toLowerCase();
+  if (provider === "local") return null;
+  if (provider === "resend" && env.RESEND_API_KEY?.trim() && env.AUTHORITY_EMAIL_FROM?.trim()) return null;
+  return "configuration_missing";
 }
 
 export async function deliverTeamInvitation(delivery: TeamInvitationDelivery): Promise<DeliveryResult> {

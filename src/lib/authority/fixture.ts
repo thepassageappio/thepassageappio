@@ -111,7 +111,7 @@ function baseRecord(options: {
     version: 1,
     status: "awaiting_principal",
     purpose: "Allow a trusted representative to receive duplicate statements and discuss account-service issues while the principal remains in control.",
-    accountBoundary: "Membership account ending 4821",
+    accountBoundary: "Joint checking",
     principal: {
       id: `party_${key}_principal`,
       name: options.principalName,

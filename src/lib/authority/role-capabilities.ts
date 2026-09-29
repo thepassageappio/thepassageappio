@@ -33,6 +33,8 @@ export const organizationAccessEventTypes = [
   "membership.role_changed",
   "membership.revoked",
   "membership.invitation_revoked",
+  "membership.invitation_resent",
+  "membership.invitation_link_copied",
 ] as const;
 
 const organizationAccessActivityLabels: Record<(typeof organizationAccessEventTypes)[number], string> = {
@@ -46,6 +48,8 @@ const organizationAccessActivityLabels: Record<(typeof organizationAccessEventTy
   "membership.role_changed": "Member role changed",
   "membership.revoked": "Member access revoked",
   "membership.invitation_revoked": "Team invitation revoked",
+  "membership.invitation_resent": "Team invitation sent again with a new link",
+  "membership.invitation_link_copied": "New team invite link made to share",
 };
 
 export function organizationAccessActivityLabel(eventType: string) {

@@ -7,8 +7,10 @@ import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
+import { requestPageFormClassLabels } from "@/lib/authority/jurisdiction-pack";
 import { mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
-import { deliveryStatusFaceLabel, hostedRequestNoticeMessage } from "@/lib/authority/hosted-request-notice";
+import { freshLinkHelpText, hostedRequestNoticeMessage, participantDeliveryFaceLabel } from "@/lib/authority/hosted-request-notice";
+import { isDemoEmailRecipientAllowed } from "@/lib/authority/delivery-boundary";
 import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { buildCaseOrientation, buildDocumentReviewModel } from "@/lib/authority/orientation-strip";
 import styles from "@/components/app/app-shell.module.css";
@@ -77,17 +79,18 @@ export function HostedAuthorityRequestView({
     participant_role: "principal" | "representative";
     delivery_status: string;
     attempts: number;
+    last_error_code?: string | null;
   }> : [];
-  const deliveryStatusLabel = deliveryStatusFaceLabel;
   const activeDeliveryRole = record.status === "awaiting_principal"
     ? "principal"
     : record.status === "awaiting_representative"
       ? "representative"
       : null;
-  const activeDeliveryStatus = activeDeliveryRole
-    ? notifications.find((item) => item.participant_role === activeDeliveryRole)?.delivery_status
+  const activeNotification = activeDeliveryRole
+    ? notifications.find((item) => item.participant_role === activeDeliveryRole)
     : null;
-  const savedNotice = hostedRequestNoticeMessage(notice, activeDeliveryStatus);
+  const activeDeliveryStatus = activeDeliveryRole ? activeNotification?.delivery_status : null;
+  const savedNotice = hostedRequestNoticeMessage(notice, activeDeliveryStatus, activeNotification?.last_error_code);
   const canReviewEvidence = Boolean(access.membership && canReviewAuthorityEvidence(access.membership.role));
   const isDemoRunView = demo === "1" && Boolean(
     access.membership && mayProvisionDemoRun(access.user.email, access.membership.role),
@@ -142,7 +145,8 @@ export function HostedAuthorityRequestView({
     hasDecision: Boolean(decision),
   });
 
-  const { showNyPack, nyRulesLabel, formClassLabel } = resolveNyRequestLabels(record, decision?.receiptSnapshot);
+  const { showNyPack, nyRulesLabel, formClassLabel: pinnedFormClassLabel } = resolveNyRequestLabels(record, decision?.receiptSnapshot);
+  const { factsLabel: formClassLabel, decisionPanelLabel } = requestPageFormClassLabels(pinnedFormClassLabel, Boolean(decision));
 
   const lower = {
     access,
@@ -165,7 +169,7 @@ export function HostedAuthorityRequestView({
     requirementStatusLabel,
     activityDetail,
     activitySummary,
-    formClassLabel,
+    formClassLabel: decisionPanelLabel,
     showSoleRefusalNotice: Boolean(showNyPack),
   };
 
@@ -271,9 +275,11 @@ export function HostedAuthorityRequestView({
             const role = invitation.participant_role === "principal" ? "principal" : "representative";
             const canReissue = (canCoordinate || canReviewEvidence) && canReissueParticipantAccess(role, record.status);
             const accessPurpose = participantAccessPurpose(role, record.status);
+            // Checked on the server against the current Demo recipient allowlist.
+            const demoRecipientBlocked = !isDemoEmailRecipientAllowed(String(invitation.email_normalized));
             return <li key={String(invitation.id)}>
-              <span>{role === "principal" ? "Account holder" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {deliveryStatusLabel(notification?.delivery_status)})</span>
-              {canReissue ? <form action={reissueParticipantInvitationAction}>
+              <span>{role === "principal" ? "Account holder" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {participantDeliveryFaceLabel({ status: notification?.delivery_status, lastErrorCode: notification?.last_error_code, demoRecipientBlocked })})</span>
+              {canReissue && !demoRecipientBlocked ? <form action={reissueParticipantInvitationAction}>
                 <input type="hidden" name="recordId" value={record.id} />
                 <input type="hidden" name="participantRole" value={role} />
                 <input type="hidden" name="expectedRecordVersion" value={record.version} />
@@ -281,7 +287,7 @@ export function HostedAuthorityRequestView({
                 <input type="hidden" name="idempotencyKey" value={randomUUID()} />
                 <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send receipt link" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
               </form> : null}
-              {canReissue ? <span>Sending a fresh link turns every earlier link for this person off.</span> : null}
+              {canReissue ? <span>{freshLinkHelpText(demoRecipientBlocked)}</span> : null}
             </li>;
           })}</ul>
           <Link className={styles.secondary} href="/app">Return to request queue</Link>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createAuthorityRequestAction } from "@/app/actions";
 import { PortalHeader } from "@/components/authority/PortalHeader";
 import { isLocalAuthoritySandboxAvailable } from "@/lib/authority/sandbox-boundary";
+import { ACCOUNT_LABEL_HELP, ACCOUNT_LABEL_PLACEHOLDER, SAMPLE_ACCOUNT_EXAMPLE } from "@/lib/authority/account-label-guidance";
 import styles from "./setup.module.css";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
           </section>
           <section className={styles.card}>
             <div className={styles.sectionTitle}><span>2</span><div><h2>What may the representative do?</h2><p>Start narrow. Anything not selected remains outside this request.</p></div></div>
-            <label>Account or relationship boundary<input name="accountBoundary" required defaultValue="Membership account ending 4821" /></label>
+            <label>Account or relationship boundary<input name="accountBoundary" required aria-describedby="account-boundary-help" defaultValue={SAMPLE_ACCOUNT_EXAMPLE} placeholder={ACCOUNT_LABEL_PLACEHOLDER} /><small id="account-boundary-help">{ACCOUNT_LABEL_HELP}</small></label>
             <fieldset>
               <legend>Permitted actions</legend>
               <label className={styles.option}><input type="checkbox" name="allowedActionKeys" value="receive_duplicate_statements" defaultChecked /><span><strong>Get copies of account statements</strong><small>The helper asks the bank to send statement copies for this account.</small></span></label>

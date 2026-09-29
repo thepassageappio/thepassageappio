@@ -6,13 +6,14 @@ import styles from "@/components/app/app-shell.module.css";
 import type { HostedActionKey } from "@/lib/authority/hosted-records";
 import type { OfferedFinancialPermission } from "@/lib/authority/permission-catalog";
 import requestStyles from "./request.module.css";
+import { ACCOUNT_LABEL_HELP, ACCOUNT_LABEL_NUMBER_WARNING, ACCOUNT_LABEL_PLACEHOLDER, SAMPLE_ACCOUNT_LABEL, accountLabelLooksLikeNumber } from "@/lib/authority/account-label-guidance";
 
 type Props = { useSample: boolean; endDate: string; idempotencyKey: string; offered: OfferedFinancialPermission[]; publishedVersionId: string };
 
 export function DraftRequestForm({ useSample, endDate, idempotencyKey, offered: OFFERED, publishedVersionId }: Props) {
   const OFFERED_KEYS = OFFERED.map(item => item.key);
   const [state, submitAction, pending] = useActionState(createHostedAuthorityDraftAction, { error: null });
-  const [values, setValues] = useState({ principalName: useSample ? "Parker Quinn" : "", principalEmail: "", representativeName: useSample ? "Casey Quinn" : "", representativeEmail: "", accountBoundary: useSample ? "Sample deposit relationship ending 4405" : "", validUntil: endDate });
+  const [values, setValues] = useState({ principalName: useSample ? "Parker Quinn" : "", principalEmail: "", representativeName: useSample ? "Casey Quinn" : "", representativeEmail: "", accountBoundary: useSample ? SAMPLE_ACCOUNT_LABEL : "", validUntil: endDate });
   const [actions, setActions] = useState<HostedActionKey[]>([...OFFERED_KEYS]);
   const errorRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (state.error) errorRef.current?.focus(); }, [state]);
@@ -52,7 +53,10 @@ export function DraftRequestForm({ useSample, endDate, idempotencyKey, offered: 
       </section>
       <section className={styles.panel}>
         <div className={styles.panelHead}><div><h2>What you are asking for</h2><p>Anything not selected remains outside this request.</p></div></div>
-        <label className={styles.field}>Account or relationship covered<input name="accountBoundary" required placeholder="For example, membership account ending 4821" value={values.accountBoundary} onChange={event => setValues({ ...values, accountBoundary: event.target.value })} /></label>
+        <label className={styles.field}>Account or relationship covered<input name="accountBoundary" required aria-describedby="account-boundary-help" placeholder={ACCOUNT_LABEL_PLACEHOLDER} value={values.accountBoundary} onChange={event => setValues({ ...values, accountBoundary: event.target.value })} />
+          <small id="account-boundary-help">{ACCOUNT_LABEL_HELP}</small>
+          {accountLabelLooksLikeNumber(values.accountBoundary) ? <small role="status">{ACCOUNT_LABEL_NUMBER_WARNING}</small> : null}
+        </label>
         <fieldset className={requestStyles.optionList}>
           <legend>What people may ask for</legend>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 4 }}>

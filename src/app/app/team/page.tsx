@@ -5,6 +5,7 @@ import {
   revokeMemberAction,
   revokeMemberInvitationAction,
 } from "@/app/account-actions";
+import { resendTeamInvitationAction } from "@/app/team-invitation-actions";
 import { getAuthorityAccessContext, roleLabel, type OrganizationRole } from "@/lib/authority/access";
 import {
   assignableRolesFor,
@@ -18,26 +19,18 @@ import {
   visibleRoleDefinitions,
 } from "@/lib/authority/role-capabilities";
 import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
+import { formatEasternDateTime } from "@/lib/authority/format-eastern-datetime";
+import { teamInvitationDeliveryBlocker } from "@/lib/authority/team-invitation-delivery";
+import { canReissueTeamInvitation, teamInvitationDeliveryLabel, teamInvitationStatusLabel } from "@/lib/authority/team-invitation-reissue";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/app/app-shell.module.css";
+import { CopyInviteLink } from "./CopyInviteLink";
 
 type Props = { searchParams: Promise<{ error?: string; notice?: string }> };
 
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
-}
-
-// Mirrors what the Resend webhook can actually confirm: 'processing' means
-// the provider accepted the send but final delivery is unconfirmed -- it is
-// deliberately never labeled "Delivered" until the email.delivered webhook
-// event lands. See 20260906193000_team_invitation_delivery_tracking.sql.
-function deliveryStatusLabel(invitation: { delivery_status?: string | null; delivery_error_code?: string | null }) {
-  const status = invitation.delivery_status ?? "pending";
-  if (status === "delivered") return "Delivered";
-  if (status === "processing") return "Sending… confirming delivery";
-  if (status === "retrying") return "Delivery delayed";
-  if (status === "failed") return invitation.delivery_error_code ? `Not delivered (${invitation.delivery_error_code})` : "Not delivered";
-  return "Not sent yet";
+// Same Eastern clock with a zone label (EDT/EST) as Policies and receipts.
+function formatTime(value: string | null | undefined) {
+  return value ? formatEasternDateTime(value) : "";
 }
 
 export default async function TeamPage({ searchParams }: Props) {
@@ -49,7 +42,7 @@ export default async function TeamPage({ searchParams }: Props) {
   const supabase = await createClient();
   const [membershipResult, invitationResult, auditResult, memberCountResult] = await Promise.all([
     supabase.from("organization_memberships").select("id, user_id, email_normalized, role, status, version, activated_at, revoked_at").eq("organization_id", membership.organizationId).order("created_at"),
-    canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at, delivery_status, delivery_error_code, delivery_confirmed_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    canManage ? supabase.from("organization_invitations").select("id, email_normalized, role, status, version, expires_at, created_at, delivery_status, delivery_error_code, delivery_provider, delivery_confirmed_at").eq("organization_id", membership.organizationId).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
     canViewAudit
       ? supabase
         .from("organization_audit_events")
@@ -149,18 +142,28 @@ export default async function TeamPage({ searchParams }: Props) {
       </section>
       {canManage && invitations.length ? (
         <section className={styles.panel}>
-          <div className={styles.panelHead}><div><h2>Invitations</h2><p>Pending and completed access invitations.</p></div></div>
+          <div className={styles.panelHead}><div><h2>Invitations</h2><p>Pending and completed access invitations. A new link turns off the old one.</p></div></div>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Delivery</th><th>Expires</th><th>Action</th></tr></thead>
               <tbody>{invitations.map((invitation) => {
                 const expired = invitation.status === "pending" && new Date(invitation.expires_at) <= new Date();
-                const availability = expired ? "Expired — send a new invitation" : invitation.status === "pending" ? "Ready for the invited email" : invitation.status === "accepted" ? "Accepted" : "Revoked";
+                const availability = teamInvitationStatusLabel(invitation);
+                // Checked on the server: would an email be skipped right now
+                // (Demo recipient allowlist, or email not set up)?
+                const blocker = invitation.status === "pending" ? teamInvitationDeliveryBlocker(invitation.email_normalized) : null;
+                const canRecover = invitation.status === "pending" && !expired && canReissueTeamInvitation(membership.role, invitation.role);
                 return <tr key={invitation.id}>
                   <td><strong>{invitation.email_normalized}</strong></td><td>{roleLabel(invitation.role as OrganizationRole)}</td><td><span className={styles.badge}>{availability}</span></td>
-                  <td><span className={styles.badge}>{deliveryStatusLabel(invitation)}</span></td>
+                  <td><span className={styles.badge}>{teamInvitationDeliveryLabel(invitation, blocker)}</span></td>
                   <td>{formatTime(invitation.expires_at)}</td>
-                  <td>{invitation.status === "pending" ? <form action={revokeMemberInvitationAction}><input name="invitationId" type="hidden" value={invitation.id} /><input name="expectedVersion" type="hidden" value={invitation.version} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><button className={styles.dangerButton} type="submit">Revoke</button></form> : "Complete"}</td>
+                  <td>{invitation.status === "pending" ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "flex-start" }}>
+                      {canRecover && !blocker ? <form action={resendTeamInvitationAction}><input name="invitationId" type="hidden" value={invitation.id} /><input name="expectedVersion" type="hidden" value={invitation.version} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><button className={styles.smallButton} type="submit">Resend invite</button></form> : null}
+                      {canRecover ? <CopyInviteLink email={invitation.email_normalized} expectedVersion={Number(invitation.version)} idempotencyKey={randomUUID()} invitationId={invitation.id} /> : null}
+                      <form action={revokeMemberInvitationAction}><input name="invitationId" type="hidden" value={invitation.id} /><input name="expectedVersion" type="hidden" value={invitation.version} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><button className={styles.dangerButton} type="submit">Revoke</button></form>
+                    </div>
+                  ) : "Complete"}</td>
                 </tr>;
               })}</tbody>
             </table>
