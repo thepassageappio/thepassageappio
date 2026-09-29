@@ -37,6 +37,8 @@ begin
   end;
   insert into mfa_status_results values(p_label);
 end $$;
+-- Explicit grant: new functions no longer inherit PUBLIC EXECUTE (20260929110200).
+grant execute on function pg_temp.expect_mfa_denied(text, uuid, text) to authenticated;
 
 do $$
 begin

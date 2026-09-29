@@ -59,18 +59,35 @@ declare
   v_error text;
 begin
   begin
+    perform public.create_authority_draft_v2(
+      '22000000-0000-4000-8000-000000000001',
+      'Robin Lane', 'robin-reviewer-boundary@local.authority.test',
+      'Taylor Lane', 'taylor-reviewer-boundary@local.authority.test',
+      'Sample relationship ending 9020', now() + interval '30 days',
+      array['discuss_service_issues']::text[],
+      '62000000-0000-4000-8000-000000000001',
+      gen_random_uuid()
+    );
+    raise exception 'reviewer unexpectedly created a draft';
+  exception when sqlstate '42501' then
+    get stacked diagnostics v_error = message_text;
+    if v_error <> 'authority_request_creation_not_allowed' then raise; end if;
+  end;
+
+  -- The unused v1 entry point is no longer client-executable (20260929110000).
+  begin
     perform public.create_authority_draft_v1(
       '22000000-0000-4000-8000-000000000001',
       'Robin Lane', 'robin-reviewer-boundary@local.authority.test',
       'Taylor Lane', 'taylor-reviewer-boundary@local.authority.test',
       'Sample relationship ending 9020', now() + interval '30 days',
       array['discuss_service_issues']::text[],
-      '62000000-0000-4000-8000-000000000001'
+      '62000000-0000-4000-8000-000000000003'
     );
-    raise exception 'reviewer unexpectedly created a draft';
-  exception when sqlstate '42501' then
+    raise exception 'reviewer unexpectedly reached create_authority_draft_v1';
+  exception when insufficient_privilege then
     get stacked diagnostics v_error = message_text;
-    if v_error <> 'authority_request_creation_not_allowed' then raise; end if;
+    if v_error not like 'permission denied for function create_authority_draft_v1%' then raise; end if;
   end;
 
   begin
