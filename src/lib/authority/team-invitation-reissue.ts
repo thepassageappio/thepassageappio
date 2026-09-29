@@ -105,7 +105,14 @@ export function teamInvitationDeliveryLabel(invitation: TeamInvitationDeliveryVi
   if (status === "processing") return "Sending… confirming delivery";
   if (status === "retrying") return "Delivery delayed";
   if (status === "failed") return emailNotSentReason(invitation.delivery_error_code);
-  if (invitation.delivery_provider === "manual_link") return "Link copied. No email sent.";
+  if (invitation.delivery_provider === "manual_link") {
+    // Copy resets delivery_status to pending (see 20260929090000), so we cannot
+    // tell from the row whether email was sent earlier. Do not claim it wasn't
+    // unless a blocker means email would not go out.
+    if (blocker === "recipient_not_allowed") return "Link copied. No email sent.";
+    if (blocker) return "Link copied. No email sent.";
+    return "Link copied.";
+  }
   if (blocker === "recipient_not_allowed") return DEMO_EMAIL_NOT_APPROVED;
   if (blocker) return emailNotSentReason(blocker);
   return "Not sent";
