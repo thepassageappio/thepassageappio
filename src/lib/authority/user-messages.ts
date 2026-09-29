@@ -1,3 +1,4 @@
+import { EVIDENCE_UPLOAD_MESSAGES } from "./evidence-upload.ts";
 import { requestCoordinatorRecoveryMessage } from "./role-capabilities.ts";
 
 const errorMessages: Record<string, string> = {
@@ -112,11 +113,13 @@ const errorMessages: Record<string, string> = {
   target_not_found: "That bank could not be found on your list.",
   requirement_key_invalid: "Choose a valid document type.",
   evidence_path_invalid: "The file could not be prepared for upload. Try again.",
-  evidence_file_required: "Choose a file to upload.",
-  evidence_file_type_not_allowed: "Use a PDF, JPG, or PNG file.",
-  evidence_file_empty: "That file looks empty. Choose another file.",
-  evidence_file_too_large: "That file is too large. Use a file under 10MB.",
-  evidence_storage_unavailable: "We could not save that file. Try again in a moment.",
+  evidence_file_required: EVIDENCE_UPLOAD_MESSAGES.file_required,
+  evidence_file_type_not_allowed: EVIDENCE_UPLOAD_MESSAGES.file_type_not_allowed,
+  evidence_file_empty: EVIDENCE_UPLOAD_MESSAGES.file_empty,
+  evidence_file_too_large: EVIDENCE_UPLOAD_MESSAGES.file_too_large,
+  evidence_storage_unavailable: EVIDENCE_UPLOAD_MESSAGES.storage_unavailable,
+  evidence_upload_missing: EVIDENCE_UPLOAD_MESSAGES.upload_interrupted,
+  evidence_upload_interrupted: EVIDENCE_UPLOAD_MESSAGES.upload_interrupted,
   requester_attestation_required: "Check the box that says you are allowed to share these details before sending.",
   principal_confirmation_basis_required: "Answer whether the account holder can confirm this request independently.",
   principal_confirmation_reason_required: "Explain why the account holder cannot confirm this request independently.",

@@ -5,10 +5,13 @@ import {
   addSubmissionTargetAction,
   removeSubmissionTargetAction,
   searchInstitutionsAction,
+  finalizeSubmissionEvidenceUploadAction,
+  prepareSubmissionEvidenceUploadAction,
   submitSubmissionGroupAction,
   updateSubmissionGroupDetailsAction,
-  uploadSubmissionEvidenceAction,
 } from "@/app/multi-institution-actions";
+import { uploadEvidenceDirect } from "@/lib/authority/evidence-direct-upload";
+import { EVIDENCE_UPLOAD_ACCEPT } from "@/lib/authority/evidence-upload";
 import styles from "@/components/account/account.module.css";
 import {
   MAX_SUBMISSION_TARGETS,
@@ -48,6 +51,7 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
   const [unmatchedMode, setUnmatchedMode] = useState(false);
 
   const [attested, setAttested] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState<EvidenceRequirementKey | null>(null);
 
   const targetsComplete = context.targets.length >= MIN_SUBMISSION_TARGETS && context.targets.length <= MAX_SUBMISSION_TARGETS;
   const evidenceKeys = new Set(context.evidence.map((item) => item.requirementKey));
@@ -110,18 +114,29 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
     });
   }
 
+  // The file goes straight to private storage (up to 10 MB), then the server checks and records it.
   function uploadEvidence(requirementKey: EvidenceRequirementKey, file: File | null) {
     setError(null);
-    if (!file) return;
-    const formData = new FormData();
-    formData.set("groupId", context.groupId);
-    formData.set("expectedVersion", String(context.version));
-    formData.set("requirementKey", requirementKey);
-    formData.set("evidenceFile", file);
-    startTransition(async () => {
-      const result = await uploadSubmissionEvidenceAction(formData);
-      if (result.error || !result.context) { setError(result.error); return; }
-      setContext(result.context);
+    if (!file || uploadingKey) return;
+    const groupId = context.groupId;
+    const expectedVersion = context.version;
+    setUploadingKey(requirementKey);
+    void uploadEvidenceDirect(file, {
+      prepare: (chosen) => prepareSubmissionEvidenceUploadAction({ groupId, expectedVersion, requirementKey, ...chosen }),
+      finalize: (ticket) => finalizeSubmissionEvidenceUploadAction({
+        groupId,
+        expectedVersion,
+        requirementKey,
+        artifactId: ticket.artifactId,
+        mediaType: ticket.mediaType,
+        originalFilename: ticket.originalFilename,
+        idempotencyKey: ticket.idempotencyKey,
+      }),
+    }).then((result) => {
+      setUploadingKey(null);
+      if (!result.ok) { setError(result.error); return; }
+      if (result.finalized.error || !result.finalized.context) { setError(result.finalized.error); return; }
+      setContext(result.finalized.context);
     });
   }
 
@@ -253,18 +268,28 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
               <div key={key} className={styles.document}>
                 <div>
                   <strong>{SUBMISSION_EVIDENCE_LABELS[key]}</strong>
-                  <span>{uploaded ? uploaded.originalFilename : "PDF, JPG, or PNG, up to 10MB"}</span>
+                  <span>{uploadingKey === key ? "Uploading. Large files can take a minute." : uploaded ? uploaded.originalFilename : "PDF, JPEG, or PNG. Up to 10 MB."}</span>
                 </div>
-                <label className={`${styles.secondary} ${wizardStyles.uploadRow}`}>
-                  {uploaded ? "Replace" : "Upload"}
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" hidden onChange={(event) => uploadEvidence(key, event.target.files?.[0] ?? null)} />
+                <label className={`${styles.secondary} ${wizardStyles.uploadRow}`} aria-disabled={uploadingKey !== null}>
+                  {uploadingKey === key ? "Uploading…" : uploaded ? "Replace" : "Upload"}
+                  <input
+                    type="file"
+                    accept={EVIDENCE_UPLOAD_ACCEPT}
+                    hidden
+                    disabled={uploadingKey !== null}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      event.target.value = "";
+                      uploadEvidence(key, file);
+                    }}
+                  />
                 </label>
               </div>
             );
           })}
           <div className={styles.actions}>
             <button className={styles.secondary} type="button" onClick={() => goTo(1)}>Back</button>
-            <button className={styles.primary} type="button" disabled={!evidenceComplete} onClick={() => goTo(3)}>Continue</button>
+            <button className={styles.primary} type="button" disabled={!evidenceComplete || uploadingKey !== null} onClick={() => goTo(3)}>Continue</button>
           </div>
         </section>
       ) : null}

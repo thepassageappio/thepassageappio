@@ -17,9 +17,14 @@ import {
   REQUESTER_EMAIL_COOKIE,
   REQUESTER_SESSION_COOKIE,
   SUBMISSION_EVIDENCE_BUCKET,
+  ALLOWED_GROUP_EVIDENCE_MEDIA_TYPES,
   type InstitutionSearchResult,
   type RequesterSessionContext,
 } from "@/lib/authority/multi-institution-submission";
+import { resolveEvidenceMediaType, type EvidenceUploadTicketResult } from "@/lib/authority/evidence-upload";
+import { assertSubmissionSession, assertSubmissionUploadable, isEvidenceUuid, isSubmissionRequirementKey } from "@/lib/authority/evidence-upload-access";
+import { createEvidenceSignedUpload, supabaseEvidenceObjectStore } from "@/lib/authority/evidence-upload-storage";
+import { evidenceBytesMatchType, finalizeEvidenceUpload } from "@/lib/authority/evidence-upload-verify";
 import { processSubmissionDelivery } from "@/lib/authority/submission-delivery-worker";
 import { deliverRequesterSubmittedEmail, deliverRequesterVerificationEmail } from "@/lib/authority/requester-verification-delivery";
 import { userErrorMessage } from "@/lib/authority/user-messages";
@@ -295,6 +300,7 @@ export async function uploadSubmissionEvidenceAction(formData: FormData): Promis
     const artifactId = randomUUID();
     uploadedPath = groupEvidenceStoragePath(groupId, artifactId, prepared.extension);
     const bytes = Buffer.from(await file.arrayBuffer());
+    if (!evidenceBytesMatchType(bytes, prepared.mediaType)) throw new Error("evidence_file_type_not_allowed");
     const sha256 = createHash("sha256").update(bytes).digest("hex");
 
     const admin = createAuthorityAdminClient();
@@ -324,6 +330,127 @@ export async function uploadSubmissionEvidenceAction(formData: FormData): Promis
 
     revalidatePath(`/start/multi-institution/${groupId}`);
     const context = await fetchContext(groupId, sessionToken);
+    return { error: null, context };
+  } catch (error) {
+    return { error: userErrorMessage(multiInstitutionErrorCode(error)), context: null };
+  }
+}
+
+function inputText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+// Same checks as uploadSubmissionEvidenceAction: requester session, group, draft, version.
+async function authorizeSubmissionEvidenceUpload(groupId: string, expectedVersion: number) {
+  const sessionToken = await getRequesterSessionToken();
+  if (!sessionToken) throw new Error("requester_session_unavailable");
+  const authorized = assertSubmissionSession(groupId, isEvidenceUuid(groupId) ? await fetchContext(groupId, sessionToken) : null);
+  return { sessionToken, authorized, expectedVersion };
+}
+
+/**
+ * Step 1 of a direct upload: authorize the requester for this draft, check the declared
+ * file, and issue a one-time signed upload for a server-chosen path. No row is written.
+ */
+export async function prepareSubmissionEvidenceUploadAction(input: {
+  groupId: string;
+  expectedVersion: number;
+  requirementKey: string;
+  name: string;
+  type: string;
+  size: number;
+}): Promise<EvidenceUploadTicketResult> {
+  try {
+    const groupId = inputText(input?.groupId);
+    const requirementKey = inputText(input?.requirementKey);
+    const auth = await authorizeSubmissionEvidenceUpload(groupId, Number(input?.expectedVersion));
+    assertSubmissionUploadable(auth.authorized, auth.expectedVersion);
+    if (!isSubmissionRequirementKey(requirementKey)) throw new Error("requirement_key_invalid");
+    const name = inputText(input?.name);
+    const mediaType = resolveEvidenceMediaType(name, inputText(input?.type));
+    const prepared = prepareGroupEvidenceUpload({ name, type: mediaType ?? inputText(input?.type), size: Number(input?.size) });
+
+    const artifactId = randomUUID();
+    const path = groupEvidenceStoragePath(groupId, artifactId, prepared.extension);
+    const { token } = await createEvidenceSignedUpload(createAuthorityAdminClient(), SUBMISSION_EVIDENCE_BUCKET, path);
+    return {
+      ok: true,
+      ticket: {
+        bucket: SUBMISSION_EVIDENCE_BUCKET,
+        path,
+        token,
+        artifactId,
+        mediaType: prepared.mediaType,
+        originalFilename: prepared.originalFilename,
+        idempotencyKey: randomUUID(),
+      },
+    };
+  } catch (error) {
+    return { ok: false, error: userErrorMessage(multiInstitutionErrorCode(error)) ?? "" };
+  }
+}
+
+/**
+ * Step 3 of a direct upload (step 2 is the browser sending the file to storage): check the
+ * stored object at the exact server-derived path, fingerprint the stored bytes, and record
+ * it with the same RPC as the in-request upload. Rejected or unrecorded objects are deleted.
+ */
+export async function finalizeSubmissionEvidenceUploadAction(input: {
+  groupId: string;
+  expectedVersion: number;
+  requirementKey: string;
+  artifactId: string;
+  mediaType: string;
+  originalFilename: string;
+  idempotencyKey: string;
+}): Promise<{ error: string | null; context: RequesterSessionContext | null }> {
+  try {
+    const groupId = inputText(input?.groupId);
+    const requirementKey = inputText(input?.requirementKey);
+    const artifactId = inputText(input?.artifactId);
+    const idempotencyKey = inputText(input?.idempotencyKey);
+    const originalFilename = inputText(input?.originalFilename);
+    const expectedVersion = Number(input?.expectedVersion);
+    const mediaType = resolveEvidenceMediaType("", inputText(input?.mediaType));
+    if (!mediaType) throw new Error("evidence_file_type_not_allowed");
+    if (!isSubmissionRequirementKey(requirementKey)) throw new Error("requirement_key_invalid");
+    if (!isEvidenceUuid(groupId) || !isEvidenceUuid(artifactId) || !isEvidenceUuid(idempotencyKey)) throw new Error("evidence_path_invalid");
+    const path = groupEvidenceStoragePath(groupId, artifactId, ALLOWED_GROUP_EVIDENCE_MEDIA_TYPES[mediaType]);
+    const admin = createAuthorityAdminClient();
+
+    await finalizeEvidenceUpload({
+      authorize: () => authorizeSubmissionEvidenceUpload(groupId, expectedVersion),
+      assertUploadable: ({ authorized }) => assertSubmissionUploadable(authorized, expectedVersion),
+      recordedOwner: async (id) => {
+        const { data, error } = await admin.from("authority_submission_group_evidence").select("group_id").eq("id", id).maybeSingle();
+        if (error) throw new Error("evidence_storage_unavailable");
+        return data?.group_id ? String(data.group_id) : null;
+      },
+      store: supabaseEvidenceObjectStore(admin),
+      record: async ({ sessionToken }, verified) => {
+        // Same validator, fingerprint, RPC, and arguments as the in-request upload.
+        const prepared = prepareGroupEvidenceUpload({ name: originalFilename, type: mediaType, size: verified.byteSize });
+        const { error } = await admin.rpc("record_submission_group_evidence_upload_v1", {
+          p_session_token: sessionToken,
+          p_group_id: groupId,
+          p_expected_version: expectedVersion,
+          p_requirement_key: requirementKey,
+          p_artifact_id: artifactId,
+          p_storage_path: path,
+          p_original_filename: prepared.originalFilename,
+          p_media_type: prepared.mediaType,
+          p_byte_size: prepared.byteSize,
+          p_sha256_hex: verified.sha256Hex,
+          p_idempotency_key: idempotencyKey,
+        });
+        if (error) throw error;
+      },
+    }, { scopeId: groupId, artifactId, bucket: SUBMISSION_EVIDENCE_BUCKET, path, mediaType });
+
+    revalidatePath(`/start/multi-institution/${groupId}`);
+    const sessionToken = await getRequesterSessionToken();
+    const context = sessionToken ? await fetchContext(groupId, sessionToken) : null;
+    if (!context) throw new Error("requester_session_unavailable");
     return { error: null, context };
   } catch (error) {
     return { error: userErrorMessage(multiInstitutionErrorCode(error)), context: null };
