@@ -4,7 +4,9 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 
 ## Production gate
 
-`clean main commit -> required checks -> migration match -> Vercel Git deploy -> deployed SHA equals origin/main -> production smoke/replay`
+`clean main commit -> green checks (verify + database) -> migration match -> Vercel Git deploy -> deployed SHA equals origin/main -> production smoke/replay`
+
+> **Update (2026-09-28): branch protection on `main` is on.** Earlier on 2026-09-28 the branch API returned `protected: false` and no rules, and a direct push to `main` had happened on 2026-09-22 (`4e67506`). Branch protection is now enabled on `main`: changes need a pull request, the `verify` and `database` status checks are required, and force pushes are blocked. The public branch API on 2026-09-28 reported `protected: true` with required contexts `verify` and `database` and `enforcement_level: non_admins`, so a repository admin can still bypass the checks. Do not bypass. The release owner still confirms both checks are green on the exact head SHA before merging.
 
 - Production domain: `thepassageapp.io`.
 - Production Vercel project: `passage-authority-uat`, now Git-connected with automatic production deployment from `main`.
@@ -22,7 +24,7 @@ Load for Git, migrations, Vercel, deployment, or release evidence.
 - Promote a tested artifact; do not rebuild from untracked local state.
 - A branch push creates preview evidence only. It cannot be reported as shipped until the commit is merged to `main`, the `main` deployment is `Ready`, and `/api/version` reports that same SHA.
 - A failed newer `main` deployment blocks the release even if Vercel continues serving an older healthy production deployment. Record both the failed candidate and the active production SHA.
-- Use a pull request with required checks for every release change. Before merge, compare the PR head SHA, green check SHA, preview source SHA, and intended merge commit; after merge, compare `origin/main`, Vercel production source, and `/api/version`.
+- Use a pull request for every release change, and do not merge until `verify` and `database` are green on the PR head SHA. GitHub branch protection on `main` requires both checks and blocks force pushes; admins can bypass, so never use the bypass for a release. Before merge, compare the PR head SHA, green check SHA, preview source SHA, and intended merge commit; after merge, compare `origin/main`, Vercel production source, and `/api/version`.
 - Do not make routine schema changes through direct hosted SQL. If an emergency SQL change is unavoidable, recover the exact applied statements into `supabase/migrations/` in the same incident, verify a fresh local reset, and record hosted object-definition hashes. A migration-history row alone is insufficient evidence.
 
 Run `pnpm verify:release-provenance` before release. The current detached dirty checkout must fail this check.

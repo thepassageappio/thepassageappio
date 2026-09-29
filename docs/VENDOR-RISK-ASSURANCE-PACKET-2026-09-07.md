@@ -5,6 +5,15 @@
 **Prepared by:** Product/engineering, from the repository's own source code, database migrations, and internal documents
 **Status:** Prep packet only. This is a self-assessment built directly from the current codebase, not a third-party audit, penetration test, or certification. Every control claimed below is cited to a specific file, migration, or table so it can be independently verified — nothing here should be represented to a buyer as certified or independently attested until the gaps in Section 3 are closed.
 
+> **Correction note (2026-09-28).** This packet reflects the September 7 code review and was already partly out of date when it landed on `main`. Five statements were stale or wrong. Each is corrected in place below and marked **Corrected 2026-09-28**:
+> 1. "No password-based authentication exists." The app has no password screen, but the production Supabase Auth email provider is on, and that provider accepts email and password through the Auth API. The production security advisor also reports leaked-password protection disabled (Section 2.1).
+> 2. "Exactly four" anonymous security-definer functions. On 2026-09-28 the production catalog showed 11 (Sections 2.1 and 4.4).
+> 3. Privileged MFA, an incident-response plan, and SOC 2 scoping were listed as missing. All three now exist in the repository (Section 3).
+> 4. `organization_audit_events` was called append-only before any trigger enforced it. PR #163 added a trigger on 2026-09-28 that blocks UPDATE and DELETE for every role. TRUNCATE is not covered (Section 2.4).
+> 5. Signed URLs. Evidence downloads are streamed through the server. The app issues no signed storage URLs (Sections 2.5, 3, and 4.4).
+>
+> Use the dated Ops security diligence pack (2026-09-28) for current buyer answers. Do not quote this packet on its own.
+
 This packet exists so that once a pilot institution's procurement or vendor-risk team asks "what security controls does Passage actually have," there is an accurate, source-cited answer ready — separate from what's still outstanding. Section 2 documents what is real and verifiable in the codebase today. Section 3 is an explicit, non-euphemistic gap list. Section 4 is the scoped privacy review. Nothing in Section 2 should be read as a claim that these controls have been independently tested or certified — only that they exist in the code as described.
 
 ---
@@ -24,14 +33,25 @@ No infrastructure scan, penetration test, or third-party control testing was per
 **Institution/organization users** (owner, admin, staff, reviewer, developer, auditor roles) authenticate through Supabase Auth:
 - Default path is email one-time-password / magic link (`requestSignInAction` in `src/app/account-actions.ts`, calling `supabase.auth.signInWithOtp`).
 - Google OAuth is available as an alternate path, gated behind an environment flag (`isGoogleSignInEnabled()`, `src/lib/supabase/config.ts`) and handled at `src/app/auth/confirm/route.ts`.
-- No password-based authentication exists in the codebase — this removes an entire class of credential-stuffing and password-reuse risk by design, not by policy.
+- ~~No password-based authentication exists in the codebase — this removes an entire class of credential-stuffing and password-reuse risk by design, not by policy.~~ **Corrected 2026-09-28:** The app offers no password sign-in screen, and `src/` never calls `signInWithPassword`. Password sign-in is still possible at the provider level:
+  - The production Supabase Auth email provider is enabled, and sign-up is open (public `/auth/v1/settings`, read 2026-09-28).
+  - Supabase's email provider accepts email-and-password sign-up and sign-in through the Auth API, whatever the app UI shows.
+  - The production security advisor reports "Leaked password protection disabled".
+  - `supabase/config.toml` sets `minimum_password_length = 6` with no complexity requirement.
+  - `docs/PRIVILEGED-MFA-TEAM-STATUS.md` evidence used password sign-in against a local stack.
+  - Until Engineering confirms a provider setting that blocks password grants, describe sign-in as "magic link in the app; password sign-in not offered in the UI." Do not say "no passwords."
 - A database-level gate additionally requires a confirmed email (`auth.users.email_confirmed_at is not null`) before any privileged database function will execute on a user's behalf (`authority_private.current_actor_id()`, migration `20260828211255_authority_gate_1_foundation.sql`).
 
 **Principals and representatives** (the account holder and the person acting for them, who never create accounts) authenticate through single-use, expiring, role-bound invitation links rather than passwords or Supabase sessions:
 - A random 32-byte token is generated per invitation; only its SHA-256 hash is ever stored in the database (`authority_private.participant_invitation_secrets.token_hash`), so the raw token cannot be recovered from a database compromise (migrations `20260829054002_authority_participant_access.sql`, `20260829050156_authority_trial_activation.sql`).
 - Invitation links expire after 72 hours.
 - Once redeemed, a separate session token is minted (also stored only as a hash) and capped at 30 minutes, bound to the specific request record and the specific participant role.
-- The database's anonymous access role is restricted to exactly four security-definer functions — an anonymous request cannot query application tables directly, only pass through those four narrow, purpose-built entry points (migration `20260902023000_authority_participant_anon_boundary.sql`).
+- ~~The database's anonymous access role is restricted to exactly four security-definer functions~~ **Corrected 2026-09-28:** Migration `20260902023000_authority_participant_anon_boundary.sql` first limited the anonymous role to four security-definer functions. Later migrations added more:
+  - `20260913150500_authority_multi_institution_submission_phase0_functions.sql` added requester verification and multi-institution submission.
+  - On 2026-09-28 the production catalog showed `anon` can run 11 `SECURITY DEFINER` functions. Ten are in `authority_private` and are called through `SECURITY INVOKER` wrappers in `public`. The eleventh is `public.get_submission_delivery_status_v1`.
+  - An anonymous request still cannot query application tables directly.
+  - Most of these functions need a participant, requester, or session token. `search_institutions_v1` takes only a search string.
+  - A function-by-function re-audit is still open.
 - This mechanism is accurately described in the product's own public copy: "A private link protects access. It does not prove identity" (`src/app/security/page.tsx`) — the link authenticates *possession of the invitation*, not the participant's real-world identity. Identity verification remains the institution's responsibility, consistent with the product boundary in the companion legal-review packet.
 
 ### 2.2 Row-level security (RLS)
@@ -60,7 +80,12 @@ Base table privileges are also revoked and selectively re-granted (`revoke all o
 
 ### 2.4 Audit logging
 
-Two append-only event logs exist and are populated today:
+Two event logs exist and are populated today. **Corrected 2026-09-28:**
+- `authority_events` has been append-only by trigger since migration `20260829044618` (`authority_events_append_only`).
+- `organization_audit_events` was protected only by grants when this packet was written: authenticated users had SELECT, and writes went through RPCs. The server (service) role could still update or delete rows.
+- PR #163 (migration `20260928120100_organization_audit_events_append_only.sql`, applied to Demo and production on 2026-09-28) added a trigger that blocks UPDATE and DELETE for every role, including the service role.
+- TRUNCATE is not covered.
+- Describe this log as "append-only (UPDATE/DELETE blocked)", not "immutable".
 
 1. `public.organization_audit_events` (migration `20260828211255_authority_gate_1_foundation.sql`) — records organization- and admin-level actions: `organization.created`, `membership.activated`, `membership.invited`, `membership.role_changed`, `membership.revoked`, `evidence.source_viewed` (logged on every evidence view, not just uploads), `evidence.source_accepted`, and institution decisions. Read access is RLS-restricted to owner/admin/auditor roles (`audit_events_authorized_select`).
 2. `public.authority_events` — a record-level activity timeline visible to participants and staff according to role, covering events like `participant.access_established` and `evidence.source_received`.
@@ -75,7 +100,11 @@ Uploaded POA documents and identity-evidence files are stored in a dedicated, **
 - Storage paths follow a fixed, server-enforced pattern (`{authority_record_id}/{artifact_id}/source.{ext}`), validated both in the database function that records an upload and independently in application code (`src/lib/authority/evidence.ts`).
 - Direct client access to storage objects is blocked entirely (`revoke all on storage.objects from anon, authenticated`). Reads are only possible through `authority_private.authorize_evidence_view_v1`, a function that checks the requester holds an active membership with an authorized role (owner/admin/staff/reviewer/auditor) and logs an `evidence.source_viewed` audit event on every access.
 - Document metadata (filename, media type, size, a SHA-256 content hash, review status, reviewer) is stored separately in the RLS-protected `authority_evidence_artifacts` table from the file content itself.
-- **Not independently confirmed in this review:** the exact code path that turns an authorized `authorize_evidence_view_v1` call into a time-limited signed URL for the actual file bytes. The access-control checks described above are confirmed; the final signed-URL issuance step should be verified directly with engineering before this claim is repeated to a buyer as complete end-to-end.
+- ~~**Not independently confirmed in this review:** the exact code path that turns an authorized `authorize_evidence_view_v1` call into a time-limited signed URL for the actual file bytes.~~ **Corrected 2026-09-28:** The app issues no signed URLs (`createSignedUrl` does not appear in `src/`). Here is how a download works in `src/app/app/evidence/[id]/route.ts`:
+  - The server route checks the signed-in member's organization access.
+  - It calls `authorize_evidence_view_v1`, which checks the role and writes the `evidence.source_viewed` audit event.
+  - It downloads the object server-side with the service client.
+  - It streams the bytes back as an attachment. Storage URLs are never handed to the browser.
 
 ---
 
@@ -85,14 +114,14 @@ This section states plainly what a bank or credit union's vendor-risk review wil
 
 | Gap | Current state | Source |
 | --- | --- | --- |
-| SOC 2 / ISO 27001 certification | None. No certification, audit engagement, or scoping work exists in the repository or docs. | `src/app/security/page.tsx`: "Passage does not claim a completed certification, independent audit, or identity integration until it can be supported with evidence." |
+| SOC 2 / ISO 27001 certification | None. No certification or audit engagement. **Corrected 2026-09-28:** SOC 2 readiness scoping does exist: `docs/SOC2-READINESS-DECISION-PACKAGE-2026-09-05.md`, a proposed plan, not an engagement, plus `docs/SOC2-BUYER-ANSWER-2026-09-07.md`. | `src/app/security/page.tsx`: "Passage does not claim a completed certification, independent audit, or identity integration until it can be supported with evidence." |
 | Independent security assessment / penetration test | Not performed. No pentest artifacts, vendor engagement, or scheduling found. | `src/app/security/page.tsx`; confirmed absent elsewhere in `docs/` and `src/` |
 | Encryption and key-management review | Not performed. Current encryption is platform-provided only (Section 2.3); no formal review of key management has occurred. | `src/app/security/page.tsx` |
 | Data retention, deletion, backup, and recovery testing | Not implemented. No retention policy, scheduled deletion, TTL, or soft-delete pattern found on any table holding participant or evidence data. No backup/recovery test evidence found. | `src/app/security/page.tsx`; `docs/CURRENT-STATE-GAP-MAP.md` lists "retention and recovery controls" as a remaining gap |
 | Audit log export | Not implemented. Audit events are captured (Section 2.4) but there is no export function for an institution's own compliance/audit team. | `docs/CURRENT-STATE-GAP-MAP.md`: "Organization-wide access and administrative audit export" tracked as a remaining item under Gate 5 and pilot hardening |
-| Privileged-account MFA | Not confirmed implemented as of this review; the roadmap lists "privileged MFA" as pilot-hardening evidence still outstanding. | `docs/V2-DELIVERY-ROADMAP.md`, P2 gate exit evidence |
-| Signed-URL issuance for evidence files | Access-control checks are confirmed (Section 2.5); the specific signed-URL generation step was not independently located in this review and should be verified with engineering. | This review |
-| Formal incident-response plan / evidence | Not found in this review. | This review |
+| Privileged-account MFA | **Corrected 2026-09-28: implemented for owner and admin.** TOTP is required for the owner and admin roles in the app (`src/lib/authority/mfa-policy.ts`) and at the database RPC boundary (`supabase/migrations/20260908030941_enforce_privileged_mfa.sql`, which requires `aal2`). Staff, reviewer, auditor, and developer roles are not required to use MFA. That is the remaining gap. | `src/lib/authority/mfa-policy.ts`; `docs/PRIVILEGED-MFA-TEAM-STATUS.md` |
+| ~~Signed-URL issuance for evidence files~~ | **Corrected 2026-09-28: not a gap.** No signed URLs are issued. Downloads are streamed through the server after the role check and audit write (Section 2.5). | `src/app/app/evidence/[id]/route.ts` |
+| Formal incident-response plan / evidence | **Corrected 2026-09-28:** A written plan exists: `docs/RECOVERY-AND-INCIDENT-READINESS.md`, dated September 7, 2026, with SEV1–SEV3, detection, containment, and evidence preservation. It has never been exercised. It has no customer-notification template and no named decision-maker. | `docs/RECOVERY-AND-INCIDENT-READINESS.md` |
 | Subprocessor list / data-processing agreement material | Not found in this review; `docs/V2-BEST-PRACTICE-REVIEW.md` recommends this as part of a security-readiness baseline but it has not been produced. | `docs/V2-BEST-PRACTICE-REVIEW.md` |
 
 None of these gaps should be represented to a buyer as "in progress" unless engineering confirms active work is underway. As of this packet's date, they are open items, not scheduled deliverables — Steve and counsel should decide which of these are conditions of any founding-pilot agreement versus items disclosed as a forward roadmap.
@@ -126,11 +155,11 @@ There is currently no retention or deletion story. No scheduled deletion job, re
 
 Based on the RLS policies, storage access controls, and anonymous-role restrictions confirmed in Section 2, the review did not find evidence of data being unnecessarily exposed:
 
-- Anonymous (unauthenticated) database access is limited to four specific functions, not general table access.
+- Anonymous (unauthenticated) database access is limited to specific functions, not general table access. **Corrected 2026-09-28:** that is 11 security-definer functions on production, not four (see Section 2.1).
 - Evidence files require an authenticated, role-checked function call to view, with every view logged.
 - Cross-organization data access is blocked by RLS policies scoped to organization membership.
 
-The two exposure-relevant items worth flagging to counsel and to a buyer's security team are: (1) the unverified signed-URL issuance step noted in Section 2.5 — worth confirming end-to-end before claiming complete evidence-access control, and (2) the absence of field-level encryption on principal/representative PII (Section 2.3), which means a full database compromise (as opposed to an RLS bypass) would expose that data in plaintext, mitigated only by Supabase's platform-level disk encryption.
+The two exposure-relevant items worth flagging to counsel and to a buyer's security team are: (1) ~~the unverified signed-URL issuance step noted in Section 2.5~~ (**Corrected 2026-09-28:** resolved. Downloads are server-streamed, with no signed URLs), and (2) the absence of field-level encryption on principal/representative PII (Section 2.3), which means a full database compromise (as opposed to an RLS bypass) would expose that data in plaintext, mitigated only by Supabase's platform-level disk encryption.
 
 ---
 
