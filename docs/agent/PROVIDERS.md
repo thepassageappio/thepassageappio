@@ -31,6 +31,7 @@ Load for Supabase, Stripe, HubSpot, Resend, email delivery, or reconciliation.
 - Stripe negative-path defects found tonight are fixed.
 - Production Supabase remains on the Free plan with zero backups; upgrading is an owner spending decision and a real-data gate.
 - Full three-way Passage/Stripe/HubSpot reconciliation remains unavailable until HubSpot credentials and provider reads are configured; a clean internal reconciliation must not be described as that broader proof.
+- Daily reconciliation alert: when the cron run is not clean, `sendReconciliationAlert` emails `AUTHORITY_OPS_ALERT_EMAIL` through Resend (needs `AUTHORITY_EMAIL_FROM` and `RESEND_API_KEY`; on Demo the recipient must pass the Demo allowlist). To check delivery without breaking a run, Ops can call `POST /api/internal/ops-alert-test` with `Authorization: Bearer $CRON_SECRET`. It sends one email whose subject starts with `[TEST]`, runs no reconciliation, changes no data, and returns only `{"status":"sent"}` or `{"status":"skipped","reason":...}` (`not_configured`, `recipient_not_allowed`, or `provider_rejected`). A wrong or missing secret returns 401. Repeat calls in the same UTC minute share one Resend idempotency key.
 
 ## Supabase MFA plan facts
 

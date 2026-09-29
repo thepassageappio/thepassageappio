@@ -14,20 +14,31 @@ type AlertSender = (apiKey: string, email: AlertEmail, idempotencyKey: string) =
 const sendWithResend: AlertSender = async (apiKey, email, idempotencyKey) =>
   new Resend(apiKey).emails.send(email, { headers: { "Idempotency-Key": idempotencyKey } });
 
-export function buildReconciliationAlertEmail(summary: ReconciliationAlertSummary, environment: string | undefined) {
+export function buildReconciliationAlertEmail(summary: ReconciliationAlertSummary, environment: string | undefined, options: { test?: boolean } = {}) {
   const envLabel = environment?.trim() || "unknown";
   const runDate = summary.runDate ?? "not recorded";
+  const subject = `Passage Authority (${envLabel}): daily reconciliation is ${summary.status}`;
+  const body = [
+    "The daily reconciliation check did not come back clean.",
+    "",
+    `Environment: ${envLabel}`,
+    `Status: ${summary.status}`,
+    `Run date: ${runDate}`,
+    "",
+    "Check authority_private.reconciliation_runs in Supabase for the details.",
+    "This email is only sent when the result is not clean.",
+  ];
+  if (!options.test) return { subject, text: body.join("\n") };
   return {
-    subject: `Passage Authority (${envLabel}): daily reconciliation is ${summary.status}`,
+    subject: `[TEST] ${subject}`,
     text: [
-      "The daily reconciliation check did not come back clean.",
+      "This is a test. Nothing is wrong.",
+      "Someone on the team asked Passage to send this email to check that alerts arrive.",
+      "No check was run and no data was changed.",
       "",
-      `Environment: ${envLabel}`,
-      `Status: ${summary.status}`,
-      `Run date: ${runDate}`,
+      "Below is what a real alert looks like:",
       "",
-      "Check authority_private.reconciliation_runs in Supabase for the details.",
-      "This email is only sent when the result is not clean.",
+      ...body,
     ].join("\n"),
   };
 }
@@ -37,6 +48,7 @@ export async function sendReconciliationAlert(
   summary: ReconciliationAlertSummary,
   env: Record<string, string | undefined> = process.env,
   send: AlertSender = sendWithResend,
+  options: { test?: boolean; idempotencyKey?: string } = {},
 ): Promise<ReconciliationAlertResult> {
   try {
     const to = env.AUTHORITY_OPS_ALERT_EMAIL?.trim();
@@ -46,9 +58,10 @@ export async function sendReconciliationAlert(
     if (!isDemoEmailRecipientAllowed(to, env.PASSAGE_ENVIRONMENT, env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST)) {
       return { sent: false, reason: "recipient_not_allowed" };
     }
-    const message = buildReconciliationAlertEmail(summary, env.PASSAGE_ENVIRONMENT);
+    const message = buildReconciliationAlertEmail(summary, env.PASSAGE_ENVIRONMENT, { test: options.test });
     const day = summary.runDate ?? new Date().toISOString().slice(0, 10);
-    const response = await send(apiKey, { from, to, ...message }, `authority-reconciliation-alert-${day}-${summary.status}`);
+    const key = options.idempotencyKey ?? `authority-reconciliation-alert-${day}-${summary.status}`;
+    const response = await send(apiKey, { from, to, ...message }, key);
     if (response?.error) {
       console.error("reconciliation_alert_not_sent", { reason: "provider_rejected" });
       return { sent: false, reason: "provider_rejected" };
@@ -92,4 +105,39 @@ export async function dailyReconciliationResponse(
   const clean = row.status === "clean";
   if (!clean) await alertSafely(alert, { status: String(row.status), runDate: row.run_date == null ? null : String(row.run_date) });
   return Response.json({ok:clean,status:row.status,run_date:row.run_date,already_recorded_today:row.already_recorded_today===true}, {status:clean?200:409,headers});
+}
+
+export type OpsAlertTestResult =
+  | { status: "sent" }
+  | { status: "skipped"; reason: "not_configured" | "recipient_not_allowed" | "provider_rejected" };
+
+type TestAlertFn = (summary: ReconciliationAlertSummary, idempotencyKey: string) => Promise<ReconciliationAlertResult>;
+
+// One-shot Ops check that the reconciliation alert email arrives. It uses the same
+// CRON_SECRET bearer check as the cron routes and the same send path as the real
+// alert (same recipient, sender, and Demo allowlist), with a "[TEST]" subject.
+// It runs no reconciliation, reads and writes no data, and returns only the outcome.
+export async function opsAlertTestResponse(
+  request: Request,
+  configuredSecret: string | undefined,
+  alert: TestAlertFn = (summary, idempotencyKey) => sendReconciliationAlert(summary, process.env, sendWithResend, { test: true, idempotencyKey }),
+  now: () => Date = () => new Date(),
+) {
+  const headers = { "Cache-Control": "private, no-store" };
+  const secret = Buffer.from(configuredSecret?.trim() ?? "");
+  const supplied = Buffer.from(request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "");
+  if (!secret.length || secret.length !== supplied.length || !timingSafeEqual(secret, supplied)) {
+    return Response.json({ status: "unauthorized" }, { status: 401, headers });
+  }
+  const at = now().toISOString();
+  // One send per minute at most, so a double click or retry does not send twice.
+  const idempotencyKey = `authority-reconciliation-alert-test-${at.slice(0, 16)}`;
+  let result: ReconciliationAlertResult;
+  try {
+    result = await alert({ status: "test", runDate: at.slice(0, 10) }, idempotencyKey);
+  } catch {
+    result = { sent: false, reason: "provider_rejected" };
+  }
+  const body: OpsAlertTestResult = result.sent ? { status: "sent" } : { status: "skipped", reason: result.reason };
+  return Response.json(body, { status: 200, headers });
 }
