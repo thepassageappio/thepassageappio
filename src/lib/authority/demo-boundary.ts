@@ -13,6 +13,14 @@ function exactEmailSet(value: string | undefined) {
   );
 }
 
+// Controlled Prepare-a-fresh-demo pair when PASSAGE_EMAIL_RECIPIENT_ALLOWLIST does
+// not supply at least two exact emails. These addresses are also in
+// DEMO_DEFAULT_EMAIL_RECIPIENTS so delivery accepts them without an env bump.
+const DEMO_PREPARE_FALLBACK_PAIR = [
+  "thepassageappio+parker@gmail.com",
+  "thepassageappio+casey@gmail.com",
+] as const;
+
 export function isDemoEnvironment(environment = process.env.PASSAGE_ENVIRONMENT) {
   return environment?.trim().toLowerCase() === "demo";
 }
@@ -29,7 +37,8 @@ export function mayProvisionDemoRun(
 
 export function demoParticipantRecipientPair(
   recipientAllowlist = process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST,
-): readonly [string, string] | null {
+): readonly [string, string] {
   const recipients = [...exactEmailSet(recipientAllowlist)];
-  return recipients.length >= 2 ? [recipients[0], recipients[1]] : null;
+  if (recipients.length >= 2) return [recipients[0], recipients[1]];
+  return DEMO_PREPARE_FALLBACK_PAIR;
 }
