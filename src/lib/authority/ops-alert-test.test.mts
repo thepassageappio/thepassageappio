@@ -43,16 +43,13 @@ test("ops alert test is skipped when AUTHORITY_OPS_ALERT_EMAIL is unset",async()
   assert.equal(calls.length,0);
 });
 
-test("ops alert test respects the Demo allowlist",async()=>{
+test("ops alert test on Demo reaches the configured ops address even when the allowlist omits it",async()=>{
   const calls:Sent[]=[];
-  const demoBlocked={...env,PASSAGE_ENVIRONMENT:"demo",PASSAGE_EMAIL_RECIPIENT_ALLOWLIST:"someone-else@example.invalid"};
-  const blocked=await opsAlertTestResponse(post("correct"),"correct",alertWith(demoBlocked,calls),fixedNow);
-  assert.deepEqual(await blocked.json(),{status:"skipped",reason:"recipient_not_allowed"});
-  assert.equal(calls.length,0);
-  const demoDefault={...env,PASSAGE_ENVIRONMENT:"demo",AUTHORITY_OPS_ALERT_EMAIL:"thepassageappio@gmail.com"};
-  const allowed=await opsAlertTestResponse(post("correct"),"correct",alertWith(demoDefault,calls),fixedNow);
-  assert.deepEqual(await allowed.json(),{status:"sent"});
+  const demo={...env,PASSAGE_ENVIRONMENT:"demo",PASSAGE_EMAIL_RECIPIENT_ALLOWLIST:"someone-else@example.invalid"};
+  const result=await opsAlertTestResponse(post("correct"),"correct",alertWith(demo,calls),fixedNow);
+  assert.deepEqual(await result.json(),{status:"sent"});
   assert.equal(calls.length,1);
+  assert.equal(calls[0].email.to,"ops@example.invalid");
   assert.match(calls[0].email.subject,/^\[TEST\] Passage Authority \(demo\)/);
 });
 
