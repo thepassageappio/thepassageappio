@@ -18,12 +18,14 @@ test("Production, preview, missing configuration, and wildcard presenters fail c
   assert.equal(mayProvisionDemoRun("owner@example.com", "owner", "demo", "*@example.com"), false);
 });
 
-test("Demo participants use two distinct exact allowlisted recipients", () => {
+test("Demo participants prefer first two env allowlist emails, else Parker/Casey fallback", () => {
   assert.deepEqual(
     demoParticipantRecipientPair(" Principal@Example.com,representative@example.com,principal@example.com"),
     ["principal@example.com", "representative@example.com"],
   );
-  assert.equal(demoParticipantRecipientPair("only@example.com"), null);
-  assert.equal(demoParticipantRecipientPair("*@example.com"), null);
-  assert.equal(demoParticipantRecipientPair(undefined), null);
+  const fallback = ["thepassageappio+parker@gmail.com", "thepassageappio+casey@gmail.com"] as const;
+  assert.deepEqual(demoParticipantRecipientPair("only@example.com"), [...fallback]);
+  assert.deepEqual(demoParticipantRecipientPair("*@example.com"), [...fallback]);
+  assert.deepEqual(demoParticipantRecipientPair(undefined), [...fallback]);
+  assert.deepEqual(demoParticipantRecipientPair(""), [...fallback]);
 });
