@@ -71,6 +71,8 @@ begin
   end;
   insert into security_boundary_results values(p_label,true);
 end $$;
+-- Explicit grant: new functions no longer inherit PUBLIC EXECUTE (20260929110200).
+grant execute on function pg_temp.expect_denied(text, text, text) to authenticated;
 
 do $$
 begin

@@ -439,8 +439,11 @@ export async function submitParticipantDecisionAction(formData: FormData) {
     const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
     if (!sessionToken) throw new Error("participant_session_unavailable");
 
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc("submit_participant_decision_v1", {
+    // Server-only RPC: the principal_confirm result carries the representative's invitation
+    // token, so it must never be callable with a browser-held anon key. The session token is
+    // still verified inside the function.
+    const admin = createAuthorityAdminClient();
+    const { data, error } = await admin.rpc("submit_participant_decision_v1", {
       p_session_token: sessionToken,
       p_authority_record_id: recordId,
       p_expected_version: Number(textField(formData, "expectedVersion")),
@@ -461,7 +464,6 @@ export async function submitParticipantDecisionAction(formData: FormData) {
     let notice: string = decision;
     if (decision === "principal_confirm" && result.representative_invitation_id && result.representative_invitation_token) {
       notice = "principal_confirm_delivery_pending";
-      const admin = createAuthorityAdminClient();
       const { data: deliveryContext, error: contextError } = await admin.rpc("get_released_representative_delivery_context_v1", {
         p_session_token: sessionToken,
         p_authority_record_id: recordId,
