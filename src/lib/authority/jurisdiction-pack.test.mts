@@ -72,3 +72,11 @@ test("sole-refusal soft notice is plain language without em dashes", () => {
   assert.match(NY_SOLE_REFUSAL_SOFT_NOTICE, /statutory short form/);
   assert.doesNotMatch(NY_SOLE_REFUSAL_SOFT_NOTICE, /\u2014/);
 });
+
+test("request page shows an unknown form type once, as not chosen yet before a decision", async () => {
+  const { requestPageFormClassLabels } = await import("./jurisdiction-pack.ts");
+  assert.deepEqual(requestPageFormClassLabels("Form type unknown", false), { factsLabel: "Form type not chosen yet", decisionPanelLabel: null });
+  assert.deepEqual(requestPageFormClassLabels("Form type unknown", true), { factsLabel: "Form type unknown", decisionPanelLabel: null });
+  assert.deepEqual(requestPageFormClassLabels("Statutory short form", false), { factsLabel: "Statutory short form", decisionPanelLabel: "Statutory short form" });
+  assert.deepEqual(requestPageFormClassLabels(null, false), { factsLabel: null, decisionPanelLabel: null });
+});

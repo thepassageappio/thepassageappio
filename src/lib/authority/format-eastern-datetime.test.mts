@@ -22,3 +22,15 @@ test("formatEasternDateTime shows EST in winter", () => {
   assert.match(formatted, /1:30\s*PM/i);
   assert.match(formatted, /\bEST\b/);
 });
+
+test("Team and Security pages use the Eastern formatter, not unlabeled or UTC clocks", async () => {
+  const { readFileSync } = await import("node:fs");
+  const team = readFileSync(new URL("../../app/app/team/page.tsx", import.meta.url), "utf8");
+  const security = readFileSync(new URL("../../components/app/MfaTeamStatus.tsx", import.meta.url), "utf8");
+  const policies = readFileSync(new URL("../../app/app/policies/page.tsx", import.meta.url), "utf8");
+  for (const source of [team, security, policies]) {
+    assert.match(source, /formatEasternDateTime/);
+    assert.doesNotMatch(source, /" UTC"|toISOString\(\)/);
+  }
+  assert.doesNotMatch(team, /new Intl\.DateTimeFormat\("en-US", \{ month: "short", day: "numeric", hour/);
+});

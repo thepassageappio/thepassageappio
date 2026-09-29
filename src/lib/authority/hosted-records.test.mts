@@ -7,7 +7,7 @@ const validInput = {
   principalEmail: " Eleanor.Carter@example.com ",
   representativeName: "Maya Carter",
   representativeEmail: "MAYA.CARTER@example.com",
-  accountBoundary: " Membership account ending 4821 ",
+  accountBoundary: " Joint checking ",
   validUntil: "2027-08-26T23:59:59.000Z",
   allowedActionKeys: ["discuss_service_issues", "receive_duplicate_statements"],
 };
@@ -19,7 +19,7 @@ test("hosted draft input is normalized without changing the requested scope", ()
     principalEmail: "eleanor.carter@example.com",
     representativeName: "Maya Carter",
     representativeEmail: "maya.carter@example.com",
-    accountBoundary: "Membership account ending 4821",
+    accountBoundary: "Joint checking",
     validUntil: "2027-08-26T23:59:59.000Z",
     allowedActionKeys: ["discuss_service_issues", "receive_duplicate_statements"],
   });

@@ -10,8 +10,13 @@ import { INVITE_EXCHANGE_BOUND_TOKEN_COOKIE, INVITE_EXCHANGE_IDEMPOTENCY_COOKIE,
 import { participantReceiptPath } from "@/lib/authority/participant-receipt";
 import { prepareHostedInformationResponse, prepareHostedWithdrawal } from "@/lib/authority/hosted-information";
 import { prepareHostedSubmission } from "@/lib/authority/hosted-submission";
-import { AUTHORITY_EVIDENCE_BUCKET, evidenceStoragePath, prepareEvidenceUpload } from "@/lib/authority/evidence";
-import { getParticipantEvidenceContext } from "@/lib/authority/participant-session";
+import { ALLOWED_EVIDENCE_MEDIA_TYPES, AUTHORITY_EVIDENCE_BUCKET, evidenceStoragePath, prepareEvidenceUpload } from "@/lib/authority/evidence";
+import { resolveEvidenceMediaType, type EvidenceUploadTicketResult } from "@/lib/authority/evidence-upload";
+import { assertParticipantRequirementUploadable, isEvidenceUuid, participantUploadRequirement } from "@/lib/authority/evidence-upload-access";
+import { createEvidenceSignedUpload, supabaseEvidenceObjectStore } from "@/lib/authority/evidence-upload-storage";
+import { evidenceBytesMatchType, finalizeEvidenceUpload } from "@/lib/authority/evidence-upload-verify";
+import { participantRequirementsError } from "@/lib/authority/participant-requirements-notice";
+import { getParticipantEvidenceContext, getParticipantRequestContext } from "@/lib/authority/participant-session";
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
 import { createAuthorityAdminClient } from "@/lib/supabase/admin";
 import { getAuthorityAppUrl } from "@/lib/supabase/config";
@@ -42,6 +47,8 @@ function participantErrorCode(error: unknown) {
     evidence_file_type_not_allowed: "file_type_not_allowed",
     evidence_file_empty: "file_empty",
     evidence_file_too_large: "file_too_large",
+    evidence_upload_missing: "upload_interrupted",
+    evidence_upload_interrupted: "upload_interrupted",
     evidence_path_invalid: "file_unavailable",
     evidence_storage_unavailable: "file_unavailable",
     evidence_not_available: "evidence_unavailable",
@@ -112,6 +119,10 @@ export async function uploadParticipantEvidenceAction(formData: FormData) {
     const artifactId = randomUUID();
     uploadedPath = evidenceStoragePath(recordId, artifactId, prepared.extension);
     const bytes = Buffer.from(await file.arrayBuffer());
+    if (!evidenceBytesMatchType(bytes, prepared.mediaType)) {
+      uploadedPath = null;
+      throw new Error("evidence_file_type_not_allowed");
+    }
     const sha256 = createHash("sha256").update(bytes).digest("hex");
     const admin = createAuthorityAdminClient();
     const { error: uploadError } = await admin.storage.from(AUTHORITY_EVIDENCE_BUCKET).upload(uploadedPath, bytes, {
@@ -147,6 +158,131 @@ export async function uploadParticipantEvidenceAction(formData: FormData) {
     destination += `?error=${encodeURIComponent(participantErrorCode(error))}`;
   }
   redirect(destination);
+}
+
+function inputText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function authorizeParticipantEvidenceUpload(recordId: string, requirementKey: string) {
+  if (!isEvidenceUuid(recordId)) throw new Error("evidence_not_available");
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(PARTICIPANT_SESSION_COOKIE)?.value;
+  if (!sessionToken) throw new Error("participant_session_unavailable");
+  const [participant, context] = await Promise.all([
+    getParticipantRequestContext(recordId),
+    getParticipantEvidenceContext(recordId),
+  ]);
+  // Same boundary as the requirements page and record_participant_evidence_upload_v1.
+  const requirement = participantUploadRequirement({ participantRole: participant?.participantRole, context, requirementKey });
+  return { sessionToken, context: context!, requirement };
+}
+
+/** The record an evidence row with this id belongs to, or null when no row uses the id. */
+async function recordedParticipantArtifactOwner(admin: ReturnType<typeof createAuthorityAdminClient>, artifactId: string) {
+  const { data, error } = await admin.from("authority_evidence_artifacts").select("authority_record_id").eq("id", artifactId).maybeSingle();
+  if (error) throw new Error("evidence_storage_unavailable");
+  return data?.authority_record_id ? String(data.authority_record_id) : null;
+}
+
+/**
+ * Step 1 of a direct upload: authorize the representative for this requirement, check the
+ * declared file, and issue a one-time signed upload for a server-chosen path. No row is written.
+ */
+export async function prepareParticipantEvidenceUploadAction(input: {
+  recordId: string;
+  requirementKey: string;
+  name: string;
+  type: string;
+  size: number;
+}): Promise<EvidenceUploadTicketResult> {
+  try {
+    const recordId = inputText(input?.recordId);
+    const requirementKey = inputText(input?.requirementKey);
+    const mediaType = resolveEvidenceMediaType(inputText(input?.name), inputText(input?.type));
+    const prepared = prepareEvidenceUpload({ name: inputText(input?.name), type: mediaType ?? inputText(input?.type), size: Number(input?.size) });
+    const { requirement } = await authorizeParticipantEvidenceUpload(recordId, requirementKey);
+    assertParticipantRequirementUploadable(requirement);
+
+    const artifactId = randomUUID();
+    const path = evidenceStoragePath(recordId, artifactId, prepared.extension);
+    const { token } = await createEvidenceSignedUpload(createAuthorityAdminClient(), AUTHORITY_EVIDENCE_BUCKET, path);
+    return {
+      ok: true,
+      ticket: {
+        bucket: AUTHORITY_EVIDENCE_BUCKET,
+        path,
+        token,
+        artifactId,
+        mediaType: prepared.mediaType,
+        originalFilename: prepared.originalFilename,
+        idempotencyKey: randomUUID(),
+      },
+    };
+  } catch (error) {
+    return { ok: false, error: participantRequirementsError(participantErrorCode(error)) ?? "" };
+  }
+}
+
+/**
+ * Step 3 of a direct upload (step 2 is the browser sending the file to storage): check the
+ * stored object at the exact server-derived path (exists, at most 10 MiB, allowed type,
+ * matching file content), fingerprint the stored bytes, then record it exactly as the
+ * in-request upload does. Rejected or unrecorded objects are deleted, so no evidence row
+ * can point at a missing or invalid file.
+ */
+export async function finalizeParticipantEvidenceUploadAction(input: {
+  recordId: string;
+  requirementKey: string;
+  artifactId: string;
+  mediaType: string;
+  originalFilename: string;
+  idempotencyKey: string;
+}): Promise<{ ok: true; destination: string } | { ok: false; error: string }> {
+  const recordId = inputText(input?.recordId);
+  const requirementKey = inputText(input?.requirementKey);
+  try {
+    const artifactId = inputText(input?.artifactId);
+    const idempotencyKey = inputText(input?.idempotencyKey);
+    const originalFilename = inputText(input?.originalFilename);
+    const mediaType = resolveEvidenceMediaType("", inputText(input?.mediaType));
+    if (!mediaType) throw new Error("evidence_file_type_not_allowed");
+    if (!isEvidenceUuid(recordId) || !isEvidenceUuid(artifactId) || !isEvidenceUuid(idempotencyKey)) throw new Error("evidence_path_invalid");
+    const path = evidenceStoragePath(recordId, artifactId, ALLOWED_EVIDENCE_MEDIA_TYPES[mediaType]);
+    const admin = createAuthorityAdminClient();
+
+    await finalizeEvidenceUpload({
+      authorize: () => authorizeParticipantEvidenceUpload(recordId, requirementKey),
+      assertUploadable: ({ requirement }) => assertParticipantRequirementUploadable(requirement),
+      recordedOwner: (id) => recordedParticipantArtifactOwner(admin, id),
+      store: supabaseEvidenceObjectStore(admin),
+      record: async ({ sessionToken, context }, verified) => {
+        // Same validator, fingerprint, RPC, and arguments as the in-request upload.
+        const prepared = prepareEvidenceUpload({ name: originalFilename, type: mediaType, size: verified.byteSize });
+        const { error } = await admin.rpc("record_participant_evidence_upload_v1", {
+          p_session_token: sessionToken,
+          p_authority_record_id: recordId,
+          p_expected_version: context.recordVersion,
+          p_requirement_key: requirementKey,
+          p_artifact_id: artifactId,
+          p_storage_path: path,
+          p_original_filename: prepared.originalFilename,
+          p_media_type: prepared.mediaType,
+          p_byte_size: prepared.byteSize,
+          p_sha256_hex: verified.sha256Hex,
+          p_idempotency_key: idempotencyKey,
+        });
+        if (error) throw error;
+      },
+    }, { scopeId: recordId, artifactId, bucket: AUTHORITY_EVIDENCE_BUCKET, path, mediaType });
+
+    revalidatePath(`/request/${encodeURIComponent(recordId)}/requirements`);
+    revalidatePath(`/request/${encodeURIComponent(recordId)}/overview`);
+    revalidatePath(`/app/requests/${encodeURIComponent(recordId)}`);
+    return { ok: true, destination: `/request/${encodeURIComponent(recordId)}/requirements?notice=file_received` };
+  } catch (error) {
+    return { ok: false, error: participantRequirementsError(participantErrorCode(error)) ?? "" };
+  }
 }
 
 export async function submitRepresentativeCertificationAction(formData: FormData) {

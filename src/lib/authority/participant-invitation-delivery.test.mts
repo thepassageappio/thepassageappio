@@ -11,7 +11,7 @@ const delivery = {
   participantName: "Eleanor Carter",
   otherPersonName: "Maya Carter",
   purpose: "Request recognition of limited financial power of attorney authority",
-  accountBoundary: "Membership account ending 4821",
+  accountBoundary: "Joint checking",
   expiresAt: "2026-09-01T12:00:00.000Z",
   secureUrl: "https://authority.example/r/secure-token",
 };

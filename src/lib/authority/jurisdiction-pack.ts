@@ -54,6 +54,19 @@ export function formClassPlainLabel(formClass: JurisdictionFormClass) {
 }
 
 /**
+ * Staff request page: show the form type once, in the request facts. An
+ * unknown form type on a request without a decision means nobody has chosen
+ * it yet, so say that. The decision panel repeats only a known form type.
+ */
+export function requestPageFormClassLabels(formClassLabel: string | null, hasDecision: boolean) {
+  const unknown = formClassLabel === formClassPlainLabel("unknown");
+  return {
+    factsLabel: unknown && !hasDecision ? "Form type not chosen yet" : formClassLabel,
+    decisionPanelLabel: unknown ? null : formClassLabel,
+  };
+}
+
+/**
  * Read-only soft notice near decide panel when no reason-code picker exists.
  * Soft-warn only; does not block. Plain language hard bar.
  */

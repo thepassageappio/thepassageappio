@@ -11,6 +11,7 @@ import { prepareHostedInformationRequest } from "@/lib/authority/hosted-informat
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
 import { participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { deliverTeamInvitation } from "@/lib/authority/team-invitation-delivery";
+import { teamInvitationNoticeCode } from "@/lib/authority/team-invitation-reissue";
 import {
   demoParticipantRecipientPair,
   isDemoEnvironment,
@@ -354,7 +355,7 @@ export async function inviteTeamMemberAction(formData: FormData) {
       token: string | null;
     };
 
-    let delivered = false;
+    let outcome: Parameters<typeof teamInvitationNoticeCode>[1] = null;
     if (result.token) {
       const secureUrl = new URL("/team/accept", authorityAppUrl);
       secureUrl.searchParams.set("invitation", result.invitation_id);
@@ -367,7 +368,7 @@ export async function inviteTeamMemberAction(formData: FormData) {
         expiresAt: result.expires_at,
         secureUrl: secureUrl.toString(),
       });
-      delivered = delivery.delivered;
+      outcome = delivery.delivered ? { delivered: true } : { delivered: false, reason: delivery.reason };
 
       // Persist the Resend submission result so /app/team can show delivery
       // status and the /api/webhooks/resend handler can later confirm (or
@@ -390,7 +391,9 @@ export async function inviteTeamMemberAction(formData: FormData) {
       }
     }
 
-    destination = withMessage("/app/team", "notice", delivered ? "invitation_sent" : "invitation_created");
+    // Say what really happened to the email (for example, skipped by the Demo
+    // recipient allowlist) instead of implying it is still on its way.
+    destination = withMessage("/app/team", "notice", teamInvitationNoticeCode("invite", outcome));
     revalidatePath("/app/team");
   } catch (error) {
     destination = withMessage("/app/team", "error", errorCode(error));

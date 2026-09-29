@@ -45,3 +45,32 @@ test("unrelated notices keep their saved user-facing message", () => {
     "Your draft is saved. Nothing was sent or counted.",
   );
 });
+
+test("participant emails skipped by the Demo allowlist say so plainly", async () => {
+  const { participantDeliveryFaceLabel, freshLinkHelpText } = await import("./hosted-request-notice.ts");
+  const blocked = "Not sent. This address isn't approved for Demo email.";
+  assert.equal(participantDeliveryFaceLabel({ status: "failed", lastErrorCode: "recipient_not_allowed" }), blocked);
+  assert.equal(participantDeliveryFaceLabel({ status: "pending", demoRecipientBlocked: true }), blocked);
+  assert.match(participantDeliveryFaceLabel({ status: "canceled", demoRecipientBlocked: true }), /isn't approved for Demo email, so it will not be sent/);
+  assert.equal(participantDeliveryFaceLabel({ status: "delivered", demoRecipientBlocked: true }), "Delivered to the recipient’s mail server");
+  assert.equal(participantDeliveryFaceLabel({ status: "failed", lastErrorCode: "provider_rejected" }), "Not sent. The email service turned it down.");
+  assert.doesNotMatch(participantDeliveryFaceLabel({ status: "failed", lastErrorCode: "bounce:Permanent:General" }), /Permanent|bounce/);
+  assert.equal(participantDeliveryFaceLabel({ status: "pending" }), "Delivery pending");
+
+  assert.equal(
+    hostedRequestNoticeMessage("request_activated_delivery_pending", "failed", "recipient_not_allowed"),
+    `${blocked} A fresh link will not reach it either.`,
+  );
+  assert.doesNotMatch(hostedRequestNoticeMessage("request_activated_delivery_pending", "failed", "recipient_not_allowed") ?? "", /Send a fresh/);
+  assert.equal(hostedRequestNoticeMessage("participant_invitation_delivery_pending", "failed", "configuration_missing"), "Not sent. Email is not set up here.");
+  assert.equal(
+    hostedRequestNoticeMessage("participant_invitation_delivery_pending", "failed", "provider_rejected"),
+    "Not sent. The email service turned it down. You can send a fresh secure link.",
+  );
+  assert.doesNotMatch(freshLinkHelpText(true), /turns every earlier link/);
+  assert.match(freshLinkHelpText(true), /will not be emailed/);
+  assert.equal(freshLinkHelpText(false), "Sending a fresh link turns every earlier link for this person off.");
+  for (const text of [blocked, freshLinkHelpText(true), participantDeliveryFaceLabel({ status: "canceled", demoRecipientBlocked: true })]) {
+    assert.doesNotMatch(text, /\u2014|\u2013/);
+  }
+});
