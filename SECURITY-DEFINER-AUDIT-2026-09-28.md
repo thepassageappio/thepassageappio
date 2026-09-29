@@ -220,7 +220,9 @@ Independent; apply any time.
   global form)
 - `alter default privileges for role postgres in schema public revoke execute on functions from anon, authenticated;`
   - service_role keeps its public-schema default.
-- An assertion.
+- Also revokes global anon/authenticated and `authority_private` schema defaults.
+- Assertion: fails only if anon/authenticated remain on postgres defaults in `public` or
+  `authority_private` (ignores `storage` and other platform schemas).
 
 Why this is safe, and why it's a separate file:
 - It only affects functions created after it runs. Replay proves every earlier migration is
@@ -241,6 +243,9 @@ Why this is safe, and why it's a separate file:
     without touching the security fixes.
 - Defaults owned by `supabase_admin` cannot be changed from a migration and still grant
   anon/authenticated for functions Supabase itself creates in public.
+- Platform schema `storage` (and other non-app schemas) keep postgres default function EXECUTE
+  for anon/authenticated; the migration does not revoke them. The assertion scopes to
+  `public` and `authority_private` only.
 
 ## 5. App change and rollout order
 

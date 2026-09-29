@@ -13,6 +13,10 @@
 -- exist on the global (no-schema) default ACL cannot be cleared by an IN SCHEMA revoke.
 -- Defaults owned by supabase_admin (functions Supabase itself creates) cannot be changed from a
 -- migration and are left alone.
+--
+-- Schema storage (and other Supabase platform schemas) keep their postgres default function
+-- ACLs intentionally: revoking them risks breaking Storage. The DO assertion below only fails
+-- on remaining anon/authenticated defaults in schemas we own — public and authority_private.
 alter default privileges for role postgres revoke execute on functions from public;
 alter default privileges for role postgres revoke execute on functions from anon, authenticated;
 alter default privileges for role postgres in schema public revoke execute on functions from anon, authenticated;
@@ -38,10 +42,11 @@ begin
   cross join lateral aclexplode(d.defaclacl) a
   where d.defaclrole = 'postgres'::regrole
     and d.defaclobjtype = 'f'
-    and a.grantee in ('anon'::regrole, 'authenticated'::regrole);
+    and a.grantee in ('anon'::regrole, 'authenticated'::regrole)
+    and n.nspname in ('public', 'authority_private');
 
   if remaining is not null then
-    raise exception 'postgres default function privileges still grant anon/authenticated: %', remaining;
+    raise exception 'postgres default function privileges still grant anon/authenticated in public/authority_private: %', remaining;
   end if;
 end;
 $$;
