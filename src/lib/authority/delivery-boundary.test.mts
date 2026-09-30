@@ -45,3 +45,28 @@ test("the env allowlist still ignores wildcard entries", () => {
   assert.equal(isDemoEmailRecipientAllowed("*@example.com", "demo", "*@example.com"), false);
   assert.equal(isDemoEmailRecipientAllowed("a@example.com", "demo", "*@example.com"), false);
 });
+
+test("assertDemoParticipantEmailsAllowed blocks doomed Demo emails before activate", async () => {
+  const { assertDemoParticipantEmailsAllowed, DEMO_EMAIL_RECIPIENT_NOT_ALLOWED, DEMO_EVALUATION_SLOT_RULE } = await import("./delivery-boundary.ts");
+  assert.throws(
+    () => assertDemoParticipantEmailsAllowed("bad@example.com", "thepassageappio+parker@gmail.com", "demo", ""),
+    (error: unknown) => error instanceof Error && error.message === DEMO_EMAIL_RECIPIENT_NOT_ALLOWED,
+  );
+  assert.throws(
+    () => assertDemoParticipantEmailsAllowed("thepassageappio+parker@gmail.com", "bad@example.com", "demo", ""),
+    (error: unknown) => error instanceof Error && error.message === DEMO_EMAIL_RECIPIENT_NOT_ALLOWED,
+  );
+  assert.doesNotThrow(() =>
+    assertDemoParticipantEmailsAllowed(
+      "thepassageappio+parker@gmail.com",
+      "thepassageappio+casey@gmail.com",
+      "demo",
+      "",
+    ),
+  );
+  assert.doesNotThrow(() =>
+    assertDemoParticipantEmailsAllowed("anyone@example.com", "other@example.com", "production", undefined),
+  );
+  assert.match(DEMO_EVALUATION_SLOT_RULE, /Prepare never counts/i);
+  assert.match(DEMO_EVALUATION_SLOT_RULE, /production metering unchanged/i);
+});

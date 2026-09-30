@@ -49,7 +49,7 @@ export function participantDeliveryFaceLabel(input: {
 /** Help line under "Send fresh link". Never implies a fresh link reaches a blocked address. */
 export function freshLinkHelpText(demoRecipientBlocked: boolean) {
   return demoRecipientBlocked
-    ? "This address isn't approved for Demo email, so a fresh link will not be emailed to it either."
+    ? "This address isn't approved for Demo email, so a fresh link will not be emailed to it either. Use Copy secure link to share it yourself."
     : "Sending a fresh link turns every earlier link for this person off.";
 }
 
@@ -66,7 +66,7 @@ export function hostedRequestNoticeMessage(
     return "Delivered to the recipient’s mail server.";
   }
   if (currentDeliveryStatus === "failed" && isDemoRecipientBlockedCode(lastErrorCode)) {
-    return `${DEMO_EMAIL_NOT_APPROVED} A fresh link will not reach it either.`;
+    return `${DEMO_EMAIL_NOT_APPROVED} A fresh link will not reach it either. Use Copy secure link to share it yourself.`;
   }
   if (currentDeliveryStatus === "failed" && lastErrorCode?.trim() === "configuration_missing") {
     return emailNotSentReason(lastErrorCode);

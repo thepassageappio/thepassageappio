@@ -59,9 +59,10 @@ test("participant emails skipped by the Demo allowlist say so plainly", async ()
 
   assert.equal(
     hostedRequestNoticeMessage("request_activated_delivery_pending", "failed", "recipient_not_allowed"),
-    `${blocked} A fresh link will not reach it either.`,
+    `${blocked} A fresh link will not reach it either. Use Copy secure link to share it yourself.`,
   );
   assert.doesNotMatch(hostedRequestNoticeMessage("request_activated_delivery_pending", "failed", "recipient_not_allowed") ?? "", /Send a fresh/);
+  assert.match(hostedRequestNoticeMessage("request_activated_delivery_pending", "failed", "recipient_not_allowed") ?? "", /Copy secure link/);
   assert.equal(hostedRequestNoticeMessage("participant_invitation_delivery_pending", "failed", "configuration_missing"), "Not sent. Email is not set up here.");
   assert.equal(
     hostedRequestNoticeMessage("participant_invitation_delivery_pending", "failed", "provider_rejected"),
@@ -69,8 +70,18 @@ test("participant emails skipped by the Demo allowlist say so plainly", async ()
   );
   assert.doesNotMatch(freshLinkHelpText(true), /turns every earlier link/);
   assert.match(freshLinkHelpText(true), /will not be emailed/);
+  assert.match(freshLinkHelpText(true), /Copy secure link/);
   assert.equal(freshLinkHelpText(false), "Sending a fresh link turns every earlier link for this person off.");
   for (const text of [blocked, freshLinkHelpText(true), participantDeliveryFaceLabel({ status: "canceled", demoRecipientBlocked: true })]) {
     assert.doesNotMatch(text, /\u2014|\u2013/);
   }
+});
+
+test("Demo pre-send allowlist rejection uses honest face copy without exposing the allowlist", async () => {
+  const { userErrorMessage } = await import("./user-messages.ts");
+  const message = userErrorMessage("demo_email_recipient_not_allowed");
+  assert.match(message ?? "", /isn't approved for Demo email/);
+  assert.match(message ?? "", /Nothing was counted/);
+  assert.doesNotMatch(message ?? "", /PASSAGE_EMAIL|allowlist|pilot-admin|\+/i);
+  assert.doesNotMatch(message ?? "", /\u2014|\u2013/);
 });

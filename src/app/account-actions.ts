@@ -9,7 +9,8 @@ import { prepareHostedAuthorityDraft } from "@/lib/authority/hosted-records";
 import { prepareHostedInstitutionDecision, prepareHostedLifecycleChange } from "@/lib/authority/hosted-decisions";
 import { prepareHostedInformationRequest } from "@/lib/authority/hosted-information";
 import { deliverParticipantInvitation } from "@/lib/authority/participant-invitation-delivery";
-import { participantAccessPurpose } from "@/lib/authority/participant-resume";
+import { assertDemoParticipantEmailsAllowed } from "@/lib/authority/delivery-boundary";
+import { canReissueParticipantAccess, participantAccessPurpose } from "@/lib/authority/participant-resume";
 import { deliverTeamInvitation } from "@/lib/authority/team-invitation-delivery";
 import { teamInvitationNoticeCode } from "@/lib/authority/team-invitation-reissue";
 import {
@@ -129,6 +130,7 @@ function errorCode(error: unknown) {
     stale_demo_context: "request_changed",
     demo_entitlement_unavailable: "evaluation_unavailable",
     demo_recipient_configuration_invalid: "demo_recipient_configuration_invalid",
+    demo_email_recipient_not_allowed: "demo_email_recipient_not_allowed",
     demo_fixture_not_available: "request_failed",
     "Enter the full name of each person.": "participant_name_invalid",
     "Enter a valid email address for each person.": "participant_email_invalid",
@@ -538,6 +540,8 @@ export async function createHostedAuthorityDraftAction(_previous: { error: strin
       validUntil: `${textField(formData, "validUntil")}T23:59:59.000Z`,
       allowedActionKeys: formData.getAll("allowedActionKeys").map(String),
     });
+    // Demo Path B (#168/#170): block doomed emails before draft save / later activate burn.
+    assertDemoParticipantEmailsAllowed(input.principalEmail, input.representativeEmail);
 
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("create_authority_draft_v2", {
@@ -572,6 +576,22 @@ export async function activateHostedAuthorityRequestAction(formData: FormData) {
     const access = await getAuthorityMutationAccessContext();
     if (!canCoordinateAuthorityRequests(access.membership.role)) throw new Error("authority_request_activation_not_allowed");
     const supabase = await createClient();
+    // Demo Path B (#168/#170): fail before activate_authority_request_v1 so doomed
+    // allowlist emails never bump activated_count / authority_activated usage.
+    {
+      const { data: draftRecord, error: draftError } = await supabase
+        .from("authority_records")
+        .select("principal_email_normalized, representative_email_normalized")
+        .eq("organization_id", access.membership.organizationId)
+        .eq("id", recordId)
+        .maybeSingle();
+      if (draftError) throw draftError;
+      if (!draftRecord) throw new Error("authority_request_not_found");
+      assertDemoParticipantEmailsAllowed(
+        String(draftRecord.principal_email_normalized),
+        String(draftRecord.representative_email_normalized),
+      );
+    }
     const { data, error } = await supabase.rpc("activate_authority_request_v1", {
       p_organization_id: access.membership.organizationId,
       p_authority_record_id: recordId,
@@ -720,6 +740,97 @@ export async function reissueParticipantInvitationAction(formData: FormData) {
     destination = withMessage(`/app/requests/${recordId}`, "error", errorCode(error));
   }
   redirect(destination);
+}
+
+
+export type CopyParticipantSecureLinkState = {
+  status: "idle" | "ready" | "error";
+  url?: string;
+  message?: string;
+};
+
+/**
+ * Staff Copy secure link for a participant (#169). Reissues the invitation token
+ * and returns /r/{token} once in this response. Does not require email success.
+ * When Demo blocks the address, records failed delivery with recipient_not_allowed
+ * so face labels stay honest. URL is never put in a redirect, cookie, or log.
+ */
+export async function copyParticipantSecureLinkAction(
+  _previous: CopyParticipantSecureLinkState,
+  formData: FormData,
+): Promise<CopyParticipantSecureLinkState> {
+  try {
+    const authorityAppUrl = getAuthorityAppUrl();
+    const access = await getAuthorityMutationAccessContext();
+    const recordId = textField(formData, "recordId");
+    const participantRole = textField(formData, "participantRole") as "principal" | "representative";
+    if (participantRole !== "principal" && participantRole !== "representative") {
+      throw new Error("participant_invitation_reissue_invalid");
+    }
+    if (
+      !canCoordinateAuthorityRequests(access.membership.role)
+      && !hasOrganizationCapability(access.membership.role, "requests.review_evidence")
+    ) {
+      throw new Error("participant_invitation_reissue_not_allowed");
+    }
+
+    const supabase = await createClient();
+    const { data: record, error: recordError } = await supabase
+      .from("authority_records")
+      .select("status, version")
+      .eq("organization_id", access.membership.organizationId)
+      .eq("id", recordId)
+      .maybeSingle();
+    if (recordError || !record) throw recordError ?? new Error("authority_request_not_found");
+    if (!canReissueParticipantAccess(participantRole, record.status as never)) {
+      throw new Error("participant_invitation_reissue_not_allowed");
+    }
+
+    const { data, error } = await supabase.rpc("reissue_participant_invitation_v1", {
+      p_organization_id: access.membership.organizationId,
+      p_authority_record_id: recordId,
+      p_participant_role: participantRole,
+      p_expected_record_version: Number(textField(formData, "expectedRecordVersion")),
+      p_expected_invitation_version: Number(textField(formData, "expectedInvitationVersion")),
+      p_idempotency_key: textField(formData, "idempotencyKey"),
+    });
+    if (error) throw error;
+    const result = data as {
+      invitation_id?: string;
+      invitation_version?: number;
+      invitation_token?: string;
+      email?: string;
+      expires_at?: string;
+    };
+    if (!result.invitation_id || !result.invitation_version || !result.invitation_token || !result.email) {
+      throw new Error("participant_invitation_reissue_invalid");
+    }
+
+    const secureUrl = new URL(`/r/${result.invitation_token}`, authorityAppUrl).toString();
+
+    // Copy path never emails. When Demo would block the address, record the skip
+    // so Delivery stays honest (parity with staff Copy invite after #167).
+    const { isDemoEmailRecipientAllowed } = await import("@/lib/authority/delivery-boundary");
+    if (!isDemoEmailRecipientAllowed(result.email)) {
+      const admin = createAuthorityAdminClient();
+      await admin.rpc("record_operator_participant_delivery_service_v1", {
+        p_actor_user_id: access.user.id,
+        p_organization_id: access.membership.organizationId,
+        p_invitation_id: result.invitation_id,
+        p_expected_invitation_version: Number(result.invitation_version),
+        p_delivery_status: "failed",
+        p_provider: "resend",
+        p_provider_message_id: "",
+        p_error_code: "recipient_not_allowed",
+        p_idempotency_key: crypto.randomUUID(),
+      });
+    }
+
+    revalidatePath(`/app/requests/${recordId}`);
+    return { status: "ready", url: secureUrl };
+  } catch (error) {
+    return { status: "error", message: userErrorMessage(errorCode(error)) ?? undefined };
+  }
 }
 
 export async function reviewEvidenceArtifactAction(formData: FormData) {

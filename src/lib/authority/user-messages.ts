@@ -90,6 +90,7 @@ const errorMessages: Record<string, string> = {
   information_request_requirement_invalid: "Choose a current policy requirement.",
   information_request_already_open: "This request already has an unanswered information request.",
   demo_recipient_configuration_invalid: "The controlled demo inboxes are not ready. Nothing was created or sent.",
+  demo_email_recipient_not_allowed: "Not sent. This address isn't approved for Demo email. Nothing was counted. Change the emails to approved Demo addresses, or use Prepare a fresh demo.",
   invitation_configuration_invalid: "We cannot send links from this site right now. Nothing was changed or sent. Ask Passage for help.",
   // Multi-institution submission (Phase 0). Codes match the RPC error messages
   // raised in 20260913150500_authority_multi_institution_submission_phase0_functions.sql
