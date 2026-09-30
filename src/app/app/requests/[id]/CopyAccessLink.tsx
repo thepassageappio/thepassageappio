@@ -1,5 +1,6 @@
 "use client";
 
+import { roleFaceLabel } from "@/lib/authority/display-copy";
 import { useEffect, useState, useTransition } from "react";
 import { dismissInviteAccessLinkFlashAction } from "@/lib/authority/invite-access-link-cookie";
 import styles from "@/components/app/app-shell.module.css";
@@ -14,7 +15,7 @@ export function CopyAccessLink({ recordId, role, url }: Props) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [, startTransition] = useTransition();
-  const roleLabel = role === "principal" ? "account holder" : "representative";
+  const roleLabel = roleFaceLabel(role);
 
   useEffect(() => {
     startTransition(() => {

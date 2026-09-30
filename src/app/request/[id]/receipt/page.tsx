@@ -38,7 +38,7 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     artifacts: support?.artifacts,
     originGroupId: support?.originGroupId,
   });
-  const roleLabel = receipt.participantRole === "principal" ? "Person granting authority" : "Representative";
+  const roleLabel = receipt.participantRole === "principal" ? "Account holder" : "Person acting for them";
   const changeSummary = receipt.lifecycleSummary
     ?? (receipt.currentStatus === "withdrawn"
       ? "The representative withdrew."

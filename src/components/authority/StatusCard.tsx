@@ -3,10 +3,10 @@ import type { ActorRole, AuthorityRecord } from "@/lib/authority/types";
 import styles from "./authority.module.css";
 
 const labels: Record<Exclude<AuthorityRecord["status"], "awaiting_principal" | "awaiting_representative">, string> = {
-  evidence_required: "Evidence in progress",
-  ready_to_submit: "Ready to submit", under_review: "Institution review", information_requested: "Information requested",
-  accepted: "Accepted", accepted_with_limits: "Accepted with limits", rejected: "Not accepted", declined: "Representative declined",
-  withdrawn: "Representative withdrew", revoked: "Revoked", expired: "Expired",
+  evidence_required: "Papers still needed",
+  ready_to_submit: "Ready for the person acting for them to send", under_review: "Staff can decide", information_requested: "Information requested",
+  accepted: "Accepted", accepted_with_limits: "Accepted with limits", rejected: "Not accepted", declined: "Request declined",
+  withdrawn: "The person acting for them ended this request", revoked: "Revoked", expired: "Expired",
 };
 
 function statusLabel(record: AuthorityRecord) {

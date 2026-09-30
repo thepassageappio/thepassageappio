@@ -84,7 +84,7 @@ export function EditDraftEmailsForm({
               />
             </label>
             <label className={styles.field}>
-              Representative
+              Person acting for them
               <input
                 name="representativeName"
                 required
@@ -94,7 +94,7 @@ export function EditDraftEmailsForm({
               />
             </label>
             <label className={styles.field}>
-              Representative’s email
+              Email for the person acting for them
               <input
                 name="representativeEmail"
                 type="email"

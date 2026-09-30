@@ -44,7 +44,7 @@ export function buildParticipantReceiptOrientation(input: {
         : receipt.currentStatus === "expired"
           ? "expired"
           : receipt.currentStatus === "withdrawn"
-            ? "the representative withdrew"
+            ? "the person acting for them ended this request"
             : "updated"))
     : null;
 

@@ -6,6 +6,7 @@ import { EditDraftEmailsForm } from "./EditDraftEmailsForm";
 import { mayProvisionDemoRun } from "@/lib/authority/demo-boundary";
 import { canRecordAuthorityDecision, canReviewAuthorityEvidence, requestCoordinatorRecoveryMessage } from "@/lib/authority/role-capabilities";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
+import { roleFaceLabel } from "@/lib/authority/display-copy";
 import { resolveNyRequestLabels } from "@/components/app/NyRequestLabels";
 import { requestPageFormClassLabels } from "@/lib/authority/jurisdiction-pack";
 import { mapHostedInstitutionDecision } from "@/lib/authority/hosted-decisions";
@@ -60,13 +61,13 @@ export function HostedAuthorityRequestView({
     return labels[String(status)] ?? "Access updated";
   };
   const participantAccessDescription = record.status === "awaiting_principal"
-    ? "The account holder goes first. The representative can continue after the account holder confirms."
+    ? "The account holder goes first. The person acting for them can continue after the account holder confirms."
     : record.status === "awaiting_representative"
-      ? "The account holder confirmed. The representative can now review the request."
+      ? "The account holder confirmed. The person acting for them can now review the request."
       : "Each person used separate access for their role. Their saved decisions appear in the activity below.";
   const activityDetail = (event: { eventType: string; detail: string }) => {
     if (event.eventType === "participant.access_established") return "The secure invitation was opened for this person and this request.";
-    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder’s link was prepared. The representative must wait for the account holder to confirm.";
+    if (event.eventType === "authority.activated") return "Your trial started and one request was counted. The account holder’s link was prepared. The person acting for them must wait for the account holder to confirm.";
     if (event.eventType === "participant.invitation_delivered") return "The email provider accepted the invitation. Final delivery confirmation is pending.";
     return event.detail;
   };
@@ -218,7 +219,7 @@ export function HostedAuthorityRequestView({
     ) : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Request status">
       <div className={styles.metric}><span>Current status</span><strong>{hostedStatusLabel(record.status)}</strong></div>
-      <div className={styles.metric}><span>Evaluation usage</span><strong>{activatedCount} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span>Practice requests used</span><strong>{activatedCount} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(record.validUntil))}</strong></div>
     </section>
     {nyRulesLabel || formClassLabel ? (
@@ -234,7 +235,7 @@ export function HostedAuthorityRequestView({
           <p>Each person receives a separate secure link. Names are shown at the top of this page.</p>
           <dl className={styles.policyFacts}>
             <div><dt>Account holder</dt><dd>{record.principalName}<br />{record.principalEmail}<br /><span style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500 }}>The person who owns the account</span></dd></div>
-            <div><dt>Representative</dt><dd>{record.representativeName}<br />{record.representativeEmail}</dd></div>
+            <div><dt>Person acting for them</dt><dd>{record.representativeName}<br />{record.representativeEmail}<br /><span style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500 }}>The person helping with the account</span></dd></div>
           </dl>
           {record.status === "draft" && canCoordinate ? (
             <EditDraftEmailsForm
@@ -259,7 +260,7 @@ export function HostedAuthorityRequestView({
           {evaluationExpired ? <p className={styles.alert}>The free evaluation has ended. This draft stays saved and cannot be sent. Existing requests remain available.</p> : null}
           <ul className={styles.checklist}>
             <li>{record.principalName} gets a private link to check the requested actions</li>
-            <li>{record.representativeName} can continue after the account holder confirms</li>
+            <li>{record.representativeName} (person acting for them) can continue after the account holder confirms</li>
             <li>{evaluationLimitReached || evaluationExpired ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Sending uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Sending starts the 10-day trial and uses request ${nextCount} of ${transactionLimit}`}</li>
           </ul>
           {(() => {
@@ -281,7 +282,7 @@ export function HostedAuthorityRequestView({
             return <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>;
           })()}
         </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`} id="participant-access">
-          <summary>Participant access ({invitations?.length ?? 0} people)</summary>
+          <summary>Private links ({invitations?.length ?? 0} people)</summary>
           <p>{participantAccessDescription}</p>
           <ul className={styles.activity}>{(invitations ?? []).map((invitation) => {
             const notification = notifications.find((item) => item.invitation_id === String(invitation.id));
@@ -291,7 +292,7 @@ export function HostedAuthorityRequestView({
             // Checked on the server against the current Demo recipient allowlist.
             const demoRecipientBlocked = !isDemoEmailRecipientAllowed(String(invitation.email_normalized));
             return <li key={String(invitation.id)}>
-              <span>{role === "principal" ? "Account holder" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {participantDeliveryFaceLabel({ status: notification?.delivery_status, lastErrorCode: notification?.last_error_code, demoRecipientBlocked })})</span>
+              <span>{roleFaceLabel(role, { capitalize: true })}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {participantDeliveryFaceLabel({ status: notification?.delivery_status, lastErrorCode: notification?.last_error_code, demoRecipientBlocked })})</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-start", marginTop: 6 }}>
                 {canReissue && !demoRecipientBlocked ? <form action={reissueParticipantInvitationAction}>
                   <input type="hidden" name="recordId" value={record.id} />

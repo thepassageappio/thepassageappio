@@ -50,7 +50,7 @@ export const NY_PACK_REF: JurisdictionPackRef = {
 export function formClassPlainLabel(formClass: JurisdictionFormClass) {
   if (formClass === "statutory_short") return "Statutory short form";
   if (formClass === "non_statutory") return "Not a statutory short form";
-  return "Form type unknown";
+  return "Form type not chosen yet";
 }
 
 /**

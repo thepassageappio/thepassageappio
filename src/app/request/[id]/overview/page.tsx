@@ -24,7 +24,7 @@ const PROHIBITED_ACTIONS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   awaiting_principal: "Waiting for your decision",
-  awaiting_representative: "Waiting for the representative",
+  awaiting_representative: "Waiting for the person acting for them",
   evidence_required: "Requirements in progress",
   ready_to_submit: "Ready to send for institution review",
   under_review: "Institution review in progress",
@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "Not accepted by the institution",
   revoked: "Revocation recorded",
   expired: "Request ended",
-  withdrawn: "Representative withdrew",
+  withdrawn: "The person acting for them ended this request",
   declined: "Request declined",
   canceled: "Request canceled",
 };
@@ -44,12 +44,12 @@ const LATER_CHANGE_RECEIPT_STATUSES = new Set(["revoked", "expired", "withdrawn"
 
 const NOTICE_MESSAGES: Record<string, string> = {
   principal_confirm: "Your confirmation was saved. The representative can now review the request.",
-  principal_confirm_delivery_pending: "Your confirmation was saved. Representative email delivery needs attention, and the institution can send a fresh link.",
+  principal_confirm_delivery_pending: "Your confirmation was saved. Email delivery for the person acting for them needs attention, and the institution can send a fresh link.",
   principal_decline: "Your decision was saved. This request is now closed.",
   representative_accept: "Your choice was saved. You can now add the documents and information needed.",
   representative_decline: "Your decision was saved. This request is now closed.",
   information_response_saved: "Your response was saved. The institution can continue its review.",
-  responsibility_withdrawn: "Your withdrawal was saved. The institution and the person granting authority will see that this request ended.",
+  responsibility_withdrawn: "Your withdrawal was saved. The institution and the account holder will see that this request ended.",
   request_submitted: "Your request was sent for review, along with your agreement to share the listed information.",
 };
 
@@ -121,7 +121,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <p>{context.accountBoundary}</p>
     </div>
     <div className={styles.facts}>
-      <div className={styles.fact}><span>Your role</span><strong>{isPrincipal ? "Person granting authority" : "Representative"}</strong></div>
+      <div className={styles.fact}><span>Your role</span><strong>{isPrincipal ? "Account holder" : "Person acting for them"}</strong></div>
       <div className={styles.fact}><span>Other person</span><strong>{context.otherPersonName}</strong></div>
       <div className={styles.fact}><span>Current status</span><strong>{STATUS_LABELS[context.status] ?? "Request updated"}</strong></div>
       <div className={styles.fact}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(context.validUntil))}</strong></div>

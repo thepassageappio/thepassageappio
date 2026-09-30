@@ -54,7 +54,7 @@ test("participant invitation explains the sender, role, other person, scope, exp
   const message = buildParticipantInvitationEmail(delivery);
   for (const expected of [
     delivery.institutionName,
-    "person granting authority",
+    "account holder",
     delivery.otherPersonName,
     "Financial power of attorney request",
     delivery.accountBoundary,

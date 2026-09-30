@@ -103,14 +103,14 @@ function syntheticArtifact(
       ? [
           {
             key: "principal_name",
-            label: "Person granting authority",
+            label: "Account holder",
             value: record.principal.name,
             sourceLocator: "Page 1",
             reviewStatus: "observed",
           },
           {
             key: "representative_name",
-            label: "Representative",
+            label: "Person acting for them",
             value: record.representative.name,
             sourceLocator: "Page 1",
             reviewStatus: "observed",

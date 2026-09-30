@@ -10,7 +10,7 @@ import { grantSampleAccessAction } from "../actions";
 type Props = { searchParams: Promise<{ error?: string }> };
 
 export const metadata: Metadata = {
-  title: "Unlock the Sample Workflow",
+  title: "Open the sample",
   robots: { index: false, follow: false },
 };
 
@@ -25,13 +25,13 @@ export default async function SampleAccessPage({ searchParams }: Props) {
   const error = query.error === "consent_required"
     ? "Please confirm that Passage may contact you before opening the sample."
     : query.error === "lead_unavailable"
-      ? "We could not unlock the sample just now. Please try again."
+      ? "We could not open the sample just now. Please try again."
       : null;
 
   return (
     <AccountFrame
       eyebrow="One last step"
-      title="Unlock the Passage sample"
+      title="Open the sample"
       description="Look through a made-up request from the first invitation to the final answer. You cannot change it."
     >
       {error ? <div className={styles.alert} role="alert">{error}</div> : null}

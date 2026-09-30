@@ -107,7 +107,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
           <div className={styles.panelHead}><div><h2>Questions</h2><p>{reviewFinished ? "Questions and responses saved with this request." : "Ask them to send or fix something that is missing or unclear."}</p></div><span className={styles.badge}>{reviewFinished ? "Saved history" : openInformationRequest ? "Response needed" : "Up to date"}</span></div>
           {informationRequestRows.length > 0 ? <ul className={styles.activity}>{informationRequestRows.map((item) => {
             const response = responseByRequest.get(String(item.id));
-            return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Representative response: {String(response.response)}</span> : <span>{reviewFinished ? "No response was saved" : "Waiting for the representative"}</span>}</div></li>;
+            return <li key={String(item.id)}><div><strong>{String(item.message)}</strong><span>Requirement: {String(item.requirement_key).replaceAll("_", " ")}</span>{response ? <span>Their answer: {String(response.response)}</span> : <span>{reviewFinished ? "No response was saved" : "Waiting for the person acting for them"}</span>}</div></li>;
           })}</ul> : null}
           {record.status === "under_review" && canRecordDecision && !openInformationRequest ? <form action={requestHostedAuthorityInformationAction} className={styles.field}>
             <input type="hidden" name="recordId" value={record.id} />
@@ -160,7 +160,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
             <ul className={styles.checklist}>
               <li>{requirementRows.filter((item) => item.status === "completed").length} of {requirementRows.length || 3} required review steps are complete</li>
               <li>The requested actions and account details stay the same</li>
-              <li>{record.status === "ready_to_submit" ? "The representative must check what will be shared and send the request" : canRecordDecision ? "The decision form opens when institution review begins" : "An institution reviewer or administrator records the final outcome"}</li>
+              <li>{record.status === "ready_to_submit" ? "The person acting for them must check what will be shared and send the request" : canRecordDecision ? "The decision form opens when institution review begins" : "Staff records the bank’s answer"}</li>
             </ul>
             <p>No outcome can be recorded while a source or certification still needs review.</p>
           </>}

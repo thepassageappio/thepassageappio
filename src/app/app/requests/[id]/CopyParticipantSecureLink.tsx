@@ -1,5 +1,7 @@
 "use client";
 
+import { roleFaceLabel } from "@/lib/authority/display-copy";
+
 import { useActionState, useEffect, useId, useState } from "react";
 import {
   copyParticipantSecureLinkAction,
@@ -33,7 +35,7 @@ export function CopyParticipantSecureLink({
   const url = state.status === "ready" ? state.url : undefined;
   const copied = Boolean(url) && copiedUrl === url;
   const copyFailed = Boolean(url) && failedUrl === url && !copied;
-  const roleLabel = participantRole === "principal" ? "account holder" : "representative";
+  const roleLabel = roleFaceLabel(participantRole);
 
   useEffect(() => {
     if (!url || !navigator.clipboard) return;

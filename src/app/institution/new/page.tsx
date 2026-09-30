@@ -31,9 +31,9 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
           <section className={styles.card}>
             <div className={styles.sectionTitle}><span>1</span><div><h2>Who is involved?</h2><p>The product tour starts with sample participant details. Replace them only with approved evaluation data.</p></div></div>
             <div className={styles.twoColumns}>
-              <label>Person granting authority<input name="principalName" required defaultValue="Eleanor Carter" autoComplete="name" /></label>
+              <label>Account holder<input name="principalName" required defaultValue="Eleanor Carter" autoComplete="name" /></label>
               <label>Email<input name="principalEmail" type="email" required defaultValue="eleanor.carter@example.test" autoComplete="email" /></label>
-              <label>Representative<input name="representativeName" required defaultValue="Maya Carter" autoComplete="name" /></label>
+              <label>Person acting for them<input name="representativeName" required defaultValue="Maya Carter" autoComplete="name" /></label>
               <label>Email<input name="representativeEmail" type="email" required defaultValue="maya.carter@example.test" autoComplete="email" /></label>
             </div>
           </section>
@@ -48,7 +48,7 @@ export default async function NewAuthorityRequest({ searchParams }: Props) {
             <label>Request end date<input name="validUntil" type="date" required defaultValue="2027-08-26" /></label>
           </section>
           <section className={styles.review}>
-            <div><strong>What happens next</strong><p>The person granting authority confirms the scope. The representative then completes the guided evidence packet. Your review team keeps the final acceptance decision.</p></div>
+            <div><strong>What happens next</strong><p>The account holder confirms the scope. The person acting for them then completes the guided evidence packet. Your review team keeps the final acceptance decision.</p></div>
             <button type="submit">Create request</button>
           </section>
         </form>

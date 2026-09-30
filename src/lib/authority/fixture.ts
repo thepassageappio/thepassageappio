@@ -27,8 +27,8 @@ export const SANDBOX_POLICY: PolicyVersionSnapshot = {
   requirements: [
     {
       key: "principal_identity",
-      label: "Identity of person granting authority",
-      description: "Confirm that the person granting authority matches the invited customer.",
+      label: "Identity of the account holder",
+      description: "Confirm that the account holder matches the invited customer.",
       reason: "The institution must bind the grant to the account holder.",
       owner: "principal",
       required: true,

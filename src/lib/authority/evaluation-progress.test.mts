@@ -57,7 +57,7 @@ test("staff and auditors view institution review without being prompted to decid
   for (const role of ["staff", "auditor"] as const) {
     const result = evaluationProgress([record("review", "under_review")], null, new Date(), role);
     assert.equal(result.nextLabel, "View request");
-    assert.equal(result.nextTitle, "Waiting on Institution reviewer");
+    assert.equal(result.nextTitle, "Waiting on Staff");
   }
 });
 

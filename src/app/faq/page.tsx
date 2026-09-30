@@ -77,7 +77,7 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>How does the institution know the people are who they say they are?</h3>
-              <p>The institution must use its own required identity process for the account holder and representative. A Passage email link gives one person access to one role in one request; it is not, by itself, proof of identity. The current evaluation demonstrates the workflow with sample data. Identity verification must be selected, integrated, and approved with an institution before customer data is used.</p>
+              <p>The institution must use its own required identity process for the account holder and the person acting for them. A Passage email link gives one person access to one role in one request; it is not, by itself, proof of identity. The current evaluation demonstrates the workflow with sample data. Identity verification must be selected, integrated, and approved with an institution before customer data is used.</p>
             </article>
             <article>
               <h3>Does Passage grant account access or move money?</h3>
@@ -155,9 +155,9 @@ export default function FaqPage() {
             </article>
             <article>
               <h3>What is the best next step?</h3>
-              <p>Book a 20-minute walkthrough, or try the example first. Tell us what your team needs help with.</p>
+              <p>Request a walkthrough, or try the example first. Tell us what your team needs help with.</p>
               <div className={styles.answerActions}>
-                <Link href="/contact">Book a walkthrough</Link>
+                <Link href="/contact">Request a walkthrough</Link>
                 <Link href="/sample">Try the example</Link>
               </div>
             </article>
@@ -166,7 +166,7 @@ export default function FaqPage() {
 
         <aside className={styles.help} aria-label="More help">
           <div><p className={styles.eyebrow}>Still have a question?</p><h2>Tell us what you need help with.</h2><span>We will answer plainly, show the current product, and separate what works today from what must be completed before a pilot.</span></div>
-          <Link href="/contact">Ask Passage</Link>
+          <Link href="/contact">Request a walkthrough</Link>
         </aside>
       </div>
 

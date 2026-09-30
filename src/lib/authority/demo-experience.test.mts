@@ -8,10 +8,10 @@ test("the public journey offers a guided demo without hiding product evaluation"
   const home = source("../../app/page.tsx");
   const header = source("../../components/commercial/CommercialHeader.tsx");
 
-  assert.match(home, /Book a 20-minute walkthrough/);
+  assert.match(home, /Request a walkthrough/);
   assert.match(home, /Try an example/);
   assert.match(header, /href="\/start\?intent=sign-in">Sign in/);
-  assert.match(header, /href="\/contact">Book a demo/);
+  assert.match(header, /href="\/contact">Request a walkthrough/);
   assert.doesNotMatch(home, /Current status shared by permission|Complete activity history/);
 });
 

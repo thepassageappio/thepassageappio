@@ -3,8 +3,8 @@ import type { ActorRole, AuthorityRecord, Party } from "@/lib/authority/types";
 import styles from "./authority.module.css";
 
 const roleLabel: Record<Exclude<ActorRole, "system">, string> = {
-  principal: "Person granting authority",
-  representative: "Representative",
+  principal: "Account holder",
+  representative: "Person acting for them",
   reviewer: "Institution reviewer",
 };
 

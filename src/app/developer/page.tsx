@@ -45,7 +45,7 @@ export default async function DeveloperSandbox({ searchParams }: Props) {
           <div>
             <section className={`${styles.panel} ${styles.section}`}>
               <h2>Create a deterministic scenario</h2>
-              <p>Each record begins with confirmation by the person granting authority so the complete participant flow remains testable.</p>
+              <p>Each record begins with confirmation by the account holder so the complete participant flow remains testable.</p>
               <form action={createScenarioAction} className={styles.form}>
                 <label htmlFor="scenario">Failure or success path</label>
                 <select className={styles.select} id="scenario" name="scenario" defaultValue="rfi_then_limited">

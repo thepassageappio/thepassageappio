@@ -70,7 +70,7 @@ export default async function RepresentativeResponsibilityPage({ params, searchP
         <label className={decisionStyles.decisionField}>Reason<textarea name="reason" required minLength={3} maxLength={500} placeholder="Explain why you cannot take this responsibility." /></label>
         <label className={styles.check}>
           <input type="checkbox" name="acknowledged" required />
-          <span>I understand this closes the request and notifies the person granting authority and the institution.</span>
+          <span>I understand this closes the request and notifies the account holder and the institution.</span>
         </label>
         <button className={styles.secondary} type="submit">Decline responsibility</button>
       </form>

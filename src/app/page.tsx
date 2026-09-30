@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  ["01", "The institution starts", "A bank or credit union enters the two people, the account, and what the representative needs to do."],
-  ["02", "Each person confirms", "The account holder and representative use separate private links to review the same request and complete their part."],
+  ["01", "The institution starts", "A bank or credit union enters the two people, the account, and what the person acting for them needs to do."],
+  ["02", "Each person confirms", "The account holder and the person acting for them use separate private links to review the same request and complete their part."],
   ["03", "The institution checks", "The institution uses its own identity, document, fraud, legal, and policy checks before making a decision."],
   ["04", "Everyone gets the answer", "The institution accepts, limits, or rejects the request. Passage shares a receipt showing exactly what it decided."],
 ];
@@ -27,7 +27,7 @@ export default function Home() {
           <h1 id="page-content" tabIndex={-1}>A clear way to ask a bank for help with someone else’s account.</h1>
           <p className={styles.lede}>Helping a parent or grandparent with their bank account? Passage keeps the request, documents, and bank’s answer in one place. The bank checks the details and decides what you can do.</p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="/contact">Book a 20-minute walkthrough <span>→</span></Link>
+            <Link className={styles.primary} href="/contact">Request a walkthrough <span>→</span></Link>
             <Link className={styles.secondary} href="/sample">Try an example</Link>
           </div>
           <p className={styles.boundary}>Passage keeps the request moving. It does not verify identity, approve the power of attorney, grant account access, or move money. The financial institution keeps those responsibilities.</p>
@@ -40,7 +40,7 @@ export default function Home() {
           </div>
           <div className={styles.participants}>
             <div><i>EC</i><span><strong>Eleanor Carter</strong><small>Account holder · Identity checked</small></span></div>
-            <div><i>MC</i><span><strong>Maya Carter</strong><small>Representative · Identity checked</small></span></div>
+            <div><i>MC</i><span><strong>Maya Carter</strong><small>Person acting for them · Identity checked</small></span></div>
           </div>
           <div className={styles.reviewCard}>
             <div><span>Permitted</span><strong>Get statement copies and ask account questions</strong></div>
@@ -59,7 +59,7 @@ export default function Home() {
         <p>The simple version</p>
         <div><strong>A real-life use case</strong><span>Help a parent or grandparent work with their financial institution</span></div>
         <div><strong>The institution stays in charge</strong><span>Its identity checks, document review, and final decision</span></div>
-        <div><strong>A clear ending</strong><span>One receipt shows what the representative may and may not do</span></div>
+        <div><strong>A clear ending</strong><span>One receipt shows what the person acting for them may and may not do</span></div>
       </section>
 
       <section className={styles.flowSection} id="how-it-works">
@@ -80,7 +80,7 @@ export default function Home() {
           <p className={styles.eyebrow}>What Passage does</p>
           <h2>Keeps everyone on the same page.</h2>
           <ul>
-            <li>Gives the account holder and representative separate, private steps</li>
+            <li>Gives the account holder and the person acting for them separate, private steps</li>
             <li>Shows the institution what is still missing</li>
             <li>Records exactly what the institution accepts, limits, or rejects</li>
             <li>Shares the same current decision with the people allowed to see it</li>
@@ -105,7 +105,7 @@ export default function Home() {
           <span>Follow an example from the first request to the bank’s answer. See what each person needs to do.</span>
         </div>
         <div className={styles.ctaActions}>
-          <Link className={styles.lightCta} href="/contact">Book a walkthrough</Link>
+          <Link className={styles.lightCta} href="/contact">Request a walkthrough</Link>
           <Link className={styles.textCta} href="/sample">Explore the sample</Link>
           <Link className={styles.textCta} href="/pricing">View pricing</Link>
         </div>
