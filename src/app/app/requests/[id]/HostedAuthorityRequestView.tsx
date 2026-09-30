@@ -18,6 +18,7 @@ import { MultiInstitutionOriginBadge } from "@/components/app/MultiInstitutionOr
 import { OrientationStrip } from "@/components/app/OrientationStrip";
 import { DocumentReviewStrip } from "@/components/app/DocumentReviewStrip";
 import { CopyAccessLink } from "./CopyAccessLink";
+import { CopyParticipantSecureLink } from "./CopyParticipantSecureLink";
 import { HostedAuthorityRequestLower } from "./HostedAuthorityRequestLower";
 
 export type ViewProps = NonNullable<Awaited<ReturnType<typeof import("./HostedAuthorityRequestPage").loadHostedAuthorityRequest>>>;
@@ -261,12 +262,24 @@ export function HostedAuthorityRequestView({
             <li>{record.representativeName} can continue after the account holder confirms</li>
             <li>{evaluationLimitReached || evaluationExpired ? "The free evaluation is complete. This draft stays saved and no invitation will be sent." : periodEndsAt ? `Sending uses request ${nextCount} of ${transactionLimit}; the evaluation ends ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(periodEndsAt))}` : `Sending starts the 10-day trial and uses request ${nextCount} of ${transactionLimit}`}</li>
           </ul>
-          {canActivate ? <form action={activateHostedAuthorityRequestAction}>
-            <input type="hidden" name="recordId" value={record.id} />
-            <input type="hidden" name="expectedVersion" value={record.version} />
-            <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-            <button className={styles.primary} type="submit">Send to the account holder</button>
-          </form> : governingContext.stale ? <p>Review and save the changed rules above before sending.</p> : canCoordinate ? <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link> : <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>}
+          {(() => {
+            const demoEmailsBlocked = !isDemoEmailRecipientAllowed(record.principalEmail)
+              || !isDemoEmailRecipientAllowed(record.representativeEmail);
+            if (canActivate && demoEmailsBlocked) {
+              return <p className={styles.alert} role="alert">Not sent. This address isn't approved for Demo email. Nothing was counted. Change the emails to approved Demo addresses, or use Prepare a fresh demo.</p>;
+            }
+            if (canActivate) {
+              return <form action={activateHostedAuthorityRequestAction}>
+                <input type="hidden" name="recordId" value={record.id} />
+                <input type="hidden" name="expectedVersion" value={record.version} />
+                <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+                <button className={styles.primary} type="submit">Send to the account holder</button>
+              </form>;
+            }
+            if (governingContext.stale) return <p>Review and save the changed rules above before sending.</p>;
+            if (canCoordinate) return <Link className={styles.primary} href="/pilot">Review the 90-day pilot</Link>;
+            return <p className={styles.supportingCopy}>{requestCoordinatorRecoveryMessage}</p>;
+          })()}
         </section> : <details className={`${styles.panel} ${styles.disclosurePanel}`} id="participant-access">
           <summary>Participant access ({invitations?.length ?? 0} people)</summary>
           <p>{participantAccessDescription}</p>
@@ -279,14 +292,24 @@ export function HostedAuthorityRequestView({
             const demoRecipientBlocked = !isDemoEmailRecipientAllowed(String(invitation.email_normalized));
             return <li key={String(invitation.id)}>
               <span>{role === "principal" ? "Account holder" : "Representative"}: {String(invitation.email_normalized)} ({invitationStatusLabel(invitation.status)}; {participantDeliveryFaceLabel({ status: notification?.delivery_status, lastErrorCode: notification?.last_error_code, demoRecipientBlocked })})</span>
-              {canReissue && !demoRecipientBlocked ? <form action={reissueParticipantInvitationAction}>
-                <input type="hidden" name="recordId" value={record.id} />
-                <input type="hidden" name="participantRole" value={role} />
-                <input type="hidden" name="expectedRecordVersion" value={record.version} />
-                <input type="hidden" name="expectedInvitationVersion" value={Number(invitation.version)} />
-                <input type="hidden" name="idempotencyKey" value={randomUUID()} />
-                <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send receipt link" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
-              </form> : null}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-start", marginTop: 6 }}>
+                {canReissue && !demoRecipientBlocked ? <form action={reissueParticipantInvitationAction}>
+                  <input type="hidden" name="recordId" value={record.id} />
+                  <input type="hidden" name="participantRole" value={role} />
+                  <input type="hidden" name="expectedRecordVersion" value={record.version} />
+                  <input type="hidden" name="expectedInvitationVersion" value={Number(invitation.version)} />
+                  <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+                  <button className={styles.secondary} type="submit">{accessPurpose === "receipt" ? "Send receipt link" : accessPurpose === "resume" ? "Send secure resume link" : "Send fresh link"}</button>
+                </form> : null}
+                {canReissue ? <CopyParticipantSecureLink
+                  recordId={record.id}
+                  participantRole={role}
+                  expectedRecordVersion={record.version}
+                  expectedInvitationVersion={Number(invitation.version)}
+                  idempotencyKey={randomUUID()}
+                  email={String(invitation.email_normalized)}
+                /> : null}
+              </div>
               {canReissue ? <span>{freshLinkHelpText(demoRecipientBlocked)}</span> : null}
             </li>;
           })}</ul>

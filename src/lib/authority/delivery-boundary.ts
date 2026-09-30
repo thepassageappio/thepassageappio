@@ -35,3 +35,38 @@ export function isDemoEmailRecipientAllowed(
 
   return demoAllowedRecipients(allowlist).has(recipient);
 }
+
+/**
+ * Demo evaluation slot rule (#170):
+ * - A Demo / free_evaluation slot is consumed only when activate_authority_request_v1
+ *   runs after the pre-send allowlist gate passes for both participant emails.
+ * - Doomed Demo emails must fail before activate (assertDemoParticipantEmailsAllowed),
+ *   so recipient_not_allowed never burns activated_count.
+ * - Prepare-a-fresh-demo (provision_demo_run_v1) never increments activated_count.
+ * - Production / pilot metering is unchanged: this gate is Demo-only.
+ */
+export const DEMO_EVALUATION_SLOT_RULE =
+  "Demo slots count only after allowlisted activate; Prepare never counts; production metering unchanged.";
+
+/** Thrown message / RPC-style code when Demo draft/send emails are not allowlisted. */
+export const DEMO_EMAIL_RECIPIENT_NOT_ALLOWED = "demo_email_recipient_not_allowed";
+
+/**
+ * Server-side pre-send gate for Demo Path B (#168 / #170).
+ * No-op outside Demo. Throws DEMO_EMAIL_RECIPIENT_NOT_ALLOWED when either email
+ * fails isDemoEmailRecipientAllowed. Never returns the allowlist contents.
+ */
+export function assertDemoParticipantEmailsAllowed(
+  principalEmail: string,
+  representativeEmail: string,
+  environment = process.env.PASSAGE_ENVIRONMENT,
+  allowlist = process.env.PASSAGE_EMAIL_RECIPIENT_ALLOWLIST,
+) {
+  if (environment?.trim().toLowerCase() !== "demo") return;
+  if (
+    !isDemoEmailRecipientAllowed(principalEmail, environment, allowlist)
+    || !isDemoEmailRecipientAllowed(representativeEmail, environment, allowlist)
+  ) {
+    throw new Error(DEMO_EMAIL_RECIPIENT_NOT_ALLOWED);
+  }
+}

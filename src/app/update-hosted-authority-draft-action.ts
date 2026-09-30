@@ -6,6 +6,7 @@ import { getAuthorityMutationAccessContext } from "@/lib/authority/access";
 import { userErrorMessage } from "@/lib/authority/user-messages";
 import { canCoordinateAuthorityRequests } from "@/lib/authority/role-capabilities";
 import { prepareHostedAuthorityDraftContacts } from "@/lib/authority/hosted-records";
+import { assertDemoParticipantEmailsAllowed } from "@/lib/authority/delivery-boundary";
 import { createClient } from "@/lib/supabase/server";
 
 function textField(formData: FormData, name: string) {
@@ -32,6 +33,7 @@ function errorCode(error: unknown) {
     request_changed: "request_changed",
     draft_update_not_available: "draft_update_not_available",
     draft_update_input_invalid: "draft_update_input_invalid",
+    demo_email_recipient_not_allowed: "demo_email_recipient_not_allowed",
     authority_request_not_found: "request_unavailable",
     stale_authority_version: "request_changed",
     mfa_verification_required: "mfa_required",
@@ -60,6 +62,8 @@ export async function updateHostedAuthorityDraftAction(
       representativeName: textField(formData, "representativeName"),
       representativeEmail: textField(formData, "representativeEmail"),
     });
+    // Demo Path B (#168/#170): reject doomed emails before draft save can lead to activate burn.
+    assertDemoParticipantEmailsAllowed(input.principalEmail, input.representativeEmail);
 
     const supabase = await createClient();
     const { error } = await supabase.rpc("update_authority_draft_v1", {
