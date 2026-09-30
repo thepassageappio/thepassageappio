@@ -228,7 +228,7 @@ export function compilePolicyConfiguration(organizationId: string, trustedCatalo
     const path = `/channels/${channel.key}`;
     if (channel.enabled && channel.unavailableReason) invalid(path, "This channel is unavailable under the selected rules.");
     if (channel.enabled && ["online", "mobile", "api"].includes(channel.key)) {
-      if (!channel.separateIdentity) invalid(path, "The representative needs their own sign-in.");
+      if (!channel.separateIdentity) invalid(path, "The person acting for them needs their own sign-in.");
       if (!channel.requiresAcknowledgment) invalid(path, "The institution must confirm when access is set up.");
       if (channel.accessLevel === "transaction" && !channel.requiresMfa) invalid(path, "Transaction access requires an extra sign-in check.");
     }

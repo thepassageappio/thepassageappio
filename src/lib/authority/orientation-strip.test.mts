@@ -187,6 +187,20 @@ test("origin group shows multi-institution independence line", () => {
   assert.match(model.multiInstitutionLine ?? "", /only for your bank/i);
 });
 
+test("document review remaps representative certification title on the face", () => {
+  const model = buildDocumentReviewModel({
+    requirements: [
+      { id: "2", requirement_key: "representative_certification", title: "Representative certification", status: "completed" },
+    ],
+    artifacts: [],
+    recordStatus: "under_review",
+    hasDecision: false,
+  });
+  assert.ok(model);
+  assert.equal(model!.checked[0].title, "Certification from the person acting for them");
+  assert.equal(model!.checked[0].whoMustFix, "Confirmed by the person acting for them");
+});
+
 test("document review keeps received separate from checked", () => {
   const model = buildDocumentReviewModel({
     requirements: [

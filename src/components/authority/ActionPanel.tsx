@@ -170,13 +170,13 @@ function Representative({ record }: { record: AuthorityRecord }) {
   if (record.status === "ready_to_submit") {
     const fieldLabel: Record<string, string> = {
       identity_match: "Identity match result",
-      acceptance_attestation: "Representative acceptance",
+      acceptance_attestation: "Acceptance by the person acting for them",
       principal_name: "Account holder name",
       representative_name: "Name of the person acting for them",
       effective_terms: "Effective terms",
       powers: "Relevant powers",
       execution_pages: "Execution page findings",
-      agent_attestation: "Representative certification",
+      agent_attestation: "Certification from the person acting for them",
       instrument_currentness_attestation: "Statement that the POA remains current",
       address_match: "Address match result",
       document_recency: "Address document date",

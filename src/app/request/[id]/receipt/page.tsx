@@ -4,7 +4,7 @@ import { getParticipantCancellation, getParticipantDecisionReceipt, getParticipa
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
-import { authorityPurposeLabel } from "@/lib/authority/display-copy";
+import { authorityPurposeLabel, roleFaceLabel } from "@/lib/authority/display-copy";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
 import { hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { resolvePermissionLabels } from "@/lib/authority/permission-catalog";
@@ -38,10 +38,10 @@ export default async function ParticipantDecisionReceiptPage({ params }: { param
     artifacts: support?.artifacts,
     originGroupId: support?.originGroupId,
   });
-  const roleLabel = receipt.participantRole === "principal" ? "Account holder" : "Person acting for them";
+  const roleLabel = roleFaceLabel(receipt.participantRole === "principal" ? "principal" : "representative", { capitalize: true });
   const changeSummary = receipt.lifecycleSummary
     ?? (receipt.currentStatus === "withdrawn"
-      ? "The representative withdrew."
+      ? "The person acting for them ended this request."
       : receipt.currentStatus === "revoked"
         ? "A revocation notice was recorded."
         : receipt.currentStatus === "expired"

@@ -26,3 +26,15 @@ export const PERSON_ACTING_GLOSS = "the person helping with the account";
 
 /** Quiet first-use gloss for the account holder (already used on staff contact). */
 export const ACCOUNT_HOLDER_GLOSS = "the person who owns the account";
+
+/**
+ * Face title for a requirement row. Remaps known catalog titles that still store
+ * legacy jargon in DB (requirement_key unchanged; no migration).
+ */
+export function requirementFaceTitle(requirementKey: string, storedTitle?: string | null): string {
+  if (requirementKey === "representative_certification") {
+    return "Certification from the person acting for them";
+  }
+  const trimmed = storedTitle?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : requirementKey.replaceAll("_", " ");
+}

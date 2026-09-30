@@ -88,7 +88,7 @@ export default async function SampleWorkflowPage() {
 
         <div className={styles.evidence}>
           <div><span>Power of attorney document</span><b>Reviewed</b></div>
-          <div><span>Representative certification</span><b>Accepted</b></div>
+          <div><span>Certification from the person acting for them</span><b>Accepted</b></div>
           <div><span>Institution identity checks</span><b>Recorded complete</b></div>
           <div><span>Institution decision</span><b>Accepted with limits</b></div>
         </div>

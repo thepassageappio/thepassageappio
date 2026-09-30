@@ -3,6 +3,7 @@ import type { HostedDecisionOutcome, HostedInstitutionDecision } from "./hosted-
 import { hostedDecisionLabel } from "./hosted-decisions.ts";
 import type { HostedAuthorityRecord, HostedAuthorityStatus } from "./hosted-records.ts";
 import { canCoordinateAuthorityRequests, canRecordAuthorityDecision } from "./role-capabilities.ts";
+import { requirementFaceTitle } from "./display-copy.ts";
 
 export type OrientationChipState = "Done" | "Needed" | "Not started" | "Sample only" | "Ended";
 
@@ -397,7 +398,7 @@ export function buildDocumentReviewModel(input: {
     if (requirement.status === "completed") {
       checked.push({
         id: String(requirement.id),
-        title: requirement.title,
+        title: requirementFaceTitle(requirement.requirement_key, requirement.title),
         whoMustFix: requirement.requirement_key === "representative_certification"
           ? "Confirmed by the person acting for them"
           : "Checked by the bank",
@@ -408,7 +409,7 @@ export function buildDocumentReviewModel(input: {
     if (artifact && artifact.review_status === "pending") {
       missing.push({
         id: String(requirement.id),
-        title: `${requirement.title}, Received, not checked yet`,
+        title: `${requirementFaceTitle(requirement.requirement_key, requirement.title)}, Received, not checked yet`,
         whoMustFix: "Staff",
         kind: "received",
       });
@@ -420,7 +421,7 @@ export function buildDocumentReviewModel(input: {
       : "Someone on this request";
     missing.push({
       id: String(requirement.id),
-      title: requirement.title,
+      title: requirementFaceTitle(requirement.requirement_key, requirement.title),
       whoMustFix: who,
       kind: "missing",
     });

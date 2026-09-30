@@ -76,7 +76,7 @@ export default async function PoliciesPage({ searchParams }: Props) {
           <h1>New York financial power of attorney</h1>
           <p>
             This checklist is for sample requests. The bank or credit union reviews the documents and
-            decides what the representative may do.
+            decides what the person acting for them may do.
           </p>
         </div>
         <span className={styles.badge}>Selected</span>

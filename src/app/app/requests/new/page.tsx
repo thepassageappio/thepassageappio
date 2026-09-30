@@ -32,7 +32,7 @@ export default async function NewHostedAuthorityRequest({ searchParams }: Props)
       <div><p className={styles.eyebrow}>New authority request</p><h1>Who needs help, and with which account?</h1><p>Save a draft first. Check the details before sending it. Drafts do not count toward your limit.</p>{useSample ? null : <Link className={styles.secondary} href="/app/requests/new?sample=1">Load sample details</Link>}</div>
     </header>
     {message ? <div className={styles.alert} role="alert">{message}</div> : null}
-    {useSample ? <div className={styles.notice} role="status"><strong>Sample details are ready.</strong> Use two test email addresses you can open separately. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> for the representative upload steps.</div> : null}
+    {useSample ? <div className={styles.notice} role="status"><strong>Sample details are ready.</strong> Use two test email addresses you can open separately. Download the <a href="/samples/fictional-poa.pdf" download>fictional POA</a> and <a href="/samples/fictional-identity.pdf" download>fictional identity file</a> for the upload steps for the person acting for them.</div> : null}
     <DraftRequestForm offered={offered} publishedVersionId={catalog.published.id} useSample={useSample} endDate={defaultEndDate.toISOString().slice(0, 10)} idempotencyKey={randomUUID()} />
   </>;
 }

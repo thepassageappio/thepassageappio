@@ -297,7 +297,7 @@ export function applyAuthorityCommand(
       eventType = "requirement.completed";
       summary = `${requirement.label} completed`;
       detail = allRequiredRequirementsComplete(record)
-        ? "All required evidence is ready. The representative can review and submit the minimum-necessary packet."
+        ? "All required evidence is ready. The person acting for them can review and submit the minimum-necessary packet."
         : "The saved result is visible to the reviewer; additional requirements remain.";
       audience = ["representative", "reviewer"];
       break;

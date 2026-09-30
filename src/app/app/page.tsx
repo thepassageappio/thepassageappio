@@ -94,7 +94,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
           <div className={styles.panelHead}><div><h2>Your reviewer access</h2><p>Your role is separated from request setup.</p></div></div>
           <ul className={styles.checklist}>
             <li>Review submitted evidence and source files</li>
-            <li>Ask the representative for a specific correction</li>
+            <li>Ask the person acting for them for a specific correction</li>
             <li>Record the institution&apos;s decision and limits</li>
             <li>An owner or operations staff member starts and sends requests</li>
           </ul>
