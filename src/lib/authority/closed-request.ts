@@ -1,7 +1,7 @@
 // Presentation only. Saved decisions and command authorization remain authoritative.
 const closedMessages: Record<string, string> = {
   declined: "A participant declined this request. No further steps are needed for this request.",
-  withdrawn: "The representative withdrew from this request. No further steps are needed for this request.",
+  withdrawn: "The person acting for them ended this request. No further steps are needed for this request.",
   canceled: "This request was canceled. No further steps are needed for this request.",
   rejected: "The institution did not accept this request. Read the saved decision for the reason.",
   revoked: "A revocation was recorded. Read the receipt and saved history for details.",

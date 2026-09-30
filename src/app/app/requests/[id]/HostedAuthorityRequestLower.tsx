@@ -3,6 +3,7 @@ import type { HostedInstitutionDecision } from "@/lib/authority/hosted-decisions
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { recordInstitutionDecisionAction, requestHostedAuthorityInformationAction, reviewEvidenceArtifactAction } from "@/app/account-actions";
+import { requirementFaceTitle } from "@/lib/authority/display-copy";
 import { HOSTED_ACTIONS, hostedStatusLabel } from "@/lib/authority/hosted-records";
 import { NySoleRefusalNotice } from "@/components/app/NySoleRefusalNotice";
 import { hostedDecisionLabel } from "@/lib/authority/hosted-decisions";
@@ -70,7 +71,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
             const artifact = evidenceRows.find((item) => String(item.requirement_id) === String(requirement.id));
             return <li key={String(requirement.id)}>
               <div>
-                <strong>{String(requirement.title)}</strong>
+                <strong>{requirementFaceTitle(String(requirement.requirement_key), String(requirement.title))}</strong>
                 <span>{String(requirement.reason)}</span>
                 <span>Status: {requirementStatusLabel(requirement.status)}</span>
                 {artifact ? <><span>Source: {String(artifact.original_filename)} · {Math.max(1, Math.round(Number(artifact.byte_size) / 1024))} KB</span><a href={`/app/evidence/${encodeURIComponent(String(artifact.id))}`} download>Open authorized source</a></> : null}
@@ -114,7 +115,7 @@ export function HostedAuthorityRequestLower({ p }: { p: LowerProps }) {
             <input type="hidden" name="expectedVersion" value={record.version} />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <label htmlFor="information-requirement">Related requirement</label>
-            <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{requirementRows.map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{String(item.title)}</option>)}</select>
+            <select id="information-requirement" name="requirementKey" defaultValue="identity_evidence">{requirementRows.map((item) => <option key={String(item.id)} value={String(item.requirement_key)}>{requirementFaceTitle(String(item.requirement_key), String(item.title))}</option>)}</select>
             <label htmlFor="information-message">What do you need them to send or fix?</label>
             <textarea id="information-message" name="message" minLength={3} maxLength={500} required placeholder="Describe the exact information needed to continue this review." />
             <button className={styles.secondary} type="submit">Ask for something else</button>

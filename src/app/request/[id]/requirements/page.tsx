@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
+import { requirementFaceTitle } from "@/lib/authority/display-copy";
 import { evidenceRequirementStatusLabel } from "@/lib/authority/participant-evidence";
 import { participantRequirementsError, participantRequirementsNotice } from "@/lib/authority/participant-requirements-notice";
 import { getParticipantEvidenceContext, getParticipantRequestContext } from "@/lib/authority/participant-session";
@@ -39,7 +40,7 @@ export default async function ParticipantRequirementsPage({ params, searchParams
     <div className={styles.documentList}>
       {evidence.requirements.map((requirement) => <section className={styles.document} key={requirement.id}>
         <div>
-          <strong>{requirement.ordinal}. {requirement.title}</strong>
+          <strong>{requirement.ordinal}. {requirementFaceTitle(requirement.requirementKey, requirement.title)}</strong>
           <span>{requirement.reason}</span>
           <span>Status: {evidenceRequirementStatusLabel(requirement.status)}</span>
           {requirement.artifact ? <span>File: {requirement.artifact.originalFilename} · {Math.max(1, Math.round(requirement.artifact.byteSize / 1024))} KB</span> : null}

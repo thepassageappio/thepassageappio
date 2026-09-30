@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { authorityPurposeLabel, roleFaceLabel } from "./display-copy.ts";
+import { authorityPurposeLabel, requirementFaceTitle, roleFaceLabel } from "./display-copy.ts";
 
 test("legacy financial POA purpose is presented in plain language", () => {
   assert.equal(
@@ -23,4 +23,15 @@ test("roleFaceLabel uses Steve-locked Path B vocabulary", () => {
   assert.equal(roleFaceLabel("representative", { capitalize: true }), "Person acting for them");
   assert.equal(roleFaceLabel("staff"), "staff");
   assert.equal(roleFaceLabel("staff", { capitalize: true }), "Staff");
+});
+
+test("requirementFaceTitle remaps representative certification for the face", () => {
+  assert.equal(
+    requirementFaceTitle("representative_certification", "Representative certification"),
+    "Certification from the person acting for them",
+  );
+  assert.equal(
+    requirementFaceTitle("power_of_attorney", "Power of attorney document"),
+    "Power of attorney document",
+  );
 });

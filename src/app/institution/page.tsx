@@ -19,7 +19,7 @@ const statusLabel: Record<AuthorityStatus, string> = {
   accepted: "Accepted",
   accepted_with_limits: "Accepted with limits",
   rejected: "Rejected",
-  declined: "Representative declined",
+  declined: "The person acting for them declined",
   withdrawn: "The person acting for them ended this request",
   revoked: "Revoked",
   expired: "Expired",

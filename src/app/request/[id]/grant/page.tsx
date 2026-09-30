@@ -70,7 +70,7 @@ export default async function PrincipalGrantPage({ params, searchParams }: { par
         <label className={decisionStyles.decisionField}>Reason<textarea name="reason" required minLength={3} maxLength={500} placeholder="Explain why this request should stop." /></label>
         <label className={styles.check}>
           <input type="checkbox" name="acknowledged" required />
-          <span>I understand this closes the request and the representative will not be able to continue.</span>
+          <span>I understand this closes the request and the person acting for them will not be able to continue.</span>
         </label>
         <button className={styles.secondary} type="submit">Decline and close request</button>
       </form>

@@ -154,13 +154,13 @@ const noticeMessages: Record<string, string> = {
   request_activated_delivery_pending: "Your request started and counts toward your limit. The email service did not accept the account holder’s invitation. The person acting for them must wait.",
   participant_invitation_submitted: "The email service accepted the new invitation. Delivery is not yet confirmed.",
   participant_invitation_delivery_pending: "The new invitation is ready, but the email service did not accept it.",
-  evidence_review_saved: "The evidence review was saved and the representative can see the current result.",
+  evidence_review_saved: "The evidence review was saved and the person acting for them can see the current result.",
   institution_decision_saved: "The decision and receipt were saved together.",
   institution_decision_saved_receipts_submitted: "The decision was saved. Both receipt emails were passed to the email service. Delivery is not yet confirmed.",
   institution_decision_saved_receipts_pending: "The decision was saved. One or more receipt emails need attention; send a fresh receipt link below.",
   authority_revocation_saved: "The revocation notice was saved. The receipt now says the institution should no longer rely on it.",
   authority_expiration_saved: "The request expiration was saved to the receipt.",
-  information_requested: "Your question was saved. The representative can now see it.",
+  information_requested: "Your question was saved. The person acting for them can now see it.",
   demo_run_prepared: "A fresh sample request is ready. Nothing was sent or counted, and earlier demo runs were not changed.",
 };
 

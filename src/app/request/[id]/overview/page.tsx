@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccountFrame } from "@/components/account/AccountFrame";
 import styles from "@/components/account/account.module.css";
 import { closedRequestMessage } from "@/lib/authority/closed-request";
-import { authorityPurposeLabel } from "@/lib/authority/display-copy";
+import { authorityPurposeLabel, roleFaceLabel } from "@/lib/authority/display-copy";
 import { respondToAuthorityInformationAction, submitAuthorityForReviewAction, withdrawAuthorityResponsibilityAction } from "@/app/participant-actions";
 import { HOSTED_ACTIONS } from "@/lib/authority/hosted-records";
 import { getParticipantDecisionReceipt, getParticipantInformationRequest, getParticipantRequestContext } from "@/lib/authority/participant-session";
@@ -43,7 +43,7 @@ const RECEIPT_STATUSES = new Set(["accepted", "accepted_with_limits", "rejected"
 const LATER_CHANGE_RECEIPT_STATUSES = new Set(["revoked", "expired", "withdrawn"]);
 
 const NOTICE_MESSAGES: Record<string, string> = {
-  principal_confirm: "Your confirmation was saved. The representative can now review the request.",
+  principal_confirm: "Your confirmation was saved. The person acting for them can now review the request.",
   principal_confirm_delivery_pending: "Your confirmation was saved. Email delivery for the person acting for them needs attention, and the institution can send a fresh link.",
   principal_decline: "Your decision was saved. This request is now closed.",
   representative_accept: "Your choice was saved. You can now add the documents and information needed.",
@@ -121,7 +121,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <p>{context.accountBoundary}</p>
     </div>
     <div className={styles.facts}>
-      <div className={styles.fact}><span>Your role</span><strong>{isPrincipal ? "Account holder" : "Person acting for them"}</strong></div>
+      <div className={styles.fact}><span>Your role</span><strong>{roleFaceLabel(isPrincipal ? "principal" : "representative", { capitalize: true })}</strong></div>
       <div className={styles.fact}><span>Other person</span><strong>{context.otherPersonName}</strong></div>
       <div className={styles.fact}><span>Current status</span><strong>{STATUS_LABELS[context.status] ?? "Request updated"}</strong></div>
       <div className={styles.fact}><span>Request ends</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(context.validUntil))}</strong></div>
@@ -159,7 +159,7 @@ export default async function ParticipantOverviewPage({ params, searchParams }: 
       <p className={styles.legal}>Your response is saved with this request and can be seen by the institution reviewing it.</p>
     </div> : null}
     {!isPrincipal && WITHDRAWAL_STATUSES.has(context.status) ? <details className={styles.summary}>
-      <summary>Can no longer serve as representative?</summary>
+      <summary>Can you no longer act for them?</summary>
       <p>You can end your participation in this request. This does not delete the record already saved.</p>
       <form action={withdrawAuthorityResponsibilityAction} className={styles.field}>
         <input type="hidden" name="recordId" value={context.authorityRecordId} />

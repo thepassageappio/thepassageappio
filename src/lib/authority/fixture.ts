@@ -36,8 +36,8 @@ export const SANDBOX_POLICY: PolicyVersionSnapshot = {
     },
     {
       key: "representative_acceptance",
-      label: "Representative acceptance",
-      description: "Record that the representative understands and accepts the duties and limits.",
+      label: "Acceptance by the person acting for them",
+      description: "Record that the person acting for them understands and accepts the duties and limits.",
       reason: "The role is never accepted merely by opening an invitation.",
       owner: "representative",
       required: true,
@@ -54,7 +54,7 @@ export const SANDBOX_POLICY: PolicyVersionSnapshot = {
     },
     {
       key: "agent_certification",
-      label: "Representative certification",
+      label: "Certification from the person acting for them",
       description: "Confirm that the power of attorney remains in effect and that you are acting within its terms.",
       reason: "New York law permits a financial institution to request an agent certification in appropriate circumstances.",
       owner: "representative",
@@ -63,7 +63,7 @@ export const SANDBOX_POLICY: PolicyVersionSnapshot = {
     },
     {
       key: "representative_identity",
-      label: "Representative identity",
+      label: "Identity of the person acting for them",
       description: "Confirm that the invited representative matches the person completing the request.",
       reason: "The institution must know who will present the accepted authority.",
       owner: "representative",
@@ -171,7 +171,7 @@ function baseRecord(options: {
       {
         key: "change_contact_details",
         label: "Change contact details",
-        description: "The representative may discuss service but cannot change the customer's address, phone, or email.",
+        description: "The person acting for them may discuss service but cannot change the customer's address, phone, or email.",
         riskTier: 2,
         category: "service",
       },
