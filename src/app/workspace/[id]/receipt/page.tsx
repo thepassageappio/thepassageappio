@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const outcomeLabel: Record<AuthorityRecord["status"], string> = {
   awaiting_principal: "Waiting for confirmation",
   awaiting_representative: "Waiting for representative",
-  evidence_required: "Evidence in progress",
+  evidence_required: "Papers still needed",
   ready_to_submit: "Ready to send",
   under_review: "Institution review",
   information_requested: "More information requested",
@@ -23,7 +23,7 @@ const outcomeLabel: Record<AuthorityRecord["status"], string> = {
   accepted_with_limits: "Accepted with limits",
   rejected: "Not accepted",
   declined: "Representative declined",
-  withdrawn: "Representative withdrew",
+  withdrawn: "The person acting for them ended this request",
   revoked: "Revoked",
   expired: "Expired",
 };

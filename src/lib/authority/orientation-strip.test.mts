@@ -40,7 +40,7 @@ test("under review answers five questions without a decision", () => {
     ],
   });
   assert.equal(model.statusSentence, "The bank can decide now.");
-  assert.match(model.nextLine, /Bank reviewer/);
+  assert.match(model.nextLine, /Staff/);
   assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
   assert.equal(model.primaryAction?.label, "Review and decide");
   assert.equal(model.decisionLine, "Not decided yet.");
@@ -261,10 +261,10 @@ test("received evidence directs the bank while preserving representative work", 
   const input = { record: { ...baseRecord, status: "evidence_required" as const }, role: "owner" as const, decision: null, requirements, artifacts };
   const model = buildCaseOrientation(input);
   assert.equal(model.primaryAction?.href, "#required-information");
-  assert.match(model.nextLine, /Bank reviewer/);
+  assert.match(model.nextLine, /Staff/);
   assert.doesNotMatch(model.nextLine, /\(viewer\)|\(staff\)|\(owner\)/);
   const documents = buildDocumentReviewModel({ requirements, artifacts, recordStatus: "evidence_required", hasDecision: false });
-  assert.equal(documents?.checked[0].whoMustFix, "Confirmed by the representative");
+  assert.equal(documents?.checked[0].whoMustFix, "Confirmed by the person acting for them");
   const unfinished = buildCaseOrientation({ ...input, requirements: requirements.map(item => item.id === "2" ? { ...item, status: "pending" } : item) });
   assert.match(unfinished.nextLine, /Riley Rep/);
 });
@@ -361,7 +361,7 @@ test("checks complete before submit waits on representative and keeps decide blo
   assert.equal(model!.ready, false);
   assert.equal(
     model!.readyLabel,
-    "All required checks are complete. Waiting for the representative to review and send.",
+    "All required checks are complete. Waiting for the person acting for them to review and send.",
   );
 });
 

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Passage Authority | Clear Financial Power of Attorney Requests",
     template: "%s | Passage Authority",
   },
-  description: "Help an account holder, representative, and financial institution complete a power of attorney request and see the institution's decision.",
+  description: "Help an account holder, a person acting for them, and a financial institution complete a power of attorney request and see the institution's decision.",
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],

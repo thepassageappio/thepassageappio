@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const journey = [
   { number: "01", actor: "Institution", title: "Starts one bounded request", detail: "Northstar Credit Union names the account relationship, the two participants, and the actions Maya is asking to perform." },
   { number: "02", actor: "Account holder", title: "Confirms the request", detail: "Eleanor uses her private link to confirm Maya, the account boundary, the requested actions, and the end date." },
-  { number: "03", actor: "Representative", title: "Accepts responsibility", detail: "Maya uses a different private link, accepts her responsibilities, and supplies the requested sample evidence." },
+  { number: "03", actor: "Person acting for them", title: "Accepts responsibility", detail: "Maya uses a different private link, accepts her responsibilities, and supplies the requested sample evidence." },
   { number: "04", actor: "Institution reviewer", title: "Records the decision", detail: "The reviewer applies the institution's own legal, identity, fraud, and policy process, then accepts the request with explicit limits." },
 ];
 
@@ -38,7 +38,7 @@ export default async function SampleWorkflowPage() {
           <p className={styles.lede}>This example uses made-up people and a credit union. Sign in with Google or email, then agree to receive follow-up emails to open it. You do not need an authenticator app to view the example.</p>
           <div className={styles.heroActions}>
             <a className={styles.primary} href="#workflow">Start the sample <span>↓</span></a>
-            <Link className={styles.secondary} href="/contact">Book a guided walkthrough</Link>
+            <Link className={styles.secondary} href="/contact">Request a walkthrough</Link>
           </div>
         </div>
         <aside className={styles.sampleNotice} aria-label="Sample boundaries">
@@ -51,7 +51,7 @@ export default async function SampleWorkflowPage() {
       <section className={styles.workflow} id="workflow">
         <div className={styles.heading}>
           <p className={styles.eyebrow}>The shared workflow</p>
-          <h2>See the request as the account holder, representative, or institution team.</h2>
+          <h2>See the request as the account holder, the person acting for them, or the institution team.</h2>
         </div>
         <ol className={styles.steps}>
           {journey.map((step) => (
@@ -72,7 +72,7 @@ export default async function SampleWorkflowPage() {
 
         <div className={styles.people}>
           <article><i>EC</i><div><strong>Eleanor Carter</strong><span>Account holder</span><small>Request confirmed</small></div></article>
-          <article><i>MC</i><div><strong>Maya Carter</strong><span>Representative</span><small>Responsibilities accepted</small></div></article>
+          <article><i>MC</i><div><strong>Maya Carter</strong><span>Person acting for them</span><small>Responsibilities accepted</small></div></article>
         </div>
 
         <div className={styles.scopeGrid}>
@@ -95,7 +95,7 @@ export default async function SampleWorkflowPage() {
 
         <div className={styles.receipt}>
           <div><p>Decision receipt</p><strong>PAR-DEMO-4405</strong></div>
-          <p>The account holder, representative, and institution receive the same final scope and limits. Passage preserves what the institution decided and when; the institution remains responsible for access in its systems.</p>
+          <p>The account holder, the person acting for them, and the institution receive the same final scope and limits. Passage preserves what the institution decided and when; the institution remains responsible for access in its systems.</p>
         </div>
       </section>
 

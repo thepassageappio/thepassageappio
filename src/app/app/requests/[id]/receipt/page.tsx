@@ -75,7 +75,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
   const canChangeLifecycle = mayDecide && ["accepted", "accepted_with_limits"].includes(record.status);
   const canExpire = canChangeLifecycle && new Date(record.validUntil) <= new Date();
   const canSendReceipts = mayDecide;
-  const roleLabels: Record<string, string> = { owner: "Institution owner", admin: "Institution administrator", reviewer: "Institution reviewer" };
+  const roleLabels: Record<string, string> = { owner: "Staff", admin: "Staff", reviewer: "Staff" };
   const notice = userNoticeMessage(query.notice);
   const error = userErrorMessage(query.error);
   const decisionSinceChanged = record.status === "revoked" || record.status === "expired" || record.status === "withdrawn";
@@ -86,7 +86,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
         : record.status === "expired"
           ? "expired"
           : record.status === "withdrawn"
-            ? "the representative withdrew"
+            ? "the person acting for them ended this request"
             : "updated"))
     : null;
   const requirements = (requirementRows ?? []).map((item) => ({
@@ -151,7 +151,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
           <p className={receiptStyles.reason}>{decision.reason}</p>
           <dl className={styles.policyFacts}>
             <div><dt>Institution</dt><dd>{access.organization.displayName}</dd></div>
-            <div><dt>Recorded by</dt><dd>{roleLabels[decision.decidedByRole] ?? "Authorized institution reviewer"}</dd></div>
+            <div><dt>Recorded by</dt><dd>{roleLabels[decision.decidedByRole] ?? "Staff"}</dd></div>
             <div><dt>Recorded at</dt><dd>{dateTime(decision.decidedAt)}</dd></div>
             <div><dt>Workflow</dt><dd>New York financial power of attorney</dd></div>
             {nyRulesLabel ? <div><dt>New York rules</dt><dd>{nyRulesLabel}</dd></div> : null}
@@ -169,7 +169,7 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
           <div className={styles.panelHead}><div><h2 title="The exact people, account, purpose, and end date this decision applies to.">Request boundary</h2><p>This receipt covers only the people, account, purpose, and end date shown here.</p></div></div>
           <dl className={styles.policyFacts}>
             <div><dt>Account holder</dt><dd>{record.principalName}</dd></div>
-            <div><dt>Representative</dt><dd>{record.representativeName}</dd></div>
+            <div><dt>Person acting for them</dt><dd>{record.representativeName}</dd></div>
             <div><dt>Purpose</dt><dd>{authorityPurposeLabel(record.purpose)}</dd></div>
             <div><dt>Account relationship</dt><dd>{record.accountBoundary}</dd></div>
             <div><dt>End date</dt><dd>{dateTime(record.validUntil)}</dd></div>
@@ -197,9 +197,9 @@ export default async function HostedDecisionReceiptPage({ params, searchParams }
             <input type="hidden" name="lifecycleAction" value="revoke" />
             <input type="hidden" name="idempotencyKey" value={randomUUID()} />
             <label htmlFor="revocation-reason">Revocation notice reason</label>
-            <textarea id="revocation-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain who reported the revocation and why the institution should stop relying on this receipt." />
-            <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /><span>I confirm the institution received a revocation notice and should end future reliance on this receipt.</span></label>
-            <button className={styles.dangerButton} type="submit">Record revocation notice</button>
+            <textarea id="revocation-reason" name="reason" minLength={3} maxLength={500} required placeholder="Explain who said to stop, and why the bank should stop using this answer." />
+            <label className={styles.confirmation}><input type="checkbox" name="acknowledged" required /><span>I confirm the bank got a stop notice and should not use this answer going forward.</span></label>
+            <button className={styles.dangerButton} type="submit">Record stop notice</button>
           </form> : null}
           {canExpire ? <form action={recordAuthorityLifecycleAction} className={receiptStyles.expireForm}>
             <input type="hidden" name="recordId" value={record.id} />

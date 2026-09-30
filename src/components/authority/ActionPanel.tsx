@@ -171,8 +171,8 @@ function Representative({ record }: { record: AuthorityRecord }) {
     const fieldLabel: Record<string, string> = {
       identity_match: "Identity match result",
       acceptance_attestation: "Representative acceptance",
-      principal_name: "Name of person granting authority",
-      representative_name: "Representative name",
+      principal_name: "Account holder name",
+      representative_name: "Name of the person acting for them",
       effective_terms: "Effective terms",
       powers: "Relevant powers",
       execution_pages: "Execution page findings",

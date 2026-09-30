@@ -20,7 +20,7 @@ export function CommercialHeader({ active }: { active?: "integrations" | "securi
       </nav>
       <div className={polish.headerActions}>
         <Link className={polish.signInLink} href="/start?intent=sign-in">Sign in</Link>
-        <Link className={`${styles.headerCta} ${polish.headerCta}`} href="/contact">Book a demo</Link>
+        <Link className={`${styles.headerCta} ${polish.headerCta}`} href="/contact">Request a walkthrough</Link>
       </div>
     </header>
   );

@@ -51,7 +51,7 @@ export default async function MultiInstitutionSubmittedPage({ params }: Props) {
       <ul className={wizardStyles.targetList}>
         {matched.map((target) => (
           <li key={target.id} className={wizardStyles.targetRow}>
-            <div><strong>{target.targetLabel}</strong><span className={wizardStyles.badgeMatched}>{deliveryComplete ? "Waiting on the account holder and representative" : "Request saved. Check delivery status above."}</span></div>
+            <div><strong>{target.targetLabel}</strong><span className={wizardStyles.badgeMatched}>{deliveryComplete ? "Waiting on the account holder and the person acting for them" : "Request saved. Check delivery status above."}</span></div>
           </li>
         ))}
         {unmatched.map((target) => (

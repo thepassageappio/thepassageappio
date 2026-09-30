@@ -159,7 +159,7 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
 
       {step === 0 ? (
         <section className={styles.form}>
-          <p className={styles.legend}>The <strong>account holder</strong> is the person whose accounts this is about. The <strong>representative</strong> is the person named to help.</p>
+          <p className={styles.legend}>The <strong>account holder</strong> is the person whose accounts this is about. The <strong>person acting for them</strong> is the person named to help.</p>
           <div className={wizardStyles.grid2}>
             <label className={styles.field}>Account holder&rsquo;s name
               <input value={details.principalName} onChange={(event) => setDetails({ ...details, principalName: event.target.value })} required />
@@ -167,10 +167,10 @@ export function MultiInstitutionWizard({ initialContext }: { initialContext: Req
             <label className={styles.field}>Account holder&rsquo;s email
               <input type="email" value={details.principalEmail} onChange={(event) => setDetails({ ...details, principalEmail: event.target.value })} required />
             </label>
-            <label className={styles.field}>Representative&rsquo;s name
+            <label className={styles.field}>Name of the person acting for them
               <input value={details.representativeName} onChange={(event) => setDetails({ ...details, representativeName: event.target.value })} required />
             </label>
-            <label className={styles.field}>Representative&rsquo;s email
+            <label className={styles.field}>Email for the person acting for them
               <input type="email" value={details.representativeEmail} onChange={(event) => setDetails({ ...details, representativeEmail: event.target.value })} required />
             </label>
           </div>

@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { isDemoEmailRecipientAllowed } from "./delivery-boundary.ts";
-import { authorityPurposeLabel } from "./display-copy.ts";
+import { authorityPurposeLabel, roleFaceLabel } from "./display-copy.ts";
 
 export type ParticipantInvitationDelivery = {
   invitationId: string;
@@ -45,7 +45,7 @@ export function participantInvitationIdempotencyKey(delivery: ParticipantInvitat
 }
 
 export function buildParticipantInvitationEmail(delivery: ParticipantInvitationDelivery) {
-  const role = delivery.participantRole === "principal" ? "person granting authority" : "representative";
+  const role = roleFaceLabel(delivery.participantRole);
   const isResume = delivery.participantRole === "representative" && delivery.accessPurpose === "resume";
   const isReceipt = delivery.accessPurpose === "receipt";
   const action = delivery.participantRole === "principal"

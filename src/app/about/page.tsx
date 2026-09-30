@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  ["1", "The institution starts the request", "It enters the account holder, the representative, the account involved, and what the representative wants to do."],
-  ["2", "Each person confirms their part", "The account holder and representative receive different private links. Each sees only the questions meant for them."],
+  ["1", "The institution starts the request", "It enters the account holder, the person acting for them, the account involved, and what the person acting for them wants to do."],
+  ["2", "Each person confirms their part", "The account holder and the person acting for them receive different private links. Each sees only the questions meant for them."],
   ["3", "The institution performs its checks", "The institution follows its own process to check identity, review the power of attorney, and apply legal, fraud, and account rules."],
   ["4", "The institution gives an answer", "It accepts the request, accepts it with limits, or rejects it. Passage shares a receipt showing the decision."],
 ] as const;

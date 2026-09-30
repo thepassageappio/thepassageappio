@@ -24,7 +24,7 @@ export function StartSubmissionForm({ idempotencyKey }: Props) {
       <label className={styles.field}>
         How are you involved?
         <select name="requesterRelationship" required defaultValue="representative" disabled={pending}>
-          <option value="representative">I am the person named to help (the representative)</option>
+          <option value="representative">I am the person named to help (the person acting for them)</option>
           <option value="principal_self">I am the account holder</option>
           <option value="other">Someone else</option>
         </select>

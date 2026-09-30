@@ -134,7 +134,7 @@ function errorCode(error: unknown) {
     demo_fixture_not_available: "request_failed",
     "Enter the full name of each person.": "participant_name_invalid",
     "Enter a valid email address for each person.": "participant_email_invalid",
-    "The person granting authority and the representative need a different email address.": "participant_roles_must_be_distinct",
+    "The account holder and the person acting for them need a different email address.": "participant_roles_must_be_distinct",
     "Describe the account or relationship covered by this request.": "account_boundary_invalid",
     "Choose a future request end date.": "valid_until_invalid",
     "Choose at least one permitted action.": "allowed_action_invalid",

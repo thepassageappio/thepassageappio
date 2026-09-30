@@ -47,8 +47,8 @@ export function DraftRequestForm({ useSample, endDate, idempotencyKey, offered: 
         <div className={requestStyles.formGrid}>
           <label className={styles.field}>Account holder<input name="principalName" required autoComplete="name" placeholder="Full legal name" value={values.principalName} onChange={event => setValues({ ...values, principalName: event.target.value })} /></label>
           <label className={styles.field}>Account holder’s email<input name="principalEmail" value={values.principalEmail} onChange={event => setValues({ ...values, principalEmail: event.target.value })} type="email" required autoComplete="email" placeholder="name@example.com" /></label>
-          <label className={styles.field}>Representative<input name="representativeName" required autoComplete="name" placeholder="Full legal name" value={values.representativeName} onChange={event => setValues({ ...values, representativeName: event.target.value })} /></label>
-          <label className={styles.field}>Representative’s email<input name="representativeEmail" value={values.representativeEmail} onChange={event => setValues({ ...values, representativeEmail: event.target.value })} type="email" required autoComplete="email" placeholder="name@example.com" /></label>
+          <label className={styles.field}>Person acting for them<input name="representativeName" required autoComplete="name" placeholder="Full legal name" value={values.representativeName} onChange={event => setValues({ ...values, representativeName: event.target.value })} /></label>
+          <label className={styles.field}>Email for the person acting for them<input name="representativeEmail" value={values.representativeEmail} onChange={event => setValues({ ...values, representativeEmail: event.target.value })} type="email" required autoComplete="email" placeholder="name@example.com" /></label>
         </div>
       </section>
       <section className={styles.panel}>

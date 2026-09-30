@@ -55,7 +55,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
     {errorMessage ? <div className={styles.alert} role="alert">{errorMessage}</div> : null}
     <section className={`${styles.metricGrid} ${styles.compactMetrics}`} aria-label="Workspace status">
-      <div className={styles.metric}><span title="Counts a request once it has been sent to the account holder. Saved drafts do not count toward this.">Evaluation usage</span><strong>{activated} of {transactionLimit}</strong></div>
+      <div className={styles.metric}><span title="Counts a request once it has been sent to the account holder. Saved drafts do not count toward this.">Practice requests used</span><strong>{activated} of {transactionLimit}</strong></div>
       <div className={styles.metric}><span title="Requests where the institution has recorded a decision — accepted, accepted with limits, or not accepted.">Complete results</span><strong>{progress.completedCount}</strong></div>
       <div className={styles.metric}><span>{progress.daysRemaining == null ? "Evaluation timing" : "Days remaining"}</span><strong>{progress.daysRemaining == null ? "Starts on send" : progress.daysRemaining}</strong></div>
     </section>
@@ -102,7 +102,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
           <div className={styles.panelHead}><div><h2>About this evaluation</h2><p>Try the steps with made-up people and sample documents.</p></div></div>
           <ul className={styles.checklist}>
             <li>Start with a saved draft. Nothing is sent until you choose to send.</li>
-            <li>The account holder and representative each complete their own step.</li>
+            <li>The account holder and the person acting for them each complete their own step.</li>
             <li>Your institution reviews the evidence and records its decision.</li>
             <li>The receipt shows what the institution accepted and any limits.</li>
           </ul>
@@ -113,7 +113,7 @@ export default async function OrganizationHomePage({ searchParams }: Props) {
       <summary>Presenter tools</summary>
       <h2>Before you present</h2>
       <ol>
-        <li>Open separate browser profiles for the institution, account holder and representative. Keep each person in their own profile.</li>
+        <li>Open separate browser profiles for the institution, account holder, and the person acting for them. Keep each person in their own profile.</li>
         <li>Open both test inboxes. Check the recipient addresses in the draft before you send it.</li>
         <li>Download the sample files below. Use made-up information for every step.</li>
         <li>Practice the full story: confirm, upload, ask a question, answer, review and accept with limits. Compare the receipt in all three profiles.</li>

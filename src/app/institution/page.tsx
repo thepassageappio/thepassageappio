@@ -10,17 +10,17 @@ import styles from "@/components/authority/portal.module.css";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<AuthorityStatus, string> = {
-  awaiting_principal: "Waiting on person granting authority",
-  awaiting_representative: "Waiting on representative",
-  evidence_required: "Evidence in progress",
-  ready_to_submit: "Ready to submit",
-  under_review: "Needs review",
+  awaiting_principal: "Waiting on the account holder",
+  awaiting_representative: "Waiting on the person acting for them",
+  evidence_required: "Papers still needed",
+  ready_to_submit: "Ready for the person acting for them to send",
+  under_review: "Staff can decide",
   information_requested: "Information requested",
   accepted: "Accepted",
   accepted_with_limits: "Accepted with limits",
   rejected: "Rejected",
   declined: "Representative declined",
-  withdrawn: "Representative withdrew",
+  withdrawn: "The person acting for them ended this request",
   revoked: "Revoked",
   expired: "Expired",
 };
@@ -53,7 +53,7 @@ export default async function InstitutionQueue({ searchParams }: Props) {
         {messages.notice ? <div className={styles.notice} role="status">{messages.notice}</div> : null}
         {messages.error ? <div className={styles.error} role="alert">{messages.error}</div> : null}
         <section className={styles.stats} aria-label="Queue summary">
-          <div className={styles.stat}><span>Needs review</span><strong>{counts.review}</strong></div>
+          <div className={styles.stat}><span>Staff can decide</span><strong>{counts.review}</strong></div>
           <div className={styles.stat}><span>Waiting on participant</span><strong>{counts.waiting}</strong></div>
           <div className={styles.stat}><span>Institution decided</span><strong>{counts.decided}</strong></div>
           <div className={styles.stat}><span>Ended</span><strong>{counts.ended}</strong></div>
@@ -65,7 +65,7 @@ export default async function InstitutionQueue({ searchParams }: Props) {
               <thead><tr><th>Request</th><th>Status</th><th>Requested authority</th><th>Policy</th><th>Updated</th><th>Action</th></tr></thead>
               <tbody>{records.map((record) => (
                 <tr key={record.id}>
-                  <td><strong>{record.principalName} to {record.representativeName}</strong><span className={styles.muted}>Next: {record.nextOwner === "principal" ? "person granting authority" : record.nextOwner === "representative" ? "representative" : record.nextOwner === "reviewer" ? "institution reviewer" : "complete"}</span></td>
+                  <td><strong>{record.principalName} to {record.representativeName}</strong><span className={styles.muted}>Next: {record.nextOwner === "principal" ? "account holder" : record.nextOwner === "representative" ? "person acting for them" : record.nextOwner === "reviewer" ? "staff" : "complete"}</span></td>
                   <td><span className={styles.status} data-status={record.status}>{statusLabel[record.status]}</span></td>
                   <td className={styles.actionText}>{record.sourceLabel}<span className={styles.muted}>{record.actionLabel}</span></td>
                   <td>{record.policyVersion}<span className={styles.muted}>New York financial POA</span></td>

@@ -84,9 +84,9 @@ function withSingleTerminalPeriod(sentence: string): string {
 function laterChangeLine(_status: HostedAuthorityStatus, override: string | null | undefined): string {
   const raw = (override ?? "").trim();
   const token = raw.toLowerCase();
-  // Callers historically passed short tokens ("ended", "expired", "the representative withdrew").
+  // Callers historically passed short tokens ("ended", "expired", withdrew / ended-this-request).
   // Design lock: one clear Later sentence — never jam into Decision.
-  if (!raw || ["ended", "expired", "updated"].includes(token) || token.includes("withdrew")) {
+  if (!raw || ["ended", "expired", "updated"].includes(token) || token.includes("withdrew") || token.includes("ended this request")) {
     return "This answer ended. It is not the current answer.";
   }
   return withSingleTerminalPeriod(raw).replace(/\.$/u, "");
@@ -103,7 +103,7 @@ function nextActorLine(input: {
 }): string {
   const { record, decision, decisionSinceChanged, hasAskedFor, requirementsComplete, bankReviewPending } = input;
   if (bankReviewPending) {
-    return "Next: Bank reviewer — check the received files.";
+    return "Next: Staff — check the received files.";
   }
   if (decisionSinceChanged) {
     return "Next: Anyone on this request — open the receipt to see what changed.";
@@ -125,11 +125,11 @@ function nextActorLine(input: {
     return `Next: ${record.principalName} (account holder) — confirm this request.`;
   }
   if (["awaiting_representative", "evidence_required", "ready_to_submit", "information_requested"].includes(record.status)) {
-    return `Next: ${record.representativeName} (representative) — finish their steps.`;
+    return `Next: ${record.representativeName} (person acting for them) — finish their steps.`;
   }
   if (record.status === "under_review") {
     const ask = requirementsComplete ? "review and decide." : "finish the missing list.";
-    return `Next: Bank reviewer — ${ask}`;
+    return `Next: Staff — ${ask}`;
   }
   return "Next: Anyone on this request — open the receipt.";
 }
@@ -399,7 +399,7 @@ export function buildDocumentReviewModel(input: {
         id: String(requirement.id),
         title: requirement.title,
         whoMustFix: requirement.requirement_key === "representative_certification"
-          ? "Confirmed by the representative"
+          ? "Confirmed by the person acting for them"
           : "Checked by the bank",
         kind: "checked",
       });
@@ -409,14 +409,14 @@ export function buildDocumentReviewModel(input: {
       missing.push({
         id: String(requirement.id),
         title: `${requirement.title}, Received, not checked yet`,
-        whoMustFix: "Bank reviewer",
+        whoMustFix: "Staff",
         kind: "received",
       });
       continue;
     }
     const who = requirement.requirement_key === "identity_evidence" || requirement.requirement_key === "power_of_attorney"
       || requirement.requirement_key === "representative_certification"
-      ? "Representative"
+      ? "Person acting for them"
       : "Someone on this request";
     missing.push({
       id: String(requirement.id),
@@ -434,7 +434,7 @@ export function buildDocumentReviewModel(input: {
     readyLabel = "Decision already saved";
   } else if (missing.length === 0) {
     // Checks complete but representative has not submitted into bank decide yet.
-    readyLabel = "All required checks are complete. Waiting for the representative to review and send.";
+    readyLabel = "All required checks are complete. Waiting for the person acting for them to review and send.";
   }
   return {
     missing,

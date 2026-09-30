@@ -65,7 +65,7 @@ test("pack version label is plain language for staff surfaces", () => {
 test("form_class plain labels stay short and non-jargon", () => {
   assert.equal(formClassPlainLabel("statutory_short"), "Statutory short form");
   assert.equal(formClassPlainLabel("non_statutory"), "Not a statutory short form");
-  assert.equal(formClassPlainLabel("unknown"), "Form type unknown");
+  assert.equal(formClassPlainLabel("unknown"), "Form type not chosen yet");
 });
 
 test("sole-refusal soft notice is plain language without em dashes", () => {
@@ -75,8 +75,8 @@ test("sole-refusal soft notice is plain language without em dashes", () => {
 
 test("request page shows an unknown form type once, as not chosen yet before a decision", async () => {
   const { requestPageFormClassLabels } = await import("./jurisdiction-pack.ts");
-  assert.deepEqual(requestPageFormClassLabels("Form type unknown", false), { factsLabel: "Form type not chosen yet", decisionPanelLabel: null });
-  assert.deepEqual(requestPageFormClassLabels("Form type unknown", true), { factsLabel: "Form type unknown", decisionPanelLabel: null });
+  assert.deepEqual(requestPageFormClassLabels("Form type not chosen yet", false), { factsLabel: "Form type not chosen yet", decisionPanelLabel: null });
+  assert.deepEqual(requestPageFormClassLabels("Form type not chosen yet", true), { factsLabel: "Form type not chosen yet", decisionPanelLabel: null });
   assert.deepEqual(requestPageFormClassLabels("Statutory short form", false), { factsLabel: "Statutory short form", decisionPanelLabel: "Statutory short form" });
   assert.deepEqual(requestPageFormClassLabels(null, false), { factsLabel: null, decisionPanelLabel: null });
 });

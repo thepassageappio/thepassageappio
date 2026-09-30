@@ -22,7 +22,7 @@ const errorCopy: Record<string, string> = {
   link_unavailable: "This link is no longer active. A newer email may have replaced it, or the request may have closed.",
   link_expired: "This link has expired. Ask the institution to send a fresh invitation.",
   link_used: "This one-time link was already opened. Continue from that device, or ask the institution for a fresh invitation.",
-  not_ready: "The person granting authority must confirm the request before representative access can open.",
+  not_ready: "The account holder must confirm before the person acting for them can open their steps.",
   session_unavailable: "The secure session could not be opened. Try again, or ask the institution to send a fresh invitation.",
 };
 
@@ -82,7 +82,7 @@ export default async function ParticipantInvitationPage({ params, searchParams }
         ? "Open the secure receipt to see the saved result and any later changes."
         : resuming
         ? "Your earlier choice is saved. Open the request to finish the remaining steps."
-        : `You were invited as the ${preview.participantRole === "principal" ? "person granting authority" : "representative"}. Review the request before opening secure access.`}
+        : `You were invited as the ${preview.participantRole === "principal" ? "account holder" : "person acting for them"}. Review the request before opening secure access.`}
   >
     {preview.originGroupId && preview.institutionName ? (
       <div className={styles.notice} role="status">{participantBankOnlyLinkLine(preview.institutionName)}</div>

@@ -142,7 +142,7 @@ export function prepareHostedAuthorityDraftContacts(input: {
     invalid("Enter a valid email address for each person.");
   }
   if (principalEmail === representativeEmail) {
-    invalid("The person granting authority and the representative need a different email address.");
+    invalid("The account holder and the person acting for them need a different email address.");
   }
 
   return {
@@ -173,7 +173,7 @@ export function prepareHostedAuthorityDraft(
     invalid("Enter a valid email address for each person.");
   }
   if (principalEmail === representativeEmail) {
-    invalid("The person granting authority and the representative need a different email address.");
+    invalid("The account holder and the person acting for them need a different email address.");
   }
   if (accountBoundary.length < 3) {
     invalid("Describe the account or relationship covered by this request.");
@@ -245,17 +245,17 @@ export function mapHostedAuthorityEvent(row: HostedAuthorityEventRow): HostedAut
 export function hostedStatusLabel(status: HostedAuthorityStatus) {
   const labels: Record<HostedAuthorityStatus, string> = {
     draft: "Draft",
-    awaiting_principal: "Waiting on person granting authority",
-    awaiting_representative: "Waiting on representative",
-    evidence_required: "Evidence in progress",
-    ready_to_submit: "Ready to submit",
-    under_review: "Needs review",
+    awaiting_principal: "Waiting on the account holder",
+    awaiting_representative: "Waiting on the person acting for them",
+    evidence_required: "Papers still needed",
+    ready_to_submit: "Ready for the person acting for them to send",
+    under_review: "Staff can decide",
     information_requested: "Information requested",
     accepted: "Accepted",
     accepted_with_limits: "Accepted with limits",
     rejected: "Rejected",
     declined: "Request declined",
-    withdrawn: "Representative withdrew",
+    withdrawn: "The person acting for them ended this request",
     revoked: "Revoked",
     expired: "Expired",
     canceled: "Canceled",
