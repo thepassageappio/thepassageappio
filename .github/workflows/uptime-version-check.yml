@@ -1,0 +1,45 @@
+name: Uptime version check
+
+# Free tooling only: GitHub Actions schedule + curl.
+# On failure, GitHub emails the repository owner / watchers with Actions failure notifications enabled.
+
+on:
+  schedule:
+    # Every 6 hours UTC
+    - cron: "15 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime-version-check
+  cancel-in-progress: true
+
+jobs:
+  curl-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - https://thepassageapp.io
+          - https://demo.thepassageapp.io
+    steps:
+      - name: GET /api/version
+        run: |
+          set -euo pipefail
+          url="${{ matrix.host }}/api/version"
+          code=$(curl -sS -o /tmp/version.json -w "%{http_code}" --max-time 20 "$url" || true)
+          echo "host=${{ matrix.host }} http=$code"
+          cat /tmp/version.json || true
+          test "$code" = "200"
+          # Require a non-empty JSON object with a sha-ish field if present; do not fail solely on schema drift.
+          python3 - <<'PY'
+          import json,sys
+          raw=open("/tmp/version.json").read().strip()
+          data=json.loads(raw)
+          assert isinstance(data, dict) and data, "empty version payload"
+          print("ok", sorted(data.keys())[:12])
+          PY
