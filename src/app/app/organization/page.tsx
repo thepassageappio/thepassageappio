@@ -1,9 +1,13 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { createFoundingPilotInvoiceAction } from "@/app/billing-actions";
+import { setOrganizationPublicListingAction } from "@/app/organization-listing-actions";
 import styles from "@/components/app/app-shell.module.css";
 import { getAuthorityAccessContext, roleLabel } from "@/lib/authority/access";
+import { organizationPublicListingState } from "@/lib/authority/organization-public-listing";
 import { defaultPilotPeriod } from "@/lib/authority/pilot-billing";
 import { canManageBilling, canManageMembers, canViewOrganizationAudit, hasOrganizationCapability } from "@/lib/authority/role-capabilities";
+import { userErrorMessage, userNoticeMessage } from "@/lib/authority/user-messages";
 import { createClient } from "@/lib/supabase/server";
 
 const organizationTypeLabels: Record<string, string> = {
@@ -32,7 +36,7 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
-type OrganizationPageProps = { searchParams: Promise<{ billing?: string }> };
+type OrganizationPageProps = { searchParams: Promise<{ billing?: string; error?: string; notice?: string }> };
 
 export default async function OrganizationPage({ searchParams }: OrganizationPageProps) {
   const query = await searchParams;
@@ -45,7 +49,7 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
   const mayViewBilling = hasOrganizationCapability(role, "billing.view");
   const mayViewAudit = canViewOrganizationAudit(role);
   const supabase = await createClient();
-  const [planResult, memberResult, invitationResult, templateResult, auditResult, billingResult] = await Promise.all([
+  const [planResult, memberResult, invitationResult, templateResult, auditResult, billingResult, listingResult] = await Promise.all([
     supabase.from("organization_entitlements").select("offer, status, transaction_limit, activated_count, period_started_at, period_ends_at, version").eq("organization_id", access.organization.id).maybeSingle(),
     supabase.from("organization_memberships").select("role, status").eq("organization_id", access.organization.id),
     canManageAccess
@@ -58,6 +62,9 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
     mayViewBilling
       ? supabase.rpc("get_organization_billing_status_v1", { p_organization_id: access.organization.id })
       : Promise.resolve({ data: null, error: null }),
+    canManageAccess
+      ? supabase.from("organizations").select("version, listed_for_public_requests").eq("id", access.organization.id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ]);
   if (planResult.error) throw planResult.error;
   if (memberResult.error) throw memberResult.error;
@@ -65,6 +72,13 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
   if (templateResult.error) throw templateResult.error;
   if ("error" in auditResult && auditResult.error) throw auditResult.error;
   if (billingResult.error) throw billingResult.error;
+
+  // Missing column (pre-migration) or select error → setting not ready. Do not throw.
+  const listing = canManageAccess && !listingResult.error
+    ? organizationPublicListingState((listingResult.data ?? null) as Record<string, unknown> | null)
+    : { ready: false as const };
+  const pageError = userErrorMessage(query.error);
+  const pageNotice = userNoticeMessage(query.notice);
 
   const plan = planResult.data;
   const members = memberResult.data ?? [];
@@ -121,6 +135,8 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
       </nav>
 
       {query.billing && billingMessages[query.billing] ? <p className={styles.alert}>{billingMessages[query.billing]}</p> : null}
+      {pageError ? <p className={styles.alert} role="alert">{pageError}</p> : null}
+      {pageNotice ? <p className={styles.notice} role="status">{pageNotice}</p> : null}
 
       {billingNeedsAttention ? <p className={styles.alert} role="alert">
         <strong>Payment attention needed.</strong> {billing?.hosted_invoice_url
@@ -182,6 +198,36 @@ export default async function OrganizationPage({ searchParams }: OrganizationPag
           </form> : mayManageBilling && !billing?.hosted_invoice_url ? <div className={styles.panelActions}><Link className={styles.primary} href="/contact?topic=billing">Contact billing support</Link></div> : null}
         </section>
       </div>
+
+      {canManageAccess ? <section className={styles.panel}>
+        <div className={styles.panelHead}><div><h2>Requester search listing</h2><p>Choose whether people can find this institution when they start a multi-institution request.</p></div></div>
+        {listing.ready ? (
+          <form action={setOrganizationPublicListingAction} className={styles.billingForm}>
+            <input type="hidden" name="expectedVersion" value={listing.version} />
+            <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 12, gridColumn: "1 / -1", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                name="listed"
+                value="true"
+                defaultChecked={listing.listed}
+                style={{ width: 18, height: 18, marginTop: 2, accentColor: "var(--green)" }}
+              />
+              <span style={{ display: "grid", gap: 4 }}>
+                <strong style={{ fontSize: 12 }}>Show my institution in the list when people start a request</strong>
+                <small style={{ color: "var(--muted)", fontSize: 11, lineHeight: 1.45 }}>
+                  {listing.listed
+                    ? "People can find you by name and send you a request."
+                    : "People will not see you in the list. You can still send them a request link yourself."}
+                </small>
+              </span>
+            </label>
+            <button className={styles.primary} type="submit">Save listing preference</button>
+          </form>
+        ) : (
+          <p style={{ margin: 0, color: "var(--muted)", fontSize: 12 }}>This setting is not ready yet.</p>
+        )}
+      </section> : null}
 
       <section className={styles.panel}>
         <div className={styles.panelHead}><div><h2>Controlled-data pilot gates</h2><p>Trying the sample does not complete these checks.</p></div><span className={styles.badge}>Before pilot</span></div>

@@ -127,6 +127,8 @@ const errorMessages: Record<string, string> = {
   requester_attestation_required: "Check the box that says you are allowed to share these details before sending.",
   principal_confirmation_basis_required: "Answer whether the account holder can confirm this request independently.",
   principal_confirmation_reason_required: "Explain why the account holder cannot confirm this request independently.",
+  organization_changed: "Organization settings changed before your action completed. Refresh and try again.",
+  try_again_later: "Try again later.",
 };
 
 const noticeMessages: Record<string, string> = {
@@ -162,6 +164,7 @@ const noticeMessages: Record<string, string> = {
   authority_expiration_saved: "The request expiration was saved to the receipt.",
   information_requested: "Your question was saved. The person acting for them can now see it.",
   demo_run_prepared: "A fresh sample request is ready. Nothing was sent or counted, and earlier demo runs were not changed.",
+  public_listing_updated: "Your listing preference was saved.",
 };
 
 export function userErrorMessage(code: string | undefined) {
