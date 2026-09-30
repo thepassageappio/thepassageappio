@@ -266,7 +266,7 @@ export function HostedAuthorityRequestView({
             const demoEmailsBlocked = !isDemoEmailRecipientAllowed(record.principalEmail)
               || !isDemoEmailRecipientAllowed(record.representativeEmail);
             if (canActivate && demoEmailsBlocked) {
-              return <p className={styles.alert} role="alert">Not sent. This address isn't approved for Demo email. Nothing was counted. Change the emails to approved Demo addresses, or use Prepare a fresh demo.</p>;
+              return <p className={styles.alert} role="alert">Not sent. This address isn&apos;t approved for Demo email. Nothing was counted. Change the emails to approved Demo addresses, or use Prepare a fresh demo.</p>;
             }
             if (canActivate) {
               return <form action={activateHostedAuthorityRequestAction}>
